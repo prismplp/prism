@@ -74,7 +74,7 @@ void compute_max(void)
                 /*initialize for cycle */
                 cycle=0;
                 for (k = 0; k < path_ptr->children_len; k++) {
-                    if(i<=path_ptr->children[k]->id){
+                    if(eg_ptr->id<=path_ptr->children[k]->id){
                         cycle=1;
                         break;
                     }
@@ -130,7 +130,7 @@ void compute_max(void)
                 /* for cycle */
                 cycle=0;
                 for (k = 0; k < path_ptr->children_len; k++) {
-                    if(i<=path_ptr->children[k]->id){
+                    if(eg_ptr->id<=path_ptr->children[k]->id){
                         cycle=1;
                         break;
                     }
@@ -156,7 +156,9 @@ void compute_max(void)
 
                 path_ptr = path_ptr->next;
             }
-
+            if(max_path==NULL){
+                quit("Internal error: max_path\n");
+            }
             sorted_expl_graph[i]->max = max_p;
             sorted_expl_graph[i]->max_path = max_path;
         }
@@ -560,7 +562,7 @@ static void get_most_likely_path(int goal_id,
 
     alloc_viterbi_egraphs();
 
-    viterbi_egraph_size = visit_most_likely_path(sorted_expl_graph[goal_id],0);
+    viterbi_egraph_size = visit_most_likely_path(expl_graph[goal_id],0);
     /* Build the Viterbi path as a Prolog list: */
     p_goal_path = bpx_build_list();
     p_tmp = p_goal_path;
@@ -651,7 +653,7 @@ static void get_most_likely_path(int goal_id,
     *p_goal_path_ptr = p_goal_path;
     *p_subpath_goal_ptr = p_subpath_goal;
     *p_subpath_sw_ptr = p_subpath_sw;
-    *viterbi_prob_ptr = sorted_expl_graph[goal_id]->max; /* top goal's max prob */
+    *viterbi_prob_ptr = expl_graph[goal_id]->max; /* top goal's max prob */
 }
 
 /* This function returns the last index of the current path */
