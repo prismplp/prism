@@ -43,12 +43,20 @@ static V_RANK_PTR     viterbi_rank = NULL;
 void compute_max(void)
 {
     int i,k;
+    int cycle;
     double max_p,this_path_max;
     EG_PATH_PTR max_path = NULL;
     EG_NODE_PTR eg_ptr;
     EG_PATH_PTR path_ptr;
 
     if (log_scale) {
+        for (i = 0; i < sorted_egraph_size; i++) {
+            eg_ptr = sorted_expl_graph[i];
+            path_ptr = eg_ptr->path_ptr;
+            for (k = 0; k < path_ptr->children_len; k++) {
+                path_ptr->children[k]->max=-HUGE_PROB;
+            }
+        }
         for (i = 0; i < sorted_egraph_size; i++) {
             max_p = 1.0;          /* any positive value is possible */
             eg_ptr = sorted_expl_graph[i];
@@ -63,6 +71,19 @@ void compute_max(void)
             /* [Note] we perform probability computations in log-scale */
             while (path_ptr != NULL) {
                 this_path_max = 0.0;
+                /*initialize for cycle */
+                cycle=0;
+                for (k = 0; k < path_ptr->children_len; k++) {
+                    if(i<=path_ptr->children[k]->id){
+                        cycle=1;
+                        break;
+                    }
+                }
+                if(cycle){
+                    path_ptr = path_ptr->next;
+                    continue;
+                }
+
                 for (k = 0; k < path_ptr->children_len; k++) {
                     this_path_max += path_ptr->children[k]->max;
                 }
@@ -85,6 +106,13 @@ void compute_max(void)
     }
     else {
         for (i = 0; i < sorted_egraph_size; i++) {
+            eg_ptr = sorted_expl_graph[i];
+            path_ptr = eg_ptr->path_ptr;
+            for (k = 0; k < path_ptr->children_len; k++) {
+                path_ptr->children[k]->max=0.0;
+            }
+        }
+        for (i = 0; i < sorted_egraph_size; i++) {
             max_p = 0.0;
             eg_ptr = sorted_expl_graph[i];
             path_ptr = eg_ptr->path_ptr;
@@ -94,9 +122,25 @@ void compute_max(void)
                 max_p = 1.0;
                 max_path = NULL;
             }
+            max_path = NULL;
+            max_p=0.0;
 
             while (path_ptr != NULL) {
                 this_path_max = 1.0;
+                /* for cycle */
+                cycle=0;
+                for (k = 0; k < path_ptr->children_len; k++) {
+                    if(i<=path_ptr->children[k]->id){
+                        cycle=1;
+                        break;
+                    }
+                }
+                if(cycle){
+                    path_ptr->max = 0;
+                    path_ptr = path_ptr->next;
+                    continue;
+                }
+                
                 for (k = 0; k < path_ptr->children_len; k++) {
                     this_path_max *= path_ptr->children[k]->max;
                 }
@@ -474,7 +518,6 @@ static int visit_most_likely_path(EG_NODE_PTR eg_ptr,
     EG_PATH_PTR max_path;
 
     curr_vindex = start_vindex;
-
     if (curr_vindex >= max_viterbi_egraph_size)
         expand_viterbi_egraphs(curr_vindex + 1);
 
@@ -490,6 +533,9 @@ static int visit_most_likely_path(EG_NODE_PTR eg_ptr,
 
     for (k = 0; k < max_path->children_len; k++) {
         if (max_path->children == NULL) quit("Internal error: visit_most_likely_path\n");
+        if(eg_ptr->max_path->children[k]->id==eg_ptr->id){
+                quit("Internal error: visit_most_likely_path\n");
+        }
         curr_vindex =
             visit_most_likely_path(max_path->children[k],curr_vindex);
     }
@@ -514,8 +560,7 @@ static void get_most_likely_path(int goal_id,
 
     alloc_viterbi_egraphs();
 
-    viterbi_egraph_size = visit_most_likely_path(expl_graph[goal_id],0);
-
+    viterbi_egraph_size = visit_most_likely_path(sorted_expl_graph[goal_id],0);
     /* Build the Viterbi path as a Prolog list: */
     p_goal_path = bpx_build_list();
     p_tmp = p_goal_path;
@@ -606,7 +651,7 @@ static void get_most_likely_path(int goal_id,
     *p_goal_path_ptr = p_goal_path;
     *p_subpath_goal_ptr = p_subpath_goal;
     *p_subpath_sw_ptr = p_subpath_sw;
-    *viterbi_prob_ptr = expl_graph[goal_id]->max; /* top goal's max prob */
+    *viterbi_prob_ptr = sorted_expl_graph[goal_id]->max; /* top goal's max prob */
 }
 
 /* This function returns the last index of the current path */

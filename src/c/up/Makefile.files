@@ -23,7 +23,8 @@ OBJS = graph.$(O)             \
        viterbi.$(O)           \
        hindsight.$(O)         \
        flags.$(O)             \
-       util.$(O)
+       util.$(O)              \
+       prefix.$(O)
 
 ##----------------------------------------------------------------------
 
@@ -70,5 +71,6 @@ graph_aux.$(O)    : $(BPX_H) $(ERR_H) $(UP_H) graph_aux.h
 flags.$(O)        : $(BPX_H) $(ERR_H) $(UP_H) flags.h
 util.$(O)         : $(BPX_H) $(ERR_H) $(UP_H) util.h
 error.$(O)        : $(BPX_H) $(ERR_H) $(UP_H)
+prefix.$(O)       : $(BPX_H) $(ERR_H) $(UP_H) prefix.h
 
 ##----------------------------------------------------------------------

@@ -43,7 +43,12 @@ PL_MP    = mp/mp_main.pl        \
 
 PL_BP    = bp/eval.pl
 
-PL_UP_ALL   = $(PL_CORE) $(PL_UP) $(PL_TRANS) $(PL_BP)
+PL_PREFIX= prefix/prefix.pl      \
+           prefix/trans_graph.pl \
+           prefix/find_scc.pl    \
+           prefix/solve_graph.pl
+
+PL_UP_ALL   = $(PL_CORE) $(PL_UP) $(PL_TRANS) $(PL_BP) $(PL_PREFIX)
 PL_MP_ALL   = $(PL_MP)
 PL_BAT_ALL  = $(PL_BAT)
 

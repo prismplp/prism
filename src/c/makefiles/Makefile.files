@@ -35,7 +35,12 @@ UP_OBJS   = up$(S)graph.$(O)            \
             up$(S)viterbi.$(O)          \
             up$(S)hindsight.$(O)        \
             up$(S)flags.$(O)            \
-            up$(S)util.$(O)
+            up$(S)util.$(O)             \
+            up$(S)prefix.$(O)           \
+            lapack$(S)liblapack.$(A)    \
+            lapack$(S)liblapacke.$(A)   \
+            lapack$(S)libtmglib.$(A)    \
+            lapack$(S)libblas.$(A)      
 
 MP_OBJS   = mp$(S)mp_core.$(O)          \
             mp$(S)mp_em_aux.$(O)        \

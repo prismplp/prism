@@ -40,6 +40,8 @@ int pc_import_sorted_graph_gid_2(void);
 int pc_import_sorted_graph_paths_2(void);
 int pc_get_gnode_inside_2(void);
 int pc_get_gnode_outside_2(void);
+int pc_set_gnode_inside_2(void);
+int pc_set_gnode_outside_2(void);
 int pc_get_gnode_viterbi_2(void);
 int pc_get_snode_inside_2(void);
 int pc_get_snode_expectation_2(void);

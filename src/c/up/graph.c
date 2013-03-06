@@ -738,6 +738,30 @@ int pc_get_gnode_outside_2(void)
                      bpx_build_float(expl_graph[idx]->outside));
 }
 
+int pc_set_gnode_inside_2(void)
+{
+    int idx = bpx_get_integer(bpx_get_call_arg(1,2));
+    float inside = bpx_get_float(bpx_get_call_arg(2,2));
+    if(idx>=0&&idx<egraph_size){
+        expl_graph[idx]->inside=inside;
+        return 1;
+    }
+    return 0;
+}
+
+int pc_set_gnode_outside_2(void)
+{
+    int idx = bpx_get_integer(bpx_get_call_arg(1,2));
+    float outside = bpx_get_float(bpx_get_call_arg(2,2));
+    if(idx>=0&&idx<egraph_size){
+        expl_graph[idx]->outside=outside;
+        return 1;
+    }
+    return 0;
+}
+
+
+
 int pc_get_gnode_viterbi_2(void)
 {
     int idx = bpx_get_integer(bpx_get_call_arg(1,2));

@@ -121,6 +121,8 @@ void bp4p_register_preds(void)
     REGISTER_CPRED(import_sorted_graph_paths,2);
     REGISTER_CPRED(get_gnode_inside,2);
     REGISTER_CPRED(get_gnode_outside,2);
+    REGISTER_CPRED(set_gnode_inside,2);
+    REGISTER_CPRED(set_gnode_outside,2);
     REGISTER_CPRED(get_gnode_viterbi,2);
     REGISTER_CPRED(get_snode_inside,2);
     REGISTER_CPRED(get_snode_expectation,2);
@@ -159,6 +161,9 @@ void bp4p_register_preds(void)
     REGISTER_CPRED(mtrace,0);
     REGISTER_CPRED(muntrace,0);
     REGISTER_CPRED(sleep,1);
+
+    /* up/prefix.c */
+    REGISTER_CPRED(lapack_solve,4);
 
 #ifdef MPI
     /* mp/mp_preds.c */
