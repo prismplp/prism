@@ -1,0 +1,178 @@
+**** README (bn2prism: exs) ****
+
+This directory contains a couple of well-known examples of Bayesian
+networks, for demonstrating the BN2Prism translator.
+
+[Files]
+
+  asia.xml       ... Asia network
+  alarm.xml      ... Alarm network
+  alarm_evid.xml ... Evidences for Alarm network
+  water.xml      ... Water network
+  water.num      ... Elimination order for Water network
+
+These networks are available from the sites:
+
+  Bayesian Network Repository (http://compbio.cs.huji.ac.il/Repository/),
+  GeNIe & SMILE Network Repository (http://genie.sis.pitt.edu/networks.html),
+  Norsys Bayes Net Library (http://www.norsys.com/networklibrary.html)
+
+and so on.  For detailed descriptions, please visit the site above.
+We made the network specifications in XMLBIF format 0.3 (http://www.
+poli.usp.br/p/fabio.cozman/Research/InterchangeFormat/index.html),
+manually or by a converter.
+
+We believe that the files have been correctly converted and they are
+sufficient to see how the BN2Prism translator works.  However, we
+make no warranties as to the correctness of the conversion.  Thus
+we recommend to use the original files -- instead of the files in
+this directory -- for other purposes.
+
+In what follows, we explain how to translate a network specification
+to a PRISM program, and how to run the translated PRISM program.
+$(TOP) indicates the top directory for BN2Prism.  This file should
+be placed under $(TOP)/exs just after the package unfolded.  Here
+the platform is assumed to be the Unix-style system, such as Linux
+or MacOS X, where `%' indicates a prompt symbol of the shell.
+
+
+[Installation of BP2Prism]
+
+  BP2Prism requires Sun JDK 1.5 or later, and the commands `java'
+  and `javac' should be available.  The released package already
+  contains the compiled class files in $(TOP)/lib.  On the other
+  hand, after modifying the source files, please compile them at
+  $(TOP)/src:
+
+    % cd $(TOP)/src
+    % make
+
+  The compiled class files will be placed under $(TOP)/lib.  For the
+  details on the source code, please see $(TOP)/src/README.
+
+
+[the Asia network]
+
+  Now let us translate asia.xml, a specification of the Asia network,
+  into the corresponding PRISM program.  First, as a preparation,
+  please copy bn_common.psm, a part of a PRISM program included by
+  the translated program, to the current directory:
+
+    % cp $(TOP)/includes/bn_common.psm .
+
+  Then, noting that the class files are under $(TOP)/lib, we invoke
+  the Java interpreter:
+
+    % java -cp $(TOP)/lib BN2Prism asia
+
+  The file extension ".xml" should not be specified here.  After
+  adding $(TOP)/lib to the CLASSPATH environment variable, it is
+  possible to run the translator in a simpler way:
+
+    % java BN2Prism asia
+
+  Then, we may find a PRISM program file named `asia.psm'.  Also,
+  let us run this translated program by the PRISM system as follows:
+
+    % prism                (Invoke the PRISM system)
+      :
+    ?- prism(asia).        (Load asia.psm)
+      :
+    ?- check_j_dist.       (Compute the marginal probability for each
+      :                     variable in a Join-tree style)
+    ?- check_n_dist.       (Do the same thing in a naive style)
+      : 
+    ?- check_dist.         (Do the same thing in both styles)
+
+  By looking into asia.psm and bn_common.psm, one may find that the
+  `chindsight' predicates are used in probability computations in a
+  join-tree style. Moreover, we can compute conditional probabilities
+  given some evidences:
+
+    ?- check_j_dist([x3=v3_0]).
+    ?- check_n_dist([x5=v5_1]).
+    ?- check_dist([x3=v3_0,x5=v5_1]).
+
+  where xN indicates the N-th variable, and vN_M indicates the M-th
+  value of the N-th variable (N and M are zero-based indices).  If
+  you would like to know their original names, please type:
+
+    ?- show_var_names.
+    ?- show_val_names.
+
+
+[the Alarm network]
+
+  In this directory, we have alarm_evid.xml, an evidence specification
+  for the Alarm network in the XMLBIF-EVIDENCE format.  So after
+  translating the Alarm network by the following command, we will
+  obtain alarm_evid.psm, a PRISM (Prolog) program that contains the
+  evidence information.
+
+    % java -cp $(TOP)/lib BN2Prism -t alarm
+
+  Here the -t option is required, since the CPTs in alarm.xml should
+  be treated as transposed in the translator.  After loading the
+  translated program, we can extract the evidences by the predicate
+  load_evidences/1:
+
+    % prism
+      :
+    ?- prism(alarm).
+      :
+    ?- load_evidences('alarm_evid.psm',Es).
+
+    Es = [x11=v11_2,x31=v31_0,x36=v36_0] ?
+
+    ?- load_evidences('alarm_evid.psm',_Es),check_j_dist(_Es).
+
+  Or we can execute the last query in a batch style:
+
+    % upprism alarm alarm_evid.psm
+
+  Furthermore, giving the -e option to the BN2Prism translator, the
+  translator will generate evidences randomly.  That is, running
+
+    % java -cp $(TOP)/lib BN2Prism -t -e alarm
+  
+  will produce 3 additional files alarm_revid[0-3].psm, in which about
+  0%, 25%, 50% and 75% of variables are observed, respectively.  With
+  a batch execution, we can compute conditional probabilities at once
+  for all sets of evidences:
+  
+    % upprism alarm alarm_revid0.psm alarm_revid1.psm alarm_revid2.psm alarm_revid3.psm
+
+  Or, on a UNIX shell, more simply:
+
+    % upprism alarm alarm_revid[0-3].psm
+
+  Lastly, one may notice that a naive probability computation does not
+  finish in practical time and space, since the Alarm network has 37
+  random variables:
+
+    ?- prism(alarm).
+
+    ?- check_n_dist.
+
+
+[the Water network]
+
+  In converting the Water network to a bucket tree, we can make use
+  of an elimination ordering, by Uffe Kjaerulff, contained in water.num.
+  Besides, in the Water network, there are a lot of zero probabilities
+  in the CPTs, so it is efficient to delete the entries that have zero
+  probabilities (here we call this zero-compression) before answering
+  the queries.  To realize them, we respectively add the -o option and
+  the -z option:
+
+    % java -cp $(TOP)/lib BN2Prism -t -o -z water
+
+  Actually, without the -z option, the translated PRISM program will
+  not work in practical time and space.  A typical session is as
+  follows:
+
+    % prism
+      :
+    ?- prism(water).
+      :
+    ?- check_j_dist.

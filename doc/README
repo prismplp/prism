@@ -1,0 +1,8 @@
+========================== README (doc) ==========================
+
+This directory contains the documentations for the users and the
+developers of the PRISM system:
+
+  manual.pdf   ... user's manual
+  changes.txt  ... change logs
+  devel/       ... documents for developers

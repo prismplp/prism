@@ -1,0 +1,47 @@
+# -*- Makefile -*-
+
+# (default)
+PLATFORM    = linux32
+
+########################################################################
+
+TARGET      = bp4prism-$(PLATFORM).a
+TARGETFLAG  =
+
+CC          = gcc
+AR          = ar rcs
+CFLAGS      = -c -O3 -fomit-frame-pointer -fno-strict-aliasing -DGCC -DGC -DPRISM
+RM          = rm -f
+O           = o
+S           = /
+
+########################################################################
+
+ifeq ($(PLATFORM),linux32)
+CFLAGS     += -DLINUX -DPOSIX -Dunix -m32
+endif
+
+ifeq ($(PLATFORM),linux64)
+CFLAGS     += -DLINUX -DPOSIX -Dunix -DM64BITS -m64
+endif
+
+ifeq ($(PLATFORM),darwin9)
+CFLAGS     += -DDARWIN -mmacosx-version-min=10.4 -arch ppc -arch ppc64 -arch i386 -arch x86_64
+endif
+
+ifeq ($(PLATFORM),darwin10)
+CFLAGS     += -DDARWIN -mmacosx-version-min=10.4 -arch i386 -arch x86_64
+endif
+
+ifeq ($(PLATFORM),cygwin)
+CFLAGS     += -DCYGWIN -DLINUX -DPOSIX -Dunix
+endif
+
+########################################################################
+
+
+include Makefile.common
+
+.PHONY: all clean distclean
+
+########################################################################

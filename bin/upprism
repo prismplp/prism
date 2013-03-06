@@ -1,0 +1,35 @@
+#!/bin/sh
+BINDIR=`dirname $0`
+PAREA=8000000	# Size of program area
+STACK=5000000	# Size of control stack and heap
+TRAIL=2000000	# Size of trail stack
+TABLE=10000000	# Size of table area
+
+case `uname -m` in
+    x86_64)
+        PROC=64
+        ;;
+    *)
+        PROC=32
+        ;;
+esac
+
+case `uname -s` in
+    Linux)
+        BINARY=$BINDIR/prism_up_linux${PROC}.bin
+        ;;
+    Darwin)
+        DARWIN_MAJOR=`uname -r | cut -d. -f 1`
+        BINARY=$BINDIR/prism_up_darwin${DARWIN_MAJOR}.bin
+        ;;
+    CYGWIN*)
+        BINARY=$BINDIR/prism_up_cygwin.exe
+        ;;
+esac
+
+if [ ! -x "$BINARY" ]; then
+    echo "Sorry, but PRISM doesn't support this system." 1>&2
+    exit 1
+fi
+
+exec $BINARY -p $PAREA -s $STACK -b $TRAIL -t $TABLE $BINDIR/bp.out $BINDIR/prism.out $BINDIR/foc.out $BINDIR/batch.out ${1+"$@"}

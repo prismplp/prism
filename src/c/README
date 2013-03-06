@@ -1,0 +1,79 @@
+========================= README (src/c) =========================
+
+This directory contains the C source files of the PRISM part, along
+with a minimal set of source and binary files from B-Prolog,
+required to build the PRISM system:
+
+  Makefile.gmake ... Makefile for GNU make
+  Makefile.nmake ... Makefile for nmake (MSVC++) on Windows
+  makefiles/     ... auxiliary Makefiles
+  core/          ... base components of the PRISM's C part
+  up/            ... probabilistic inferences with uniprocessor
+  mp/            ... parallel EM learning with multiprocessor
+  bp4prism/      ... header files and a static library from B-Prolog,
+                     which are required for the compilation of PRISM
+
+`up' and `mp' stands for uni-processor and multi-processor,
+respectively.  
+
+
+[How to compile the C part on Linux, Mac OS X, and Cygwin]
+
+  To compile PRISM on Linux, Mac OS X and Cygwin, it is assumed that
+  GNU make is used.  That is, at some shell, please type:
+
+    make -f Makefile.gmake PLATFORM=XXXX
+
+  where XXXX is one from linux32, linux64, darwin9, darwin10 and cygwin,
+  which mean 32bit Linux, 64bit Linux, Mac OS X 10.5, Mac OS X 10.6 and
+  Cygwin, respectively.  The default is linux32.  For example, on 64bit
+  Linux, type:
+
+    make -f Makefile.gmake PLATFORM=linux64
+
+  
+  We can omit "PLATFORM=XXXX" by setting XXXX to the environment
+  variable PLATFORM in advance:
+
+    setenv PLATFORM linux64   (on csh-style shells like tcsh)
+    export PLATFORM=linux64   (on sh-style shells like bash)
+    make -f Makefile.gmake
+
+  By default, the `prism' command (a shell script) assumes that
+  all binary files are placed at $(TOP)/bin directory, where $(TOP)
+  is the top directory in the unfolded package.  To install (copy)
+  the compiled executables into $(TOP)/bin, just type:
+
+      make -f Makefile.gmake PLATFORM=XXXX install
+
+  You can clean up the compiled codes by typing:
+
+      make -f Makefile.gmake PLATFORM=XXXX clean
+
+  Lastly, if you prefer to change the settings, modify Makefile.gmake
+  and the Makefiles under the `makefiles' directory.
+
+
+[How to compile the C part with MSVC++ on Windows]
+
+  To compile PRISM using MSVC++ on Windows, nmake is assumed to be
+  used.  That is, at a command prompt customized to MSVC++ ([Start]
+  -> [All Programs] -> [Microsoft Visual Studio 2008] -> [Visual
+  Studio Tools] -> [Visual Studio 2008 Command Prompt], for MS Visual
+  Studio 2008 on Windows XP), please type:
+
+      nmake -f Makefile.nmake
+
+  By default, the command `prism.bat' in %TOP%\bin folder assumes
+  that all binary files are placed at %TOP%\bin, where %TOP% is the
+  top folder in the unfolded package.  To install (copy) the compiled
+  executables into %TOP%\bin, just type:
+
+      nmake -f Makefile.nmake install
+
+  You can clean up the copmiled code by typing:
+
+      nmake -f Makefile.nmake clean
+
+  Lastly, if you prefer to change the settings, modify Makefile.nmake
+  and the Makefiles under the `makefiles' directory.

@@ -1,0 +1,43 @@
+%%%
+%%%  Negative recursion --- even
+%%%
+%%%  Copyright (C) 2004
+%%%    Sato Laboratory, Dept. of Computer Science,
+%%%    Tokyo Institute of Technology
+
+%-------------------------------------
+% Quick start : sample session
+% > prism
+
+% ?- foc(even,temp),[temp].
+     % compile this program into the file "temp" and load "temp".
+
+% ?- even(N).
+% N = 0?;
+% N = s(s(0))?;
+% N = s(s(s(s(0))))?;
+% N = s(s(s(s(s(s(0))))))?;
+% N = s(s(s(s(s(s(s(s(0))))))))?
+% ...
+
+%------------------------------------
+% FOC directives:
+
+fo_sort(num,[0,s(_)]).
+fo_sort(even(num)).
+
+delay_ununifiablity_check(yes).
+distribute_disjunction(yes).
+
+%------------------------------------
+% Program:
+
+even(0).
+even(s(X)) :- not(even(X)).  % negative self recursion
+
+%------------------------------------
+% Compiled codes in "temp"
+% 
+% even(0).
+% even(s(A)):-closure_even0(A,f0).
+% closure_even0(s(A),_):-even(A).

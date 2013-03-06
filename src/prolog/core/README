@@ -1,0 +1,9 @@
+=================== README (src/prolog/core) ====================
+
+This directory contains source files for the basic components of
+the PRISM's Prolog part:
+
+  error.pl    ... error handling in the Prolog part
+  format.pl   ... messaging utilities
+  message.pl  ... definition of error messages
+  random.pl   ... random operations

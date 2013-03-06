@@ -1,0 +1,46 @@
+# -*- Makefile -*-
+
+##----------------------------------------------------------------------
+
+OBJS = glue.$(O)           \
+       bpx.$(O)            \
+       idtable.$(O)        \
+       idtable_preds.$(O)  \
+       termpool.$(O)       \
+       vector.$(O)         \
+       random.$(O)         \
+       gamma.$(O)          \
+       xmalloc.$(O)        \
+       fputil.$(O)         \
+       error.$(O)
+
+##----------------------------------------------------------------------
+
+BP4P_H = ..$(S)bp4prism$(S)include$(S)bprolog.h                     \
+         ..$(S)bp4prism$(S)include$(S)bapi.h                        \
+         ..$(S)bp4prism$(S)include$(S)basic.h                       \
+         ..$(S)bp4prism$(S)include$(S)extern_decl.h                 \
+         ..$(S)bp4prism$(S)include$(S)frame.h                       \
+         ..$(S)bp4prism$(S)include$(S)term.h
+
+BP4P_A = ..$(S)bp4prism$(S)lib$(S)bp4prism-$(PLATFORM).$(A)
+
+##----------------------------------------------------------------------
+
+BPX_H = $(BP4P_H) bpx.h stuff.h
+
+##----------------------------------------------------------------------
+
+glue.$(O)          : $(BP4P_A)
+xmalloc.$(O)       : xmalloc.h
+vector.$(O)        : xmalloc.h vector.h
+bpx.$(O)           : $(BPX_H)
+termpool.$(O)      : $(BPX_H) xmalloc.h vector.h
+idtable.$(O)       : $(BPX_H) xmalloc.h vector.h idtable.h
+idtable_preds.$(O) : idtable.h
+fputil.$(O)        : fputil.h
+random.$(O)        : random.h
+gamma.$(O)         : gamma.h
+error.$(O)         : $(BPX_H)
+
+##----------------------------------------------------------------------

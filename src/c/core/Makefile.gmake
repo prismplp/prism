@@ -1,0 +1,21 @@
+# -*- Makefile -*-
+
+ROOT = ..
+
+include $(ROOT)/makefiles/Makefile.opts.gmake
+include Makefile.files
+
+##----------------------------------------------------------------------
+
+all: $(OBJS)
+
+clean:
+	$(RM) $(OBJS) $(TARGET)
+
+##----------------------------------------------------------------------
+
+include Makefile.files
+
+.PHONY: all install cloean
+
+##----------------------------------------------------------------------

@@ -1,0 +1,74 @@
+# -*- Makefile -*-
+
+##----------------------------------------------------------------------
+
+OBJS = graph.$(O)             \
+       graph_aux.$(O)         \
+       em_preds.$(O)          \
+       em_ml.$(O)             \
+       em_vb.$(O)             \
+       em_aux.$(O)            \
+       em_aux_ml.$(O)         \
+       em_aux_vb.$(O)         \
+       vt_ml.$(O)             \
+       vt_vb.$(O)             \
+       vt_preds.$(O)          \
+       vt_aux_ml.$(O)         \
+       vt_aux_vb.$(O)         \
+       mcmc_preds.$(O)        \
+       mcmc_sample.$(O)       \
+       mcmc_predict.$(O)      \
+       mcmc_eml.$(O)          \
+       mcmc_exact.$(O)        \
+       viterbi.$(O)           \
+       hindsight.$(O)         \
+       flags.$(O)             \
+       util.$(O)
+
+##----------------------------------------------------------------------
+
+BP4P_H = ..$(S)bp4prism$(S)include$(S)bprolog.h                     \
+         ..$(S)bp4prism$(S)include$(S)bapi.h                        \
+         ..$(S)bp4prism$(S)include$(S)basic.h                       \
+         ..$(S)bp4prism$(S)include$(S)extern_decl.h                 \
+         ..$(S)bp4prism$(S)include$(S)frame.h                       \
+         ..$(S)bp4prism$(S)include$(S)term.h
+
+BP4P_A = ..$(S)bp4prism$(S)lib$(S)bp4prism-$(PLATFORM).$(A)
+
+##----------------------------------------------------------------------
+
+BPX_H  = $(BP4P_H) ..$(S)core$(S)bpx.h ..$(S)core$(S)stuff.h
+ERR_H  = ..$(S)core$(S)error.h
+UP_H   = up.h
+EM_H   = em.h
+VT_H   = vt.h
+MCMC_H = mcmc.h
+
+##----------------------------------------------------------------------
+
+em_ml.$(O)        : $(BPX_H) $(ERR_H) $(UP_H) $(EM_H) em_ml.h
+em_vb.$(O)        : $(BPX_H) $(ERR_H) $(UP_H) $(EM_H) em_vb.h
+em_preds.$(O)     : $(BPX_H) $(ERR_H) $(UP_H) $(EM_H) em_preds.h
+em_aux.$(O)       : $(BPX_H) $(ERR_H) $(UP_H) em_aux.h
+em_aux_ml.$(O)    : $(BPX_H) $(ERR_H) $(UP_H) em_aux_ml.h
+em_aux_vb.$(O)    : $(BPX_H) $(ERR_H) $(UP_H) em_aux_vb.h
+vt_ml.$(O)        : $(BPX_H) $(ERR_H) $(UP_H) $(VT_H) vt_ml.h
+vt_vb.$(O)        : $(BPX_H) $(ERR_H) $(UP_H) $(VT_H) vt_vb.h
+vt_preds.$(O)     : $(BPX_H) $(ERR_H) $(UP_H) $(VT_H) vt_preds.h
+vt_aux_ml.$(O)    : $(BPX_H) $(ERR_H) $(UP_H) vt_aux_ml.h
+vt_aux_vb.$(O)    : $(BPX_H) $(ERR_H) $(UP_H) vt_aux_vb.h
+mcmc_preds.$(O)   : $(BPX_H) $(ERR_H) $(UP_H) $(MCMC_H)
+mcmc_sample.$(O)  : $(BPX_H) $(ERR_H) $(UP_H) $(MCMC_H)
+mcmc_predict.$(O) : $(BPX_H) $(ERR_H) $(UP_H) $(MCMC_H)
+mcmc_eml.$(O)     : $(BPX_H) $(ERR_H) $(UP_H) $(MCMC_H)
+mcmc_exact.$(O)   : $(BPX_H) $(ERR_H) $(UP_H) $(MCMC_H)
+viterbi.$(O)      : $(BPX_H) $(ERR_H) $(UP_H) viterbi.h
+hindsight.$(O)    : $(BPX_H) $(ERR_H) $(UP_H) hindsight.h
+graph.$(O)        : $(BPX_H) $(ERR_H) $(UP_H) graph.h
+graph_aux.$(O)    : $(BPX_H) $(ERR_H) $(UP_H) graph_aux.h
+flags.$(O)        : $(BPX_H) $(ERR_H) $(UP_H) flags.h
+util.$(O)         : $(BPX_H) $(ERR_H) $(UP_H) util.h
+error.$(O)        : $(BPX_H) $(ERR_H) $(UP_H)
+
+##----------------------------------------------------------------------

@@ -1,0 +1,84 @@
+%%%
+%%%  Splitting a string  --- str
+%%%
+%%%  Copyright (C) 2004
+%%%    Sato Laboratory, Dept. of Computer Science,
+%%%    Tokyo Institute of Technology
+
+%-------------------------------------
+% Quick start : sample session
+% > prism
+
+% ?- foc(str,temp),[temp].
+     % compile this program into the file "temp" and load "temp".
+
+% ?- split(this_is_a_book,S,95).
+% S = [this,is,a,book]?;
+% no
+
+%------------------------------------
+% FOC directives:
+
+fo_sort(append(list,_,list)).
+fo_sort(mem(_,list)).
+%delay_ununifiablity_check(yes).
+%distribute_disjunction(yes).
+
+%------------------------------------
+% Program:
+
+	split(Atom,S,D):-         % D is a delimiter (= 95 = "_")
+		name(Atom,L),         % name/2 is a built_in Prolog
+		ap([D|L],[D],L2),
+		all([X,Y,Z,Wd],       % cut out Wd from L2 flanked by the delimiters
+			(  ap(X,[D|Y],L2),
+			   ap(Wd,[D|Z],Y),
+			   \+Wd=[],
+			   all([U],(mem(U,Wd)-> \+D=U))
+			->	exist([N],(name(N,Wd),mem(N,S))) )),list(S),!.
+	
+	list([]):- !.
+	list([_|Y]):-list(Y).
+
+	mem(X,[X|_]).
+	mem(X,[_|Y]):-mem(X,Y).
+
+	ap([],X,X).
+	ap([H|X],Y,[H|Z]):-ap(X,Y,Z).
+
+%------------------------------------
+% Compiled codes in "temp"
+
+% split(A,B,C):-
+%     name(A,D),
+%     ap([C|D],[C],E),
+%     closure_ap0(E,f0(C,B)),
+%     list(B),!.
+% list([]):-!.
+% list([_|A]):-list(A).
+% mem(A,[A|_]).
+% mem(A,[_|B]):-mem(A,B).
+% ap([],A,A).
+% ap([A|B],C,[A|D]):-ap(B,C,D).
+% 
+% cont(A,f2(B)):- \+B=A.
+% cont(_,A,f1(B,_)):- \+A=[B|_].
+% cont(A,[B|_],f1(B,C)):-
+%     ( A=[]
+%     ; \+A=[],
+%         ( mem(D,A),B=D
+%         ; closure_mem0(A,f2(B)),name(E,A),mem(E,C)
+%         )
+%     ).
+% cont(A,f0(B,_)):- \+A=[B|_].
+% cont([A|B],f0(A,C)):-closure_ap1(B,f1(A,C)).
+% cont(A,B,f4(C,D)):-cont([C|A],B,D).
+% closure_ap0(A,B):-
+%     cont(A,B),
+%     (\+A=[C|D] ; A=[C|D],closure_ap0(D,B)).
+% closure_ap1(A,B):-
+%     cont([],A,B),
+%     (\+A=[C|D] ; A=[C|D],closure_ap1(D,f4(C,B))).
+% closure_mem0(A,B):-
+%     (A=[] ; A=[C|_],cont(C,B)),
+%     (A=[] ; A=[_|D],closure_mem0(D,B)).

@@ -1,0 +1,15 @@
+# -*- Makefile -*-
+
+ROOT = ..
+
+!INCLUDE $(ROOT)\makefiles\Makefile.opts.nmake
+!INCLUDE Makefile.files
+
+##----------------------------------------------------------------------
+
+all: $(OBJS)
+
+clean:
+	$(RM) $(OBJS) $(TARGET)
+
+##----------------------------------------------------------------------

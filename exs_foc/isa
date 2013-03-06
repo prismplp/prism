@@ -1,0 +1,71 @@
+%%%
+%%%  Taking a transitive closure --- isa
+%%%
+%%%  Copyright (C) 2004
+%%%    Sato Laboratory, Dept. of Computer Science,
+%%%    Tokyo Institute of Technology
+
+%-------------------------------------
+% Quick start : sample session
+% > prism
+
+% ?- foc(isa,temp),[temp].
+     % compile this program into the file "temp" and load "temp".
+
+% ?- isa_closure(fido,L).
+% L = [fido,dog,mammal,vertebrate]?;
+% L = [fido,dog,mammal,vertebrate,fido]?;
+% ...
+% ?- isa_closure(fido,[fido,dog,mammal,vertebrate]).
+% yes
+% ?- isa_closure(fido,[fido,dog,mammal]).
+% no
+
+%------------------------------------
+% FOC directives:
+
+fo_sort(qmem(_,list)).
+delay_ununifiablity_check(yes).
+distribute_disjunction(yes).
+
+built_in_mode(isa(+,-)).   % for s, there is at most
+                           % one t such that isa(s,t).
+%------------------------------------
+% Program:
+
+	isa(fido,dog).     % fido is a dog
+	isa(dog,mammal).   % a dog is a mammal
+	isa(kitty,cat).
+	isa(cat,mammal).
+	isa(mammal,vertebrate).
+	isa(snake,reptile).
+
+	isa_closure(Cat,L):-
+		L=[Cat|_],
+		all([A,B],(qmem(A,L),isa(A,B) -> qmem(B,L))).
+
+	qmem(stop,[]).
+	qmem(X,[X|Y]).
+	qmem(X,[H|Y]):- qmem(X,Y).
+
+%------------------------------------
+% Compiled codes in "temp"
+
+% isa(fido,dog).
+% isa(dog,mammal).
+% isa(kitty,cat).
+% isa(cat,mammal).
+% isa(mammal,vertebrate).
+% isa(snake,reptile).
+% qmem(stop,[]).
+% qmem(A,[A|_]).
+% qmem(A,[_|B]):-qmem(A,B).
+% 
+% isa_closure(A,B):- B=[A|_],closure_qmem0(B,f0(B)).
+%
+% closure_qmem0([],A):- cont(stop,A).
+% closure_qmem0([A|B],C):- cont(A,C),closure_qmem0(B,C).
+% cont(A,f0(_)):- user_isa(B,A,_),B==false.
+% cont(A,f0(B)):- user_isa(C,A,D),C==true,qmem(D,B).
+% 
+% user_isa(A,B,C):- (isa(B,C),A=true ; A=false),!.

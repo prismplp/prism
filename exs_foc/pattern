@@ -1,0 +1,153 @@
+%%%
+%%%  Learning patterns --- pattern
+%%%
+%%%  Copyright (C) 2004
+%%%    Sato Laboratory, Dept. of Computer Science,
+%%%    Tokyo Institute of Technology
+
+% The task is to find a common pattern for a given set of
+% strings in a generate-and-test manner, which is taken from
+%
+%    Learning in Logic with RichProlog
+%    E.Martin, et al.,
+%    Proc. of 18th ICLP, pp.239-254, 2002.
+
+% A string is a list of {a,b} such as [a,b,b,a,b].
+% A pattern is a list of {a,b,any,s(..)} where
+%   'any' matches any character. For s(..),
+%   [,..,s(s(0)),a,b,a,..] means the char X at the position
+%          = X
+%   is equal to the second element following X (=b)
+
+%-------------------------------------
+% Quick start : sample session
+
+% > prism
+% ?- foc(pattern,temp),[temp].
+
+% ?- discover(Pi).
+
+built_in_mode(p_data(+)).
+p_data([a,a,a]). %(1)
+p_data([b,b,b]). %(2)
+p_data([a,b,b]). %(3)
+p_data([b,a,a]). %(4)
+
+%--------------+----------------------------------
+%    p_data    |     discovered pattern
+%--------------+----------------------------------
+% (1)          | [a,a,a]
+% (1)(2)       | [s(s(0)),s(0),any]
+% (1)(2)(3)    | no (counter example = [b,a,a])
+% (1)(2)(3)(4) | [any,s(0),any]
+%--------------+----------------------------------
+
+%------------------------------------
+% Program:
+
+discover(Pi):-      % discover a common pattern for p_data/1
+    numb(N),
+    pattern(Pi,N),
+    all([X], (len(X,N),\+p_data(X) -> not(match(Pi,X)) )),
+    all([Y], (len(Y,N),p_data(Y) -> match(Pi,Y) )).
+
+numb(0).
+numb(s(N)):- numb(N).
+
+pattern([X],s(0)):-
+  ( X=a ; X=b ; X=any).
+pattern([X|Y],s(N)):-
+  ( X=a ; X=b ; X=any ; leq(s(M),N),X=s(M) ), 
+  pattern(Y,N).
+
+leq(N,N).
+leq(N,s(M)):- leq(N,M).
+
+len([],0).        % generate a ground pattern of
+len([X|Y],s(N)):- % the given length
+  (X=a ; X=b),
+  len(Y,N).
+
+match([],[]).
+match([A|Y],[B|Z]):-
+  ( (A==a ; A==b), A==B
+  ; A==any
+  ; A=s(N),match2(N,Z,B) ),
+  match(Y,Z).
+
+match2(0,[H|L],Char):-
+  ( (H==a ; H==b),H==Char
+  ; H==any
+  ; H=s(N), match2(N,L,Char) ).
+match2(s(N),[_|L],Char):- match2(N,L,Char).
+
+%------------------------------------
+% Compiled codes in "temp"
+
+% p_data([a,a,a]).
+% p_data([b,b,b]).
+% p_data([a,b,b]).
+% p_data([b,a,a]).
+% 
+% discover(A):-
+%     numb(B),
+%     pattern(A,B),
+%     closure_len0(B,f0(A)),
+%     closure_len0(B,f2(A)).
+% 
+% numb(0).
+% numb(s(A)):-numb(A).
+% pattern([A],s(0)):- ( A=a ; A=b ; A=any ).
+% pattern([A|B],s(C)):-
+%     ( A=a ; A=b ; A=any ; leq(s(D),C),A=s(D) ),
+%     pattern(B,C).
+% leq(A,A).
+% leq(A,s(B)):-leq(A,B).
+% len([],0).
+% len([A|B],s(C)):- ( A=a ; A=b ),len(B,C).
+% match([],[]).
+% match([A|B],[C|D]):-
+%     ( ( A==a ; A==b ),A==C
+%     ; A==any
+%     ; A=s(E), match2(E,D,C) ),
+%     match(B,D).
+% match2(0,[A|B],C):-
+%     ( ( A==a ; A==b ),A==C
+%     ; A==any
+%     ; A=s(D), match2(D,B,C) ).
+% match2(s(A),[_|B],C):-match2(A,B,C).
+% 
+% cont(A,f0(B)):-
+%     ( p_data(A) ; \+p_data(A),closure_match0(B,A,f1) ).
+% cont(A,f2(B)):-
+%     user_p_data(C,A),
+%     ( C==false ; C==true,match(B,A) ).
+% cont(A,f3(B)):-cont([a|A],B).
+% cont(A,f4(B)):-cont([b|A],B).
+% cont(f8(A,B,C)):-closure_match0(A,B,C).
+% 
+% closure_len0(A,B):-
+%     ( \+A=0 ; A=0,cont([],B) ),
+%     ( \+A=s(C) ; A=s(C),closure_len0(C,f3(B)),closure_len0(C,f4(B)) ).
+% closure_match0(A,B,C):-
+%     ( \+A=[] ; A=[],\+B=[] ; A=[],B=[],cont(C) ),
+%     ( \+A=[D|E]
+%     ; A=[D|E],\+B=[F|G]
+%     ; A=[D|E],B=[F|G],
+%         ( D\==a ; D==a,( D\==F ; D==F,closure_match0(E,G,C) ) ),
+%         ( D\==b ; D==b,( D\==F ; D==F,closure_match0(E,G,C) ) ),
+%         ( D\==any ; D==any,closure_match0(E,G,C) ),
+%         ( \+D=s(H); D=s(H),closure_match20(H,G,F,f8(E,G,C) ) ) ).
+% closure_match20(A,B,C,D):-
+%     ( \+A=0
+%     ; A=0,\+B=[E|F]
+%     ; A=0,B=[E|F],
+%         ( E\==a ; E==a,( E\==C ; E==C,cont(D) ) ),
+%         ( E\==b ; E==b,( E\==C ; E==C,cont(D) ) ),
+%         ( E\==any ; E==any,cont(D) ),
+%         ( \+E=s(G); E=s(G),closure_match20(G,F,C,D) ) ),
+%     ( \+A=s(H)
+%     ; A=s(H),\+B=[I|J]
+%     ; A=s(H),B=[I|J],closure_match20(H,J,C,D) ).
+% 
+% user_p_data(A,B):-(p_data(B),A=true ; A=false),!.

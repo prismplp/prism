@@ -1,0 +1,10 @@
+=================== README (src/prolog/trans) ====================
+
+This directory contains Prolog source files for the routines for
+translation from PRISM to Prolog:
+
+  trans.pl  ... main routines for translation
+  bpif.pl   ... wrappers for B-Prolog's built-in predicates related
+                to compilation and loading
+  verify.pl ... validator for B-Prolog's internal representations
+  dump.pl   ... pretty-printer for B-Prolog's internal representations

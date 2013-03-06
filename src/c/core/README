@@ -1,0 +1,25 @@
+====================== README (src/c/core) =======================
+
+This directory contains source files for the basic components of
+the PRISM's C part:
+
+  Makefile.gmake ... Makefile for GNU make
+  Makefile.nmake ... Makefile for nmake (MSVC++) on Windows
+  Makefile.files ... auxiliary Makefile
+  bpx.{c,h}           ... utilities for handling Prolog terms
+  glue.{c,h}          ... glue code between Prolog and C
+  gamma.{c,h}         ... gamma function
+  random.{c,h}        ... pseudo random number generator
+  idtable.{c,h}       ... ID tables for subgoals and random switches
+  idtable_preds.{c,h} ... C interface (wrappers) for accessing ID tables
+  termpool.{c,h}      ... hashtable of Prolog terms
+  vector.{c,h}        ... utilities for vectors (arrays)
+  xmalloc.{c,h}       ... utilities for memory management
+  fputil.{c,h}        ... utilities for handling floating point numbers
+  stuff.h             ... additional macros and type definitions
+  error.{c,h}         ... error handling in the C part
+
+random.c is based on the implementation of Mersenne Twister (http://
+www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/emt.html), and gamma.c is
+based on the SPECFUN library available in the NETLIB repository
+(http://www.netlib.org/).

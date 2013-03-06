@@ -1,0 +1,137 @@
+%%%%
+%%%%  Dieting professor -- chmm.psm
+%%%%
+%%%%  Copyright (C) 2004,2006
+%%%%    Sato Laboratory, Dept. of Computer Science,
+%%%%    Tokyo Institute of Technology
+
+%%  This  program  is  an example  of  an  HMM with  failure  by
+%%  constraints.
+%%
+%%  There  is  a  professor  who  takes  lunch  at  one  of  two
+%%  restaurants  `s0' and  `s1'  everyday and  probabilistically
+%%  changes the restaurant he visits.
+%%
+%%  As he  is on a diet,  he tries to satisfy  a constraint that
+%%  the total  calories for lunch in  a week are  less than 4000
+%%  calories.   He  probabilistically   orders  pizza  (900)  or
+%%  sandwich  (400) at  `s0',  and hamburger  (500) or  sandwich
+%%  (500) at `s1'  (numbers are  calories).  He records  what he
+%%  has eaten  like [p,s,s,p,h,s,h] in  a week and  he preserves
+%%  the  record  if and  only  if  he  succeeds in  keeping  the
+%%  constraint.  Here is a  list of preserved records.  You have
+%%  to estimate the probability that he violates the constraint.
+%%
+%%  [state diagram]          p,s       h,s
+%%                          +---+      +--+
+%%                          v   |      v  |
+%%                      -->(s0)-+<-->(s1)-+
+%%
+%%  [constraint]
+%%  The total calories for lunch in a week < 4000.
+
+%%-------------------------------------
+%%  Quick start : sample session
+%%
+%%  > prism
+%%
+%%  Load this program and initialize msws.
+%%  ?- prismn(chmm),set_sw,show_sw.
+%%
+%%  lunch(s0):   p (p: 0.400000000)  s (p: 0.600000000)
+%%  lunch(s1):   h (p: 0.500000000)  s (p: 0.500000000)
+%%     tr(s0):  s0 (p: 0.700000000) s1 (p: 0.300000000)
+%%     tr(s1):  s1 (p: 0.700000000) s0 (p: 0.300000000)
+%%
+%%  ?- prob(failure).
+%%  The probability of failure is: 0.348592596784
+%%
+%%  Check if our model is right.
+%%  ?- prob(success,Ps),prob(failure,Pf),X is Ps+Pf.
+%%  ?- sample(success(L)),prob(success(L),Ps),prob(failure(L),Pf),X is Ps+Pf.
+%%
+%%  ?- sample(success(L)),viterbif(success(L)).
+%%
+%%  Learning test by a true model.
+%%  ?- set_sw,generate_goals(500,_Gs),learn([failure|_Gs]).
+%%  ?- show_sw.
+%%
+%%  lunch(s0):  p (p: 0.384088608)  s (p: 0.615911392)
+%%  lunch(s1):  h (p: 0.490732817)  s (p: 0.509267183)
+%%     tr(s0): s0 (p: 0.700147101) s1 (p: 0.299852899)
+%%     tr(s1): s1 (p: 0.690949863) s0 (p: 0.309050137)
+%%
+%%  ?- prob(failure).
+%%  The probability of failure is: 0.329982887807414
+%%
+%%  Learning test by a wrong model.
+%%  ?- set_sw,generate_goals(500,_Gs),learn(_Gs).
+%%  ?- show_sw.
+%%
+%%  lunch(s0):  p (p: 0.207887060)  s (p: 0.792112940)
+%%  lunch(s1):  h (p: 0.799621798)  s (p: 0.200378202)
+%%     tr(s0): s0 (p: 0.726796894) s1 (p: 0.273203106)
+%%     tr(s1): s1 (p: 0.535595395) s0 (p: 0.464404605)
+%%
+%%  ?- prob(failure).
+%%  The probability of failure is: 0.080283793729016
+
+%%------------------------------------
+%%  Directives:
+
+values(tr(s0),[s0,s1]).
+values(tr(s1),[s1,s0]).
+
+values(lunch(s0),[p,s]).        % pizza:900, sandwich:400
+values(lunch(s1),[h,s]).        % hanburger:400, sandwich:500
+
+%%------------------------------------
+%%  Model:
+
+failure:- not(success).
+success:- success(_).
+success(L):- chmm(L,s0,0,7).
+failure(L):- not(success(L)).
+
+chmm(L,S,C,N):-
+   N>0,
+   msw(tr(S),S2),
+   msw(lunch(S),D),
+   ( S == s0,
+       ( D = p, C2 is C+900
+       ; D = s, C2 is C+400 )
+   ; S == s1,
+       ( D = h, C2 is C+400
+       ; D = s, C2 is C+500 )
+   ),
+   L=[D|L2],
+   N2 is N-1,
+   chmm(L2,S2,C2,N2).
+
+chmm([],_,C,0):- C < 4000.
+
+%%------------------------------------
+%%  Utilities:
+
+set_sw:-
+   set_sw(tr(s0),[0.7,0.3]),
+   set_sw(tr(s1),[0.7,0.3]),
+   set_sw(lunch(s0),[0.4,0.6]),
+   set_sw(lunch(s1),[0.5,0.5]).
+
+generate_goals(M,L):-
+   get_samples_c([inf,M],success(_),true,L).
+
+%%  Definition in the older versions.
+%generate_goals(M,L):-
+%   M>0,
+%   ( sample(success(X)),
+%       G = success(X),
+%       format(" ~w~n",[G]),
+%       L = [G|Y1],
+%       M1 is M-1
+%   ; L = Y1,
+%       M1 is M
+%   ),!,
+%   generate_goals(M1,Y1).
+%generate_goals(0,[]).

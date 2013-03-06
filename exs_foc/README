@@ -1,0 +1,104 @@
+======================== README (exs_foc) ========================
+
+This directory is created for the user unfamiliar with First
+Order Complier (FOC) and contains the following files:
+
+  README  ... this file
+  max     ... program to find the maximum element in an integer list
+  isa     ... program to take the transitive closure of an isa-relation
+  str     ... program which splits a given string into substrings.
+  esieve  ... program of the Eratosthenes' sieve
+  even    ... program defining even numbers by negative recursion
+  pattern ... program to learn a pattern from strings as positive data
+  temp    ... working file
+
+Each  program is expected  to be  self-explanatory enough  to anyone
+familiar  with Prolog.   You  can quickly  get  the idea  of FOC  by
+loading programs and testing a sample session.
+
+FOC is  a program transformation  algorithm for logic  programs that
+compiles  negated atoms, or  more generally,  universally quantified
+implications such as all([Y], q(X,Y) ->r(Y,Z)) in a clause body into
+executable  form. As  what it  does is  pure logical  deduction, the
+compiled program is a logical  consequence of the source program and
+the soundness is assured for  free unlike NAF (negation as failure).
+Also unlike NAF and more importantly from a practical point of view,
+we can get variable bindings from negative goals by way of FOC.
+
+The  compiled program  is a  usual Prolog  program  (oftentimes with
+disequality constraints). So we  can further compile it into machine
+code  to obtain better  performance.  For the theoretical background
+of FOC, please see [Sato89] below.  We do not claim that the current
+implementation of FOC is best and bug-free.
+
+(1) FOC is basically designed to compile away universally quantified
+implications of  the form all([Y],(A(X,Y)  -> B(Y,Z)) where A  and B
+are  positive   atoms.   So   compilation  failure  occurs   in  the
+compilation process when  FOC detects a goal of  the form all([X] (A
+or B)) where A and B are positive atoms.
+
+To  avoid such  failure, the  user must  confirm given  a  goal like
+all([Y],(A(X,Y) -> B(Y,Z)) that in every SLD refutation of A(X,Y), Y
+will  be  instantiated  to  a  term  only  containing  existentially
+quantified variable such as X.
+
+(2) Explicitly  quantified variables  must  be all  distinct in  the
+clause body. So all([X],A(X,Y)->exist([X],B(X,Z))) is not allowed.
+
+(3) The  quality   of  compiled  code   is   controlled  by  various
+directives for FOC.
+
+(3-1) Sort  information is  usable.  Adding a  pair of  unit clauses
+like
+
+  fo_sort(list,[[],[_|_]]).
+  fo_sort(append(list,list,list)).
+
+tells FOC to use  sort information for simplification in compilation
+(currently  incompletely implemented).   List sort  is  available by
+default.  So the  first clause  is not  required as  far as  list is
+concerned.
+
+(3-2) Adding a unit clause
+
+  delay_ununifiablity_check(yes).
+
+causes    FOC    to   compile    all([Y],t=f(Y)->B)    to   (B    or
+all([Y],not(t=f(Y)))).  Default is delay_ununifiablity_check(no).
+
+(3-3) Adding a unit clause
+
+  distribute_disjunction(yes).
+
+causes  FOC  to compile  A:-B,(C  or  D)  into {  A:-B,C.   A:-B,D.}
+Default is distribute_disjunction(no).
+
+(3-4) Adding a unit clause
+
+   built_in_mode(q(+,-,-)).
+
+tells FOC that given X, q(X,Y,Z) has at most one answer substitution
+for  [Y,Z].  It  causes FOC,  when it  faces  all([Y,Z],(q(X,Y,Z) ->
+r(Y,W)), to generate,  instead of looking into the  source code  for
+q/3, a clause
+
+   user_q(Ans,X,Y,Z) :- (q(X,Y,Z),Ans=true ; Ans=false),!.
+
+and replace the original goal with
+
+   user_q(Ans,X,Y,Z),(Ans==false ; (Ans==true,r(Y,W))).
+
+There can be a multiple of such mode declarations for one predicate.
+
+(4) The comilation  is done by  ?- foc("source_file","output_file").
+?- foc("source_file"). writes the compiled code  into a default file
+"temp".
+You can take a glimpse of the compilation process by ?- fo_trace.
+To stop tracing, ?- fo_notrace (this is default).
+
+(5) Some built-ins ('=','==',length/2,format/2,etc) are available.
+
+References:
+  First Order Compiler: A Deterministic Logic Program Synthesis Algorithm,
+  Sato,T.,
+  Journal of Symbolic Computation 8, pp.605-627, 1989.

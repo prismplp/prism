@@ -1,0 +1,67 @@
+%%%%
+%%%%  Hidden Markov model --- hmm.psm
+%%%%      
+%%%%  Copyright (C) 2004,2006,2008
+%%%%    Sato Laboratory, Dept. of Computer Science,
+%%%%    Tokyo Institute of Technology
+
+%%  [state diagram:]  (2 states and 2 output symbols)
+%%
+%%         +--------+                +--------+
+%%         |        |                |        |
+%%         |     +------+        +------+     |
+%%         |     |      |------->|      |     |
+%%         +---->|  s0  |        |  s1  |<----+
+%%               |      |<-------|      |
+%%               +------+        +------+
+%%
+%%    - In each state, possible output symbols are `a' and `b'.
+
+%%-------------------------------------
+%%  Quick start : sample session
+%%
+%%  ?- prism(hmm),hmm_learn(100).   % Learn parameters from 100 randomly
+%%                                  % generated samples
+%%
+%%  ?- show_sw.                     % Confirm the learned parameter
+%%
+%%  ?- prob(hmm([a,a,a,a,a,b,b,b,b,b])).        % Calculate the probability
+%%  ?- probf(hmm([a,a,a,a,a,b,b,b,b,b])).       % Get the explanation graph
+%%
+%%  ?- viterbi(hmm([a,a,a,a,a,b,b,b,b,b])).     % Run the Viterbi computation
+%%  ?- viterbif(hmm([a,a,a,a,a,b,b,b,b,b])).    % Get the Viterbi explanation
+%%
+%%  ?- hindsight(hmm([a,a,a,a,a,b,b,b,b,b])).   % Get hindsight probabilities
+%%------------------------------------
+%%  Declarations:
+
+:- include('hmm_wc_incl.psm').
+%:- include('hmm_wc_incl2.psm').  % does not exist
+
+%:- disable_write_call.
+
+values(init,[s0,s1]).       % state initialization
+values(out(_),[a,b]).       % symbol emission
+values(tr(_),[s0,s1]).      % state transition
+
+% :- set_prism_flag(default_sw_h,1.0).
+% :- set_prism_flag(restart,10).
+% :- set_prism_flag(log_viterbi,on).
+% :- set_prism_flag(scaling,log_exp).
+
+%%------------------------------------
+%%  Modeling part:
+
+hmm(L):-                        % To observe a string L:
+   str_length(N),               %   Get the string length as N
+   msw(init,S),                 %   Choose an initial state randomly
+   ??hmm(1,N,S,L).              %   Start stochastic transition (loop)
+
+hmm(T,N,_,[]):- T>N,!.          % Stop the loop
+hmm(T,N,S,[Ob|Y]) :-            % Loop: current state is S, current time is T
+   msw(out(S),Ob),              %   Output Ob at the state S
+   msw(tr(S),Next),             %   Transit from S to Next.
+   T1 is T+1,                   %   Count up time
+   ??hmm(T1,N,Next,Y).          %   Go next (recursion)
+
+str_length(10).                 % String length is 10

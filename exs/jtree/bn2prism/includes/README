@@ -1,0 +1,8 @@
+**** README (bn2prism: includes) ****
+
+This directory contains Prism programs to be included in the
+translated join-tree Prism programs.  Copy the files here to
+the directory at which you want to work.
+
+[Files]
+  bn_common.psm

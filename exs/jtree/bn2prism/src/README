@@ -1,0 +1,39 @@
+**** README (bn2prism: src) ****
+
+This directory contains Java codes of a translator from BNs to junction-tree
+Prism programs.  For the details of each Java classes, please consult
+$(TOP)/doc/html/index.html, where $(TOP) is the top directory for BN2Prism.
+This directory should be $(TOP)/src just after the package unfolded.
+
+[Files]
+  LICENSE           ... license statements on BN2Prism (modified BSD)
+  Makefile          ... makefile for running javac and javadoc
+  BN2Prism.java     ... main class
+  BayesNet.java     ... class for a BN
+  Cluster.java      ... class for a cluster in a junction tree
+  Variable.java     ... class for a random variable in a BN
+  MyException.java  ... original class for exceptions
+  MyHandler.java    ... original class for handling XML input errors
+
+[Requirements]
+  - JDK 1.5 or later is required for building and running the translator.
+  - PRISM 1.9 or later is required for running the translated PRISM
+    programs.
+
+[How to build]
+  Please type the following commands:
+
+    make            ... compile Java source
+    make doc        ... create javadoc documents
+    make clean      ... clean up class files
+    make cleandoc   ... clean up Javadoc documents
+
+  By default, the class files will be placed under $(TOP)/lib, and the
+  javadoc documents will be placed under $(TOP)/doc/html.  To change
+  the settings, please modify Makefile by some text editor.
+  
+[How to run]
+  See the documents below $(TOP)/doc or $(TOP)/exs/README
+
+[Remaining tasks]
+  - Refactoring (currently BayeNet.java is too big)

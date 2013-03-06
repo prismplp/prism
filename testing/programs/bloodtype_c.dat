@@ -1,0 +1,4 @@
+count(bloodtype(a),38).
+count(bloodtype(b),22).
+count(bloodtype(o),31).
+count(bloodtype(ab),9).

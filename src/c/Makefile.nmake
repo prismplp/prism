@@ -1,0 +1,52 @@
+# -*- Makefile -*-
+
+ROOT = .
+
+!INCLUDE $(ROOT)\makefiles\Makefile.opts.nmake
+!INCLUDE $(ROOT)\makefiles\Makefile.files
+
+##----------------------------------------------------------------------
+
+.PHONY: all install clean $(SUBDIRS)
+
+##----------------------------------------------------------------------
+
+#all: core_all up_all mp_all $(TARGET)
+all: core_all up_all $(TARGET)
+
+install: all $(TARGET)
+	$(CP) $(TARGET) $(INSTALLDIR)
+
+clean: clean_subdirs
+	$(RM) $(TARGET)
+
+clean_subdirs:
+	@cd $(CORE_DIR)
+	$(MAKE) -f $(MAKEFILE) clean
+	@cd ..
+	@cd $(UP_DIR)
+	$(MAKE) -f $(MAKEFILE) clean
+	@cd ..
+#	@cd $(MP_DIR)
+#	$(MAKE) -f $(MAKEFILE) clean
+#	@cd ..
+
+core_all:
+	@cd $(CORE_DIR)
+	$(MAKE) -f $(MAKEFILE) all
+	@cd ..
+
+up_all:
+	@cd $(UP_DIR)
+	$(MAKE) -f $(MAKEFILE) all
+	@cd ..
+
+mp_all:
+	@cd $(MP_DIR)
+	$(MAKE) -f $(MAKEFILE) all
+	@cd ..
+
+$(TARGET): $(SUBDIRS) $(BP4P_A)
+	$(CC) $(TARGETFLAG)$(TARGET) $(OBJS) $(BP4P_A) $(LDFLAGS)
+
+##----------------------------------------------------------------------

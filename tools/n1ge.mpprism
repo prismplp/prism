@@ -1,0 +1,38 @@
+#!/bin/sh
+PRISM=`dirname $0`
+PAREA=2000000   # Size of program area
+STACK=30000000  # Size of control stack and heap
+TRAIL=2000000   # Size of trail stack
+TABLE=60000000  # Size of table area
+
+case `uname -m` in
+    x86_64)
+        PROC=64
+        ;;
+    *)
+        PROC=32
+        ;;
+esac
+
+case `uname -s` in
+    Linux)
+        BINARY=$PRISM/prism111mp.$PROC
+        ;;
+    Darwin)
+        BINARY=$PRISM/prism111mp.darwin
+        ;;
+    CYGWIN*)
+        BINARY=$PRISM/prism111mp.exe
+        ;;
+esac
+
+if [ ! -x "$BINARY" ]; then
+    echo "Sorry, but PRISM doesn't support this system." 1>&2
+    exit 1
+fi
+
+if [ -z $NPROCS ]; then
+    NPROCS=4
+fi
+
+exec n1ge -N ${1-"mpprism"} -mpi ${NPROCS-"4"} $BINARY -p $PAREA -s $STACK -b $TRAIL -t $TABLE $PRISM/bp.out $PRISM/prism.out $PRISM/fo_all.out $PRISM/mpprism.out ${1+"$@"}

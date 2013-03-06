@@ -1,0 +1,72 @@
+======================== README (exs_fail) =======================
+
+Files:
+  README           ... this file
+  agree.psm        ... simple stochastic constraint program,
+                       should be tried first
+  german.psm       ... slight extension of agree.psm
+  chmm.psm         ... discrete Hidden Markov model with a constraint
+  tic_tac_toe.psm  ... modeling tic_tac_toe by negative recursion
+  temp             ... working file
+
+How to use:
+  Try first  a sample session  in each program to  get familiar
+  with a model.  All programs contain negation and a definition
+  of  failure/0.   Programs should  be  loaded  by prismn/1  or
+  prismn/2.   Negation in  a program  is compiled  away  by FOC
+  (first order compiler) in  the loading process.  The compiled
+  code is stored  on the file named "temp"  (by default).   See
+  /foc  for  examples of  the  use of  FOC  and  their compiled
+  programs in case of non-probabilistic programs.
+
+Comment:
+  Negation  in the clause  body represents  computation failure
+  (Failure as Negation).  The  introduction of failure to PRISM
+  causes significant changes in distribution semantics of PRISM
+  and  its parameter  learning.   Since failure  means loss  of
+  probability  mass, the  class of  definable  distributions is
+  shifted to  log-linear models which are not  learnable by the
+  gEM (graphical  EM) algorithm,  the learning algorithm  up to
+  PRISM1.7.
+  
+  We have  combined the dynamic  programming scheme of  the gEM
+  algorithm   and  the   FAM   (failure-adjusted  maximization)
+  algorithm  proposed   by  Cussens  [Cussens   '01]  which  is
+  applicable to such  cases to obtain a new  algorithm that can
+  efficiently learn  parameters of PRISM  programs with failure
+  [Sato and  Kameya, '04].   There remains one  problem however
+  that the  new algorithm needs  a PRSIM program  that computes
+  failure  probability.  We  solve  this problem  by using  FOC
+  (first  order  compiler)  which  can  eliminate  negation  (=
+  failure) from logic programs.
+  
+  In summary, we  are able to use PRISM  programs with negation
+  (failure) to define log-linear  models, but have to prepare a
+  failure program.  Of course,  negation is not a simple beast.
+  To avoid controversial  matters concerning negation semantics
+  while keeping PRISM practical, we restrict our PRISM programs
+  with negation to those  that terminate with success or finite
+  failure for any ground goals when compiled by FOC.
+
+
+References:
+(FOC)
+  First Order Compiler: A Deterministic Logic Program Synthesis Algorithm,
+  Sato,T.,
+  Journal of Symbolic Computation 8, pp.605-627, 1989.
+
+(PRISM)
+  Parameter Learning of Logic Programs for Symbolic-statistical Modeling,
+  Sato,T. and Kameya,Y.,
+  Journal of Artificial Intelligence Research 15, pp.391-454, 2001.
+
+(FAM)
+  Parameter Estimation in Stochastic Logic Programs, 
+  Cussens,J., 
+  Machine Learning 44(3), pp.245-271, 2001.
+
+  A Dynamic Programming Approach to Parameter Learning of
+  Generative Models with Failure,
+  Sato,T. and Kameya,Y.,
+  Proceedings of ICML 2004 workshop on Learning 
+  Statistical Models from Relational Data (SRL2004), 2004.

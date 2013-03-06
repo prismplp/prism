@@ -1,0 +1,403 @@
+%%%%
+%%%%  Tic-Tac-Toe program -- tictactoe.psm
+%%%%
+%%%%  Copyright (C) 2004,2006
+%%%%    Sato Laboratory, Dept. of Computer Science,
+%%%%    Tokyo Institute of Technology
+
+%%  This program  models the tic-tac-toe game where  to win or
+%%  draw, you have to place three `o's in a row, horizontally,
+%%  vertically, or  diagonally on the  board of 9 by  9 cells,
+%%  before your opponent does so with `x'.
+
+%%  The point of modeling is the use of negative recursion
+%%
+%%    win(X):- your_opponent(X,Y),not(win(Y))
+%% 
+%%  representing the idea that  if your opponent does not win,
+%%  you win. Such negative recursion introduces a bunch of new
+%%  problems from semantics  to implementation to programming.
+
+%%  Despite mounting difficulties with negation, we can define
+%%  a mathematically clean distribution, by which parameters
+%%  are estimated from data.
+
+%%  Our modeling  is partial and  there remains a lot  of room
+%%  for finer modeling.
+
+%%-------------------------------------
+%%  Quick start : sample session
+%%
+%%  > prism
+%%
+%%  Load this program and initialize msws.
+%%  All choices are equiprobable.
+%%  ?- prismn(tictactoe),set_sw.
+%%
+%%  View a sampling process. success(L) returns only 
+%%  a list of moves up to o's success or draw.
+%%  ?- show_board,(sample(success(L)) ; true ),no_show_board.
+%%
+%%  Check if probabilities are correctly computed.
+%%  ?- prob(success,Ps),prob(failure,Pf),X is Ps+Pf.
+%%  ?- prob(success(_),Ps),prob(failure(_),Pf),X is Ps+Pf.
+%%  ?- sample(success(L)),prob(success(L),Ps),prob(failure(L),Pf),X is Ps+Pf.
+%%
+%%  Learning test with failure/non-failure models by randomly sampled data.
+%%  (i) failure model (not necessarily entails o's better performance)
+%%  ?- set_sw,gen_data(100,_Gs,o_win),learn([failure|_Gs]),prob(success).
+%%
+%%  (ii) no-failure model (o and x's moves are trained so that o wins or draws)
+%%  ?- set_sw,gen_data(100,_Gs,o_win),learn(_Gs),prob(success).
+%%
+%%  (iii) incorrect model (x's moves are fixed)
+%%  ?- set_sw,prob(success),fix_mark(x),gen_data(100,_Gs,o_win),learn(_Gs),prob(success).
+
+%%------------------------------------
+%%  Directives:
+
+built_in_mode(pos_to_win(+,-,-)).
+built_in_mode(next_board(+,+,+,-,-)).
+built_in_mode(opposite_turn(-,-)).
+
+:- dynamic show_board/1.
+
+%%------------------------------------
+%%  Basic model:
+%%  success/0 succeeds iff `o' wins or draws.
+%%  Given ground Turn and Board, tic_tac_toe(Turn,Board)
+%%  simulates each step of a game and  succeeds iff `o' wins or draws.
+
+failure :- not(success).
+success :- tic_tac_toe(o,[[*,*,*],[*,*,*],[*,*,*]]).
+
+tic_tac_toe(Turn,Board):-
+   select_move(Turn,Board,Move),          % make a probabilistic move
+   next_board(Turn,Board,Move,N_Board,S), % compute the next board and state S
+   ( S \== continue                       % S = o_win,o_draw,x_win,x_draw,continue
+   ; S == continue,
+       opposite_turn(Turn,N_Turn),
+       opponent_turn(N_Turn,N_Board)
+   ).
+opponent_turn(N_Turn,N_Board):-           % negative self-recursion
+   not(tic_tac_toe(N_Turn,N_Board)).
+
+%%------------------------------------
+%%  Augmented model:
+%%  success/1 works correctly for sampling. ?- success(L) returns 
+%%  a reversed list L of moves leading to o's win or o's draw.
+
+failure(L):- not(success(L)).
+success(L):- tic_tac_toe(o,[[*,*,*],[*,*,*],[*,*,*]],[],L).
+
+tic_tac_toe(Turn,Board,H,L):-       % H is a stack of past moves.
+   select_move(Turn,Board,Move),
+   H2 = [Move|H],
+   next_board(Turn,Board,Move,N_Board,S),
+   ( ( S == o_draw ; S == o_win ),  % termination with instantiation
+       L = [S|H2]               
+   ; ( S == x_draw ; S == x_win )   % causes failure of not(tic_tac_toe/3)
+                                    %  => when deleted, prob(success(_))=1.0
+   ; S == continue,
+       opposite_turn(Turn,N_Turn),
+       opponent_turn(N_Turn,N_Board,H2,L)
+   ).
+opponent_turn(N_Turn,N_Board,H,L):-
+   not(tic_tac_toe(N_Turn,N_Board,H,L)).
+
+%%------------------------------------
+%%  Parser:
+%%  par_success/1 is used for parsing,i.e. all solution
+%%  search of explanations for the given data in learning.
+
+par_success(L) :- 
+    ttt_rev(L,X),
+    par_tic_tac_toe(o,[[*,*,*],[*,*,*],[*,*,*]],X).
+par_tic_tac_toe(Turn,Board,L):-
+    select_move(Turn,Board,Move),
+    L = [Move|L2],
+    next_board(Turn,Board,Move,N_Board,S),
+    ( ( S == o_draw ; S == o_win ), L2 = [S]
+    ; S == continue,
+         opposite_turn(Turn,N_Turn),
+         par_tic_tac_toe(N_Turn,N_Board,L2) % positive recursion
+    ).
+
+ttt_rev(L,R):- ttt_rev(L,[],R).
+ttt_rev([H|X],Y,Z):- ttt_rev(X,[H|Y],Z).
+ttt_rev([],Z,Z).
+
+%%------------------------------------
+%%  Auxiliary predicates:
+%%  Find positions for immediate win
+
+select_move(Turn,Board,Move):-
+   pos_to_win(Board,O_win,X_win),
+   ( Turn == o, My_win = O_win, Your_win = X_win
+   ; Turn == x, My_win = X_win, Your_win = O_win ),
+   ( My_win \==[],
+       msw(occupy(Turn,My_win),Move)
+   ; My_win == [],
+       Your_win == [],      % no immediate win or defeat
+       msw(vacant(Turn,Board),Move)
+   ; My_win == [],
+       Your_win \==[],      % avoid your immediate win by putting my mark.
+       msw(occupy(Turn,Your_win),Move)
+   ).
+
+opposite_turn(o,x).
+opposite_turn(x,o).
+
+%%------------------------------------
+%%  Return the next board with its state S given Turn, Board and Move
+next_board(Turn,Board,Move,N_Board,S):-
+   Board = [Row1,Row2,Row3],
+   ( Move = [1,Co], put_mark(Turn,Co,Row1,N_Row1), N_Board =[N_Row1,Row2,Row3]
+   ; Move = [2,Co], put_mark(Turn,Co,Row2,N_Row2), N_Board =[Row1,N_Row2,Row3]
+   ; Move = [3,Co], put_mark(Turn,Co,Row3,N_Row3), N_Board =[Row1,Row2,N_Row3]
+   ),
+   trace_game(Turn,N_Board),           % show_board/0, no_show_board/0
+   board_state(Turn,N_Board,S).
+
+put_mark(Turn,Co,[E1,E2,E3],N_Row):-
+   ( Co == 1, N_Row =[Turn,E2,E3]
+   ; Co == 2, N_Row =[E1,Turn,E3]
+   ; Co == 3, N_Row =[E1,E2,Turn] ),!.
+
+%%------------------------------------
+%%  Return the current state S of the board
+board_state(My_mark,Board,S):-
+   opposite_turn(My_mark,Your_mark),
+   ( won(My_mark,Board),
+      ( My_mark == o, S = o_win ; My_mark == x, S = x_win )
+   ; won(Your_mark,Board),
+      ( My_mark == o, S = x_win ; My_mark == x, S = o_win )
+   ; vacant_pos(Board,[]),
+      ( My_mark == o, S = o_draw ; My_mark == x, S = x_draw )
+   ; S = continue ),!.
+
+won(M,Board) :-
+   ( Board = [[M,_,_],[_,M,_],[_,_,M]]
+   ; Board = [[_,_,M],[_,M,_],[M,_,_]]
+   ; Board = [[M,M,M],_,_]
+   ; Board = [_,[M,M,M],_]
+   ; Board = [_,_,[M,M,M]]
+   ; Board = [[M,_,_],[M,_,_],[M,_,_]]
+   ; Board = [[_,M,_],[_,M,_],[_,M,_]]
+   ; Board = [[_,_,M],[_,_,M],[_,_,M]]
+   ).
+
+%%-----------------------------------
+%%  Find positions occupied by a specified mark.
+extract_pos(My_mark,Board,My_pos,Your_pos):-
+   Board = [R1,R2,R3],
+   opposite_turn(My_mark,Your_mark),
+   extract_row_pos(My_mark,Your_mark,1,1,R1,My_pos-My2,Your_pos-Your2),
+   extract_row_pos(My_mark,Your_mark,2,1,R2,My2-My3,Your2-Your3),
+   extract_row_pos(My_mark,Your_mark,3,1,R3,My3-[],Your3-[]).
+
+extract_row_pos(_,_,_,_,[],X-X,Y-Y).
+extract_row_pos(My_mark,Your_mark,Row,Col,[E|R],X1-X2,Y1-Y2):-
+   ( E == My_mark,  X1 = [[Row,Col]|X3], Y1 = Y3
+   ; E == Your_mark,X1 = X3, Y1 = [[Row,Col]|Y3]
+   ; E == '*',X1 = X3, Y1 = Y3
+   ),
+   Col2 is Col+1,
+   extract_row_pos(My_mark,Your_mark,Row,Col2,R,X3-X2,Y3-Y2).
+
+%%-------------------------------------------
+%%  Find positions with no mark (indicated by "*")
+vacant_pos(Board,L):- !,
+   Board = [R1,R2,R3],
+   vacant_pos2(R1,1,1,L-L2),
+   vacant_pos2(R2,2,1,L2-L3),
+   vacant_pos2(R3,3,1,L3-[]).
+
+vacant_pos2([E|R],Row,Col,X1-X2):-
+   ( E == '*',  X1=[[Row,Col]|X3]
+   ; E \== '*', X1=X3 ),
+   Col2 is Col+1,!,
+   vacant_pos2(R,Row,Col2,X3-X2).
+vacant_pos2([],_,_,X-X).
+
+%%-----------------------------------
+%%  Find positions for a player to place a mark on to win
+pos_to_win(Board,O_win,X_win):-
+   vacant_pos(Board,L),L\==[],
+   row_win(Board,O_win-O2,X_win-X2),
+   column_win(Board,O2-O3,X2-X3),
+   diagonal_win(Board,O3-[],X3-[]),!.
+
+row_win([R1,R2,R3],O1-O4,X1-X4):-
+   row_win2(1,R1, O1-O2,X1-X2),
+   row_win2(2,R2, O2-O3,X2-X3),
+   row_win2(3,R3, O3-O4,X3-X4).
+
+row_win2(R,Row,O1-O2,X1-X2):-
+   B = '*',
+   ( Row = [A,A,B], 
+       ( A == o, O1=[[R,3]|O2], X1=X2
+       ; A == x, O1=O2,         X1=[[R,3]|X2] )
+   ; Row = [A,B,A], 
+       ( A == o, O1=[[R,2]|O2], X1=X2
+       ; A == x, O1=O2,         X1=[[R,2]|X2] )
+   ; Row = [B,A,A], 
+       ( A == o, O1=[[R,1]|O2], X1 = X2
+      ; A == x, O1=O2,          X1=[[R,1]|X2] )
+   ; O1=O2, X1=X2 ),!.
+
+column_win(Board,O1-O4,X1-X4):-
+   Board = [[E11,E12,E13],[E21,E22,E23],[E31,E32,E33]],
+   column_win2(1,[E11,E21,E31],O1-O2,X1-X2),
+   column_win2(2,[E12,E22,E32],O2-O3,X2-X3),
+   column_win2(3,[E13,E23,E33],O3-O4,X3-X4).
+
+column_win2(C,Column,O1-O2,X1-X2):-
+   B = '*',
+   ( Column = [A,A,B],
+       ( A == o, O1=[[3,C]|O2], X1=X2
+       ; A == x, O1=O2,         X1=[[3,C]|X2] )
+   ; Column = [A,B,A],
+       ( A == o, O1=[[2,C]|O2], X1=X2
+       ; A == x, O1=O2,         X1=[[2,C]|X2] )
+   ; Column = [B,A,A],
+       ( A == o, O1=[[1,C]|O2], X1=X2
+       ; A == x, O1=O2,         X1=[[1,C]|X2] )
+   ; O1=O2, X1=X2 ),!.
+
+diagonal_win(Board,O1-O3,X1-X3):-
+   Board = [[E11,_,E13],[_,E22,_],[E31,_,E33]],
+   D1 = [E11,E22,E33],
+   diagonal_win2('+',D1,O1-O2,X1-X2),
+   D2 = [E31,E22,E13],
+   diagonal_win2('-',D2,O2-O3,X2-X3).
+
+diagonal_win2(Sign,D,O1-O2,X1-X2):-
+   B = '*',
+   ( D = [A,A,B],
+       ( A == o,  X1 = X2,
+            ( Sign == '+', O1=[[3,3]|O2]
+            ; Sign == '-', O1=[[1,3]|O2] )
+       ; A == x, O1 = O2,
+           ( Sign == '+', X1=[[3,3]|X2]
+           ; Sign == '-', X1=[[1,3]|O2] )
+       )
+   ; D = [A,B,A],
+       ( A == o, X1 = X2, O1=[[2,2]|O2]
+       ; A == x, O1 = O2, X1=[[2,2]|X2]
+       )
+   ; D = [B,A,A],
+       ( A == o, X1 = X2,
+           ( Sign == '+', O1=[[1,1]|O2]
+           ; Sign == '-', O1=[[3,1]|O2] )
+       ; A == x, O1 = O2,
+           ( Sign == '+', X1=[[1,1]|X2]
+           ; Sign == '-', X1=[[3,1]|O2] )
+       )
+   ; O1=O2, X1=X2
+   ),!.
+
+%%------------------------------------------
+%%  Define values and initialize msws
+values(occupy(_,Win_list),Win_list).
+values(vacant(_,Board),L):-
+   vacant_pos(Board,L),
+   L \== [].
+
+set_sw:-
+   gen_board(Board),
+   pos_to_win(Board,O_win,X_win),
+   ( O_win == [] ; O_win \== [], set_sw(occupy(o,O_win)) ),
+   ( X_win == [] ; X_win \== [], set_sw(occupy(x,X_win)) ),
+   ( O_win == [] , X_win == [] ),
+   ( Turn = o ; Turn = x ),
+   vacant_pos(Board,L), L \== [],
+   set_sw(vacant(Turn,Board)),
+   fail.
+set_sw.
+
+fix_mark(Mark):-
+   gen_board(Board),
+   pos_to_win(Board,O_win,X_win),
+   ( Mark == o, O_win \== [], fix_sw(occupy(o,O_win)) ; true ),
+   ( Mark == x, X_win \== [], fix_sw(occupy(x,X_win)) ; true ),
+   vacant_pos(Board,L), L \== [],
+   fix_sw(vacant(Mark,Board)),
+   fail.
+fix_mark(_).
+
+unfix_mark(Mark):-
+   gen_board(Board),
+   pos_to_win(Board,O_win,X_win),
+   ( Mark == o, O_win \== [], unfix_sw(occupy(o,O_win)) ; true ),
+   ( Mark == x, X_win \== [], unfix_sw(occupy(x,X_win)) ; true ),
+   vacant_pos(Board,L), L \== [],
+   unfix_sw(vacant(Mark,Board)),
+   fail.
+unfix_mark(_).
+
+gen_board(Board):-
+   Board=[R1,R2,R3],
+   R1=[_,_,_], R2=[_,_,_], R3=[_,_,_],
+   O1 is 0, X1 is 0,
+   gen_row(R1,O1,O2,X1,X2),
+   gen_row(R2,O2,O3,X2,X3),
+   gen_row(R3,O3,_,X3,_).
+
+gen_row([],O,O,X,X).
+gen_row([E|Y],O1,O2,X1,X2):-
+   ( O1 =<5, X1=<5 ),
+   ( E = o, O3 is O1+1, X3=X1
+   ; E = x, X3 is X1+1, O3=O1
+   ; E = *, X3 = X1, O3=O1 ),
+   gen_row(Y,O3,O2,X3,X2).
+
+%%----------------------------
+review_game(R_History):-
+   ttt_rev(R_History,History),
+   Ini_Board = [[*,*,*],[*,*,*],[*,*,*]],
+   Ini_player = o,
+   review_game(History,Ini_Board,Ini_player).
+
+review_game([Move|R],Board,Turn):-
+   next_board(Turn,Board,Move,N_Board),
+   format("   ~w~n",[Move]),
+   show_board(Turn,N_Board),
+   ( R = [X],
+       format("~w ~w~n",[Turn,X])
+   ; opposite_turn(Turn,N_turn),!,
+       review_game(R,N_Board,N_turn)
+   ).
+
+show_board(Turn,Board):-
+   Board = [[E11,E12,E13],[E21,E22,E23],[E31,E32,E33]],
+   format("~w: ~w ~w ~w~n   ~w ~w ~w~n   ~w ~w ~w~n~n",
+          [Turn,E11,E12,E13,E21,E22,E23,E31,E32,E33]).
+
+trace_game(Turn,Board):-
+   ( clause(show_board(yes),true),
+       show_board(Turn,Board)
+   ; true ),!.
+
+show_board:-
+   ( retract(show_board(_)) ; true ),
+   assert(show_board(yes)).
+no_show_board:-
+   ( retract(show_board(_)) ; true ),
+   assert(show_board(no)).
+
+%%------------------------------------
+%%  Utilities:
+%%  make a random sample
+
+gen_data(0,[],_):-!.
+gen_data(N,Gs,Result) :-
+   N>0,
+   ( sample(success(L)),
+       L = [Result|_],         % Result = o_win, o_draw, x_win, x_draw
+       Gs = [par_success(L)|Y],
+       format(  "generated: ~w~n",[L]),
+       N1 is N-1
+   ; Gs = Y,
+       N1 is N ),!,
+   gen_data(N1,Y,Result).

@@ -1,0 +1,435 @@
+<?xml version="1.0"?>
+
+<!-- DTD for the XMLBIF 0.3 format -->
+<!DOCTYPE BIF [
+    <!ELEMENT BIF ( NETWORK )*>
+        <!ATTLIST BIF VERSION CDATA #REQUIRED>
+    <!ELEMENT NETWORK ( NAME, ( PROPERTY | VARIABLE | DEFINITION )* )>
+    <!ELEMENT NAME (#PCDATA)>
+    <!ELEMENT VARIABLE ( NAME, ( OUTCOME | PROPERTY )* ) >
+        <!ATTLIST VARIABLE TYPE (nature|decision|utility) "nature">
+    <!ELEMENT OUTCOME (#PCDATA)>
+    <!ELEMENT DEFINITION ( FOR | GIVEN | TABLE | PROPERTY )* >
+    <!ELEMENT FOR (#PCDATA)>
+    <!ELEMENT GIVEN (#PCDATA)>
+    <!ELEMENT TABLE (#PCDATA)>
+    <!ELEMENT PROPERTY (#PCDATA)>
+]>
+
+<BIF VERSION="0.3">
+    <NETWORK>
+    <NAME>Alarm</NAME>
+        <!-- Variables -->
+        <VARIABLE TYPE="nature">
+            <NAME>HISTORY</NAME>
+            <OUTCOME>TRUE</OUTCOME>
+            <OUTCOME>FALSE</OUTCOME>
+        </VARIABLE>
+        <VARIABLE TYPE="nature">
+            <NAME>CVP</NAME>
+            <OUTCOME>LOW</OUTCOME>
+            <OUTCOME>NORMAL</OUTCOME>
+            <OUTCOME>HIGH</OUTCOME>
+        </VARIABLE>
+        <VARIABLE TYPE="nature">
+            <NAME>PCWP</NAME>
+            <OUTCOME>LOW</OUTCOME>
+            <OUTCOME>NORMAL</OUTCOME>
+            <OUTCOME>HIGH</OUTCOME>
+        </VARIABLE>
+        <VARIABLE TYPE="nature">
+            <NAME>HYPOVOLEMIA</NAME>
+            <OUTCOME>TRUE</OUTCOME>
+            <OUTCOME>FALSE</OUTCOME>
+        </VARIABLE>
+        <VARIABLE TYPE="nature">
+            <NAME>LVEDVOLUME</NAME>
+            <OUTCOME>LOW</OUTCOME>
+            <OUTCOME>NORMAL</OUTCOME>
+            <OUTCOME>HIGH</OUTCOME>
+        </VARIABLE>
+        <VARIABLE TYPE="nature">
+            <NAME>LVFAILURE</NAME>
+            <OUTCOME>TRUE</OUTCOME>
+            <OUTCOME>FALSE</OUTCOME>
+        </VARIABLE>
+        <VARIABLE TYPE="nature">
+            <NAME>STROKEVOLUME</NAME>
+            <OUTCOME>LOW</OUTCOME>
+            <OUTCOME>NORMAL</OUTCOME>
+            <OUTCOME>HIGH</OUTCOME>
+        </VARIABLE>
+        <VARIABLE TYPE="nature">
+            <NAME>ERRLOWOUTPUT</NAME>
+            <OUTCOME>TRUE</OUTCOME>
+            <OUTCOME>FALSE</OUTCOME>
+        </VARIABLE>
+        <VARIABLE TYPE="nature">
+            <NAME>HRBP</NAME>
+            <OUTCOME>LOW</OUTCOME>
+            <OUTCOME>NORMAL</OUTCOME>
+            <OUTCOME>HIGH</OUTCOME>
+        </VARIABLE>
+        <VARIABLE TYPE="nature">
+            <NAME>HREKG</NAME>
+            <OUTCOME>LOW</OUTCOME>
+            <OUTCOME>NORMAL</OUTCOME>
+            <OUTCOME>HIGH</OUTCOME>
+        </VARIABLE>
+        <VARIABLE TYPE="nature">
+            <NAME>ERRCAUTER</NAME>
+            <OUTCOME>TRUE</OUTCOME>
+            <OUTCOME>FALSE</OUTCOME>
+        </VARIABLE>
+        <VARIABLE TYPE="nature">
+            <NAME>HRSAT</NAME>
+            <OUTCOME>LOW</OUTCOME>
+            <OUTCOME>NORMAL</OUTCOME>
+            <OUTCOME>HIGH</OUTCOME>
+        </VARIABLE>
+        <VARIABLE TYPE="nature">
+            <NAME>INSUFFANESTH</NAME>
+            <OUTCOME>TRUE</OUTCOME>
+            <OUTCOME>FALSE</OUTCOME>
+        </VARIABLE>
+        <VARIABLE TYPE="nature">
+            <NAME>ANAPHYLAXIS</NAME>
+            <OUTCOME>TRUE</OUTCOME>
+            <OUTCOME>FALSE</OUTCOME>
+        </VARIABLE>
+        <VARIABLE TYPE="nature">
+            <NAME>TPR</NAME>
+            <OUTCOME>LOW</OUTCOME>
+            <OUTCOME>NORMAL</OUTCOME>
+            <OUTCOME>HIGH</OUTCOME>
+        </VARIABLE>
+        <VARIABLE TYPE="nature">
+            <NAME>EXPCO2</NAME>
+            <OUTCOME>ZERO</OUTCOME>
+            <OUTCOME>LOW</OUTCOME>
+            <OUTCOME>NORMAL</OUTCOME>
+            <OUTCOME>HIGH</OUTCOME>
+        </VARIABLE>
+        <VARIABLE TYPE="nature">
+            <NAME>KINKEDTUBE</NAME>
+            <OUTCOME>TRUE</OUTCOME>
+            <OUTCOME>FALSE</OUTCOME>
+        </VARIABLE>
+        <VARIABLE TYPE="nature">
+            <NAME>MINVOL</NAME>
+            <OUTCOME>ZERO</OUTCOME>
+            <OUTCOME>LOW</OUTCOME>
+            <OUTCOME>NORMAL</OUTCOME>
+            <OUTCOME>HIGH</OUTCOME>
+        </VARIABLE>
+        <VARIABLE TYPE="nature">
+            <NAME>FIO2</NAME>
+            <OUTCOME>TRUE</OUTCOME>
+            <OUTCOME>FALSE</OUTCOME>
+        </VARIABLE>
+        <VARIABLE TYPE="nature">
+            <NAME>PVSAT</NAME>
+            <OUTCOME>LOW</OUTCOME>
+            <OUTCOME>NORMAL</OUTCOME>
+            <OUTCOME>HIGH</OUTCOME>
+        </VARIABLE>
+        <VARIABLE TYPE="nature">
+            <NAME>SAO2</NAME>
+            <OUTCOME>LOW</OUTCOME>
+            <OUTCOME>NORMAL</OUTCOME>
+            <OUTCOME>HIGH</OUTCOME>
+        </VARIABLE>
+        <VARIABLE TYPE="nature">
+            <NAME>PAP</NAME>
+            <OUTCOME>LOW</OUTCOME>
+            <OUTCOME>NORMAL</OUTCOME>
+            <OUTCOME>HIGH</OUTCOME>
+        </VARIABLE>
+        <VARIABLE TYPE="nature">
+            <NAME>PULMEMBOLUS</NAME>
+            <OUTCOME>TRUE</OUTCOME>
+            <OUTCOME>FALSE</OUTCOME>
+        </VARIABLE>
+        <VARIABLE TYPE="nature">
+            <NAME>SHUNT</NAME>
+            <OUTCOME>NORMAL</OUTCOME>
+            <OUTCOME>HIGH</OUTCOME>
+        </VARIABLE>
+        <VARIABLE TYPE="nature">
+            <NAME>INTUBATION</NAME>
+            <OUTCOME>NORMAL</OUTCOME>
+            <OUTCOME>ESOPHAGEAL</OUTCOME>
+            <OUTCOME>ONESIDED</OUTCOME>
+        </VARIABLE>
+        <VARIABLE TYPE="nature">
+            <NAME>PRESS</NAME>
+            <OUTCOME>ZERO</OUTCOME>
+            <OUTCOME>LOW</OUTCOME>
+            <OUTCOME>NORMAL</OUTCOME>
+            <OUTCOME>HIGH</OUTCOME>
+        </VARIABLE>
+        <VARIABLE TYPE="nature">
+            <NAME>DISCONNECT</NAME>
+            <OUTCOME>TRUE</OUTCOME>
+            <OUTCOME>FALSE</OUTCOME>
+        </VARIABLE>
+        <VARIABLE TYPE="nature">
+            <NAME>MINVOLSET</NAME>
+            <OUTCOME>LOW</OUTCOME>
+            <OUTCOME>NORMAL</OUTCOME>
+            <OUTCOME>HIGH</OUTCOME>
+        </VARIABLE>
+        <VARIABLE TYPE="nature">
+            <NAME>VENTMACH</NAME>
+            <OUTCOME>ZERO</OUTCOME>
+            <OUTCOME>LOW</OUTCOME>
+            <OUTCOME>NORMAL</OUTCOME>
+            <OUTCOME>HIGH</OUTCOME>
+        </VARIABLE>
+        <VARIABLE TYPE="nature">
+            <NAME>VENTTUBE</NAME>
+            <OUTCOME>ZERO</OUTCOME>
+            <OUTCOME>LOW</OUTCOME>
+            <OUTCOME>NORMAL</OUTCOME>
+            <OUTCOME>HIGH</OUTCOME>
+        </VARIABLE>
+        <VARIABLE TYPE="nature">
+            <NAME>VENTLUNG</NAME>
+            <OUTCOME>ZERO</OUTCOME>
+            <OUTCOME>LOW</OUTCOME>
+            <OUTCOME>NORMAL</OUTCOME>
+            <OUTCOME>HIGH</OUTCOME>
+        </VARIABLE>
+        <VARIABLE TYPE="nature">
+            <NAME>VENTALV</NAME>
+            <OUTCOME>ZERO</OUTCOME>
+            <OUTCOME>LOW</OUTCOME>
+            <OUTCOME>NORMAL</OUTCOME>
+            <OUTCOME>HIGH</OUTCOME>
+        </VARIABLE>
+        <VARIABLE TYPE="nature">
+            <NAME>ARTCO2</NAME>
+            <OUTCOME>LOW</OUTCOME>
+            <OUTCOME>NORMAL</OUTCOME>
+            <OUTCOME>HIGH</OUTCOME>
+        </VARIABLE>
+        <VARIABLE TYPE="nature">
+            <NAME>CATECHOL</NAME>
+            <OUTCOME>NORMAL</OUTCOME>
+            <OUTCOME>HIGH</OUTCOME>
+        </VARIABLE>
+        <VARIABLE TYPE="nature">
+            <NAME>HR</NAME>
+            <OUTCOME>LOW</OUTCOME>
+            <OUTCOME>NORMAL</OUTCOME>
+            <OUTCOME>HIGH</OUTCOME>
+        </VARIABLE>
+        <VARIABLE TYPE="nature">
+            <NAME>CO</NAME>
+            <OUTCOME>LOW</OUTCOME>
+            <OUTCOME>NORMAL</OUTCOME>
+            <OUTCOME>HIGH</OUTCOME>
+        </VARIABLE>
+        <VARIABLE TYPE="nature">
+            <NAME>BP</NAME>
+            <OUTCOME>LOW</OUTCOME>
+            <OUTCOME>NORMAL</OUTCOME>
+            <OUTCOME>HIGH</OUTCOME>
+        </VARIABLE>
+        <!-- Probability Distributions -->
+        <DEFINITION>
+            <FOR>HISTORY</FOR>
+            <GIVEN>LVFAILURE</GIVEN>
+            <TABLE>0.9 0.01 0.1 0.99 </TABLE>
+        </DEFINITION>
+        <DEFINITION>
+            <FOR>CVP</FOR>
+            <GIVEN>LVEDVOLUME</GIVEN>
+            <TABLE>0.95 0.04 0.01 0.04 0.95 0.29 0.01 0.01 0.7 </TABLE>
+        </DEFINITION>
+        <DEFINITION>
+            <FOR>PCWP</FOR>
+            <GIVEN>LVEDVOLUME</GIVEN>
+            <TABLE>0.95 0.04 0.01 0.04 0.95 0.04 0.01 0.01 0.95 </TABLE>
+        </DEFINITION>
+        <DEFINITION>
+            <FOR>HYPOVOLEMIA</FOR>
+            <TABLE>0.2 0.8 </TABLE>
+        </DEFINITION>
+        <DEFINITION>
+            <FOR>LVEDVOLUME</FOR>
+            <GIVEN>HYPOVOLEMIA</GIVEN>
+            <GIVEN>LVFAILURE</GIVEN>
+            <TABLE>0.95 0.98 0.01 0.05 0.04 0.01 0.09 0.9 0.01 0.01 0.9 0.05 </TABLE>
+        </DEFINITION>
+        <DEFINITION>
+            <FOR>LVFAILURE</FOR>
+            <TABLE>0.05 0.95 </TABLE>
+        </DEFINITION>
+        <DEFINITION>
+            <FOR>STROKEVOLUME</FOR>
+            <GIVEN>HYPOVOLEMIA</GIVEN>
+            <GIVEN>LVFAILURE</GIVEN>
+            <TABLE>0.98 0.95 0.5 0.05 0.01 0.04 0.49 0.9 0.01 0.01 0.01 0.05 </TABLE>
+        </DEFINITION>
+        <DEFINITION>
+            <FOR>ERRLOWOUTPUT</FOR>
+            <TABLE>0.05 0.95 </TABLE>
+        </DEFINITION>
+        <DEFINITION>
+            <FOR>HRBP</FOR>
+            <GIVEN>ERRLOWOUTPUT</GIVEN>
+            <GIVEN>HR</GIVEN>
+            <TABLE>0.98 0.4 0.3 0.98 0.01 0.01 0.01 0.59 0.4 0.01 0.98 0.01 0.01 0.01 0.3 0.01 0.01 0.98 </TABLE>
+        </DEFINITION>
+        <DEFINITION>
+            <FOR>HREKG</FOR>
+            <GIVEN>ERRCAUTER</GIVEN>
+            <GIVEN>HR</GIVEN>
+            <TABLE>0.333 0.333 0.333 0.98 0.01 0.01 0.333 0.333 0.333 0.01 0.98 0.01 0.333 0.333 0.333 0.01 0.01 0.98 </TABLE>
+        </DEFINITION>
+        <DEFINITION>
+            <FOR>ERRCAUTER</FOR>
+            <TABLE>0.1 0.9 </TABLE>
+        </DEFINITION>
+        <DEFINITION>
+            <FOR>HRSAT</FOR>
+            <GIVEN>ERRCAUTER</GIVEN>
+            <GIVEN>HR</GIVEN>
+            <TABLE>0.333 0.333 0.333 0.98 0.01 0.01 0.333 0.333 0.333 0.01 0.98 0.01 0.333 0.333 0.333 0.01 0.01 0.98 </TABLE>
+        </DEFINITION>
+        <DEFINITION>
+            <FOR>INSUFFANESTH</FOR>
+            <TABLE>0.1 0.9 </TABLE>
+        </DEFINITION>
+        <DEFINITION>
+            <FOR>ANAPHYLAXIS</FOR>
+            <TABLE>0.01 0.99 </TABLE>
+        </DEFINITION>
+        <DEFINITION>
+            <FOR>TPR</FOR>
+            <GIVEN>ANAPHYLAXIS</GIVEN>
+            <TABLE>0.98 0.3 0.01 0.4 0.01 0.3 </TABLE>
+        </DEFINITION>
+        <DEFINITION>
+            <FOR>EXPCO2</FOR>
+            <GIVEN>ARTCO2</GIVEN>
+            <GIVEN>VENTLUNG</GIVEN>
+            <TABLE>0.97 0.01 0.01 0.01 0.97 0.01 0.01 0.01 0.97 0.01 0.01 0.01 0.01 0.97 0.97 0.97 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.97 0.97 0.97 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.97 0.97 0.97 </TABLE>
+        </DEFINITION>
+        <DEFINITION>
+            <FOR>KINKEDTUBE</FOR>
+            <TABLE>0.04 0.96 </TABLE>
+        </DEFINITION>
+        <DEFINITION>
+            <FOR>MINVOL</FOR>
+            <GIVEN>INTUBATION</GIVEN>
+            <GIVEN>VENTLUNG</GIVEN>
+            <TABLE>0.97 0.01 0.01 0.01 0.97 0.6 0.5 0.5 0.97 0.01 0.01 0.01 0.01 0.97 0.01 0.01 0.01 0.38 0.48 0.48 0.01 0.97 0.01 0.01 0.01 0.01 0.97 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.97 0.01 0.01 0.01 0.01 0.97 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.97 </TABLE>
+        </DEFINITION>
+        <DEFINITION>
+            <FOR>FIO2</FOR>
+            <TABLE>0.05 0.95 </TABLE>
+        </DEFINITION>
+        <DEFINITION>
+            <FOR>PVSAT</FOR>
+            <GIVEN>FIO2</GIVEN>
+            <GIVEN>VENTALV</GIVEN>
+            <TABLE>1.0 0.99 0.95 0.95 1.0 0.95 0.01 0.01 0.0 0.01 0.04 0.04 0.0 0.04 0.95 0.01 0.0 0.0 0.01 0.01 0.0 0.01 0.04 0.98 </TABLE>
+        </DEFINITION>
+        <DEFINITION>
+            <FOR>SAO2</FOR>
+            <GIVEN>PVSAT</GIVEN>
+            <GIVEN>SHUNT</GIVEN>
+            <TABLE>0.98 0.01 0.01 0.98 0.98 0.69 0.01 0.98 0.01 0.01 0.01 0.3 0.01 0.01 0.98 0.01 0.01 0.01 </TABLE>
+        </DEFINITION>
+        <DEFINITION>
+            <FOR>PAP</FOR>
+            <GIVEN>PULMEMBOLUS</GIVEN>
+            <TABLE>0.01 0.05 0.19 0.9 0.8 0.05 </TABLE>
+        </DEFINITION>
+        <DEFINITION>
+            <FOR>PULMEMBOLUS</FOR>
+            <TABLE>0.01 0.99 </TABLE>
+        </DEFINITION>
+        <DEFINITION>
+            <FOR>SHUNT</FOR>
+            <GIVEN>INTUBATION</GIVEN>
+            <GIVEN>PULMEMBOLUS</GIVEN>
+            <TABLE>0.1 0.1 0.01 0.95 0.95 0.05 0.9 0.9 0.99 0.05 0.05 0.95 </TABLE>
+        </DEFINITION>
+        <DEFINITION>
+            <FOR>INTUBATION</FOR>
+            <TABLE>0.92 0.03 0.05 </TABLE>
+        </DEFINITION>
+        <DEFINITION>
+            <FOR>PRESS</FOR>
+            <GIVEN>INTUBATION</GIVEN>
+            <GIVEN>KINKEDTUBE</GIVEN>
+            <GIVEN>VENTTUBE</GIVEN>
+            <TABLE>0.97 0.01 0.01 0.01 0.97 0.1 0.05 0.01 0.97 0.01 0.01 0.01 0.97 0.01 0.01 0.01 0.97 0.4 0.2 0.2 0.97 0.01 0.01 0.01 0.01 0.3 0.01 0.01 0.01 0.84 0.25 0.15 0.01 0.29 0.01 0.01 0.01 0.97 0.01 0.01 0.01 0.58 0.75 0.7 0.01 0.9 0.01 0.01 0.01 0.49 0.08 0.01 0.01 0.05 0.25 0.25 0.01 0.3 0.08 0.01 0.01 0.01 0.97 0.01 0.01 0.01 0.04 0.09 0.01 0.08 0.38 0.01 0.01 0.2 0.9 0.97 0.01 0.01 0.45 0.59 0.01 0.4 0.9 0.97 0.01 0.01 0.01 0.97 0.01 0.01 0.01 0.01 0.01 0.01 0.6 0.97 </TABLE>
+        </DEFINITION>
+        <DEFINITION>
+            <FOR>DISCONNECT</FOR>
+            <TABLE>0.1 0.9 </TABLE>
+        </DEFINITION>
+        <DEFINITION>
+            <FOR>MINVOLSET</FOR>
+            <TABLE>0.05 0.9 0.05 </TABLE>
+        </DEFINITION>
+        <DEFINITION>
+            <FOR>VENTMACH</FOR>
+            <GIVEN>MINVOLSET</GIVEN>
+            <TABLE>0.05 0.05 0.05 0.93 0.01 0.01 0.01 0.93 0.01 0.01 0.01 0.93 </TABLE>
+        </DEFINITION>
+        <DEFINITION>
+            <FOR>VENTTUBE</FOR>
+            <GIVEN>DISCONNECT</GIVEN>
+            <GIVEN>VENTMACH</GIVEN>
+            <TABLE>0.97 0.97 0.97 0.97 0.97 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.97 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.97 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.97 </TABLE>
+        </DEFINITION>
+        <DEFINITION>
+            <FOR>VENTLUNG</FOR>
+            <GIVEN>INTUBATION</GIVEN>
+            <GIVEN>KINKEDTUBE</GIVEN>
+            <GIVEN>VENTTUBE</GIVEN>
+            <TABLE>0.97 0.95 0.4 0.3 0.97 0.97 0.97 0.97 0.97 0.95 0.5 0.3 0.97 0.01 0.01 0.01 0.97 0.97 0.97 0.97 0.97 0.01 0.01 0.01 0.01 0.03 0.58 0.68 0.01 0.01 0.01 0.01 0.01 0.03 0.48 0.68 0.01 0.97 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.97 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.97 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.97 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.97 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.97 </TABLE>
+        </DEFINITION>
+        <DEFINITION>
+            <FOR>VENTALV</FOR>
+            <GIVEN>INTUBATION</GIVEN>
+            <GIVEN>VENTLUNG</GIVEN>
+            <TABLE>0.97 0.01 0.01 0.01 0.97 0.01 0.01 0.01 0.97 0.03 0.01 0.01 0.01 0.97 0.01 0.01 0.01 0.97 0.01 0.01 0.01 0.95 0.94 0.88 0.01 0.01 0.97 0.01 0.01 0.01 0.97 0.01 0.01 0.01 0.04 0.1 0.01 0.01 0.01 0.97 0.01 0.01 0.01 0.97 0.01 0.01 0.01 0.01 </TABLE>
+        </DEFINITION>
+        <DEFINITION>
+            <FOR>ARTCO2</FOR>
+            <GIVEN>VENTALV</GIVEN>
+            <TABLE>0.01 0.01 0.04 0.9 0.01 0.01 0.92 0.09 0.98 0.98 0.04 0.01 </TABLE>
+        </DEFINITION>
+        <DEFINITION>
+            <FOR>CATECHOL</FOR>
+            <GIVEN>ARTCO2</GIVEN>
+            <GIVEN>INSUFFANESTH</GIVEN>
+            <GIVEN>SAO2</GIVEN>
+            <GIVEN>TPR</GIVEN>
+            <TABLE>0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.01 0.05 0.05 0.01 0.01 0.01 0.01 0.05 0.05 0.01 0.05 0.05 0.01 0.05 0.05 0.01 0.05 0.05 0.01 0.05 0.05 0.01 0.7 0.7 0.1 0.7 0.7 0.1 0.7 0.7 0.1 0.95 0.99 0.3 0.95 0.99 0.3 0.95 0.99 0.3 0.99 0.99 0.99 0.99 0.99 0.99 0.99 0.99 0.99 0.99 0.99 0.99 0.99 0.99 0.99 0.95 0.95 0.99 0.99 0.99 0.99 0.95 0.95 0.99 0.95 0.95 0.99 0.95 0.95 0.99 0.95 0.95 0.99 0.95 0.95 0.99 0.3 0.3 0.9 0.3 0.3 0.9 0.3 0.3 0.9 0.05 0.01 0.7 0.05 0.01 0.7 0.05 0.01 0.7 </TABLE>
+        </DEFINITION>
+        <DEFINITION>
+            <FOR>HR</FOR>
+            <GIVEN>CATECHOL</GIVEN>
+            <TABLE>0.05 0.01 0.9 0.09 0.05 0.9 </TABLE>
+        </DEFINITION>
+        <DEFINITION>
+            <FOR>CO</FOR>
+            <GIVEN>HR</GIVEN>
+            <GIVEN>STROKEVOLUME</GIVEN>
+            <TABLE>0.98 0.95 0.8 0.95 0.04 0.01 0.3 0.01 0.01 0.01 0.04 0.19 0.04 0.95 0.04 0.69 0.3 0.01 0.01 0.01 0.01 0.01 0.01 0.95 0.01 0.69 0.98 </TABLE>
+        </DEFINITION>
+        <DEFINITION>
+            <FOR>BP</FOR>
+            <GIVEN>CO</GIVEN>
+            <GIVEN>TPR</GIVEN>
+            <TABLE>0.98 0.98 0.9 0.98 0.1 0.05 0.3 0.05 0.01 0.01 0.01 0.09 0.01 0.85 0.2 0.6 0.4 0.09 0.01 0.01 0.01 0.01 0.05 0.75 0.1 0.55 0.9 </TABLE>
+        </DEFINITION>
+    </NETWORK>
+</BIF>

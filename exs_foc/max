@@ -1,0 +1,43 @@
+%%%
+%%%  Maximum program --- max
+%%%
+%%%  Copyright (C) 2004
+%%%    Sato Laboratory, Dept. of Computer Science,
+%%%    Tokyo Institute of Technology
+
+%-------------------------------------
+% Quick start : sample session
+% > prism
+
+% ?- foc(max,temp),[temp].
+     % compile this program into the file "temp" and load "temp".
+
+% ?- max(M,[2,3,1]).
+% M = 3 ;
+% no
+
+%------------------------------------
+% FOC directives:
+
+fo_sort(mem(_,list)).  % 2nd arg. of mem/2 is a list
+% delay_ununifiablity_check(yes).
+% distribute_disjunction(yes).
+
+%------------------------------------
+% Program:
+
+	max(M,L):- mem(M,L),all([X],(mem(X,L)->X=<M)).
+
+	mem(X,[X|Y]).
+	mem(X,[H|Y]):-mem(X,Y).
+
+%------------------------------------
+% Compiled codes in "temp"
+% 
+% cont(A,f0(B)):-A=<B.
+% max(A,B):-mem(A,B),closure_mem0(B,f0(A)).
+% mem(A,[A|_]).
+% mem(A,[_|B]):-mem(A,B).
+% closure_mem0(A,B):-
+%     ( A=[] ; A=[C|_], cont(C,B) ),
+%     ( A=[] ; A=[_|D], closure_mem0(D,B) ).

@@ -1,0 +1,30 @@
+====================================================
+  Developer's guide on naming of Prolog predicates
+====================================================
+
+To separate the name space, we add prefixes to the internal predicates
+defined in the PRISM's source code, according to their roles:
+
+-----------+--------------------------------------------------------
+  Prefix   |                      Description
+-----------+--------------------------------------------------------
+(no prefix)| built-in predicates of PRISM
+    $pc_   | internal predicates defined in PRISM's C part
+    $pp_   | internal predicates defined in PRISM's Prolog part
+    $pu_   | translated user-defined predicates
+    $ps_   | dynamic predicates for statistics (learning time, etc.)
+    $pd_   | other dynamic predicates
+    $pg_   | global variables (provided by B-Prolog)
+ $prism_   | special predicates for probabilistic inference
+-----------+--------------------------------------------------------
+
+- The definition of a predicate $pc_xxx/N is given by the C function
+  named $pc_xxx_N().
+
+- For the names of C-interface predicates, the words `export' and
+  `import' are used from the Prolog side. That is, a predicate
+  $pc_export_xxx/N transfers information from Prolog to C, while
+  $pc_import_xxx/N does it from C to Prolog.
+
+
+(to be added)

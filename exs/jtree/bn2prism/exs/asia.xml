@@ -1,0 +1,105 @@
+<?xml version="1.0"?>
+
+<!-- DTD for the XMLBIF 0.3 format -->
+<!DOCTYPE BIF [
+    <!ELEMENT BIF ( NETWORK )*>
+        <!ATTLIST BIF VERSION CDATA #REQUIRED>
+    <!ELEMENT NETWORK ( NAME, ( PROPERTY | VARIABLE | DEFINITION )* )>
+    <!ELEMENT NAME (#PCDATA)>
+    <!ELEMENT VARIABLE ( NAME, ( OUTCOME | PROPERTY )* ) >
+        <!ATTLIST VARIABLE TYPE (nature|decision|utility) "nature">
+    <!ELEMENT OUTCOME (#PCDATA)>
+    <!ELEMENT DEFINITION ( FOR | GIVEN | TABLE | PROPERTY )* >
+    <!ELEMENT FOR (#PCDATA)>
+    <!ELEMENT GIVEN (#PCDATA)>
+    <!ELEMENT TABLE (#PCDATA)>
+    <!ELEMENT PROPERTY (#PCDATA)>
+]>
+
+<BIF VERSION="0.3">
+    <NETWORK>
+    <NAME>Asia</NAME>
+        <!-- Variables -->
+        <VARIABLE TYPE="nature">
+            <NAME>VisitToAsia</NAME>
+            <OUTCOME>true</OUTCOME>
+            <OUTCOME>false</OUTCOME>
+        </VARIABLE>
+        <VARIABLE TYPE="nature">
+            <NAME>Smoking</NAME>
+            <OUTCOME>true</OUTCOME>
+            <OUTCOME>false</OUTCOME>
+        </VARIABLE>
+        <VARIABLE TYPE="nature">
+            <NAME>Tuberculosis</NAME>
+            <OUTCOME>true</OUTCOME>
+            <OUTCOME>false</OUTCOME>
+        </VARIABLE>
+        <VARIABLE TYPE="nature">
+            <NAME>LangCancer</NAME>
+            <OUTCOME>true</OUTCOME>
+            <OUTCOME>false</OUTCOME>
+        </VARIABLE>
+        <VARIABLE TYPE="nature">
+            <NAME>TuberculosisOrLangCancer</NAME>
+            <OUTCOME>true</OUTCOME>
+            <OUTCOME>false</OUTCOME>
+        </VARIABLE>
+        <VARIABLE TYPE="nature">
+            <NAME>Bronchinitis</NAME>
+            <OUTCOME>true</OUTCOME>
+            <OUTCOME>false</OUTCOME>
+        </VARIABLE>
+        <VARIABLE TYPE="nature">
+            <NAME>Dyspnea</NAME>
+            <OUTCOME>true</OUTCOME>
+            <OUTCOME>false</OUTCOME>
+        </VARIABLE>
+        <VARIABLE TYPE="nature">
+            <NAME>X-ray</NAME>
+            <OUTCOME>true</OUTCOME>
+            <OUTCOME>false</OUTCOME>
+        </VARIABLE>
+        <!-- Probability Distributions -->
+        <DEFINITION>
+            <FOR>VisitToAsia</FOR>
+            <TABLE>0.01 0.99</TABLE>
+        </DEFINITION>
+        <DEFINITION>
+            <FOR>Smoking</FOR>
+            <TABLE>0.5 0.5</TABLE>
+        </DEFINITION>
+        <DEFINITION>
+            <FOR>Tuberculosis</FOR>
+            <GIVEN>VisitToAsia</GIVEN>
+            <TABLE>0.05 0.95 0.01 0.99</TABLE>
+        </DEFINITION>
+        <DEFINITION>
+            <FOR>LangCancer</FOR>
+            <GIVEN>Smoking</GIVEN>
+            <TABLE>0.1 0.9 0.01 0.99</TABLE>
+        </DEFINITION>
+        <DEFINITION>
+            <FOR>TuberculosisOrLangCancer</FOR>
+            <GIVEN>Tuberculosis</GIVEN>
+            <GIVEN>LangCancer</GIVEN>
+            <TABLE>1 0 1 0 1 0 0 1</TABLE>
+        </DEFINITION>
+        <DEFINITION>
+            <FOR>Bronchinitis</FOR>
+            <GIVEN>Smoking</GIVEN>
+            <TABLE>0.6 0.4 0.3 0.7</TABLE>
+        </DEFINITION>
+        <DEFINITION>
+            <FOR>Dyspnea</FOR>
+            <GIVEN>TuberculosisOrLangCancer</GIVEN>
+            <GIVEN>Bronchinitis</GIVEN>
+            <TABLE>0.9 0.1 0.7 0.3 0.8 0.2 0.1 0.9</TABLE>
+        </DEFINITION>
+        <DEFINITION>
+            <FOR>X-ray</FOR>
+            <GIVEN>TuberculosisOrLangCancer</GIVEN>
+            <TABLE>0.98 0.02 0.05 0.95</TABLE>
+        </DEFINITION>
+    </NETWORK>
+</BIF>

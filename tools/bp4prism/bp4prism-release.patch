@@ -1,0 +1,23 @@
+diff -urN Emulator.prism/basic.h Emulator.prism.tmp/basic.h
+--- Emulator.prism/basic.h	2009-11-20 14:53:49.000000000 +0900
++++ Emulator.prism.tmp/basic.h	2009-11-20 15:20:27.000000000 +0900
+@@ -375,7 +375,3 @@
+   et_VARIABLE,
+   et_WRITE_OPTION,
+   et_ZERO_DIVISOR;
+-
+-#ifdef PRISM
+-#define exit bp4p_quit
+-#endif
+diff -urN Emulator.prism/bprolog.h Emulator.prism.tmp/bprolog.h
+--- Emulator.prism/bprolog.h	2009-10-14 02:46:23.000000000 +0900
++++ Emulator.prism.tmp/bprolog.h	2009-11-20 15:20:15.000000000 +0900
+@@ -1,4 +1,8 @@
++#ifndef BPROLOG_H
++#define BPROLOG_H
++
+ #include "basic.h"
+ #include "bapi.h"
+ #include "term.h"
+ 
++#endif

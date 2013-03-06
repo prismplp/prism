@@ -1,0 +1,77 @@
+# -*- Makefile -*-
+
+ifndef PLATFORM
+PLATFORM = linux64
+endif
+
+ifndef PROCTYPE
+PROCTYPE = up
+endif
+
+##----------------------------------------------------------------------
+
+TARGET      = prism_$(PROCTYPE)_$(PLATFORM).bin
+TARGETFLAG  = -o
+
+MAKEFILE    = Makefile.gmake
+
+CC          = gcc
+#CC         = llvm-gcc
+CFLAGS      = -O3 -fomit-frame-pointer -fno-strict-aliasing -Wall -I../bp4prism/include -I..
+#CFLAGS     = -pg -Wall -I../bp4prism/include -I..
+#CFLAGS     = -g -DMALLOC_TRACE -fomit-frame-pointer -fno-strict-aliasing -Wall -I../bp4prism/include -I..
+LDFLAGS     = -lm -lpthread
+#LDFLAGS    = -pg -lm -lpthread
+CP          = cp -f
+RM          = rm -f
+O           = o
+A           = a
+S           = /
+
+##----------------------------------------------------------------------
+
+ifeq ($(PROCTYPE),mp)
+CC          = mpicc
+CFLAGS     += -DMPI
+endif
+
+ifeq ($(PLATFORM),linux32)
+CFLAGS     += -DLINUX -DPOSIX -Dunix -m32
+LDFLAGS    += -m32
+endif
+
+ifeq ($(PLATFORM),linux64)
+CFLAGS     += -DLINUX -DPOSIX -Dunix -DM64BITS -m64
+LDFLAGS    += -m64
+endif
+
+ifeq ($(PLATFORM),darwin9)
+CFLAGS     += -DDARWIN
+CFLAGS     += -arch ppc -arch ppc64 -arch i386 -arch x86_64
+LDFLAGS    += -arch ppc -arch ppc64 -arch i386 -arch x86_64
+CFLAGS     += -mmacosx-version-min=10.4
+LDFLAGS    += -mmacosx-version-min=10.4
+endif
+
+ifeq ($(PLATFORM),darwin10)
+CFLAGS     += -DDARWIN
+CFLAGS     += -arch i386 -arch x86_64
+LDFLAGS    += -arch i386 -arch x86_64
+CFLAGS     += -mmacosx-version-min=10.4
+LDFLAGS    += -mmacosx-version-min=10.4
+endif
+
+ifeq ($(PLATFORM),darwin11)
+CFLAGS     += -DDARWIN
+CFLAGS     += -arch i386 -arch x86_64
+LDFLAGS    += -arch i386 -arch x86_64
+CFLAGS     += -mmacosx-version-min=10.4
+LDFLAGS    += -mmacosx-version-min=10.4
+endif
+
+ifeq ($(PLATFORM),cygwin)
+TARGET      = prism_$(PROCTYPE)_$(PLATFORM).exe
+CFLAGS     += -DCYGWIN -DLINUX -DPOSIX -Dunix
+endif
+
+##----------------------------------------------------------------------

@@ -1,0 +1,127 @@
+diff -urN Emulator.prism.old/basic.h Emulator.prism/basic.h
+--- Emulator.prism.old/basic.h	2010-02-25 00:32:59.000000000 +0900
++++ Emulator.prism/basic.h	2010-03-03 10:37:15.000000000 +0900
+@@ -58,6 +58,15 @@
+ typedef BPLONG  *BPLONG_PTR;
+ typedef UW32  *UW32_PTR; 
+ 
++/* [10 Apr 2007, by yuizumi]
++ * Required to build a universal binary on Mac OS X.
++ */
++#ifdef DARWIN
++#ifdef __LP64__
++#define M64BITS
++#endif
++#endif
++
+ #ifdef M64BITS
+ #define NBITS_IN_LONG 64
+ #else
+@@ -374,3 +383,7 @@
+   et_VARIABLE,
+   et_WRITE_OPTION,
+   et_ZERO_DIVISOR;
++
++#ifdef PRISM
++#define exit bp4p_quit
++#endif
+diff -urN Emulator.prism.old/cpreds.c Emulator.prism/cpreds.c
+--- Emulator.prism.old/cpreds.c	2010-02-25 00:31:41.000000000 +0900
++++ Emulator.prism/cpreds.c	2010-03-03 10:37:16.000000000 +0900
+@@ -922,7 +922,7 @@
+ #endif
+ 
+ #ifdef PRISM
+-  prismBoot();
++  bp4p_register_preds();
+ #endif
+ 
+ }
+diff -urN Emulator.prism.old/getline.c Emulator.prism/getline.c
+--- Emulator.prism.old/getline.c	2010-02-25 00:32:14.000000000 +0900
++++ Emulator.prism/getline.c	2010-03-03 11:18:24.000000000 +0900
+@@ -41,7 +41,7 @@
+ 
+ /********************* exported interface ********************************/
+ 
+-char           *getline();		/* read a line of input */
++char           *xgetline();		/* read a line of input */
+ void            gl_setwidth();		/* specify width of screen */
+ void            gl_histadd();		/* adds entries to hist */
+ void		gl_strwidth();		/* to bind gl_strlen */
+@@ -52,7 +52,7 @@
+ 
+ /******************** internal interface *********************************/
+ 
+-#define BUF_SIZE 1000
++#define BUF_SIZE 262144
+ 
+ static int      gl_init_done = -1;	/* terminal mode flag  */
+ static int      gl_termw = 80;		/* actual terminal width */
+@@ -422,7 +422,7 @@
+ }
+ 
+ char *
+-getline(prompt)
++xgetline(prompt)
+ char *prompt;
+ {
+     int             c, loc, tmp;
+@@ -927,7 +927,7 @@
+     char *p = buf;
+     int len;
+ 
+-    /* in case we call gl_histadd() before we call getline() */
++    /* in case we call gl_histadd() before we call xgetline() */
+     if (gl_init_done < 0) {		/* -1 only on startup */
+         hist_init();
+         gl_init_done = 0;
+@@ -1177,7 +1177,7 @@
+   string_in = NULL;
+   while (string_in==NULL || getline_is_spaces(string_in)){
+     if (use_gl_getline)
+-      string_in = getline("| ?- "); 
++      string_in = xgetline("| ?- "); 
+     else 
+       string_in = nogl_getline("| ?- "); 
+   }
+diff -urN Emulator.prism.old/getline.h Emulator.prism/getline.h
+--- Emulator.prism.old/getline.h	2010-02-25 00:33:31.000000000 +0900
++++ Emulator.prism/getline.h	2010-03-03 11:19:01.000000000 +0900
+@@ -10,7 +10,7 @@
+ 
+ typedef size_t (*gl_strwidth_proc)(char *);
+ 
+-char           *getline(char *);		/* read a line of input */
++char           *xgetline(char *);		/* read a line of input */
+ void            gl_setwidth(int);		/* specify width of screen */
+ void            gl_histadd(char *);		/* adds entries to hist */
+ void		gl_strwidth(gl_strwidth_proc);	/* to bind gl_strlen */
+@@ -21,7 +21,7 @@
+ 
+ #else	/* not __STDC__ */
+ 
+-char           *getline();	
++char           *xgetline();	
+ void            gl_setwidth();
+ void            gl_histadd();
+ void		gl_strwidth();
+diff -urN Emulator.prism.old/mymain.c Emulator.prism/mymain.c
+--- Emulator.prism.old/mymain.c	1970-01-01 09:00:00.000000000 +0900
++++ Emulator.prism/mymain.c	2010-03-03 10:37:16.000000000 +0900
+@@ -0,0 +1,15 @@
++/* -*- c-basic-offset: 4 ; tab-width: 4 -*- */
++
++#include "bprolog.h"
++
++int main(int argc, char *argv[])
++{
++	bp4p_init(&argc, &argv);
++
++	initialize_bprolog(argc, argv); 
++	bp_call_string("$bp_first_call");
++
++	bp4p_exit(0);
++
++	return 0; /* should not reach here */
++}

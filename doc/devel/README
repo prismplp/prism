@@ -1,0 +1,8 @@
+======================= README (doc/devel) =======================
+
+This directory contains the documents for the developers of the
+PRISM system:
+
+  names.txt   ... guideline for naming of the Prolog predicates
+  errors.txt  ... guideline for error handling
+  cpreds.txt  ... guideline for using C interface predicates

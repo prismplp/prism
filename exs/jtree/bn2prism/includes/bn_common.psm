@@ -1,0 +1,252 @@
+%%%%
+%%%%  Modeling part (network independent):
+%%%%
+
+:- dynamic bn_verbose/1.
+
+bn_verbose(on).
+
+%% instanciate(X,V):- instanciate X as V.
+%%   (do nothing if X has been already instanciated)
+
+instanciate(X,V):-
+  range(X,Values),
+  ( evidence(X,V) -> true
+  ; member(V,Values)
+  ).
+
+%%%%
+%%%% Utility part (network independent):
+%%%%
+
+%% assert_evidence(Es):- add evidences Es to the database.
+%% <ex>
+%% ?- assert_evidence([x0=yes,x1=no]).
+
+assert_evidence(Es):-
+  retractall(evidence(_,_)),
+  assert_evidence1(Es).
+
+assert_evidence1([]).
+assert_evidence1([X=V|Es]):-
+  assert(evidence(X,V)),!,
+  assert_evidence1(Es).
+
+%% print_distrib1/2
+%%
+%% Prolog term of hindsight probabilities is assumed to be a
+%% list like below:
+%%
+%%   ?- chindsight_agg(world([x0=yes]),cl_x33(query,_),Ps).
+%%   Ps = [[[cl_x33(no,*),0.25],[cl_x33(yes,*),0.75]]] ?
+
+print_distrib1(Var,HPs):-
+  ( bn_verbose(on) -> print_distrib2(Var,HPs)
+  ; true
+  ).
+
+print_distrib2(Var,[Ps|_]):-
+  var_name(Var,VarName),
+  format("~nDistribution for ~w (~w):~n",[Var,VarName]),
+  print_distrib3(Ps).
+
+print_distrib3([]).
+print_distrib3([[Patt,P]|Ps]):-
+  get_variable_value(Patt,V),
+  val_name(_,V,ValName),
+  format("  ~w: ~9f (~w)~n",[V,P,ValName]),!,
+  print_distrib3(Ps).
+
+get_variable_value(Patt,V):-
+  Patt =.. [_|Args],
+  get_variable_value1(Args,V).
+
+get_variable_value1([],_):-
+  format("Error: can't find a value in hindsight pattern~n",[]),
+  abort.
+get_variable_value1([A|Args],V):-
+  ( A = * -> get_variable_value1(Args,V)
+  ; V = A
+  ).
+
+%%  bn_learn(N):- Learn with N samples.
+%%  (currently not used)
+
+bn_learn(N):-
+  generate_samples(N,Gs),
+  learn(Gs).
+
+%%  generate_samples(N,Gs):-
+%%    generate N samples in which each evidence can be missing with
+%%    probability 0.1.
+%%  (currently not used)
+
+generate_samples(N,Gs):-
+  get_samples(N,world_s(_),Gs0),
+  replace_functor(Gs0,Gs1),
+  replace_missing(Gs1,Gs).
+
+replace_functor([],[]).
+replace_functor([world_s(Es)|Gs0],[world(Es)|Gs]):- !,
+  replace_functor(Gs0,Gs).
+
+replace_missing([],[]).
+replace_missing([world(Es0)|Gs0],[world(Es)|Gs]):-
+  replace_missing1(Es0,Es),!,
+  replace_missing(Gs0,Gs).
+
+replace_missing1([],[]).
+replace_missing1([E|Es0],Es):-
+  random_select([missing,not_missing],[0.1,0.9],M),
+  ( M = missing -> Es = Es1
+  ; Es = [E|Es1]
+  ),!,
+  replace_missing1(Es0,Es1).
+
+%% gen_random_params(N,Ps):-
+%%   Get a random parameter set Ps for a switch that has N values.
+
+gen_random_params(N,Ps):-
+  gen_random_params1(N,Sum,Rs),
+  normalize_params(Sum,Rs,Ps).
+
+gen_random_params1(N,Sum,Rs):-
+  gen_random_params1(N,0,Sum,Rs).
+
+gen_random_params1(0,Sum,Sum,[]):- !.
+gen_random_params1(N,Sum0,Sum,[R|Rs]):-
+  random_float(50,R0),
+  R is R0 + 10,
+  Sum1 is Sum0 + R,
+  N1 is N-1,!,
+  gen_random_params1(N1,Sum1,Sum,Rs).
+
+normalize_params(_,[],[]).
+normalize_params(Sum,[R|Rs],[P|Ps]):-
+  P is R/Sum,!,
+  normalize_params(Sum,Rs,Ps).
+
+%% check_dist:-
+%%   check the (unconditional) distributions on random variables
+%%   on the target BN.  The distributions are computed in
+%%   both BP style and naive style.
+%%
+%% check_dist(Es):-
+%%   check the conditional distributions on random variables
+%%   on the target BN, given evidences Es.  The distributions are
+%%   computed in both BP style and naive style.
+
+check_dist:- check_dist([]).
+check_dist(Es):-
+  ( var_name(Var,_),
+    write('[J]'),j_dist(Var,Es),
+    write('[N]'),n_dist(Var,Es),
+    fail
+  ; true
+  ).
+
+%% check_j_dist:-
+%%   check the (unconditional) distributions on random variables
+%%   on the target BN.  The distributions are computed in *BP*
+%%   style.
+%%
+%% check_j_dist(Es):-
+%%   check the conditional distributions on random variables
+%%   on the target BN, given evidences Es.  The distributions
+%%   are computed in *BP* style.
+
+check_j_dist:- check_j_dist([]).
+check_j_dist(Es):-
+  cputime(TotalT1),
+  ( var_name(Var,_),
+    cputime(T1),
+    check_j_dist(Var,Es),
+    cputime(T2),
+    T is (T2 - T1) / 1000.0,
+    format("CPU Time for ~w = ~3f [sec]~n",[Var,T]),
+    fail
+  ; true
+  ),
+  cputime(TotalT2),
+  TotalT is (TotalT2 - TotalT1) / 1000.0,
+  format("~nTotal CPU Time = ~3f [sec]~n",[TotalT]).
+
+check_j_dist(Var,Es):-
+  ( j_dist(Var,Es) -> true
+  ; format("Unexpected error: j_dist/2 for ~w failed~n",[Var]),
+    fail
+  ).
+
+%% check_n_dist:-
+%%   check the (unconditional) distributions on random variables
+%%   on the target BN.  The distributions are computed in *naive*
+%%   style.
+%%
+%% check_n_dist(Es):-
+%%   check the conditional distributions on random variables
+%%   on the target BN, given evidences Es.  The distributions
+%%   are computed in *naive* style.
+
+check_n_dist:- check_n_dist([]).
+check_n_dist(Es):-
+  ( var_name(Var,_),
+    n_dist(Var,Es),
+    fail
+  ; true
+  ).
+
+%% show_var_names:- print the original names of variables.
+%% show_val_names:- print the original names of values.
+
+show_var_names:-
+  format("~nVariables:~n",[]),!,
+  ( var_name(Var,VarName),
+    format("  ~w: ~w~n",[Var,VarName]),
+    fail
+  ; true
+  ).
+
+show_val_names:-
+  format("~nValues:~n",[]),!,
+  ( var_name(Var,_),
+    format("  ~w:~n",[Var]),
+    ( val_name(Var,Val,ValName),
+      format("    ~w: ~w~n",[Val,ValName]),
+      fail
+    ; true
+    ),
+    fail
+  ; true
+  ).
+
+%%%%
+%%%% For batch executions:
+%%%%
+
+prism_main([]):- !, check_j_dist.
+prism_main(Args):-
+  bn_parse_args(Args,EvidFiles),
+  check_j_dist_all(EvidFiles).
+
+bn_parse_args([],[]).
+bn_parse_args([Arg|Args],Files):-
+  ( Arg = '-n' ->
+      retractall(bn_verbose(_)),
+      assert(bn_verbose(off)),
+      Files = Files0
+  ; Files = [Arg|Files0]
+  ),!,
+  bn_parse_args(Args,Files0).
+
+check_j_dist_all([]).
+check_j_dist_all([File|Files]):-
+  format("~n**** Loading evidences from ~w:~n", [File]),
+  load_evidences(File,Es),
+  check_j_dist(Es),!,
+  check_j_dist_all(Files).
+
+%% Just pick up the first entry of evidences:
+load_evidences(File,Es):-
+  open(File,read,Stream),
+  read(Stream, evidence(Es)),
+  close(Stream),!.

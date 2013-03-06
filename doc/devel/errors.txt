@@ -1,0 +1,384 @@
+==========================================================
+  Developer's guide on error handling in the Prolog part
+==========================================================
+
+1.  Overview
+------------
+
+Since version 2.x, the Prism system throws exceptions in case of errors.
+Each exception has the following form:
+
+    error(ErrorTerm,ImplTerm)
+
+ErrorTerm is a term that specifies the error and ImplTerm is a term
+that provides implementation dependent extra information.  In B-Prolog,
+ImplTerm is a predicate indicator that denotes the source of the error.
+Here is an example:
+
+    error(type_error(integer,hoge),foobar/2)
+
+The Prism part uses the same convention as B-Prolog.
+
+Section 2 provides brief description on the error terms defined in the
+ISO standard.  Section 3 describes the errors raised by the Prism part.
+Section 4 provides some guidelines on 
+
+
+
+2.  Standard Errors
+-------------------
+
+2.1.  instantiation_error
+
+This error occurs when some argument is not sufficiently instantiated.
+Here are a couple of typical situations:
+
+   *  A term that contains a variable is passed for an argument
+      expected to be ground.
+
+   *  A free variable is passed for an argument expected to have some
+      particular form such as a list or a compound.
+
+
+2.2.  type_error(ValidType,Culprit)
+
+This error occurs when some argument is of an incorrect type, although
+it is sufficiently instantiated.
+
+Here is the list for ValidType:
+
+   *  atom
+   *  atomic
+   *  byte
+   *  callable
+   *  character
+   *  evaluable
+   *  in_byte
+   *  in_character
+   *  integer
+   *  list
+   *  number
+   *  predicate_indicator
+   *  variable
+
+In general, ValidType should be no more than a class of term that can
+be examined by type-checking predicates. [2,4]
+
+
+2.3.  domain_error(ValidDomain,Culprit)
+
+This error occurs when some argument is out of the domain or otherwise
+illegal, although it is of the correct type.
+
+Here is the list for ValidDomain:
+
+   *  character_code_list
+   *  close_option
+   *  flag_value
+   *  io_mode
+   *  not_empty_list
+   *  not_less_than_zero
+   *  operator_priority
+   *  operator_specifier
+   *  prolog_flag
+   *  read_option
+   *  source_sink
+   *  stream
+   *  stream_option
+   *  stream_or_alias
+   *  stream_position
+   *  stream_property
+   *  write_option
+
+In general, ValidDomain may be any ground term that denotes the domain.
+The term is not needed to be atomic. [2,4]
+
+
+2.4.  existence_error(ObjectType,Culprit)
+
+This error occurs when some object does not exist.
+
+Here is the list for ObjectType:
+
+   *  procedure
+   *  source_sink
+   *  stream
+
+
+2.5.  permission_error(Operation,PermissionType,Culprit)
+
+This error occurs when the specified operation is not permitted to be
+applied to the given object.
+
+Here is the list for Operation:
+
+   *  access
+   *  create
+   *  input
+   *  modify
+   *  open
+   *  output
+   *  reposition
+
+Here is the list for PermissionType:
+
+   *  binary_stream
+   *  flag
+   *  operator
+   *  past_end_of_stream
+   *  private_procedure
+   *  static_procedure
+   *  source_sink
+   *  stream
+   *  text_stream
+
+
+2.6.  representation_error(Flag)
+
+This error occurs when the system encounters some value that cannot be
+represented for the implementational reasons.  For example, a compound
+with too large arity will result in this error.
+
+Here is the list for Flag:
+
+   *  character
+   *  character_code
+   *  in_character_code
+   *  max_arity
+   *  max_integer
+   *  min_integer
+
+
+2.7.  evaluation_error(Error)
+
+This error occurs when some arithmetic operation is illegal or cannot
+be performed.
+
+Here is the list for Error:
+
+   *  float_overflow
+   *  int_overflow
+   *  undefined
+   *  underflow
+   *  zero_divisor
+
+
+2.8.  resource_error(Resource)
+
+This error occurs when some resource has been exhausted.  For example,
+some implementations will raise this error in case of lack of virtual
+memory space.
+
+Resource is an implementation-dependent term that denotes the resource.
+
+
+2.9.  syntax_error(Error)
+
+This error occurs when some character sequence read as input cannot be
+legally parsed.
+
+Error is an implementaion-dependent atom.
+
+
+2.10.  system_error
+
+This error occurs when the operating system reports some system error
+during the operation.
+
+
+
+3.  Use of Errors in the Prism Part
+-----------------------------------
+
+3.1.  instantiation_error
+
+The Prism part raises this error as defined in the standard.
+
+
+3.2.  type_error(ValidType,Culprit)
+
+The Prism part raises this error as defined in the standard.
+
+
+3.3.  domain_error(ValidDomain,Culprit)
+
+In addition to the domains presented in the standard, the Prism part
+uses the extra domains listed below:
+
+   *  aggregate_pattern
+   *  distribution
+   *  greater_than_zero
+   *  hashtable
+   *  option(P/N)
+   *  prism_flag
+   *  prism_flag_value(Flag)
+   *  probabilistic_callable
+   *  probabilistic_predicate
+   *  probabilistic_user_predicate
+   *  probability
+   *  (to be added)
+
+
+3.4.  existence_error(ObjectType,Culprit)
+
+The Prism part raises this error in the cases listed below, where the
+pairs in the brackets are ObjectType and Culprit:
+
+   *  nonexistence of a file specified to prism(n)/1-3,
+      [prism_file, Filename]
+
+   *  absence of prism_main/0-1 on batch execution,
+      [batch_predicate, Filename],
+
+   *  absence of outcome space for some switch,
+      [outcome, Switch]
+
+   *  absence of distribution while `default_sw' is set to none,
+      [distribution, Switch]
+
+   *  (to be added)
+
+
+3.5.  permission_error(Operation,PermissionType,Culprit)
+
+(to be added)
+
+
+3.6.  representation_error(Flag)
+
+There is no new value representation introduced by Prism, and hence
+the Prism part does not raise this error by itself.
+
+
+3.7.  evaluation_error(Error)
+
+The Prism part does not raise this error by itself.
+
+Overflow and underflow encountered during probabilistic inference will
+result in prism_runtime_error, which is described below.
+
+
+3.8.  resource_error(Resource)
+
+The Prism part does not raise this error by itself.
+
+Failure on memory allocation will result in immediate termination of
+the Prism system.  Neither bp4prism (formerly the B-Prolog part) nor
+the Prism part deals well with lack of memory space.  XSB does badly
+as well. [4]
+
+
+3.9.  syntax_error(Error)
+
+The Prism part apparently should not raise this error by itself.
+
+
+3.10.  system_error
+
+The Prism part does not raise this error by itself.
+
+Most interaction with the operating system is performed via bp4prism,
+not directly.  The only exceptions are memory allocation and access to
+standard output and error.
+
+
+3.11.  prism_runtime_error(Error)
+
+This error is a Prism extension.  The Prism part raises this error
+when some problematic state or phenomenon is detected during parameter
+learning and other probabilistic inference.
+
+Error is a term that denotes the error.
+
+Here are a few examples where this error occurs:
+
+   *  overflow or underflow in computation,
+
+   *  existence of switches whose parameters or pseudo counts have not
+      been set (and the default values cannot be used),
+
+   *  existence of caller-callee cycles, which are detected during the
+      search phase, and
+
+   *  decrease of likelihood during the EM iterations.
+
+This error usually implies that the given Prism program has some sort
+of bug or problem, or that the given configuration (such as the Prism
+flag values) is inappropreate in some sense.
+
+
+3.12.  prism_internal_error(Error)
+
+This error is a Prism extension.  The Prism part raises this error
+when some unexpected state is encountered, often with intention of
+assertion failure.  This error implies the Prism system very likely
+has some bug or implementational problem.
+
+Error is a term that denotes the error.
+
+
+
+4.  Guidelines on Error Messages
+--------------------------------
+
+4.1.  General Guildlines
+
+Here are general guidelines on error messages:
+(to be rewritten)
+
+   *  The first word of a message should _not_ be capitalized just
+      because it is the first.
+
+   *  Messages should be simple and explanatory.
+
+   *  Noun phrases are preferred to complete sentences.  Particularly
+      copulas (are, is, etc.) in main clauses should be omitted unless
+      they are preceeded by auxiliary verbs (must, may, etc.).
+
+   *  Culprits should not be included as part of any phrase.  Instead
+      they should be included at the end of message, preceeded by two
+      hyphen characters.
+
+   *  Use of the word "not" should be preferably avoided.
+
+   *  No message should contain the name of predicate where the error
+      is encountered, since it is indicated by the second argument of
+      the exception object error/2.
+
+   *  No periods should occur in a message (as the end-of-sentence
+      markers).
+
+----+----1----+----2----+----3----+----4----+----5----+----6----+----7
+
+
+4.2.  Examples
+(to be rewritten)
+
+   *  [Good ]  illegal max number -- 3.5
+   *  [Okay ]  positive integer expected -- 3.5
+   *  [Avoid]  not an integer -- 3.5
+   *  [Bad  ]  Illegal max number -- 3.5
+   *  [Bad  ]  illegal max number -- 3.5.
+   *  [Bad  ]  the max number should be a positive integer
+   *  [Bad  ]  max number 3.5 not legal
+
+
+
+References
+----------
+
+ [1]  Prolog: The ISO Standard Documents
+      Exception handling in ISO Prolog
+      http://pauillac.inria.fr/~deransar/prolog/docs.html
+
+ [2]  SICStus Prolog User's Manual
+      Errors and Exceptions
+      http://www.sics.se/sicstus/docs/latest4/html/sicstus.html/
+
+ [3]  GNU-Prolog Manual
+      Format of definitions
+      http://www.gprolog.org/#manual
+
+ [4]  XSB Programmers' Manual Volume 1
+      Exception Handling
+      http://xsb.sourceforge.net/manual1/

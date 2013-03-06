@@ -1,0 +1,16 @@
+**** README (bn2prism: top) ****
+
+This directory contains all resources related to BN2Prism, a Java
+translator from BNs to Join-tree Prism programs.  For more details,
+please consult the document in the `doc' directory or READMEs in the
+subdirectories.  BN2Prism itself is distributed under the modified
+BSD license.
+
+[Directories]
+
+  src/       ... Java source code of the translator
+  doc/       ... documents (slides and HTML files created by javadoc)
+  includes/  ... additional Prism programs to be included in the
+                 translated Join-tree Prism program
+  lib/       ... class files 
+  exs/       ... BN examples

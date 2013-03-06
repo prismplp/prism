@@ -1,0 +1,17 @@
+[How to run]
+
+0. Copy the original source code of B-Prolog into the directory `Emulator'
+
+1. Run bp4prism-modify.sh to create the source code for bp4prism 
+
+    ./bp4prism-modify.sh
+
+2. Move to Emulator.prism and build the libraries for bp4prism
+   (platforms: linux32, linux64, darwin9, darwin10, win32 and cygwin)
+
+3. Apply a patch for the final header files
+
+    ./bp4prism-release.sh
+
+--
+Nov. 20, 2009: Yoshitaka Kameya (kameya@mi.cs.titech.ac.jp)

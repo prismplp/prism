@@ -1,0 +1,7 @@
+==================== README (src/c/bp4prism) =====================
+
+This directory contains a minimal set of C source and binary files
+from B-Prolog, required to build the PRISM system:
+
+  include/  ... header files from B-Prolog
+  lib/      ... static libraries of B-Prolog on various platforms

@@ -1,0 +1,87 @@
+# -*- Makefile -*-
+
+OBJS = mymain.$(O) dis.$(O) init.$(O) init_sym.$(O) loader.$(O) inst_inf.$(O) toam.$(O) toamprofile.$(O) unify.$(O) file.$(O) domain.$(O) cfd.$(O) float1.$(O) arith.$(O) token.$(O) global.$(O) builtins.$(O) mic.$(O) numbervars.$(O) cpreds.$(O) univ.$(O) assert.$(O) clause.$(O) delay.$(O) clpfd.$(O) clpfd_libs.$(O) event.$(O) table.$(O) debug.$(O) gcstack.$(O) gcheap.$(O) gcqueue.$(O) expand.$(O) thread.$(O) getline.$(O) asp.$(O)
+
+all: $(TARGET)
+
+clean:
+	$(RM) $(OBJS)
+
+distclean: clean
+	$(RM) $(TARGET)
+
+$(TARGET): $(OBJS) 
+	$(AR) $(TARGETFLAG)$(TARGET) $(OBJS)
+
+mymain.$(O): mymain.c basic.h inst.h term.h
+	$(CC) $(CFLAGS) mymain.c
+dis.$(O): dis.c basic.h inst.h term.h
+	$(CC) $(CFLAGS) dis.c
+init.$(O): init.c basic.h inst.h term.h
+	$(CC) $(CFLAGS) init.c
+init_sym.$(O): init_sym.c basic.h inst.h term.h
+	$(CC) $(CFLAGS) init_sym.c
+loader.$(O): loader.c basic.h inst.h term.h
+	$(CC) $(CFLAGS) loader.c
+inst_inf.$(O): inst_inf.c basic.h inst.h term.h
+	$(CC) $(CFLAGS) inst_inf.c
+toam.$(O): toam.c basic.h inst.h term.h basicd.h clpfd.h event.h frame.h toam.h
+	$(CC) $(CFLAGS) toam.c
+toamprofile.$(O): toamprofile.c basic.h inst.h term.h basicd.h event.h frame.h toam.h
+	$(CC) $(CFLAGS) toamprofile.c
+unify.$(O): unify.c basic.h bapi.h term.h clpfd.h event.h frame.h
+	$(CC) $(CFLAGS) unify.c
+file.$(O): file.c basic.h bapi.h term.h
+	$(CC) $(CFLAGS) file.c
+domain.$(O): domain.c basic.h bapi.h term.h event.h frame.h
+	$(CC) $(CFLAGS) domain.c
+cfd.$(O): cfd.c basic.h bapi.h term.h event.h frame.h
+	$(CC) $(CFLAGS) cfd.c
+float1.$(O): float1.c basic.h bapi.h term.h
+	$(CC) $(CFLAGS) float1.c
+arith.$(O): arith.c basic.h bapi.h term.h
+	$(CC) $(CFLAGS) arith.c
+token.$(O): token.c basic.h bapi.h term.h
+	$(CC) $(CFLAGS) token.c
+global.$(O): global.c basic.h bapi.h term.h
+	$(CC) $(CFLAGS) global.c
+builtins.$(O): builtins.c basic.h bapi.h term.h
+	$(CC) $(CFLAGS) builtins.c
+mic.$(O): mic.c basic.h bapi.h term.h
+	$(CC) $(CFLAGS) mic.c
+numbervars.$(O): numbervars.c basic.h bapi.h term.h
+	$(CC) $(CFLAGS) numbervars.c
+cpreds.$(O): cpreds.c basic.h bapi.h term.h
+	$(CC) $(CFLAGS) cpreds.c
+univ.$(O): univ.c basic.h bapi.h term.h
+	$(CC) $(CFLAGS) univ.c
+assert.$(O): assert.c basic.h bapi.h term.h
+	$(CC) $(CFLAGS) assert.c
+clause.$(O): clause.c basic.h bapi.h term.h dynamic.h
+	$(CC) $(CFLAGS) clause.c
+delay.$(O): delay.c basic.h bapi.h term.h
+	$(CC) $(CFLAGS) delay.c
+clpfd.$(O): clpfd.c basic.h bapi.h term.h clpfd.h event.h frame.h
+	$(CC) $(CFLAGS) clpfd.c
+clpfd_libs.$(O): clpfd_libs.c basic.h bapi.h term.h clpfd.h event.h frame.h
+	$(CC) $(CFLAGS) clpfd_libs.c
+event.$(O): event.c basic.h bapi.h term.h event.h
+	$(CC) $(CFLAGS) event.c
+table.$(O): table.c basic.h bapi.h term.h frame.h
+	$(CC) $(CFLAGS) table.c
+debug.$(O): debug.c basic.h bapi.h term.h frame.h
+	$(CC) $(CFLAGS) debug.c
+gcstack.$(O): gcstack.c basic.h bapi.h term.h frame.h gc.h
+	$(CC) $(CFLAGS) gcstack.c
+gcheap.$(O): gcheap.c basic.h bapi.h term.h frame.h gc.h
+	$(CC) $(CFLAGS) gcheap.c
+gcqueue.$(O): gcqueue.c basic.h bapi.h term.h frame.h gc.h
+	$(CC) $(CFLAGS) gcqueue.c
+expand.$(O): expand.c basic.h bapi.h term.h frame.h gc.h
+	$(CC) $(CFLAGS) expand.c
+thread.$(O): thread.c basic.h bapi.h term.h frame.h
+	$(CC) $(CFLAGS) thread.c
+getline.$(O): getline.c basic.h getline.h
+	$(CC) $(CFLAGS) getline.c
+asp.$(O): asp.c basic.h bapi.h term.h
+	$(CC) $(CFLAGS) asp.c

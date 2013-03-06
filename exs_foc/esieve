@@ -1,0 +1,79 @@
+%%%
+%%%  The Erathostenes' sieve  --- esieve
+%%%
+%%%  Copyright (C) 2004
+%%%    Sato Laboratory, Dept. of Computer Science,
+%%%    Tokyo Institute of Technology
+
+%-------------------------------------
+% Quick start : sample session
+% > prism
+
+% ?- foc(esieve,temp),[temp].
+     % compile this program into the file "temp" and load "temp".
+
+% ?- esieve([2,X,Y,Z,W]).
+% W = 11
+% Z = 7
+% Y = 5
+% X = 3?;
+% no
+
+%------------------------------------
+% FOC directives:
+
+% fo_sort(ap(list,list,list)).
+% delay_ununifiablity_check(yes).
+% distribute_disjunction(yes).
+
+%------------------------------------
+% Program:
+
+% For any X,Y such that L = X:[Y]:_, no integer in X divides Y.
+esieve(L):-
+   all([X,Y,Z], (ap(X,[Y|Z],L),\+X=[] -> nprime(X,Y))).
+
+% NP = next prime > last prime in PList
+nprime(PList,NP):-
+   ap(_,[MaxP],PList),
+   gtr(MaxP,NP),
+   sieve(PList,NP),!.
+
+% No prime in PList divides P
+sieve(PList,P):-
+   all([X,Y,Z],(ap(X,[Y|Z],PList) -> \+(0 is P mod Y))).
+
+gtr(X,Z):-  % X < Z
+   Y is X+1,
+   ( Z is Y ; gtr(Y,Z)).
+
+ap([],Y,Y).
+ap([H|X],Y,[H|Z]):- ap(X,Y,Z).
+
+%------------------------------------
+% Compiled codes in "temp"
+%
+% esieve(A):-closure_ap0(A,f0).
+% nprime(A,B):-
+%     ap(_,[C],A),
+%     gtr(C,B),
+%     sieve(A,B),!.
+% sieve(A,B):-closure_ap1(A,f1(B)).
+% gtr(A,B):-
+%     C is A+1,
+%     (B is C ; gtr(C,B)).
+% ap([],A,A).
+% ap([A|B],C,[A|D]):- ap(B,C,D).
+%
+% cont(_,A,f0):- \+A=[_|_].
+% cont(A,[B|_],f0):-
+%     (A=[] ; \+A=[], nprime(A,B)).
+% cont(A,f1(_)):- \+A=[_|_].
+% cont([A|_],f1(B)):- \+0 is B mod A.
+% cont(A,B,f2(C,D)):- cont([C|A],B,D).
+% closure_ap0(A,B):-
+%     cont([],A,B),
+%     (\+A=[C|D] ; A=[C|D],closure_ap0(D,f2(C,B))).
+% closure_ap1(A,B):-
+%     cont(A,B),
+%     (\+A=[C|D] ; A=[C|D],closure_ap1(D,B)).

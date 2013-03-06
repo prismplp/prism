@@ -1,0 +1,22 @@
+==================== README (src/prolog/up) =====================
+
+This directory contains Prolog source files for the routines for
+probabilistic infererences:
+
+  main.pl       ... main routines (prism/1-2, etc.)
+  dynamic.pl    ... declarations of dynamic predicates
+  batch.pl      ... batch predicate
+  switch.pl     ... random switches (set_sw/2, etc.)
+  dist.pl       ... specifications of a distribution
+  prob.pl       ... probability computation and explanation graphs
+                    (prob/1-2, prob/1-2, etc.)
+  viterbi.pl    ... Viterbi computation (viterbif/3, etc.)
+  hindsight.pl  ... hindsight computation (hindsight/1-3, etc.)
+  learn.pl      ... EM learning (learn/0-1, etc.)
+  sample.pl     ... sampling (sample/1, etc.)
+  expl.pl       ... base routines for explanation search
+  list.pl       ... list handling and statistical operations
+  flags.pl      ... execution flags
+  bigarray.pl   ... big arrays
+  hash.pl       ... utilities for handling hashtables provided in B-Prolog
+  util.pl       ... miscellaneous utilities

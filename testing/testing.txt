@@ -1,0 +1,2981 @@
+================================================================================
+                        Developer's guide on testing
+================================================================================
+
+In this document, we list dozens of testing scenarios, mainly using the
+example programs under the `exs' directory in the released package.  Each
+scenario includes the test queries with errorneous inputs, and in these queries,
+it is recommended to check whether the correct exceptions are raised or not.
+
+Important built-in predicates (i.e. ones for probabilistic inferences) need
+to be tested with more than one test scenario.
+
+
+[direction.psm]-----------------------------------------------------------------
+
+* predicates to be tested
+  - prism/1-2
+  - sample/1
+  - get_samples/3
+  - print_version/0
+  - get_version/1
+  - prism_help/0
+  - show_prism_flags/0
+* flags to be tested
+    (none)
+* declarations to be tested
+    (none)
+
+?- print_version.
+?- get_version(V).
+?- prism_help.
+?- show_prism_flags.     {check the default flag values}
+?- prism(X).
+?- prism(non_exist).
+?- prism(direction).
+?- show_sw.
+?- sample(X).
+?- sample(a).
+?- sample(direction(D)).
+?- get_samples(1000,X,Gs).
+?- get_samples(1000,a,Gs).
+?- get_samples(X,direction(D),Gs).
+?- get_samples(a,direction(D),Gs).
+?- get_samples(1000,direction(D),Gs).
+?- get_samples(1000,direction(Gs),Gs).
+?- get_samples(-1,direction(D),Gs).
+?- get_samples(0,direction(D),Gs).
+?- get_samples(1,direction(D),Gs).
+?- get_samples(1000,direction(D),_Gs),countlist(_Gs,Cs).
+?- show_sw.
+?- set_sw(coin,[0.8,0.2]).
+?- show_sw.
+?- get_samples(1000,direction(D),_Gs),countlist(_Gs,Cs).
+?- set_sw(coin,[0.2,0.8]).
+?- get_samples(1000,direction(D),_Gs),countlist(_Gs,Cs).
+?- prism([compile],direction).
+?- prism([consult],direction).
+?- prism([load],direction).
+?- prism([nv],direction).
+?- show_prism_flags.
+?- prism([v],direction).
+?- show_prism_flags.
+?- prism([log_scale=on],direction).
+?- show_prism_flags.
+?- prism([X],direction).
+?- prism([a],direction).
+?- prism(X,direction).
+?- prism(a,direction).
+
+
+[direction_empty.psm]-----------------------------------------------------------
+
+* predicates to be tested
+  - prism/1
+  - values/2 (for empty outcome space)
+* flags to be tested
+    (none)
+* declarations to be tested
+    (none)
+
+?- prism(direction_empty).
+?- show_sw.
+?- sample(direction(D)).
+?- set_sw(coin,[]).
+?- set_sw(coin,uniform).
+
+
+[dcoin.psm]---------------------------------------------------------------------
+
+* predicates to be tested
+  - prob/1
+  - probf/1
+  - learn/1 (for complete data)
+* flags to be tested
+    (none)
+* declarations to be tested
+    (none)
+
+?- prism(dcoin).
+?- sample(dcoin(10,X)),prob(dcoin(10,X)).
+?- sample(dcoin(10,X)),probf(dcoin(10,X)).
+?- prob(X).
+?- prob(a).
+?- prob(dcoin_learn(100)).
+?- probf(X).
+?- probf(a).
+?- probf(dcoin_learn(100)).
+?- dcoin_learn(500).
+
+
+[bloodABO.psm]------------------------------------------------------------------
+
+* predicates to be tested
+  - learn/0-1
+  - values/3
+  - viterbi/1-2
+  - viterbif/{1,3}
+  - prob/1-2
+  - log_prob/1-2
+  - probf/1-2
+  - count/2
+  - trace/0
+  - notrace/0
+  - spy/1
+  - show_reg_sw/0
+  - get_reg_sw/1
+  - get_reg_sw_list/1
+  - data/1
+  - strip_switches/2
+  - print_graph/1
+  - set_prism_flag/2
+  - get_prism_flag/2
+* flags to be tested
+  - data_source
+  - log_scale
+  - verb
+  - warn
+
+?- prism(bloodABO).
+?- show_reg_sw.    {check if gene0 is registered}
+?- get_reg_sw(X).
+?- get_reg_sw(a).
+?- get_reg_sw_list(X).
+?- get_reg_sw_list(a).
+?- show_sw.
+?- show_sw_d.
+?- show_sw_a.
+?- show_sw_pd.
+?- show_sw_pa.
+?- go.
+?- print_blood.
+?- show_sw.
+?- set_prism_flag(F,V).
+?- set_prism_flag(a,V).
+?- set_prism_flag(verb,graph),go.
+?- set_prism_flag(verb,em),go.
+?- set_prism_flag(verb,full),go.
+?- set_prism_flag(verb,none),go.
+?- sample(bloodtype(X)).
+?- get_samples(100,bloodtype(X),_Gs),countlist(_Gs,Cs).
+?- probf(bloodtype(ab),E),print_graph(E).
+?- probf(bloodtype(ab),E),strip_switches(E,E1),print_graph(E1). {this should fali}
+?- prob(bloodtype(ab),P).
+?- log_prob(bloodtype(ab),P).
+?- viterbif(bloodtype(ab)).
+?- viterbif(bloodtype(ab),P,E),print_graph(E).
+?- viterbi(bloodtype(ab)).
+?- viterbi(bloodtype(ab),P).
+?- set_prism_flag(log_scale,on).
+?- prob(bloodtype(ab),P).
+?- log_prob(bloodtype(ab),P).
+?- viterbif(bloodtype(ab)).
+?- viterbif(bloodtype(ab),P,E),print_graph(E).
+?- viterbi(bloodtype(ab)).
+?- viterbi(bloodtype(ab),P).
+?- set_prism_flag(log_scale,off).
+?- viterbif(X).
+?- viterbif(a).
+?- viterbif(print_gene).
+?- viterbif(X,P,E).
+?- viterbif(a,P,E).
+?- viterbif(print_gene,P,E).
+?- viterbi(X).
+?- viterbi(a).
+?- viterbi(print_gene).
+?- viterbi(X,P).
+?- viterbi(a,P).
+?- viterbi(print_gene,P).
+?- set_prism_flag(data_source,file('bloodtype_c.dat')).
+?- learn.
+?- print_blood.
+?- set_prism_flag(data_source,data/1).
+?- learn.
+?- print_blood.
+?- show_sw.
+?- get_samples(100,bloodtype(X),_Gs),countlist(_Gs,Cs).
+?- learn([count(bloodtype(a),38),count(bloodtype(b),22),count(bloodtype(o),31),count(bloodtype(ab),9)]),print_blood.
+?- learn([count(bloodtype(a),38),count(bloodtype(b),22),count(bloodtype(o),0),count(bloodtype(ab),9)]),print_blood.
+?- learn([count(bloodtype(a),38),count(bloodtype(b),22),count(bloodtype(o),X),count(bloodtype(ab),9)]),print_blood.
+?- show_goals.
+?- learn([count(bloodtype(a),38),count(bloodtype(b),22),count(bloodtype(o),-1),count(bloodtype(ab),9)]).
+?- learn([count(bloodtype(a),38),count(bloodtype(b),22),count(xxx,31),count(bloodtype(ab),9)]).
+?- learn([count(bloodtype(a),0),count(bloodtype(b),0),count(bloodtype(o),0),count(bloodtype(ab),0)]).
+?- learn([]).
+?- learn([(38 times bloodtype(a)),(22 times bloodtype(b)),(31 times bloodtype(o)),(9 times bloodtype(ab))]),print_blood.
+?- prism([consult],bloodABO).
+?- trace.
+?- sample(bloodtype(X)).
+?- notrace.
+?- sample(bloodtype(X)).
+?- spy(genotype/2).
+?- sample(bloodtype(X)).
+?- nospy.
+?- set_prism_flag(warn,on).
+?- set_seed_time.
+?- fix_sw(gene,uniform).
+?- set_sw(gene,random).
+?- get_prism_flag(warn,V).
+?- findall([F,V],get_prism_flag(F,V),FVs).
+
+
+[bloodAaBb.psm]-----------------------------------------------------------------
+
+* predicates to be tested
+  - prism_statistics/{0,2}
+  - graph_statistics/{0,2}
+  - infer_statistics/{0,2}
+  - learn_statistics/{0,2}
+  - show_goals/0
+  - get_goals/1
+  - get_goal_counts/1
+  - show_values/0
+  - get_values/2
+  - get_values0/2
+  - get_values1/2
+  - prob/1
+  - probf/1
+  - viterbif/1
+* flags to be tested
+    (none)
+* declarations to be tested
+    (none)
+
+?- prism(bloodABO).
+?- probf(bloodtype(a)).
+?- prob(bloodtype(a)).
+?- viterbif(bloodtype(a)).
+?- learn.
+?- learn_statistics(bic,BIC).
+?- prism(bloodAaBb).
+?- learn.
+?- learn_statistics(bic,BIC).
+?- show_goals.
+?- prism_statistics.
+?- graph_statistics.
+?- infer_statistics.
+?- learn_statistics.
+?- findall([X,Y],prism_statistics(X,Y),XYs).
+?- findall([X,Y],graph_statistics(X,Y),XYs).
+?- findall([X,Y],infer_statistics(X,Y),XYs).
+?- findall([X,Y],learn_statistics(X,Y),XYs).
+?- prism_statistics(a,Y).  {this fails in the current implementation; need to improve?}
+?- graph_statistics(a,Y).  {this fails in the current implementation; need to improve?}
+?- infer_statistics(a,Y).  {this fails in the current implementation; need to improve?}
+?- learn_statistics(a,Y).  {this fails in the current implementation; need to improve?}
+?- get_goals(Gs).
+?- get_goals(a).
+?- get_goal_counts(GCs).
+?- get_goal_counts(a).
+?- halt.
+$ prism
+?- show_values.
+?- get_values(locus1,X).
+?- get_values0(locus1,X).
+?- get_values1(locus1,X).
+?- prism(bloodAaBb).
+?- show_values.
+?- get_values(locus1,X).
+?- get_values0(locus1,X).
+?- get_values1(locus1,X).
+?- prism(bloodABO).
+?- show_values.
+?- get_values(gene,X).
+?- get_values0(gene,X).
+?- get_values1(gene,X).
+?- get_values(locus1,X).
+?- get_values0(locus1,X).
+?- get_values1(locus1,X).
+?- get_values(X,V).
+?- get_values0(X,V).
+?- get_values1(X,V).
+
+
+[alarm.psm]---------------------------------------------------------------------
+
+* predicates to be tested
+  - hindsight/1-3
+  - chindsight/1-3
+  - chindsight_agg/2-3
+  - prob/1
+  - probf/1
+* flags to be tested
+  - sort_hindsight
+* declarations to be tested
+    (none)
+
+?- prism(alarm).
+?- go.
+?- prob(world(yes,no)).
+?- prob(world(yes,_)).
+?- probf(world(yes,no)).
+?- probf(world(_,no)).
+?- hindsight(world(yes,no)).
+?- hindsight(X).
+?- hindsight(a).
+?- hindsight(set_params).
+?- set_prism_flag(sort_hindsight,by_prob),hindsight(world(yes,no)).
+?- set_prism_flag(sort_hindsight,by_goal),hindsight(world(yes,no)).
+?- hindsight(world(_,no)).
+?- hindsight(world(_,_)).
+?- hindsight(world(_,_),world(_,yes)).
+?- hindsight(world(_,_),world(_,yes),Ps).
+?- hindsight(world(_,_),_).
+?- hindsight(world(_,_),_,Ps).
+?- hindsight(set_params,_).
+?- hindsight(set_params,_,Ps).
+?- chindsight(world(yes,no)).
+?- chindsight(X).
+?- chindsight(a).
+?- chindsight(set_params).
+?- chindsight(world(_,no)).
+?- chindsight(world(_,_)).
+?- chindsight(world(_,_),world(_,yes)).
+?- chindsight(world(_,_),world(_,yes),Ps).
+?- chindsight(world(_,_),_,Ps).
+?- chindsight(world(_,_),_).
+?- chindsight(set_params,_).
+?- chindsight(set_params,_,Ps).
+?- hindsight_agg(world(yes,no),world(_,_,query,yes,_,no)).
+?- hindsight_agg(world(yes,no),world(_,_,query,yes,_,no),Ps).
+?- hindsight_agg(world(yes,no),_,Ps).
+?- hindsight_agg(world(yes,no),_).
+?- hindsight_agg(X,_).
+?- hindsight_agg(a,_).
+?- hindsight_agg(set_params,_).
+?- hindsight_agg(set_params,_,Ps).
+?- chindsight_agg(world(yes,no),world(_,_,query,yes,_,no)).
+?- chindsight_agg(world(yes,no),world(_,_,query,yes,_,no),Ps).
+?- chindsight_agg(world(yes,no),_,Ps).
+?- chindsight_agg(world(yes,no),_).
+?- chindsight_agg(X,_).
+?- chindsight_agg(a,_).
+?- chindsight_agg(set_params,_).
+?- chindsight_agg(set_params,_,Ps).
+
+
+[sbn.psm]-----------------------------------------------------------------------
+
+* predicates to be tested
+  - prob/1
+  - probf/1
+  - viterbif/1
+  - learn/1
+* flags to be tested
+    (none)
+* declarations to be tested
+    (none)
+
+?- prism(sbn).
+?- show_sw.
+?- go.
+?- show_sw.
+?- prob(ask_B(2)).
+?- prob(ask_B(2),X),prob(check_B(2),Y).   {should be X=Y}
+?- probf(ask_B(2)).
+?- sample(ask_B(X)).
+?- viterbi(ask_B(2)).
+?- viterbif(ask_B(2)).
+
+
+[hmm.psm]-----------------------------------------------------------------------
+
+* predicates to be tested
+  - learn/1
+  - set_sw/1-2
+  - set_sw_a/1-2
+  - set_sw_d/1-2
+  - set_sw_all/0-2.
+  - set_sw_all_a/0-2
+  - set_sw_all_d/0-2
+  - set_sw_a_all/0-2
+  - set_sw_d_all/0-2
+  - save_sw/0-1
+  - save_sw_a/0-1
+  - save_sw_d/0-1
+  - save_sw_pa/{0,2}
+  - save_sw_pd/{0,2}
+  - restore_sw/0
+  - restore_sw/1
+  - restore_sw_a/0-1
+  - restore_sw_d/0-1
+  - restore_sw_pa/{0,2}
+  - restore_sw_pd/{0,2}
+  - viterbi/1-2
+  - viterbif/{1,3}
+  - viterbif_h/{1,3}
+  - viterbif_p/{1,3}
+  - viterbig/1-3
+  - viterbi_subgoals/2
+  - viterbi_switches/2
+  - probf/1-2
+  - probfi/1-2
+  - probfio/1-2
+  - probfo/1-2
+  - probfv/1-2
+  - probef/1
+  - probef/2
+  - probef/1-2
+  - probefi/1-2
+  - probefio/1-2
+  - probefo/1-2
+  - probefv/1-2
+  - print_graph/1-3
+  - strip_switches/2
+  - get_subgoal_hashtable/1
+  - get_switch_hashtable/1
+  - prism_main/0-1
+  - get_sw/{1,2,4,5}
+  - get_sw_a/{1,2,4}
+  - get_sw_d/{1,2,4}
+  - get_sw_pa/{1,2,5,6}
+  - get_sw_pd/{1,2,5,6}
+  - show_sw_a/0-1
+  - show_sw_d/0-1
+  - show_sw_pa/0-1
+  - show_sw_pd/0-1
+  - fix_sw/1-2
+  - fix_sw_a/1-2
+  - fix_sw_d/1-2
+  - unfix_sw/1
+  - unfix_sw_a/1
+  - unfix_sw_d/1
+* flags to be tested
+  - clean_table
+  - default_sw_a
+  - default_sw_d
+  - epsilon
+  - explicit_empty_expls
+  - em_progress
+  - init
+  - learn_message
+  - learn_mode
+  - log_scale
+  - max_iterate
+  - restart
+  - reset_hparams
+  - search_progress
+  - std_ratio
+  - viterbi_mode
+* declarations to be tested
+    (none)
+
+?- prism(hmm).
+?- hmm_learn(1000).
+?- get_samples(1000,hmm(_),_Gs),countlist(_Gs,Cs).
+?- prob(hmm([a,a,a,c,d,c,d,b,b,b])).
+?- prob(hmm([X,a,a,c,d,c,d,b,b,b])).
+?- prob(hmm([a,a,a,c,d,c,d,b,b,b]),P).
+?- prob(hmm([X,a,a,c,d,c,d,b,b,b]),P).
+?- prob(hmm([a,a,a,c,d,c,d,b,b])).
+?- G=hmm([a,a,a,c,d,c,d,b,b,b]),prob(G,P),log_prob(G,LP),Q is log(P). {should be Q = LP}
+?- set_prism_flag(log_scale,X).
+?- set_prism_flag(log_scale,on).
+?- prob(hmm([a,a,a,c,d,c,d,b,b,b])).
+?- set_prism_flag(log_scale,off).
+?- probf(hmm([X,a,a,c,d,c,d,b,b,b])).
+?- probf(hmm([X,a,a,c,d,c,d,b,b,b]),_E),print_graph(_E).
+?- probf(hmm([X,a,a,c,d,c,d,b,b,b]),_E),print_graph(_E,[lr('='),and('*'),or('+')]).
+?- probf(hmm([X,a,a,c,d,c,d,b,b,b]),_E),open('foo',write,_S),print_graph(_S,_E,[]),close(_S).    {check the contents of the file `foo'}
+?- set_prism_flag(explicit_empty_expls,off),probf(hmm([X,a,a,c,d,c,d,b,b,b]),E1),set_prism_flag(explicit_empty_expls,on),probf(hmm([X,a,a,c,d,c,d,b,b,b]),E2).  {compare the results}
+?- set_prism_flag(explicit_empty_expls,off),probf(hmm([X,a,a,c,d,c,d,b,b,b])),set_prism_flag(explicit_empty_expls,on),probf(hmm([X,a,a,c,d,c,d,b,b,b])).  {compare the results}
+?- probf(hmm([X,a,a,c,d,c,d,b,b])).
+?- probfi(hmm([X,a,a,c,d,c,d,b,b,b])).
+?- probfi(hmm([X,a,a,c,d,c,d,b,b,b]),E).
+?- probfi(hmm([X,a,a,c,d,c,d,b,b,b]),_E),print_graph(_E).
+?- set_prism_flag(log_scale,on),probfi(hmm([X,a,a,c,d,c,d,b,b,b])),set_prism_flag(log_scale,off).
+?- probfi(hmm([X,a,a,c,d,c,d,b,b])).
+?- probfi(X).
+?- probfi(a).
+?- probfi(X,P).
+?- probfi(a,P).
+?- probfo(hmm([X,a,a,c,d,c,d,b,b,b])).
+?- probfo(hmm([X,a,a,c,d,c,d,b,b,b]),E).
+?- probfo(hmm([X,a,a,c,d,c,d,b,b,b]),_E),print_graph(_E).
+?- set_prism_flag(log_scale,on),probfo(hmm([X,a,a,c,d,c,d,b,b,b])),set_prism_flag(log_scale,off),probfo(hmm([X,a,a,c,d,c,d,b,b,b])).
+?- set_prism_flag(log_scale,on),probfo(hmm([X,a,a,c,d,c,d,b,b,b]),E1),set_prism_flag(log_scale,off),probfo(hmm([X,a,a,c,d,c,d,b,b,b]),E2).
+?- probfo(hmm([X,a,a,c,d,c,d,b,b])).
+?- probfo(X).
+?- probfo(a).
+?- probfo(X,P).
+?- probfo(a,P).
+?- probfv(hmm([X,a,a,c,d,c,d,b,b,b])).
+?- probfv(hmm([X,a,a,c,d,c,d,b,b,b]),E).
+?- probfv(hmm([X,a,a,c,d,c,d,b,b,b]),_E),print_graph(_E).
+?- set_prism_flag(log_scale,on),probfv(hmm([X,a,a,c,d,c,d,b,b,b])),set_prism_flag(log_scale,off).
+?- probfv(hmm([X,a,a,c,d,c,d,b,b])).
+?- probfv(X).
+?- probfv(a).
+?- probfv(X,P).
+?- probfv(a,P).
+?- probfio(hmm([X,a,a,c,d,c,d,b,b,b])).
+?- probfio(hmm([X,a,a,c,d,c,d,b,b,b]),E).
+?- probfio(hmm([X,a,a,c,d,c,d,b,b,b]),_E),print_graph(_E).
+?- set_prism_flag(log_scale,on),probfio(hmm([X,a,a,c,d,c,d,b,b,b])),set_prism_flag(log_scale,off).
+?- probfio(hmm([X,a,a,c,d,c,d,b,b])).
+?- probfio(X).
+?- probfio(a).
+?- probfio(X,P).
+?- probfio(a,P).
+?- probef(hmm([X,a,a,c,d,c,d,b,b,b])).
+?- probef(hmm([X,a,a,c,d,c,d,b,b,b]),E).
+?- probef(hmm([X,a,a,c,d,c,d,b,b,b]),_E),print_graph(_E).
+?- get_subgoal_hashtable(T).
+?- get_switch_hashtable(T).
+?- probefi(hmm([X,a,a,c,d,c,d,b,b,b])).
+?- probefi(hmm([X,a,a,c,d,c,d,b,b,b]),E).
+?- probefi(hmm([X,a,a,c,d,c,d,b,b,b]),_E),print_graph(_E).
+?- probefo(hmm([X,a,a,c,d,c,d,b,b,b])).
+?- probefo(hmm([X,a,a,c,d,c,d,b,b,b]),E).
+?- probefo(hmm([X,a,a,c,d,c,d,b,b,b]),_E),print_graph(_E).
+?- probefv(hmm([X,a,a,c,d,c,d,b,b,b])).
+?- probefv(hmm([X,a,a,c,d,c,d,b,b,b]),E).
+?- probefv(hmm([X,a,a,c,d,c,d,b,b,b]),_E),print_graph(_E).
+?- probefio(hmm([X,a,a,c,d,c,d,b,b,b])).
+?- probefio(hmm([X,a,a,c,d,c,d,b,b,b]),E).
+?- probefio(hmm([X,a,a,c,d,c,d,b,b,b]),_E),print_graph(_E).
+?- viterbi(hmm([a,a,a,c,d,c,d,b,b,b])).
+?- viterbi(hmm([X,a,a,c,d,c,d,b,b,b])).
+?- viterbi(hmm([a,a,a,c,d,c,d,b,b,b]),P).
+?- viterbi(hmm([X,a,a,c,d,c,d,b,b,b]),P).
+?- viterbi(hmm([X,a,a,c,d,c,d,b,b])).
+?- viterbi(X).
+?- viterbi(a).
+?- viterbi(X,P).
+?- viterbi(a,P).
+?- viterbif(hmm([a,a,a,c,d,c,d,b,b,b])).
+?- viterbif(hmm([X,a,a,c,d,c,d,b,b,b])).
+?- viterbif(hmm([X,a,a,c,d,c,d,b,b,b]),P,_E),print_graph(_E).
+?- viterbif(hmm([X,a,a,c,d,c,d,b,b,b]),P,_E),viterbi_subgoals(_E,Gs).
+?- viterbif(hmm([X,a,a,c,d,c,d,b,b,b]),P,_E),viterbi_switches(_E,Sws).
+?- viterbif(hmm([a,a,a,c,d,c,d,b,b]),P,E).
+?- viterbif(X).
+?- viterbif(a).
+?- viterbif(X,P,E).
+?- viterbif(a,P,E).
+?- viterbig(hmm([a,a,a,c,d,c,d,b,b,b])).
+?- viterbig(hmm([X,a,a,c,d,c,d,b,b,b])).
+?- viterbig(hmm([a,a,c,d,c,d,b,b,b])).
+?- viterbig(hmm([X,a,c,d,c,d,b,b,b])).
+?- viterbig(hmm([a,a,a,c,d,c,d,b,b,b]),P).
+?- viterbig(hmm([X,a,a,c,d,c,d,b,b,b]),P).
+?- viterbig(hmm([a,a,c,d,c,d,b,b,b]),P).
+?- viterbig(hmm([X,a,c,d,c,d,b,b,b]),P).
+?- viterbig(hmm([a,a,a,c,d,c,d,b,b,b]),P,_E),print_graph(_E).
+?- viterbig(hmm([X,a,a,c,d,c,d,b,b,b]),P,_E),print_graph(_E).
+?- viterbig(hmm([a,a,a,c,d,c,d,b,b]),P,E).
+?- viterbig(hmm([X,a,a,c,d,c,d,b,b]),P,E).
+?- set_prism_flag(log_scale,on),viterbif(hmm([X,a,a,c,d,c,d,b,b,b])),set_prism_flag(log_scale,off).
+?- set_prism_flag(epsilon,X).
+?- set_prism_flag(epsilon,a).
+?- set_prism_flag(epsilon,-1).
+?- set_prism_flag(epsilon,0),hmm_learn(100).
+?- set_prism_flag(epsilon,1.0e-12),hmm_learn(100).
+?- set_prism_flag(epsilon,1.0e-4).
+?- set_prism_flag(restart,X).
+?- set_prism_flag(restart,a).
+?- set_prism_flag(restart,-1).
+?- set_prism_flag(restart,0),hmm_learn(100).
+?- set_prism_flag(restart,100),hmm_learn(100).
+?- set_prism_flag(restart,1).
+?- set_prism_flag(epsilon,1.0e-12).
+?- set_prism_flag(max_iterate,X).
+?- set_prism_flag(max_iterate,a).
+?- set_prism_flag(max_iterate,-1).
+?- set_prism_flag(max_iterate,0),hmm_learn(1000).   {should cause a numeric error until convergence}
+?- set_prism_flag(max_iterate,100),hmm_learn(1000).
+?- set_prism_flag(max_iterate,default),hmm_learn(1000).
+?- set_prism_flag(max_iterate,inf),hmm_learn(1000). {should cause a numeric error until convergence}
+?- set_prism_flag(max_iterate,default).
+?- set_prism_flag(epsilon,1.0e-4).
+?- set_prism_flag(learn_message,X).
+?- set_prism_flag(learn_message,a).
+?- set_prism_flag(learn_message,search),hmm_learn(100).
+?- set_prism_flag(learn_message,em),hmm_learn(100).
+?- set_prism_flag(learn_message,stats),hmm_learn(100).
+?- set_prism_flag(learn_message,misc),hmm_learn(100).
+?- set_prism_flag(learn_message,search+em),hmm_learn(100).
+?- set_prism_flag(learn_message,none),hmm_learn(100).
+?- set_prism_flag(learn_message,all),hmm_learn(100).
+?- set_prism_flag(em_progress,X).
+?- set_prism_flag(em_progress,a).
+?- set_prism_flag(em_progress,0),hmm_learn(100).
+?- set_prism_flag(em_progress,5),hmm_learn(100).
+?- set_prism_flag(em_progress,10).
+?- set_prism_flag(search_progress,X).
+?- set_prism_flag(search_progress,a).
+?- set_prism_flag(search_progress,0),hmm_learn(100).
+?- set_prism_flag(search_progress,5),hmm_learn(100).
+?- set_prism_flag(search_progress,10).
+?- set_prism_flag(log_scale,X).
+?- set_prism_flag(log_scale,a).
+?- set_prism_flag(log_scale,on),hmm_learn(100),show_sw.
+?- set_prism_flag(log_scale,off).
+?- set_prism_flag(init,X),hmm_learn(100).
+?- set_prism_flag(init,a),hmm_learn(100).
+?- set_prism_flag(init,none),hmm_learn(100),show_sw.
+?- set_prism_flag(init,noisy_u),hmm_learn(100),show_sw.
+?- set_prism_flag(restart,300).
+?- set_prism_flag(std_ratio,X).
+?- set_prism_flag(std_ratio,a).
+?- set_prism_flag(std_ratio,-1).
+?- set_prism_flag(std_ratio,0),hmm_learn(100),show_sw.
+?- set_prism_flag(std_ratio,0.001),hmm_learn(100),show_sw.
+?- set_prism_flag(std_ratio,10.0),hmm_learn(100),show_sw.
+?- set_prism_flag(init,random).
+?- set_prism_flag(std_ratio,0.2).
+?- prism(hmm).
+?- set_prism_flag(default_sw_d,0.5).
+?- hmm_learn(100).
+?- show_sw.
+?- show_sw_d.
+?- show_sw_a.
+?- show_sw_pd.
+?- show_sw_pa.
+?- set_prism_flag(epsilon,1.0e-12),hmm_learn(100),set_prism_flag(epsilon,1.0e-4).
+?- set_prism_flag(restart,100),hmm_learn(100),set_prism_flag(restart,1).
+?- set_prism_flag(max_iterate,10),hmm_learn(100),set_prism_flag(max_iterate,default).
+?- set_prism_flag(log_scale,on),hmm_learn(100),show_sw,set_prism_flag(log_scale,off).
+?- prism(hmm).
+?- set_prism_flag(default_sw_a,0.5).
+?- hmm_learn(100).
+?- prism(hmm).
+?- set_prism_flag(default_sw_a,2.0).
+?- hmm_learn(100).
+?- show_sw.
+?- show_sw(a).
+?- show_sw(init).
+?- show_sw(tr(_)).
+?- show_sw(_).
+?- show_sw_d.
+?- show_sw_d(a).
+?- show_sw_d(init).
+?- show_sw_d(tr(_)).
+?- show_sw_d(_).
+?- show_sw_a.
+?- show_sw_a(a).
+?- show_sw_a(init).
+?- show_sw_a(tr(_)).
+?- show_sw_a(_).
+?- show_sw_pd.
+?- show_sw_pd(a).
+?- show_sw_pd(init).
+?- show_sw_pd(tr(_)).
+?- show_sw_pd(_).
+?- show_sw_pa.
+?- show_sw_pa(a).
+?- show_sw_pa(init).
+?- show_sw_pa(tr(_)).
+?- show_sw_pa(_).
+?- set_sw(Sw,uniform),show_sw.
+?- set_sw(a,uniform),show_sw.
+?- set_sw(tr(X),[0.3,0.2,0.5]),show_sw(tr(_)).
+?- set_sw(init,X),show_sw(init).
+?- set_sw(init,a),show_sw(init).
+?- set_sw(init,+),show_sw(init).
+?- set_sw(init,0.5),show_sw(init).
+?- set_sw(init,1.0),show_sw(init).
+?- set_sw(init,[]),show_sw(init).
+?- set_sw(init,[0.3,X,0.2]),show_sw(init).
+?- set_sw(init,[X,0.3,0.2]),show_sw(init).
+?- set_sw(init,[0.3,a,0.2]),show_sw(init).
+?- set_sw(init,[a,0.3,0.2]),show_sw(init).
+?- set_sw(init,[0.3,0.2]),show_sw(init).
+?- set_sw(init,[0.3,0.7]),show_sw(init).
+?- set_sw(init,[-0.3,0.7,0.6]),show_sw(init).
+?- set_sw(init,[0.3,0.5,0.2]),show_sw(init).
+?- set_sw(init,0.3+0.7),show_sw(init).
+?- set_sw(init,-0.3+0.7+0.6),show_sw(init).
+?- set_sw(init,0.3+0.2+0.5),show_sw(init).
+?- set_sw(init,0.3+a+0.2),show_sw(init).
+?- set_sw(init,a+0.3+0.2),show_sw(init).
+?- set_sw(init,0.3+X+0.2),show_sw(init).
+?- set_sw(init,X+0.3+0.2),show_sw(init).
+?- set_sw(init,3:7),show_sw(init).
+?- set_sw(init,3:a:2),show_sw(init).
+?- set_sw(init,a:3:2),show_sw(init).
+?- set_sw(init,3:X:2),show_sw(init).
+?- set_sw(init,X:3:2),show_sw(init).
+?- set_sw(init,7:3:2),show_sw(init).
+?- set_sw(init,uniform),show_sw(init).
+?- set_sw(init,f_geometric),show_sw(init).
+?- set_sw(init,f_geometric(X)),show_sw(init).
+?- set_sw(init,f_geometric(a)),show_sw(init).
+?- set_sw(init,f_geometric(0)),show_sw(init).
+?- set_sw(init,f_geometric(-3)),show_sw(init).
+?- set_sw(init,f_geometric(0.5)),show_sw(init).
+?- set_sw(init,f_geometric(3)),show_sw(init).
+?- set_sw(init,f_geometric(3,X)),show_sw(init).
+?- set_sw(init,f_geometric(3,a)),show_sw(init).
+?- set_sw(init,f_geometric(3,desc)),show_sw(init).
+?- set_sw(init,f_geometric(3,asc)),show_sw(init).
+?- set_sw(init,random),show_sw(init).
+?- set_prism_flag(default_sw,X),set_sw(init,default),show_sw(init).
+?- set_prism_flag(default_sw,a),set_sw(init,default),show_sw(init).
+?- set_prism_flag(default_sw,none),set_sw(init,default),show_sw(init).
+?- set_prism_flag(default_sw,uniform),set_sw(init,default),show_sw(init).
+?- set_prism_flag(default_sw,f_geometric),set_sw(init,default),show_sw(init).
+?- set_prism_flag(default_sw,f_geometric(X)),set_sw(init,default),show_sw(init).
+?- set_prism_flag(default_sw,f_geometric(a)),set_sw(init,default),show_sw(init).
+?- set_prism_flag(default_sw,f_geometric(0)),set_sw(init,default),show_sw(init).
+?- set_prism_flag(default_sw,f_geometric(-3)),set_sw(init,default),show_sw(init).
+?- set_prism_flag(default_sw,f_geometric(0.5)),set_sw(init,default),show_sw(init).
+?- set_prism_flag(default_sw,f_geometric(3)),set_sw(init,default),show_sw(init).
+?- set_prism_flag(default_sw,f_geometric(3,X)),set_sw(init,default),show_sw(init).
+?- set_prism_flag(default_sw,f_geometric(3,a)),set_sw(init,default),show_sw(init).
+?- set_prism_flag(default_sw,f_geometric(3,desc)),set_sw(init,default),show_sw(init).
+?- set_prism_flag(default_sw,f_geometric(3,asc)),set_sw(init,default),show_sw(init).
+?- set_prism_flag(default_sw,random),set_sw(init,default),show_sw(init).
+?- set_sw(out(s0),uniform),show_sw(out(s0)).
+?- set_sw(out(s0),f_geometric),show_sw(out(s0)).
+?- set_sw(out(s0),f_geometric(3)),show_sw(out(s0)).
+?- set_sw(out(s0),f_geometric(3,desc)),show_sw(out(s0)).
+?- set_sw(out(s0),f_geometric(3,asc)),show_sw(out(s0)).
+?- set_sw(out(s0),random),show_sw(out(s0)).
+?- set_prism_flag(default_sw,none),set_sw(out(s0),default),show_sw(out(s0)).
+?- set_prism_flag(default_sw,uniform),set_sw(out(s0),default),show_sw(out(s0)).
+?- set_prism_flag(default_sw,f_geometric),set_sw(out(s0),default),show_sw(out(s0)).
+?- set_prism_flag(default_sw,f_geometric(3)),set_sw(out(s0),default),show_sw(out(s0)).
+?- set_prism_flag(default_sw,f_geometric(3,desc)),set_sw(out(s0),default),show_sw(out(s0)).
+?- set_prism_flag(default_sw,f_geometric(3,asc)),set_sw(out(s0),default),show_sw(out(s0)).
+?- set_prism_flag(default_sw,random),set_sw(out(s0),default),show_sw(out(s0)).
+?- set_sw(out(s1),uniform),show_sw(out(s1)).     {note that switch out(s1) has only one value}
+?- set_sw(out(s1),f_geometric),show_sw(out(s1)).
+?- set_sw(out(s1),f_geometric(3)),show_sw(out(s1)).
+?- set_sw(out(s1),f_geometric(3,desc)),show_sw(out(s1)).
+?- set_sw(out(s1),f_geometric(3,asc)),show_sw(out(s1)).
+?- set_sw(out(s1),random),show_sw(out(s1)).
+?- set_prism_flag(default_sw,none),set_sw(out(s1),default),show_sw(out(s1)).
+?- set_prism_flag(default_sw,uniform),set_sw(out(s1),default),show_sw(out(s1)).
+?- set_prism_flag(default_sw,f_geometric),set_sw(out(s1),default),show_sw(out(s1)).
+?- set_prism_flag(default_sw,f_geometric(3)),set_sw(out(s1),default),show_sw(out(s1)).
+?- set_prism_flag(default_sw,f_geometric(3,desc)),set_sw(out(s1),default),show_sw(out(s1)).
+?- set_prism_flag(default_sw,f_geometric(3,asc)),set_sw(out(s1),default),show_sw(out(s1)).
+?- set_prism_flag(default_sw,random),set_sw(out(s1),default),show_sw(out(s1)).
+?- set_prism_flag(default_sw,uniform).
+?- set_sw_all(_,X),show_sw.
+?- set_sw_all(_,a),show_sw.
+?- set_sw_all(_,uniform),show_sw.
+?- set_sw_all(_,f_geometric),show_sw.
+?- set_sw_all(_,f_geometric(3)),show_sw.
+?- set_sw_all(_,f_geometric(3,desc)),show_sw.
+?- set_sw_all(_,f_geometric(3,asc)),show_sw.
+?- set_sw_all(_,random),show_sw.
+?- set_sw_all(_,random),set_sw_all(a,uniform),show_sw.
+?- set_sw_all(_,random),set_sw_all(out(_),uniform),show_sw.
+?- set_sw_all(_,random),set_sw_all(a),show_sw.
+?- set_sw_all(_,random),set_sw_all(out(_)),show_sw.
+?- set_sw_all(_,random),set_sw_all,show_sw.
+?- set_sw_d(Sw,uniform),show_sw_d,show_sw_a.
+?- set_sw_d(a,uniform),show_sw_d,show_sw_a.
+?- set_sw_d(Sw,[0.3,0.2,0.5]),show_sw_d,show_sw_a.
+?- set_sw_d(init,X),show_sw_d(init),show_sw_a(init).
+?- set_sw_d(init,a),show_sw_d(init),show_sw_a(init).
+?- set_sw_d(tr(X),[0.3,0.2,0.5]),show_sw_d(tr(_)),show_sw_a(tr(_)).
+?- set_sw_d(init,X),show_sw_d(init),show_sw_a(init).
+?- set_sw_d(init,a),show_sw_d(init),show_sw_a(init).
+?- set_sw_d(init,+),show_sw_d(init),show_sw_a(init).
+?- set_sw_d(init,-1),show_sw_d(init),show_sw_a(init).
+?- set_sw_d(init,0),show_sw_d(init),show_sw_a(init).
+?- set_sw_d(init,0.5),show_sw_d(init),show_sw_a(init).
+?- set_sw_d(init,1.0),show_sw_d(init),show_sw_a(init).
+?- set_sw_d(init,[]),show_sw_d(init),show_sw_a(init).
+?- set_sw_d(init,[0.3,X,0.2]),show_sw_d(init),show_sw_a(init).
+?- set_sw_d(init,[X,0.3,0.2]),show_sw_d(init),show_sw_a(init).
+?- set_sw_d(init,[0.3,a,0.2]),show_sw_d(init),show_sw_a(init).
+?- set_sw_d(init,[a,0.3,0.2]),show_sw_d(init),show_sw_a(init).
+?- set_sw_d(init,[0.3,0.2]),show_sw_d(init),show_sw_a(init).
+?- set_sw_d(init,[-0.3,0.7,0.6]),show_sw_d(init),show_sw_a(init).
+?- set_sw_d(init,[0.3,0.5,0.2]),show_sw_d(init),show_sw_a(init).
+?- set_sw_d(init,[0.3,3.5,0.2]),show_sw_d(init),show_sw_a(init).
+?- set_sw_d(init,0.3+0.2+0.5),show_sw_d(init),show_sw_a(init).
+?- set_sw_d(init,3:7:2),show_sw_d(init),show_sw_a(init).
+?- set_sw_d(init,uniform),show_sw_d(init),show_sw_a(init).
+?- set_sw_d(init,uniform(X)),show_sw_d(init),show_sw_a(init).
+?- set_sw_d(init,uniform(a)),show_sw_d(init),show_sw_a(init).
+?- set_sw_d(init,uniform(0)),show_sw_d(init),show_sw_a(init).
+?- set_sw_d(init,uniform(-1)),show_sw_d(init),show_sw_a(init).
+?- set_sw_d(init,uniform(5)),show_sw_d(init),show_sw_a(init).
+?- set_sw_d(init,f_geometric),show_sw_d(init),show_sw_a(init).
+?- set_sw_d(init,f_geometric(X)),show_sw_d(init),show_sw_a(init).
+?- set_sw_d(init,f_geometric(a)),show_sw_d(init),show_sw_a(init).
+?- set_sw_d(init,f_geometric(0)),show_sw_d(init),show_sw_a(init).
+?- set_sw_d(init,f_geometric(-3)),show_sw_d(init),show_sw_a(init).
+?- set_sw_d(init,f_geometric(0.5)),show_sw_d(init),show_sw_a(init).
+?- set_sw_d(init,f_geometric(3)),show_sw_d(init),show_sw_a(init).
+?- set_sw_d(init,f_geometric(X,3)),show_sw_d(init),show_sw_a(init).
+?- set_sw_d(init,f_geometric(a,3)),show_sw_d(init),show_sw_a(init).
+?- set_sw_d(init,f_geometric(-1,3)),show_sw_d(init),show_sw_a(init).
+?- set_sw_d(init,f_geometric(0,3)),show_sw_d(init),show_sw_a(init).   {ok}
+?- set_sw_d(init,f_geometric(2,3)),show_sw_d(init),show_sw_a(init).
+?- set_sw_d(init,f_geometric(2,3,X)),show_sw_d(init),show_sw_a(init).
+?- set_sw_d(init,f_geometric(2,3,a)),show_sw_d(init),show_sw_a(init).
+?- set_sw_d(init,f_geometric(2,3,desc)),show_sw_d(init),show_sw_a(init).
+?- set_sw_d(init,f_geometric(2,3,asc)),show_sw_d(init),show_sw_a(init).
+?- set_prism_flag(default_sw_d,X),set_sw_d(init,default),show_sw_d(init),show_sw_a(init).
+?- set_prism_flag(default_sw_d,a),set_sw_d(init,default),show_sw_d(init),show_sw_a(init).
+?- set_prism_flag(default_sw_d,0),set_sw_d(init,default),show_sw_d(init),show_sw_a(init).
+?- set_prism_flag(default_sw_d,2),set_sw_d(init,default),show_sw_d(init),show_sw_a(init).
+?- set_prism_flag(default_sw_d,none),set_sw_d(init,default),show_sw_d(init),show_sw_a(init).
+?- set_prism_flag(default_sw_d,uniform),set_sw_d(init,default),show_sw_d(init),show_sw_a(init).
+?- set_prism_flag(default_sw_d,uniform(X)),set_sw_d(init,default),show_sw_d(init),show_sw_a(init).
+?- set_prism_flag(default_sw_d,uniform(a)),set_sw_d(init,default),show_sw_d(init),show_sw_a(init).
+?- set_prism_flag(default_sw_d,uniform(-1)),set_sw_d(init,default),show_sw_d(init),show_sw_a(init).
+?- set_prism_flag(default_sw_d,uniform(0)),set_sw_d(init,default),show_sw_d(init),show_sw_a(init).
+?- set_prism_flag(default_sw_d,uniform(2)),set_sw_d(init,default),show_sw_d(init),show_sw_a(init).
+?- set_sw_d(out(s0),uniform),show_sw_d(out(s0)),show_sw_a(out(s0)).
+?- set_prism_flag(default_sw_d,none),set_sw_d(out(s0),default),show_sw_d(out(s0)),show_sw_a(out(s0)).
+?- set_prism_flag(default_sw_d,0),set_sw_d(out(s0),default),show_sw_d(out(s0)),show_sw_a(out(s0)).
+?- set_prism_flag(default_sw_d,2),set_sw_d(out(s0),default),show_sw_d(out(s0)),show_sw_a(out(s0)).
+?- set_prism_flag(default_sw_d,uniform),set_sw_d(out(s0),default),show_sw_d(out(s0)),show_sw_a(out(s0)).
+?- set_prism_flag(default_sw_d,uniform(0)),set_sw_d(out(s0),default),show_sw_d(out(s0)),show_sw_a(out(s0)).
+?- set_prism_flag(default_sw_d,uniform(2)),set_sw_d(out(s0),default),show_sw_d(out(s0)),show_sw_a(out(s0)).
+?- set_sw_d(out(s1),uniform),show_sw_d(out(s1)),show_sw_a(out(s1)).
+?- set_prism_flag(default_sw_d,none),set_sw_d(out(s1),default),show_sw_d(out(s1)),show_sw_a(out(s1)).
+?- set_prism_flag(default_sw_d,0),set_sw_d(out(s1),default),show_sw_d(out(s1)),show_sw_a(out(s1)).
+?- set_prism_flag(default_sw_d,2),set_sw_d(out(s1),default),show_sw_d(out(s1)),show_sw_a(out(s1)).
+?- set_prism_flag(default_sw_d,uniform),set_sw_d(out(s1),default),show_sw_d(out(s1)),show_sw_a(out(s1)).
+?- set_prism_flag(default_sw_d,uniform(0)),set_sw_d(out(s1),default),show_sw_d(out(s1)),show_sw_a(out(s1)).
+?- set_prism_flag(default_sw_d,uniform(2)),set_sw_d(out(s1),default),show_sw_d(out(s1)),show_sw_a(out(s1)).
+?- set_prism_flag(default_sw_d,0.0).
+?- set_sw_all_d(_,X),show_sw_d.
+?- set_sw_all_d(_,a),show_sw_d.
+?- set_sw_all_d(_,0),show_sw_d.
+?- set_sw_all_d(_,2),show_sw_d.
+?- set_sw_all_d(_,uniform),show_sw_d.
+?- set_sw_all_d(_,uniform(0)),show_sw_d.
+?- set_sw_all_d(_,uniform(2)),show_sw_d.
+?- set_sw_all_d(_,uniform),set_sw_all_d(a,0),show_sw_d.
+?- set_sw_all_d(_,uniform),set_sw_all_d(out(_),0),show_sw_d.
+?- set_sw_all_d(_,uniform),set_sw_all_d(_,0),show_sw_d.
+?- set_sw_all_d(_,uniform),set_sw_all_d(out(_)),show_sw_d.
+?- set_sw_all_d(_,uniform),set_sw_all_d,show_sw_d.
+?- set_sw_a(Sw,uniform),show_sw_d,show_sw_a.
+?- set_sw_a(a,uniform),show_sw_d,show_sw_a.
+?- set_sw_a(Sw,[0.3,0.2,0.5]),show_sw_d,show_sw_a.
+?- set_sw_a(init,X),show_sw_d(init),show_sw_a(init).
+?- set_sw_a(init,a),show_sw_d(init),show_sw_a(init).
+?- set_sw_a(tr(X),[0.3,0.2,0.5]),show_sw_d(tr(_)),show_sw_a(tr(_)).
+?- set_sw_a(init,X),show_sw_d(init),show_sw_a(init).
+?- set_sw_a(init,a),show_sw_d(init),show_sw_a(init).
+?- set_sw_a(init,+),show_sw_d(init),show_sw_a(init).
+?- set_sw_a(init,-1),show_sw_d(init),show_sw_a(init).
+?- set_sw_a(init,0),show_sw_d(init),show_sw_a(init).
+?- set_sw_a(init,0.5),show_sw_d(init),show_sw_a(init).
+?- set_sw_a(init,1.0),show_sw_d(init),show_sw_a(init).
+?- set_sw_a(init,[]),show_sw_d(init),show_sw_a(init).
+?- set_sw_a(init,[0.3,X,0.2]),show_sw_d(init),show_sw_a(init).
+?- set_sw_a(init,[X,0.3,0.2]),show_sw_d(init),show_sw_a(init).
+?- set_sw_a(init,[0.3,a,0.2]),show_sw_d(init),show_sw_a(init).
+?- set_sw_a(init,[a,0.3,0.2]),show_sw_d(init),show_sw_a(init).
+?- set_sw_a(init,[0.3,0.2]),show_sw_d(init),show_sw_a(init).
+?- set_sw_a(init,[-0.3,0.7,0.6]),show_sw_d(init),show_sw_a(init).
+?- set_sw_a(init,[0.3,0.5,0.2]),show_sw_d(init),show_sw_a(init).
+?- set_sw_a(init,[0.3,3.5,0.2]),show_sw_d(init),show_sw_a(init).
+?- set_sw_a(init,0.3+0.2+0.5),show_sw_d(init),show_sw_a(init).
+?- set_sw_a(init,3:7:2),show_sw_d(init),show_sw_a(init).
+?- set_sw_a(init,uniform),show_sw_d(init),show_sw_a(init).
+?- set_sw_a(init,uniform(X)),show_sw_d(init),show_sw_a(init).
+?- set_sw_a(init,uniform(a)),show_sw_d(init),show_sw_a(init).
+?- set_sw_a(init,uniform(0)),show_sw_d(init),show_sw_a(init).
+?- set_sw_a(init,uniform(-1)),show_sw_d(init),show_sw_a(init).
+?- set_sw_a(init,uniform(5)),show_sw_d(init),show_sw_a(init).
+?- set_sw_a(init,f_geometric),show_sw_d(init),show_sw_a(init).
+?- set_sw_a(init,f_geometric(X)),show_sw_d(init),show_sw_a(init).
+?- set_sw_a(init,f_geometric(a)),show_sw_d(init),show_sw_a(init).
+?- set_sw_a(init,f_geometric(0)),show_sw_d(init),show_sw_a(init).
+?- set_sw_a(init,f_geometric(-3)),show_sw_d(init),show_sw_a(init).
+?- set_sw_a(init,f_geometric(0.5)),show_sw_d(init),show_sw_a(init).
+?- set_sw_a(init,f_geometric(3)),show_sw_d(init),show_sw_a(init).
+?- set_sw_a(init,f_geometric(X,3)),show_sw_d(init),show_sw_a(init).
+?- set_sw_a(init,f_geometric(a,3)),show_sw_d(init),show_sw_a(init).
+?- set_sw_a(init,f_geometric(-1,3)),show_sw_d(init),show_sw_a(init).
+?- set_sw_a(init,f_geometric(0,3)),show_sw_d(init),show_sw_a(init).
+?- set_sw_a(init,f_geometric(2,3)),show_sw_d(init),show_sw_a(init).
+?- set_sw_a(init,f_geometric(2,3,X)),show_sw_d(init),show_sw_a(init).
+?- set_sw_a(init,f_geometric(2,3,a)),show_sw_d(init),show_sw_a(init).
+?- set_sw_a(init,f_geometric(2,3,desc)),show_sw_d(init),show_sw_a(init).
+?- set_sw_a(init,f_geometric(2,3,asc)),show_sw_d(init),show_sw_a(init).
+?- set_prism_flag(default_sw_a,X),set_sw_a(init,default),show_sw_d(init),show_sw_a(init).
+?- set_prism_flag(default_sw_a,a),set_sw_a(init,default),show_sw_d(init),show_sw_a(init).
+?- set_prism_flag(default_sw_a,0),set_sw_a(init,default),show_sw_d(init),show_sw_a(init).
+?- set_prism_flag(default_sw_a,2),set_sw_a(init,default),show_sw_d(init),show_sw_a(init).
+?- set_prism_flag(default_sw_a,none),set_sw_a(init,default),show_sw_d(init),show_sw_a(init).
+?- set_prism_flag(default_sw_a,uniform),set_sw_a(init,default),show_sw_d(init),show_sw_a(init).
+?- set_prism_flag(default_sw_a,uniform(X)),set_sw_a(init,default),show_sw_d(init),show_sw_a(init).
+?- set_prism_flag(default_sw_a,uniform(a)),set_sw_a(init,default),show_sw_d(init),show_sw_a(init).
+?- set_prism_flag(default_sw_a,uniform(-1)),set_sw_a(init,default),show_sw_d(init),show_sw_a(init).
+?- set_prism_flag(default_sw_a,uniform(0)),set_sw_a(init,default),show_sw_d(init),show_sw_a(init).
+?- set_prism_flag(default_sw_a,uniform(2)),set_sw_a(init,default),show_sw_d(init),show_sw_a(init).
+?- set_sw_a(out(s0),uniform),show_sw_d(out(s0)),show_sw_a(out(s0)).
+?- set_prism_flag(default_sw_a,none),set_sw_a(out(s0),default),show_sw_d(out(s0)),show_sw_a(out(s0)).
+?- set_prism_flag(default_sw_a,0),set_sw_a(out(s0),default),show_sw_d(out(s0)),show_sw_a(out(s0)).
+?- set_prism_flag(default_sw_a,2),set_sw_a(out(s0),default),show_sw_d(out(s0)),show_sw_a(out(s0)).
+?- set_prism_flag(default_sw_a,uniform),set_sw_a(out(s0),default),show_sw_d(out(s0)),show_sw_a(out(s0)).
+?- set_prism_flag(default_sw_a,uniform(0)),set_sw_a(out(s0),default),show_sw_d(out(s0)),show_sw_a(out(s0)).
+?- set_prism_flag(default_sw_a,uniform(2)),set_sw_a(out(s0),default),show_sw_d(out(s0)),show_sw_a(out(s0)).
+?- set_sw_a(out(s1),uniform),show_sw_d(out(s1)),show_sw_a(out(s1)).
+?- set_prism_flag(default_sw_a,none),set_sw_a(out(s1),default),show_sw_d(out(s1)),show_sw_a(out(s1)).
+?- set_prism_flag(default_sw_a,0),set_sw_a(out(s1),default),show_sw_d(out(s1)),show_sw_a(out(s1)).
+?- set_prism_flag(default_sw_a,2),set_sw_a(out(s1),default),show_sw_d(out(s1)),show_sw_a(out(s1)).
+?- set_prism_flag(default_sw_a,uniform),set_sw_a(out(s1),default),show_sw_d(out(s1)),show_sw_a(out(s1)).
+?- set_prism_flag(default_sw_a,uniform(0)),set_sw_a(out(s1),default),show_sw_d(out(s1)),show_sw_a(out(s1)).
+?- set_prism_flag(default_sw_a,uniform(2)),set_sw_a(out(s1),default),show_sw_d(out(s1)),show_sw_a(out(s1)).
+?- set_prism_flag(default_sw_a,1.0).
+?- set_sw_all_a(_,X),show_sw_a.
+?- set_sw_all_a(_,a),show_sw_a.
+?- set_sw_all_a(_,0),show_sw_a.
+?- set_sw_all_a(_,2),show_sw_a.
+?- set_sw_all_a(_,uniform),show_sw_a.
+?- set_sw_all_a(_,uniform(0)),show_sw_a.
+?- set_sw_all_a(_,uniform(2)),show_sw_a.
+?- set_sw_all_a(_,uniform),set_sw_all_a(a,0),show_sw_a.
+?- set_sw_all_a(_,uniform),set_sw_all_a(out(_),1),show_sw_a.
+?- set_sw_all_a(_,uniform),set_sw_all_a(_,1),show_sw_a.
+?- set_sw_all_a(_,uniform),set_sw_all_a(a),show_sw_a.
+?- set_sw_all_a(_,uniform),set_sw_all_a(out(_)),show_sw_a.
+?- set_sw_all_a(_,uniform),set_sw_all_a,show_sw_a.
+(check the alias predicates very roughly -- check only their existence)
+?- set_sw_h(init,0.5),show_sw_h(init).
+?- set_prism_flag(default_sw_h,2),set_sw_h(init,default),show_sw_h(init).
+?- set_sw_h(init),show_sw_h(init).
+?- set_prism_flag(default_sw_d,0).
+?- set_sw_all_h(_,2),show_sw_h.
+?- set_sw_all_h(out(_),1),show_sw_h.
+?- set_sw_all_h(tr(_)),show_sw_h.
+?- set_sw_all_h,show_sw_h.
+?- set_sw_h_all(_,2),show_sw_d,show_sw_a.
+?- set_sw_h_all(out(_),1),show_sw_d,show_sw_a.
+?- set_sw_h_all(tr(_)),show_sw_d,show_sw_a.
+?- set_sw_h_all,show_sw_d,show_sw_a.
+?- fix_sw(Sw,uniform),show_sw.
+?- fix_sw(a,uniform),show_sw.
+?- fix_sw(tr(_),uniform),show_sw(tr(_)).
+?- fix_sw(init,[0.3,0.2,0.5]),show_sw(init).
+?- fix_sw(init,uniform),show_sw(init).
+?- fix_sw(init,f_geometric),show_sw(init).
+?- fix_sw(init,f_geometric(3)),show_sw(init).
+?- fix_sw(init,f_geometric(3,asc)),show_sw(init).
+?- fix_sw(init,random),show_sw(init).
+?- fix_sw(out(s0),[0.2,0.1,0.2,0.5]),show_sw(out(_)).
+?- fix_sw(out(s0),uniform),show_sw(out(_)).
+?- fix_sw(out(s0),f_geometric),show_sw(out(_)).
+?- fix_sw(out(s0),f_geometric(3)),show_sw(out(_)).
+?- fix_sw(out(s0),f_geometric(3,asc)),show_sw(out(_)).
+?- fix_sw(out(s0),random),show_sw(out(_)).
+?- fix_sw(out(s1),X),show_sw(out(_)).
+?- fix_sw(out(s1),[1.0]),show_sw(out(_)).
+?- fix_sw(out(s1),uniform),show_sw(out(_)).
+?- fix_sw(out(s1),f_geometric),show_sw(out(_)).
+?- fix_sw(out(s1),f_geometric(3)),show_sw(out(_)).
+?- fix_sw(out(s1),f_geometric(3,asc)),show_sw(out(_)).
+?- fix_sw(out(s1),random),show_sw(out(_)).
+?- fix_sw(_),hmm_learn(100).
+?- unfix_sw(out(_)),fix_sw(out(s1)),show_sw.
+?- unfix_sw(out(_)),show_sw.
+?- unfix_sw(_),show_sw.
+?- unfix_sw(_),fix_sw(out(s0),[0.2,0.1,0.2,0.5]),hmm_learn(100),show_sw,unfix_sw(_).
+?- fix_sw_d(Sw,uniform),show_sw_d.
+?- fix_sw_d(a,uniform),show_sw_d.
+?- fix_sw_d(tr(_),uniform),show_sw_d(tr(_)).
+?- fix_sw_d(init,[0.3,0.7]),show_sw_d(init).
+?- fix_sw_d(init,[0.3,0.2,0.5]),show_sw_d(init).
+?- fix_sw_d(init,0.0),show_sw_d(init).
+?- fix_sw_d(init,2.0),show_sw_d(init).
+?- fix_sw_d(init,uniform),show_sw_d(init).
+?- fix_sw_d(init,uniform(0)),show_sw_d(init).
+?- fix_sw_d(init,uniform(2)),show_sw_d(init).
+?- fix_sw_d(init,random),show_sw_d(init).
+?- fix_sw_d(out(s0),[0.2,0.1,0.2,0.5]),show_sw_d(out(_)).
+?- fix_sw_d(out(s0),0.0),show_sw_d(out(_)).
+?- fix_sw_d(out(s0),2.0),show_sw_d(out(_)).
+?- fix_sw_d(out(s0),uniform),show_sw_d(out(_)).
+?- fix_sw_d(out(s0),uniform(0)),show_sw_d(out(_)).
+?- fix_sw_d(out(s0),uniform(2)),show_sw_d(out(_)).
+?- fix_sw_d(out(s1),X),show_sw_d(out(_)).
+?- fix_sw_d(out(s1),0.0),show_sw_d(out(_)).
+?- fix_sw_d(out(s1),2.0),show_sw_d(out(_)).
+?- fix_sw_d(out(s1),[0.0]),show_sw_d(out(_)).
+?- fix_sw_d(out(s1),[2.0]),show_sw_d(out(_)).
+?- fix_sw_d(out(s1),uniform),show_sw_d(out(_)).
+?- fix_sw_d(out(s1),uniform(0)),show_sw_d(out(_)).
+?- fix_sw_d(out(s1),uniform(2)),show_sw_d(out(_)).
+?- fix_sw_d(out(_)),show_sw_d.
+?- unfix_sw_d(out(_)),show_sw_d.
+?- unfix_sw_d(_),show_sw_d.
+?- fix_sw_a(Sw,uniform),show_sw_a.
+?- fix_sw_a(a,uniform),show_sw_a.
+?- fix_sw_a(tr(_),uniform),show_sw_a(tr(_)).
+?- fix_sw_a(init,[0.3,0.7]),show_sw_a(init).
+?- fix_sw_a(init,[0.3,0.2,0.5]),show_sw_a(init).
+?- fix_sw_a(init,0.0),show_sw_a(init).
+?- fix_sw_a(init,2.0),show_sw_a(init).
+?- fix_sw_a(init,uniform),show_sw_a(init).
+?- fix_sw_a(init,uniform(0)),show_sw_a(init).
+?- fix_sw_a(init,uniform(2)),show_sw_a(init).
+?- fix_sw_a(init,random),show_sw_a(init).
+?- fix_sw_a(out(s0),[0.2,0.1,0.2,0.5]),show_sw_a(out(_)).
+?- fix_sw_a(out(s0),0.0),show_sw_a(out(_)).
+?- fix_sw_a(out(s0),2.0),show_sw_a(out(_)).
+?- fix_sw_a(out(s0),uniform),show_sw_a(out(_)).
+?- fix_sw_a(out(s0),uniform(0)),show_sw_a(out(_)).
+?- fix_sw_a(out(s0),uniform(2)),show_sw_a(out(_)).
+?- fix_sw_a(out(s1),X),show_sw_a(out(_)).
+?- fix_sw_a(out(s1),0.0),show_sw_a(out(_)).
+?- fix_sw_a(out(s1),2.0),show_sw_a(out(_)).
+?- fix_sw_a(out(s1),[0.0]),show_sw_a(out(_)).
+?- fix_sw_a(out(s1),[2.0]),show_sw_a(out(_)).
+?- fix_sw_a(out(s1),uniform),show_sw_a(out(_)).
+?- fix_sw_a(out(s1),uniform(0)),show_sw_a(out(_)).
+?- fix_sw_a(out(s1),uniform(2)),show_sw_a(out(_)).
+?- fix_sw_a(out(_)),show_sw_a.
+?- unfix_sw_a(out(_)),show_sw_a.
+?- unfix_sw_a(_),show_sw_a.
+?- fix_sw_h(init,uniform),show_sw_h(init).
+?- fix_sw_h(tr(_)),show_sw_h(tr(_)).
+?- unfix_sw_h(_),show_sw_h.
+?- prism(hmm).
+?- set_prism_flag(default_sw_a,0.5),set_prism_flag(learn_mode,hparams).
+?- hmm_learn(100),show_sw_pa.
+?- set_prism_flag(epsilon,0),hmm_learn(100).
+?- set_prism_flag(epsilon,1.0e-12),hmm_learn(100).
+?- set_prism_flag(epsilon,1.0e-4).
+?- set_prism_flag(restart,0),hmm_learn(100).
+?- set_prism_flag(restart,100),hmm_learn(100).
+?- set_prism_flag(restart,1).
+?- set_prism_flag(epsilon,1.0e-12).
+?- set_prism_flag(max_iterate,0),hmm_learn(1000).
+?- set_prism_flag(max_iterate,100),hmm_learn(1000).
+?- set_prism_flag(max_iterate,default),hmm_learn(1000).
+?- set_prism_flag(max_iterate,inf),hmm_learn(1000).
+?- set_prism_flag(max_iterate,default).
+?- set_prism_flag(epsilon,1.0e-4).
+?- set_prism_flag(learn_message,search),hmm_learn(100).
+?- set_prism_flag(learn_message,em),hmm_learn(100).
+?- set_prism_flag(learn_message,stats),hmm_learn(100).
+?- set_prism_flag(learn_message,misc),hmm_learn(100).
+?- set_prism_flag(learn_message,search+em),hmm_learn(100).
+?- set_prism_flag(learn_message,none),hmm_learn(100).
+?- set_prism_flag(learn_message,all),hmm_learn(100).
+?- set_prism_flag(em_progress,0),hmm_learn(100).
+?- set_prism_flag(em_progress,5),hmm_learn(100).
+?- set_prism_flag(em_progress,10).
+?- set_prism_flag(search_progress,0),hmm_learn(100).
+?- set_prism_flag(search_progress,5),hmm_learn(100).
+?- set_prism_flag(search_progress,10).
+?- set_prism_flag(restart,100).
+?- set_prism_flag(std_ratio,0),hmm_learn(100),show_sw_pa.
+?- set_prism_flag(std_ratio,0.001),hmm_learn(100),show_sw_pa.
+?- set_prism_flag(std_ratio,10.0),hmm_learn(100),show_sw_pa.
+?- set_prism_flag(std_ratio,0.2),set_prism_flag(restart,1).
+?- viterbif_p(hmm([a,a,a,c,d,c,d,b,b,b])).
+?- viterbif_p(hmm([X,a,a,c,d,c,d,b,b,b])).
+?- viterbif_p(hmm([X,a,a,c,d,c,d,b,b,b]),P,_E),print_graph(_E).
+?- viterbif_h(hmm([a,a,a,c,d,c,d,b,b,b])).
+?- viterbif_h(hmm([X,a,a,c,d,c,d,b,b,b])).
+?- viterbif_h(hmm([X,a,a,c,d,c,d,b,b,b]),P,_E),print_graph(_E).
+?- prism(hmm).
+?- set_prism_flag(default_sw_a,0.5),set_prism_flag(learn_mode,hparams).
+?- fix_sw_a(out(s0),uniform(5)),show_sw_pa.
+?- hmm_learn(100),show_sw_pa.
+?- prism(hmm).
+?- set_prism_flag(default_sw_a,0.5),set_prism_flag(learn_mode,both).
+?- hmm_learn(100).
+?- show_sw_pa.
+?- fix_sw(out(s0),f_geometric).
+?- fix_sw_a(out(s2),uniform(5)).
+?- hmm_learn(100).
+?- show_sw_pa.
+?- set_prism_flag(reset_hparams,off).
+?- hmm_learn(100),show_sw_pa.  {check if the hyperparameters increases}
+?- hmm_learn(100),show_sw_pa.
+?- hmm_learn(100),show_sw_pa.
+?- prism(hmm).
+?- set_prism_flag(default_sw_d,0.5).
+?- hmm_learn(100).
+?- get_sw(X,Info).
+?- get_sw(a,Info).
+?- get_sw(out(s0),Info).
+?- get_sw(out(s1),Info).
+?- get_sw(out(_),Info).
+?- get_sw(Info).
+?- get_sw(a).
+?- get_sw(X,S,Vs,Ps).
+?- get_sw(a,S,Vs,Ps).
+?- get_sw(out(s0),S,Vs,Ps).
+?- get_sw(out(s1),S,Vs,Ps).
+?- get_sw(out(_),S,Vs,Ps).
+?- get_sw(X,S,Vs,Ps,Es).
+?- get_sw(a,S,Vs,Ps,Es).
+?- get_sw(out(s0),S,Vs,Ps,Es).
+?- get_sw(out(s1),S,Vs,Ps,Es).
+?- get_sw(out(_),S,Vs,Ps,Es).
+?- get_sw_d(X,Info).
+?- get_sw_d(a,Info).
+?- get_sw_d(out(s0),Info).
+?- get_sw_d(out(s1),Info).
+?- get_sw_d(out(_),Info).
+?- get_sw_d(Info).
+?- get_sw_d(a).
+?- get_sw_d(X,S,Vs,Cs).
+?- get_sw_d(a,S,Vs,Cs).
+?- get_sw_d(out(s0),S,Vs,Cs).
+?- get_sw_d(out(s1),S,Vs,Cs).
+?- get_sw_d(out(_),S,Vs,Cs).
+?- get_sw_d(out(s0),S,Vs,Cs,Es).
+?- get_sw_d(out(s1),S,Vs,Cs,Es).
+?- get_sw_d(out(_),S,Vs,Cs,Es).
+?- get_sw_h(Info).
+?- get_sw_h(X,Info).
+?- get_sw_h(X,S,Vs,Cs).
+?- get_sw_pd(X,Info).
+?- get_sw_pd(a,Info).
+?- get_sw_pd(out(s0),Info).
+?- get_sw_pd(out(s1),Info).
+?- get_sw_pd(out(_),Info).
+?- get_sw_pd(Info).
+?- get_sw_pd(a).
+?- get_sw_pd(X,S,Vs,Ps,Cs).
+?- get_sw_pd(a,S,Vs,Ps,Cs).
+?- get_sw_pd(out(s0),S,Vs,Ps,Cs).
+?- get_sw_pd(out(s1),S,Vs,Ps,Cs).
+?- get_sw_pd(out(_),S,Vs,Ps,Cs).
+?- get_sw_pd(out(s0),S,Vs,Ps,Cs,Es).
+?- get_sw_pd(out(s1),S,Vs,Ps,Cs,Es).
+?- get_sw_pd(out(_),S,Vs,Ps,Cs,Es).
+?- get_sw_b(Info).
+?- get_sw_b(X,Info).
+?- get_sw_b(X,S,Vs,Ps,Cs).
+?- get_sw_a(out(_),S,Vs,Cs,Es).      {this should fail}
+?- get_sw_pa(out(_),S,Vs,Ps,Cs,Es).  {this should fail}
+?- prism(hmm).
+?- set_prism_flag(default_sw_a,0.5),set_prism_flag(learn_mode,hparams).
+?- hmm_learn(100).
+?- get_sw_a(X,Info).
+?- get_sw_a(a,Info).
+?- get_sw_a(out(s0),Info).
+?- get_sw_a(out(s1),Info).
+?- get_sw_a(out(_),Info).
+?- get_sw_a(Info).
+?- get_sw_a(a).
+?- get_sw_a(X,S,Vs,Cs).
+?- get_sw_a(a,S,Vs,Cs).
+?- get_sw_a(out(s0),S,Vs,Cs).
+?- get_sw_a(out(s1),S,Vs,Cs).
+?- get_sw_a(out(_),S,Vs,Cs).
+?- get_sw_a(out(s0),S,Vs,Cs,Es).
+?- get_sw_a(out(s1),S,Vs,Cs,Es).
+?- get_sw_a(out(_),S,Vs,Cs,Es).
+?- get_sw_pa(X,Info).
+?- get_sw_pa(a,Info).
+?- get_sw_pa(out(s0),Info).
+?- get_sw_pa(out(s1),Info).
+?- get_sw_pa(out(_),Info).
+?- get_sw_pa(Info).
+?- get_sw_pa(a).
+?- get_sw_pa(X,S,Vs,Ps,Cs).
+?- get_sw_pa(a,S,Vs,Ps,Cs).
+?- get_sw_pa(out(s0),S,Vs,Ps,Cs).
+?- get_sw_pa(out(s1),S,Vs,Ps,Cs).
+?- get_sw_pa(out(_),S,Vs,Ps,Cs).
+?- get_sw_pa(out(s0),S,Vs,Ps,Cs,Es).
+?- get_sw_pa(out(s1),S,Vs,Ps,Cs,Es).
+?- get_sw_pa(out(_),S,Vs,Ps,Cs,Es).
+?- get_sw(out(_),S,Vs,Ps,Es).         {this should fail}
+?- get_sw_d(out(_),S,Vs,Cs,Es).       {this should fail}
+?- get_sw_pd(out(_),S,Vs,Ps,Cs,Es).   {this should fail}
+?- prism(hmm).
+?- hmm_learn(100).
+?- show_sw.
+?- save_sw.
+?- halt.
+$ prism
+?- prism(hmm).
+?- restore_sw.
+?- show_sw_pa.
+?- prism(hmm).
+?- set_prism_flag(default_sw_d,0.5).
+?- hmm_learn(100).
+?- show_sw_pd.
+?- save_sw_d.
+?- halt.
+$ prism
+?- prism(hmm).
+?- restore_sw_d.
+?- show_sw_pd.
+?- set_prism_flag(default_sw_a,0.5),set_prism_flag(learn_mode,hparams).
+?- hmm_learn(100).
+?- show_sw_pa.
+?- save_sw_a.
+?- halt.
+$ prism
+?- prism(hmm).
+?- restore_sw_a.
+?- show_sw_pa.
+?- prism(hmm).
+?- hmm_learn(100).
+?- show_sw.
+?- save_sw('foo').
+?- halt.
+$ prism
+?- prism(hmm).
+?- restore_sw('foo').
+?- show_sw_pa.
+?- set_sw_all_d(_,0.5).
+?- hmm_learn(100).
+?- show_sw_pd.
+?- save_sw_d('foo_d').
+?- halt.
+$ prism
+?- prism(hmm).
+?- restore_sw_d('foo_d').
+?- show_sw_pd.
+?- set_prism_flag(default_sw_a,0.5),set_prism_flag(learn_mode,hparams).
+?- hmm_learn(100).
+?- show_sw_pa.
+?- save_sw_a('foo_a').
+?- halt.
+$ prism
+?- prism(hmm).
+?- restore_sw_a('foo_a').
+?- show_sw_pa.
+?- prism(hmm).
+?- set_prism_flag(default_sw_d,0.5).
+?- hmm_learn(100).
+?- show_sw_pd.
+?- save_sw_pd.
+?- halt.
+$ prism
+?- prism(hmm),restore_sw_pd,show_sw_pd.
+?- set_prism_flag(default_sw_a,0.5),set_prism_flag(learn_mode,hparams).
+?- hmm_learn(100).
+?- show_sw_pa.
+?- save_sw_pa.
+?- halt.
+$ prism
+?- prism(hmm),restore_sw_pa,show_sw_pa.
+?- prism(hmm).
+?- set_prism_flag(default_sw_d,0.5).
+?- hmm_learn(100).
+?- show_sw_pd.
+?- save_sw_pd('foo','foo_d').
+?- halt.
+$ prism
+?- prism(hmm).
+?- restore_sw_pd('foo','foo_d').
+?- show_sw_pd.
+?- set_prism_flag(default_sw_a,0.5),set_prism_flag(learn_mode,hparams).
+?- hmm_learn(100).
+?- show_sw_pa.
+?- save_sw_pa('foo','foo_a').
+?- halt.
+$ prism
+?- prism(hmm).
+?- restore_sw_pa('foo','foo_a').
+?- show_sw_pa.
+?- prism(hmm).
+?- set_prism_flag(default_sw_a,0.5),set_prism_flag(learn_mode,hparams).
+?- hmm_learn(100).
+?- set_prism_flag(viterbi_mode,hparams).
+?- viterbif(hmm([X,a,a,c,d,c,d,b,b,b])).
+?- set_prism_flag(viterbi_mode,params),set_prism_flag(log_scale,on).
+?- viterbif(hmm([X,a,a,c,d,c,d,b,b,b])). {compare the Viterbi prob. with the above}
+?- prism(hmm).
+?- set_prism_flag(clean_table,off).
+?- set_prism_flag(max_iterate,100).
+?- hmm_learn(10000).
+?- show_sw.
+?- hmm_learn(10000).  {check the time for explanation search}
+?- show_sw.           {check if we can get the same learning results}
+?- hmm_learn(10000).
+?- show_sw.
+?- set_prism_flag(clean_table,on).
+?- hmm_learn(10000).
+?- show_sw.
+?- halt.
+$ upprism hmm
+$ upprism hmm 1000
+$ upprism hmm 0
+$ upprism hmm a
+$ mpprism hmm
+$ mpprism hmm 1000
+$ mpprism hmm 0
+$ mpprism hmm a
+$ env NPROCS=4 mpprism hmm 1000
+$ env NPROCS=4 MACHINES=machines mpprism hmm 1000
+
+
+[phmm.psm]----------------------------------------------------------------------
+
+* predicates to be tested
+  - learn/0-1
+  - learn_b/0-1
+  - learn_h/0-1
+  - learn_p/0-1
+  - prism_main/0
+* flags to be tested
+  - learn_mode
+  - daem
+  - itemp_init
+  - itemp_rate
+  - show_itemp
+* declarations to be tested
+    (none)
+
+?- prism(phmm).
+?- go.
+?- read_goals(_Gs,'phmm.dat'),learn_p(_Gs),wmag(_Gs).
+?- read_goals(_Gs,'phmm.dat'),learn_h(_Gs),wmag(_Gs).
+?- read_goals(_Gs,'phmm.dat'),learn_b(_Gs),wmag(_Gs).
+?- set_prism_flag(data_source,file('phmm.dat')).
+?- learn_p.
+?- learn_h.
+?- learn_b.
+?- set_prism_flag(learn_mode,both),set_prism_flag(viterbi_mode,hparams),go.
+?- set_prism_flag(learn_mode,both),set_prism_flag(viterbi_mode,params),go.
+?- prism(phmm).
+?- set_prism_flag(learn_mode,hparams),set_prism_flag(viterbi_mode,params),go.
+?- prism(phmm).
+?- set_prism_flag(daem,X).
+?- set_prism_flag(daem,a).
+?- set_prism_flag(daem,on).
+?- set_prism_flag(itemp_init,X).
+?- set_prism_flag(itemp_init,a).
+?- set_prism_flag(itemp_init,0).
+?- set_prism_flag(itemp_init,0.5).
+?- set_prism_flag(itemp_init,1).
+?- set_prism_flag(itemp_init,3).
+?- set_prism_flag(itemp_rate,X).
+?- set_prism_flag(itemp_rate,a).
+?- set_prism_flag(itemp_rate,1).
+?- set_prism_flag(itemp_rate,1.2).
+?- set_prism_flag(itemp_init,0.5),set_prism_flag(itemp_rate,1.2),go.
+?- set_prism_flag(learn_mode,hparams).
+?- set_prism_flag(itemp_init,0.5),set_prism_flag(itemp_rate,1.2),go.
+?- set_prism_flag(show_itemp,X).
+?- set_prism_flag(show_itemp,a).
+?- set_prism_flag(show_itemp,on),go.
+?- set_prism_flag(show_itemp,off),go.
+$ upprism phmm
+
+
+[pdcg.psm]----------------------------------------------------------------------
+
+* predicates to be tested
+  - values/3
+  - learn/1
+  - prob/1-2
+  - probf/1-2
+  - print_graph/1
+  - sample/1
+  - get_samples/3
+  - countlist/2
+  - viterbi/2
+  - viterbif/3
+* flags to be tested
+    (none)
+* declarations to be tested
+    (none)
+
+?- prism(pdcg).
+?- go.
+?- prob(pdcg([a,b,b])).
+?- prob(pdcg([a,b,b]),P).
+?- probf(pdcg([a,b,b])).
+?- probf(pdcg([a,b,b]),E),print_graph(E).
+?- sample(pdcg(X)).
+?- get_samples(100,pdcg(_),_Gs),countlist(_Gs,Cs).
+?- viterbi(pdcg([a,b,b]),P).
+?- viterbif(pdcg([a,b,b]),P,E).
+?- viterbif(pdcg([a,b,b]),P,E),print_graph(E).
+
+
+[pdcg_c.psm]--------------------------------------------------------------------
+
+* predicates to be tested
+  - viterbif/{1,3}
+  - viterbig/1-3
+  - viterbit/{1,3}
+  - n_viterbi/2-3
+  - n_viterbif/2-3
+  - n_viterbig/2-3
+  - n_viterbit/2-3
+  - print_tree/1-3
+  - get_samples_c/3-5
+  - show_prob_preds/0
+  - show_tabled_preds/0
+  - is_prob_pred/1-2
+  - is_tabled_pred/1-2
+  - learn/1
+* flags to be tested
+  - rerank
+* declarations to be tested
+  - p_not_table
+  - p_table
+
+?- prism(pdcg_c).
+?- show_prob_preds.
+?- show_tabled_preds.
+?- is_prob_pred(F,N).
+?- is_tabled_pred(F,N).
+?- is_prob_pred(F/N).
+?- is_tabled_pred(F/N).
+(edit: disable p_not_table and enable p_table in the program)
+?- prism(pdcg_c).
+?- show_prob_preds.
+?- show_tabled_preds.
+?- is_prob_pred(F,N).
+?- is_tabled_pred(F,N).
+?- is_prob_pred(F/N).
+?- is_tabled_pred(F/N).
+(edit: enable p_not_table and disable p_table in the program)
+?- prism(pdcg_c).
+?- prob(pcfg([swat,flies,like,ants])).
+?- probf(pcfg([swat,flies,like,ants])).
+?- probfi(pcfg([swat,flies,like,ants])).
+?- probfo(pcfg([swat,flies,like,ants])).
+?- probfv(pcfg([swat,flies,like,ants])).
+?- probfio(pcfg([swat,flies,like,ants])).
+?- viterbif(pcfg([swat,flies,like,ants])).
+?- n_viterbi(3,G).
+?- n_viterbi(3,a).
+?- n_viterbi(X,pcfg([swat,flies,like,ants])).
+?- n_viterbi(a,pcfg([swat,flies,like,ants])).
+?- n_viterbi(0,pcfg([swat,flies,like,ants])).
+?- n_viterbi(3,pcfg([swat,flies,like,ants])).
+?- n_viterbi(5,pcfg([swat,flies,like,ants])).
+?- n_viterbi(3,G,Ps).
+?- n_viterbi(3,a,Ps).
+?- n_viterbi(X,pcfg([swat,flies,like,ants]),Ps).
+?- n_viterbi(a,pcfg([swat,flies,like,ants]),Ps).
+?- n_viterbi(0,pcfg([swat,flies,like,ants]),Ps).
+?- n_viterbi(3,pcfg([swat,flies,like,ants]),Ps).
+?- n_viterbi(5,pcfg([swat,flies,like,ants]),Ps).
+?- n_viterbif(3,G).
+?- n_viterbif(3,a).
+?- n_viterbif(X,pcfg([swat,flies,like,ants])).
+?- n_viterbif(a,pcfg([swat,flies,like,ants])).
+?- n_viterbif(0,pcfg([swat,flies,like,ants])).
+?- n_viterbif(3,pcfg([swat,flies,like,ants])).
+?- n_viterbif(5,pcfg([swat,flies,like,ants])).
+?- n_viterbif(3,G,VPaths).
+?- n_viterbif(3,a,VPaths).
+?- n_viterbif(X,pcfg([swat,flies,like,ants]),VPaths).
+?- n_viterbif(a,pcfg([swat,flies,like,ants]),VPaths).
+?- n_viterbif(0,pcfg([swat,flies,like,ants]),VPaths).
+?- n_viterbif(3,pcfg([swat,flies,like,ants]),VPaths).
+?- n_viterbif(5,pcfg([swat,flies,like,ants]),VPaths).
+?- n_viterbig(3,G,P,E).
+?- n_viterbig(3,a,P,E).
+?- n_viterbig(X,pcfg([swat,flies,like,ants]),P,E).
+?- n_viterbig(a,pcfg([swat,flies,like,ants]),P,E).
+?- n_viterbig(0,pcfg([swat,flies,like,ants]),P,E).
+?- n_viterbig(3,pcfg([swat,flies,like,ants]),P,E).
+?- n_viterbig(5,pcfg([swat,flies,like,ants]),P,E).
+?- n_viterbig(X,pcfg([swat,W,like,ants]),P,E).
+?- n_viterbig(a,pcfg([swat,W,like,ants]),P,E).
+?- n_viterbig(0,pcfg([swat,W,like,ants]),P,E).
+?- n_viterbig(3,pcfg([swat,W,like,ants]),P,E).
+?- n_viterbig(5,pcfg([swat,W,like,ants]),P,E).
+?- n_viterbig(3,G).
+?- n_viterbig(3,a).
+?- n_viterbig(X,pcfg([swat,flies,like,ants])).
+?- n_viterbig(a,pcfg([swat,flies,like,ants])).
+?- n_viterbig(0,pcfg([swat,flies,like,ants])).
+?- n_viterbig(3,pcfg([swat,flies,like,ants])).
+?- n_viterbig(5,pcfg([swat,flies,like,ants])).
+?- n_viterbig(X,pcfg([swat,W,like,ants])).
+?- n_viterbig(a,pcfg([swat,W,like,ants])).
+?- n_viterbig(0,pcfg([swat,W,like,ants])).
+?- n_viterbig(3,pcfg([swat,W,like,ants])).
+?- n_viterbig(5,pcfg([swat,W,like,ants])).
+?- n_viterbig(3,G,P).
+?- n_viterbig(3,a,P).
+?- n_viterbig(X,pcfg([swat,flies,like,ants]),P).
+?- n_viterbig(a,pcfg([swat,flies,like,ants]),P).
+?- n_viterbig(0,pcfg([swat,flies,like,ants]),P).
+?- n_viterbig(3,pcfg([swat,flies,like,ants]),P).
+?- n_viterbig(5,pcfg([swat,flies,like,ants]),P).
+?- n_viterbig(X,pcfg([swat,W,like,ants]),P).
+?- n_viterbig(a,pcfg([swat,W,like,ants]),P).
+?- n_viterbig(0,pcfg([swat,W,like,ants]),P).
+?- n_viterbig(3,pcfg([swat,W,like,ants]),P).
+?- n_viterbig(5,pcfg([swat,W,like,ants]),P).
+?- viterbit(G).
+?- viterbit(a).
+?- viterbit(pcfg([swat,flies,like,ants])).
+?- viterbit(G,P,E).
+?- viterbit(a,P,E).
+?- viterbit(pcfg([swat,flies,like,ants]),P,E),build_tree(E,T).
+?- n_viterbit(3,G).
+?- n_viterbit(3,a).
+?- n_viterbit(X,pcfg([swat,flies,like,ants])).
+?- n_viterbit(a,pcfg([swat,flies,like,ants])).
+?- n_viterbit(0,pcfg([swat,flies,like,ants])).
+?- n_viterbit(3,pcfg([swat,flies,like,ants])).
+?- n_viterbit(5,pcfg([swat,flies,like,ants])).
+?- n_viterbit(3,G,T).
+?- n_viterbit(3,a,T).
+?- n_viterbit(X,pcfg([swat,flies,like,ants]),T).
+?- n_viterbit(a,pcfg([swat,flies,like,ants]),T).
+?- n_viterbit(0,pcfg([swat,flies,like,ants]),T).
+?- n_viterbit(3,pcfg([swat,flies,like,ants]),T).
+?- n_viterbit(5,pcfg([swat,flies,like,ants]),T).
+?- prism(pdcg_c).
+?- get_samples(500,pcfg(X),_Gs),learn(_Gs),show_sw. 
+?- prism(pdcg_c).
+?- set_prism_flag(default_sw_a,0.5),set_prism_flag(learn_mode,both),set_prism_flag(viterbi_mode,hparams).
+?- get_samples(500,pcfg(X),_Gs),learn(_Gs),show_sw_pa.
+?- set_prism_flag(rerank,X).
+?- set_prism_flag(rerank,a).
+?- set_prism_flag(rerank,0).
+?- set_prism_flag(rerank,1),n_viterbi(5,pcfg([swat,flies,like,ants])).
+?- set_prism_flag(rerank,2),n_viterbi(5,pcfg([swat,flies,like,ants])).
+?- set_prism_flag(rerank,10),n_viterbi(5,pcfg([swat,flies,like,ants])).
+?- set_prism_flag(rerank,50),n_viterbi(5,pcfg([swat,flies,like,ants])).
+?- n_viterbif([5,X],pcfg([swat,W,like,ants])).
+?- n_viterbif([5,a],pcfg([swat,W,like,ants])).
+?- n_viterbif([5,0],pcfg([swat,W,like,ants])).
+?- n_viterbif([5,1],pcfg([swat,W,like,ants])).
+?- n_viterbif([5,2],pcfg([swat,W,like,ants])).
+?- n_viterbif([5,10],pcfg([swat,W,like,ants])).
+?- n_viterbif([5,50],pcfg([swat,W,like,ants])).
+?- get_samples_c(X,pcfg(Ws),(length(Ws,L),L<5),_Gs).
+?- get_samples_c(a,pcfg(Ws),(length(Ws,L),L<5),_Gs).
+?- get_samples_c(0,pcfg(Ws),(length(Ws,L),L<5),_Gs).
+?- get_samples_c(100,pcfg(Ws),(length(Ws,L),L<5),_Gs),countlist(_Gs,Cs).
+?- get_samples_c(100,X,true,_Gs).
+?- get_samples_c(100,a,true,_Gs).
+?- get_samples_c(100,pcfg(Ws),X,_Gs).
+?- get_samples_c(100,pcfg(Ws),a,_Gs).
+?- random_set_seed(12345),get_samples_c(100,pcfg(Ws),Ws=[swat|_],_Gs),countlist(_Gs,Cs).
+?- random_set_seed(12345),get_samples_c(100,pcfg([swat|_]),true,_Gs),countlist(_Gs,Cs).
+?- random_set_seed(12345),get_samples_c(100,pcfg([swat|_]),_Gs),countlist(_Gs,Cs).
+?- random_set_seed(12345),get_samples_c(100,pcfg(Ws),Ws=[swat|_],_Gs,Ns),countlist(_Gs,Cs).
+?- random_set_seed(12345),get_samples_c([X,Y],pcfg(Ws),Ws=[swat|_],_Gs,Ns).
+?- random_set_seed(12345),get_samples_c([X,10],pcfg(Ws),Ws=[swat|_],_Gs,Ns).
+?- random_set_seed(12345),get_samples_c([100,Y],pcfg(Ws),Ws=[swat|_],_Gs,Ns).
+?- random_set_seed(12345),get_samples_c([a,10],pcfg(Ws),Ws=[swat|_],_Gs,Ns).
+?- random_set_seed(12345),get_samples_c([100,a],pcfg(Ws),Ws=[swat|_],_Gs,Ns).
+?- random_set_seed(12345),get_samples_c([100,10],pcfg(Ws),Ws=[swat|_],_Gs,Ns),countlist(_Gs,Cs).
+?- random_set_seed(12345),get_samples_c([inf,10],pcfg(Ws),Ws=[swat|_],_Gs,Ns),countlist(_Gs,Cs).
+?- get_samples_c(100,[pcfg(Ws),foo(Ws)],(length(Ws,L),L<5),_Gs),countlist(_Gs,Cs).
+?- get_samples_c(100,[pcfg(Ws),foo(X)],(length(Ws,L),L<5),_Gs),countlist(_Gs,Cs).
+?- get_samples_c(100,[pcfg(Ws),X],(length(Ws,L),L<5),_Gs),countlist(_Gs,Cs).
+?- get_samples_c(100,[pcfg(Ws),a],(length(Ws,L),L<5),_Gs),countlist(_Gs,Cs).
+?- get_samples_c(100,[pcfg(Ws),Ws],(length(Ws,L),L<5),_Gs),countlist(_Gs,Cs).
+
+
+[plc.psm]-----------------------------------------------------------------------
+
+* predicates to be tested
+  - prob/1
+  - probf/1-2
+  - viterbi/2
+  - viterbif/3
+  - learn/1
+* flags to be tested
+    (none)
+* declarations to be tested
+    (none)
+
+?- prism(plc).
+?- prob(pslc([n,p,v])).
+?- probf(pslc([n,p,v])).
+?- probf(pslc([n,p,v]),E),print_graph(E).
+?- prob(pslc([adv,adv,n,c,n,p,v])).
+?- probf(pslc([adv,adv,n,c,n,p,v])).
+?- probf(pslc([adv,adv,n,c,n,p,v]),E),print_graph(E).
+?- viterbif(pslc([adv,adv,n,c,n,p,v]),Pv,E).
+?- viterbi(pslc([adv,adv,n,c,n,p,v]),Pv). 
+?- sample(pslc(X)),sample(pslc(Y)),sample(pslc(Z)).
+?- go.
+
+
+[votes.psm]---------------------------------------------------------------------
+
+* predicates to be tested
+    (none)
+* flags to be tested
+    (none)
+* declarations to be tested
+    (none)
+
+?- prism(votes).
+?- votes_learn.
+?- votes_cv(10).
+
+
+[asia.psm]----------------------------------------------------------------
+
+* predicates to be tested
+  - chindsight_agg/2-3
+* flags to be tested
+    (none)
+* declarations to be tested
+    (none)
+
+?- prism(asia).
+?- go.
+?- chindsight_agg(world(t,_,_,t),world(t,query,_,_,_,_,_,t)).
+?- chindsight_agg(world(t,_,_,f),world(t,query,_,_,_,_,_,f)).
+?- chindsight_agg(world(f,_,_,t),world(f,query,_,_,_,_,_,t)).
+?- chindsight_agg(world(f,_,_,f),world(f,query,_,_,_,_,_,f)).
+
+
+[jasia.psm]---------------------------------------------------------------------
+
+* predicates to be tested
+  - chindsight_agg/2-3
+* flags to be tested
+    (none)
+* declarations to be tested
+    (none)
+
+?- prism(jasia).
+?- go.
+?- go2.
+
+
+[jasia_a.psm]-------------------------------------------------------------------
+
+* predicates to be tested
+  - chindsight_agg/2-3
+* flags to be tested
+    (none)
+* declarations to be tested
+    (none)
+
+?- prism(jasia_a).
+?- go.
+?- go2.
+
+
+[alarm_nor_basic.psm]-----------------------------------------------------------
+
+* predicates to be tested
+    (none)
+* flags to be tested
+    (none)
+* declarations to be tested
+    (none)
+
+?- prism(alarm_nor_basic).
+?- print_dist_al.
+?- print_expl_al.
+?- prob(world(yes,no)).
+?- probf(world(yes,no)).
+?- viterbif(world(yes,no)).
+?- viterbi(world(yes,no)).
+?- chindsight(world(yes,no),world(_,_,_,_,_,_)).
+?- chindsight_agg(world(yes,no),world(_,_,query,yes,_,no)).
+?- alarm_learn(100).
+
+
+[alarm_nor_generic.psm]---------------------------------------------------------
+
+* predicates to be tested
+    (none)
+* flags to be tested
+    (none)
+* declarations to be tested
+    (none)
+
+?- prism(alarm_nor_generic).
+?- print_dist_al.
+?- print_expl_al.
+?- prob(world(yes,no)).
+?- probf(world(yes,no)).
+?- viterbif(world(yes,no)).
+?- viterbi(world(yes,no)).
+?- chindsight(world(yes,no),world(_,_,_,_,_,_)).
+?- chindsight_agg(world(yes,no),world(_,_,query,yes,_,no)).
+?- alarm_learn(100).
+
+
+[agree.psm]---------------------------------------------------------------------
+
+* predicates to be tested
+  - prismn/1-2
+  - failure/0
+  - foc/2
+  - not/1
+* flags to be tested
+    (none)
+* declarations to be tested
+    (none)
+
+?- prismn(agree).
+?- set_sw,show_sw.
+?- prob(success,Ps),prob(failure,Pf),X is Ps+Pf.
+?- chindsight(success,agree(_)).
+?- set_sw,generate_goals(500,_Gs),learn([failure|_Gs]),show_sw.
+?- chindsight(success,agree(_)).
+?- set_sw,generate_goals(500,_Gs),learn(_Gs),show_sw.
+?- chindsight(success,agree(_)).
+
+
+[german.psm]--------------------------------------------------------------------
+
+* predicates to be tested
+  - prismn/1-2
+  - failure/0
+  - foc/2
+  - not/1
+* flags to be tested
+    (none)
+* declarations to be tested
+    (none)
+
+?- prismn(german).
+?- set_sw,show_sw.
+?- prob(success,Ps),prob(failure,Pf),X is Ps+Pf.
+?- prob(np(_),Ps),prob(failure,Pf),X is Ps+Pf.
+?- set_sw,generate_np(100,_Gs),learn([failure|_Gs]).
+?- show_sw.
+?- set_sw,generate_np(100,_Gs),learn(_Gs).
+?- show_sw.
+
+
+[chmm.psm]----------------------------------------------------------------------
+
+* predicates to be tested
+  - prismn/1-2
+  - failure/0
+  - foc/2
+  - not/1
+* flags to be tested
+  - daem
+* declarations to be tested
+    (none)
+
+?- prismn(chmm).
+?- set_sw,show_sw.
+?- prob(failure).
+?- prob(success,Ps),prob(failure,Pf),X is Ps+Pf.
+?- sample(success(L)),prob(success(L),Ps),prob(failure(L),Pf),X is Ps+Pf.
+?- sample(success(L)),viterbif(success(L)).
+?- set_sw,generate_goals(500,_Gs),learn([failure|_Gs]).
+?- show_sw.
+?- prob(failure).
+?- set_sw,generate_goals(500,_Gs),learn(_Gs).
+?- show_sw.
+?- prob(failure).
+?- set_prism_flag(daem,on).
+?- set_sw,generate_goals(500,_Gs),learn([failure|_Gs]).
+?- set_prism_flag(daem,off).
+?- set_prism_flag(learn_mode,hparams).
+?- set_prism_flag(epsilon,1.0e-12),set_prism_flag(restart,1000).
+?- set_sw,generate_goals(500,_Gs),learn([failure|_Gs]).
+
+
+[tictactoe.psm]-----------------------------------------------------------------
+
+* predicates to be tested
+  - prismn/1-2
+  - failure/0
+  - foc/2
+  - not/1
+* flags to be tested
+    (none)
+* declarations to be tested
+    (none)
+
+?- prismn(tictactoe).
+?- set_sw.
+?- show_board,(sample(success(L)) ; true ),no_show_board.
+?- prob(success,Ps),prob(failure,Pf),X is Ps+Pf.
+?- prob(success(_),Ps),prob(failure(_),Pf),X is Ps+Pf.
+?- sample(success(L)),prob(success(L),Ps),prob(failure(L),Pf),X is Ps+Pf.  {this sometimes fails}
+?- set_sw,gen_data(100,_Gs,o_win),learn([failure|_Gs]),prob(success).
+?- set_sw,gen_data(100,_Gs,o_win),learn(_Gs),prob(success).
+?- set_sw,prob(success),fix_mark(x),gen_data(100,_Gs,o_win),learn(_Gs),prob(success).
+
+
+[no program]--------------------------------------------------------------------
+
+* predicates to be tested
+  - random_gaussian/{1,3}
+  - random_get_seed/1
+  - random_group/3
+  - random_int/2-3
+  - random_int_excl/3
+  - random_int_incl/3
+  - random_multiselect/3
+  - random_select/2-3
+  - random_set_seed/0-1
+  - random_shuffle/2
+  - random_uniform/1-3
+* flags to be tested
+    (none)
+
+?- random_set_seed(X).
+?- random_set_seed(a).
+?- random_set_seed(12345),random_get_seed(X).
+?- random_set_seed,random_get_seed(X).
+?- random_int(X,N).
+?- random_int(a,N).
+?- random_int(100,N).
+?- random_int(X,10,N).
+?- random_int(a,10,N).
+?- random_int(5,X,N).
+?- random_int(5,a,N).
+?- random_int(-1,10,N). {the statistical behavior of random_int/3 will be tested later}
+?- random_int(-1,-3,N).
+?- random_int(5,3,N).
+?- random_int(5,5,N).
+?- random_int_incl(X,10,N).
+?- random_int_incl(a,10,N).
+?- random_int_incl(5,X,N).
+?- random_int_incl(a,X,N).
+?- random_int_incl(-1,10,N).  {the statistical behavior of random_int_incl/3 will be tested later}
+?- random_int_incl(-1,-3,N).
+?- random_int_incl(5,5,N).
+?- random_int_incl(5,3,N).
+?- random_int_excl(X,10,N).
+?- random_int_excl(a,10,N).
+?- random_int_excl(5,X,N).
+?- random_int_excl(a,X,N).
+?- random_int_excl(-1,10,N).  {the statistical behavior of random_int_excl/3 will be tested later}
+?- random_int_excl(-1,-3,N).
+?- random_int_excl(5,5,N).
+?- random_int_excl(5,3,N).
+?- _Ns @= [N: I in 1..100000,[N],random_int(10,N)],countlist(_Ns,Cs).
+?- _Ns @= [N: I in 1..100000,[N],random_int(10,N)],countlist(_Ns,_Cs),sort(_Cs,Cs).
+?- _Ns @= [N: I in 1..100000,[N],random_int(5,10,N)],countlist(_Ns,_Cs),sort(_Cs,Cs).
+?- _Ns @= [N: I in 1..100000,[N],random_int_incl(5,10,N)],countlist(_Ns,_Cs),sort(_Cs,Cs).
+?- _Ns @= [N: I in 1..100000,[N],random_int_excl(5,10,N)],countlist(_Ns,_Cs),sort(_Cs,Cs).
+?- random_get_state(S).
+?- random_get_state(S),random_int(65536,X),random_set_state(S),random_int(65536,Y).  {X and Y should be equal}
+?- random_uniform(A,X).
+?- random_uniform(a,X).
+?- random_uniform(-5,X).
+?- random_uniform(A,10,X).
+?- random_uniform(a,10,X).
+?- random_uniform(-5,A,X).
+?- random_uniform(-5,a,X).
+?- random_uniform(-5,10,X).
+?- random_uniform(-5,-8,X).
+?- tell('u_test1.dat'),foreach(I in 1..100,J in 1..100,[X,Y],(random_uniform(X),random_uniform(Y),format("~9f ~9f~n",[X,Y]))),told.
+?- tell('u_test2.dat'),foreach(I in 1..100,J in 1..100,[X,Y],(random_uniform(5,X),random_uniform(10,Y),format("~9f ~9f~n",[X,Y]))),told.
+?- tell('u_test3.dat'),foreach(I in 1..100,J in 1..100,[X,Y],(random_uniform(-5,10,X),random_uniform(2,3,Y),format("~9f ~9f~n",[X,Y]))),told.
+$ gnuplot
+> plot "u_test1.dat"  {check the ranges and the uniformness of the plots}
+> plot "u_test2.dat"
+> plot "u_test3.dat"
+?- random_gaussian(5.0,S,X).
+?- random_gaussian(M,0.3,X).
+?- random_gaussian(a,0.3,X).
+?- random_gaussian(5.0,a,X).
+?- random_gaussian(5.0,0.3,X).
+?- _Xs @= [X: I in 1..10000,[X],random_gaussian(X)],avglist(_Xs,A),stdlistp(_Xs,S).
+?- _Xs @= [X: I in 1..10000,[X],random_gaussian(5.0,0.3,X)],avglist(_Xs,A),stdlistp(_Xs,S).
+?- random_select(Vals,V).
+?- random_select(a,V).
+?- random_select([],V).
+?- random_select([a,b,c,d,e],V).
+?- random_select(X,uniform,V).
+?- random_select(a,uniform,V).
+?- random_select([],uniform,V).
+?- random_select([a],uniform,V).
+?- random_select([a,b,c,d,e],X,V).
+?- random_select([a,b,c,d,e],a,V).
+?- random_select([a,b,c,d,e],[],V).
+?- random_select([a,b,c,d,e],[0.3,0.2],V).
+?- random_select([a,b,c,d,e],[0.3,X,0.1,0.2,0.1],V).
+?- random_select([a,b,c,d,e],[0.3,a,0.1,0.2,0.1],V).
+?- random_select([a,b,c,d,e],[0.3,0.2,0.1,0.2,0.1],V).
+?- random_select([a,b,c,d,e],[0.3,0.2,0.1,0.3,0.1],V).
+?- random_select([a,b,c,d,e],uniform,V).
+?- random_select([a,b,c,d,e],f_geometric,V).
+?- random_select([a,b,c,d,e],f_geometric(3),V).
+?- random_select([a,b,c,d,e],f_geometric(3,asc),V).
+?- random_select([a,b,c,d,e],random,V).
+?- _Xs @= [X: I in 1..10000,[X],random_select([a,b,c,d,e],X)],countlist(_Xs,_Cs),sort(_Cs,Cs).
+?- _Xs @= [X: I in 1..10000,[X],random_select([a,b,c,d,e],[0.3,0.2,0.1,0.3,0.1],X)],countlist(_Xs,_Cs),sort(_Cs,Cs).
+?- _Xs @= [X: I in 1..10000,[X],random_select([a,b,c,d,e],uniform,X)],countlist(_Xs,_Cs),sort(_Cs,Cs).
+?- _Xs @= [X: I in 1..10000,[X],random_select([a,b,c,d,e],f_geometric,X)],countlist(_Xs,_Cs),sort(_Cs,Cs).
+?- _Xs @= [X: I in 1..10000,[X],random_select([a,b,c,d,e],f_geometric(3),X)],countlist(_Xs,_Cs),sort(_Cs,Cs).
+?- _Xs @= [X: I in 1..10000,[X],random_select([a,b,c,d,e],f_geometric(3,asc),X)],countlist(_Xs,_Cs),sort(_Cs,Cs).
+?- _Xs @= [X: I in 1..10000,[X],random_select([a,b,c,d,e],random,X)],countlist(_Xs,_Cs),sort(_Cs,Cs).
+?- random_multiselect(X,3,Xs).
+?- random_multiselect(a,3,Xs).
+?- random_multiselect([],3,Xs).
+?- random_multiselect([a],1,Xs).
+?- random_multiselect([a,b,c,d,e],X,Xs).
+?- random_multiselect([a,b,c,d,e],a,Xs).
+?- random_multiselect([a,b,c,d,e],-1,Xs).
+?- random_multiselect([a,b,c,d,e],0,Xs).
+?- random_multiselect([a,b,c,d,e],3,Xs).
+?- random_group(X,3,Xs).
+?- random_group(a,3,Xs).
+?- random_group([],3,Xs).
+?- random_group([a],1,Xs).
+?- random_group([a,b,c,d,e],X,Xs).
+?- random_group([a,b,c,d,e],a,Xs).
+?- random_group([a,b,c,d,e],-1,Xs).
+?- random_group([a,b,c,d,e],0,Xs).
+?- random_group([a,b,c,d,e],3,Xs).
+?- random_shuffle(X,Xs).
+?- random_shuffle(a,Xs).
+?- random_shuffle([],Xs).
+?- random_shuffle([a],Xs).
+?- random_shuffle([a,X,c,d,e],Xs).
+?- random_shuffle([a,b,c,d,e],Xs).
+?- _Xs @= [Xs: I in 1..100000,[Xs],random_multiselect([a,b,c,d,e],3,Xs)],countlist(_Xs,_Cs),sort(_Cs,Cs).
+?- _Xs @= [Xs: I in 1..100000,[Xs],random_group([a,b,c,d,e],3,Xs)],countlist(_Xs,_Cs),sort(_Cs,Cs).
+?- _Xs @= [Xs: I in 1..100000,[Xs],random_shuffle([a,b,c,d],Xs)],countlist(_Xs,_Cs),sort(_Cs,Cs).
+
+
+[no program]--------------------------------------------------------------------
+
+* predicates to be tested
+  - agglist/2
+  - avglist/2
+  - meanlist/2
+  - gmeanlist/2
+  - hmeanlist/2
+  - varlistp/2
+  - varlist/2
+  - stdlistp/2
+  - stdlist/2
+  - semlistp/2
+  - semlist/2
+  - skewlistp/2
+  - skewlist/2
+  - kurtlistp/2
+  - kurtlist/2
+  - modelist/2
+  - amodelist/2
+  - rmodelist/2
+  - pmodelist/2
+  - medianlist/2
+  - maxlist/2
+  - minlist/2
+* flags to be tested
+    (none)
+
+?- avglist(X,Y).
+?- avglist(a,Y).
+?- avglist([],Y).
+?- avglist([0.3,1.2,X,0.9,3],Y).
+?- avglist([0.3,1.2,a,0.9,3],Y).
+?- meanlist(X,Y).
+?- meanlist(a,Y).
+?- meanlist([],Y).
+?- meanlist([0.3,1.2,X,0.9,3],Y).
+?- meanlist([0.3,1.2,a,0.9,3],Y).
+?- gmeanlist(X,Y).
+?- gmeanlist(a,Y).
+?- gmeanlist([],Y).
+?- gmeanlist([0.3,1.2,X,0.9,3],Y).
+?- gmeanlist([0.3,1.2,a,0.9,3],Y).
+?- hmeanlist(X,Y).
+?- hmeanlist(a,Y).
+?- hmeanlist([],Y).
+?- hmeanlist([0.3,1.2,X,0.9,3],Y).
+?- hmeanlist([0.3,1.2,a,0.9,3],Y).
+?- varlist(X,Y).
+?- varlist(a,Y).
+?- varlist([],Y).
+?- varlist([0.3,1.2,X,0.9,3],Y).
+?- varlist([0.3,1.2,a,0.9,3],Y).
+?- varlistp(X,Y).
+?- varlistp(a,Y).
+?- varlistp([],Y).
+?- varlistp([0.3,1.2,X,0.9,3],Y).
+?- varlistp([0.3,1.2,a,0.9,3],Y).
+?- stdlist(X,Y).
+?- stdlist(a,Y).
+?- stdlist([],Y).
+?- stdlist([0.3,1.2,X,0.9,3],Y).
+?- stdlist([0.3,1.2,a,0.9,3],Y).
+?- stdlistp(X,Y).
+?- stdlistp(a,Y).
+?- stdlistp([],Y).
+?- stdlistp([0.3,1.2,X,0.9,3],Y).
+?- stdlistp([0.3,1.2,a,0.9,3],Y).
+?- semlist(X,Y).
+?- semlist(a,Y).
+?- semlist([],Y).
+?- semlist([0.3,1.2,X,0.9,3],Y).
+?- semlist([0.3,1.2,a,0.9,3],Y).
+?- semlistp(X,Y).
+?- semlistp(a,Y).
+?- semlistp([],Y).
+?- semlistp([0.3,1.2,X,0.9,3],Y).
+?- semlistp([0.3,1.2,a,0.9,3],Y).
+?- skewlist(X,Y).
+?- skewlist(a,Y).
+?- skewlist([],Y).
+?- skewlist([0.3,1.2,X,0.9,3],Y).
+?- skewlist([0.3,1.2,a,0.9,3],Y).
+?- skewlistp(X,Y).
+?- skewlistp(a,Y).
+?- skewlistp([],Y).
+?- skewlistp([0.3,1.2,X,0.9,3],Y).
+?- skewlistp([0.3,1.2,a,0.9,3],Y).
+?- kurtlist(X,Y).
+?- kurtlist(a,Y).
+?- kurtlist([],Y).
+?- kurtlist([0.3,1.2,X,0.9,3],Y).
+?- kurtlist([0.3,1.2,a,0.9,3],Y).
+?- kurtlistp(X,Y).
+?- kurtlistp(a,Y).
+?- kurtlistp([],Y).
+?- kurtlistp([0.3,1.2,X,0.9,3],Y).
+?- kurtlistp([0.3,1.2,a,0.9,3],Y).
+?- modelist(X,Y).
+?- modelist(a,Y).
+?- modelist([],Y).
+?- modelist([a,b,X,b,a,c],Y).
+?- modelist([a,b,X,X,a,c],Y).
+?- modelist([a,b,X,Z,a,c],Y).
+?- amodelist(X,Y).
+?- amodelist(a,Y).
+?- amodelist([],Y).
+?- amodelist([a,b,X,b,a,c],Y).
+?- amodelist([a,b,X,X,a,c],Y).
+?- amodelist([a,b,X,Z,a,c],Y).
+?- rmodelist(X,Y).
+?- rmodelist(a,Y).
+?- rmodelist([],Y).
+?- rmodelist([a,b,X,b,a,c],Y).
+?- rmodelist([a,b,X,X,a,c],Y).
+?- rmodelist([a,b,X,Z,a,c],Y).
+?- pmodelist(X,Y).
+?- pmodelist(a,Y).
+?- pmodelist([],Y).
+?- pmodelist([a,b,X,b,a,c],Y).
+?- pmodelist([a,b,X,X,a,c],Y).
+?- pmodelist([a,b,X,Z,a,c],Y).
+?- medianlist(X,Y).
+?- medianlist(a,Y).
+?- medianlist([],Y).
+?- medianlist([0.3,1.2,X,0.9,3],Y).
+?- medianlist([0.3,1.2,a,0.9,3],Y).
+?- minlist(X,Y).
+?- minlist(a,Y).
+?- minlist([],Y).
+?- minlist([0.3,1.2,X,0.9,3],Y).
+?- minlist([0.3,1.2,a,0.9,3],Y).
+?- maxlist(X,Y).
+?- maxlist(a,Y).
+?- maxlist([],Y).
+?- maxlist([0.3,1.2,X,0.9,3],Y).
+?- maxlist([0.3,1.2,a,0.9,3],Y).
+?- avglist([0.3,1.2,0.8,0.9,3],Y).
+?- meanlist([0.3,1.2,0.8,0.9,3],Y).
+?- gmeanlist([0.3,1.2,0.8,0.9,3],Y).
+?- hmeanlist([0.3,1.2,0.8,0.9,3],Y).
+?- varlist([0.3,1.2,0.8,0.9,3],Y).
+?- varlistp([0.3,1.2,0.8,0.9,3],Y).
+?- stdlist([0.3,1.2,0.8,0.9,3],Y).
+?- stdlistp([0.3,1.2,0.8,0.9,3],Y).
+?- semlist([0.3,1.2,0.8,0.9,3],Y).
+?- semlistp([0.3,1.2,0.8,0.9,3],Y).
+?- skewlist([0.3,1.2,0.8,0.9,3],Y).
+?- skewlistp([0.3,1.2,0.8,0.9,3],Y).
+?- kurtlist([0.3,1.2,0.8,0.9,3],Y).
+?- kurtlistp([0.3,1.2,0.8,0.9,3],Y).
+?- modelist([a,b,b,b,a,c],Y).
+?- amodelist([a,b,b,b,a,c],Y).
+?- rmodelist([a,b,b,b,a,c],Y).
+?- pmodelist([a,b,b,b,a,c],Y).
+?- pmodelist([a,b,b,c,a,c],Y).
+?- medianlist([0.3,1.2,0.8,0.9,3],Y).
+?- medianlist([0.1,0.3,1.2,0.8,0.9,3],Y).
+?- minlist([0.3,1.2,0.8,0.9,3],Y).
+?- maxlist([0.3,1.2,0.8,0.9,3],Y).
+?- agglist(X,[mean=Avg,var=Var]).
+?- agglist(a,[mean=Avg,var=Var]).
+?- agglist([],[mean=Avg,var=Var]).
+?- agglist([0.3,1.2,X,0.9,3],[mean=Avg,var=Var]).
+?- agglist([0.3,1.2,a,0.9,3],[mean=Avg,var=Var]).
+?- agglist([0.3,1.2,0.8,0.9,3],X).
+?- agglist([0.3,1.2,0.8,0.9,3],a).
+?- agglist([0.3,1.2,0.8,0.9,3],[]).
+?- agglist([0.3,1.2,0.8,0.9,3],[a=A]).
+?- agglist([0.3,1.2,0.8,0.9,3],[mean=Avg,var=Var]).
+?- agglist([0.3,1.2,0.8,0.9,3],[sum=Sum,avg=Avg,mean=Mean,gmean=GMean,hmean=HMean,varp=VarP,var=Var,stdp=StdP,std=Std,semp=SemP,sem=Sem,skewp=SkewP,skew=Skew,kurtp=KurtP,kurt=Kurt,mode=Mode,amode=AMode,rmode=RMode,pmode=PMode,median=Median,min=Min,max=Max,len=Len]).
+
+
+[no program]--------------------------------------------------------------------
+
+* predicates to be tested
+  - maplist/{3,5,7}
+  - maplist_func/2-4
+  - maplist_math/3-4
+  - reducelist/7
+  - reducelist_func/4
+  - reducelist_math/4
+  - sublist/{2,4}
+  - splitlist/4
+  - grouplist/4
+  - egrouplist/3
+  - countlist/2-3
+  - filter/3-4
+  - filter_not/3-4
+  - custom_sort/{3,5}
+  - number_sort/2
+* flags to be tested
+    (none)
+
+{in the predicates of the maplist family, the user is expected to take his/her own risk,
+so these predicates raise only minimal number of exceptions}
+
+?- maplist(X,(write(X),nl),Xs).
+?- maplist(X,(write(X),nl),a).
+?- maplist(X,(write(X),nl),[]).
+?- maplist(X,true,[l,m,n]).
+?- maplist(X,fail,[l,m,n]).
+?- maplist(X,member(X,[m,n]),[l,m,n]).
+?- maplist(X,Y is X,[l,m,n]).
+?- maplist(X,a,[l,m,n]).
+?- maplist(X,U,[l,m,n]).
+?- maplist(X,X,[l,m,n]).
+?- maplist(a,(write(X),nl),[l,m,n]).
+?- maplist(X,(write(X),nl),[l,m,n]).
+?- maplist(p(X),(write(X),nl),[p(l),q(m),p(n)]).
+?- maplist(p(X),(write(X),nl),[p(l),p(m),p(n)]).
+?- maplist(X,Y,(Y is X-1),Xs,Ys).
+?- maplist(X,Y,(Y is X-1),a,Ys).
+?- maplist(X,Y,(Y is X-1),[],Ys).
+?- maplist(X,Y,true,[1,2,3],Ys).
+?- maplist(X,Y,fail,[1,2,3],Ys).
+?- maplist(X,Y,a,[1,2,3],Ys).
+?- maplist(X,Y,Z,[1,2,3],Ys).
+?- maplist(X,Y,X,[1,2,3],Ys).
+?- maplist(a,Y,(Y is X-1),[1,2,3],Ys).
+?- maplist(X,a,(Y is X-1),[1,2,3],Ys).
+?- maplist(X,Y,(Y is X-1),[1,2,3],Ys).
+?- maplist(p(X),r(Y),(Y is X-1),[p(1),q(2),p(3)],Ys).
+?- maplist(p(X),r(Y),(Y is X-1),[p(1),p(a),p(3)],Ys).
+?- maplist(p(X),r(Y),(Y is X-1),[p(1),p(2),p(3)],Ys).
+?- maplist(X,Y,Z,(Z is X*X+Y),U,[10,20,30],Zs).
+?- maplist(X,Y,Z,(Z is X*X+Y),a,[10,20,30],Zs).
+?- maplist(X,Y,Z,(Z is X*X+Y),[],[10,20,30],Zs).
+?- maplist(X,Y,Z,(Z is X*X+Y),[1,2,3],X,Zs).
+?- maplist(X,Y,Z,(Z is X*X+Y),[1,2,3],a,Zs).
+?- maplist(X,Y,Z,(Z is X*X+Y),[1,2,3],[],Zs).
+?- maplist(X,Y,Z,(Z is X*X+Y),[1,2,3],[10,20],Zs).
+?- maplist(X,Y,Z,true,[1,2,3],[10,20,30],Zs).
+?- maplist(X,Y,Z,fail,[1,2,3],[10,20,30],Zs).
+?- maplist(X,Y,Z,a,[1,2,3],[10,20,30],Zs).
+?- maplist(X,Y,Z,U,[1,2,3],[10,20,30],Zs).
+?- maplist(X,Y,Z,Z,[1,2,3],[10,20,30],Zs).
+?- maplist(a,Y,Z,(Z is X*X+Y),[1,2,3],[10,20,30],Zs).
+?- maplist(X,a,Z,(Z is X*X+Y),[1,2,3],[10,20,30],Zs).
+?- maplist(X,Y,a,(Z is X*X+Y),[1,2,3],[10,20,30],Zs).
+?- maplist(X,Y,Z,(Z is X*X+Y),[1,2,3],[10,20,30],Zs).
+?- maplist(p(X),q(Y),r(Z),(Z is X*X+Y),[p(1),r(2),p(3)],[q(10),q(20),q(30)],Zs).
+?- maplist(p(X),q(Y),r(Z),(Z is X*X+Y),[p(1),p(a),p(3)],[q(10),q(20),q(30)],Zs).
+?- maplist(p(X),q(Y),r(Z),(Z is X*X+Y),[p(1),p(2),p(3)],[q(10),r(20),q(30)],Zs).
+?- maplist(p(X),q(Y),r(Z),(Z is X*X+Y),[p(1),p(2),p(3)],[q(10),q(a),q(30)],Zs).
+?- maplist(p(X),q(Y),r(Z),(Z is X*X+Y),[p(1),p(2),p(3)],[q(10),q(20),q(30)],Zs).
+?- maplist_func(X,[1,2,3]).
+?- maplist_func(a,[1,2,3]).
+?- maplist_func(foo(0),[1,2,3]).
+?- maplist_func(write,X).
+?- maplist_func(write,a).
+?- maplist_func(write,[]).
+?- maplist_func(write,[1,2,X]).
+?- maplist_func(write,[1,2,3]).
+?- maplist_func(X,[[],[1,2,3],[u,v]],Ys).
+?- maplist_func(a,[[],[1,2,3],[u,v]],Ys).
+?- maplist_func(foo(0),[[],[1,2,3],[u,v]],Ys).
+?- maplist_func(length,X,Ys).
+?- maplist_func(length,a,Ys).
+?- maplist_func(length,[],Ys).
+?- maplist_func(length,[[],X,[u,v]],Ys).
+?- maplist_func(length,[[],[1,2,3],[u,v]],Ys).
+?- maplist_func(X,[[],[1,2,3],[u,v]],[[p,q],[8],[]],Zs).
+?- maplist_func(a,[[],[1,2,3],[u,v]],[[p,q],[8],[]],Zs).
+?- maplist_func(foo(0),[[],[1,2,3],[u,v]],[[p,q],[8],[]],Zs).
+?- maplist_func(append,X,[[p,q],[8],[]],Zs).
+?- maplist_func(append,a,[[p,q],[8],[]],Zs).
+?- maplist_func(append,[],[[p,q],[8],[]],Zs).
+?- maplist_func(append,[[],[1,2,3]],[[p,q],[8],[]],Zs).
+?- maplist_func(append,[[],X,[u,v]],[[p,q],[8],[]],Zs).
+?- maplist_func(append,[[],a,[u,v]],[[p,q],[8],[]],Zs).
+?- maplist_func(append,[[],[1,2,3],[u,v]],[[p,q],X,[]],Zs).
+?- maplist_func(append,[[],[1,2,3],[u,v]],[[p,q],a,[]],Zs).
+?- maplist_func(append,[[],[1,2,3],[u,v]],[[p,q],[8],[]],Zs).
+?- maplist_math(X,[3,0,-1],Ys).
+?- maplist_math(a,[3,0,-1],Ys).
+?- maplist_math(foo(0),[3,0,-1],Ys).
+?- maplist_math(exp,X,Ys).
+?- maplist_math(exp,a,Ys).
+?- maplist_math(exp,[],Ys).
+?- maplist_math(exp,[3,X,-1],Ys).
+?- maplist_math(exp,[3,a,-1],Ys).
+?- maplist_math(exp,[3,0,-1],Ys).
+?- maplist_math(X,[3,0,-1],[0,12,8],Ys).
+?- maplist_math(a,[3,0,-1],[0,12,8],Ys).
+?- maplist_math(foo(0),[3,0,-1],[0,12,8],Ys).
+?- maplist_math(+,X,[0,12,8],Ys).
+?- maplist_math(+,a,[0,12,8],Ys).
+?- maplist_math(+,[],[0,12,8],Ys).
+?- maplist_math(+,[3,0,-1],X,Ys).
+?- maplist_math(+,[3,0,-1],a,Ys).
+?- maplist_math(+,[3,0,-1],[],Ys).
+?- maplist_math(+,[3,0,-1],[12,8],Ys).
+?- maplist_math(+,[3,X,-1],[0,12,8],Ys).
+?- maplist_math(+,[3,a,-1],[0,12,8],Ys).
+?- maplist_math(+,[3,0,-1],[0,12,X],Ys).
+?- maplist_math(+,[3,0,-1],[0,12,a],Ys).
+?- maplist_math(+,[3,0,-1],[0,12,8],Ys).
+?- reducelist(Y0,X,Y1,U,[1,2,3],0,Out).
+?- reducelist(Y0,X,Y1,a,[1,2,3],0,Out).
+?- reducelist(Y0,X,Y1,true,[1,2,3],0,Out).
+?- reducelist(Y0,X,Y1,false,[1,2,3],0,Out).
+?- reducelist(Y0,X,Y1,(Y1 is 2**X),[1,2,3],0,Out).
+?- reducelist(Y0,X,Y1,(Y2 is Y0+2**X),[1,2,3],0,Out).
+?- reducelist(Y0,X,Y1,(Y1 is Y0),[1,2,3],0,Out).
+?- reducelist(Y0,X,Y1,(Y0 is Y1+2**X),[1,2,3],0,Out).
+?- reducelist(Y0,X,Y1,(Y1 is Y0+2**X),X,0,Out).
+?- reducelist(Y0,X,Y1,(Y1 is Y0+2**X),a,0,Out).
+?- reducelist(Y0,X,Y1,(Y1 is Y0+2**X),[],0,Out).
+?- reducelist(Y0,X,Y1,(Y1 is Y0+2**X),[X,2,3],0,Out).
+?- reducelist(Y0,X,Y1,(Y1 is Y0+2**X),[a,2,3],0,Out).
+?- reducelist(a,X,Y1,(Y1 is Y0+2**X),[1,2,3],0,Out).
+?- reducelist(Y0,a,Y1,(Y1 is Y0+2**X),[1,2,3],0,Out).
+?- reducelist(Y0,X,a,(Y1 is Y0+2**X),[1,2,3],0,Out).
+?- reducelist(Y0,p(X),Y1,(Y1 is Y0+2**X),[p(1),q(2),p(3)],0,Out).
+?- reducelist(Y0,p(X),Y1,(Y1 is Y0+2**X),[p(1),p(a),p(3)],0,Out).
+?- reducelist(Y0,p(X),Y1,(Y1 is Y0+2**X),[p(1),p(2),p(3)],0,Out).
+?- reducelist(p(Y0),X,Y1,(Y1 is Y0+2**X),[1,2,3],p(0),Out).
+?- reducelist(Y0,X,Y1,(Y1 is Y0+2**X),[1,2,3],X,Out).
+?- reducelist(Y0,X,Y1,(Y1 is Y0+2**X),[1,2,3],a,Out).
+?- reducelist(Y0,X,Y1,(Y1 is Y0+2**X),[1,2,3],0,Out).
+?- reducelist(Y0,X,Y1,(Y1 is Y0+2**X),[1,2,3],5,Out).
+?- reducelist(Y0,X,Y1,append(Y0,X,Y1),[[u,v],[2,3],[8]],[a,b],Out).
+?- reducelist_func(X,[[u,v],[2,3],[8]],[a,b],Out).
+?- reducelist_func(a,[[u,v],[2,3],[8]],[a,b],Out).
+?- reducelist_func(foo(0),[[u,v],[2,3],[8]],[a,b],Out).
+?- reducelist_func(append,X,[a,b],Out).
+?- reducelist_func(append,a,[a,b],Out).
+?- reducelist_func(append,[],[a,b],Out).
+?- reducelist_func(append,[[u,v],X,[8]],[a,b],Out).
+?- reducelist_func(append,[[u,v],a,[8]],[a,b],Out).
+?- reducelist_func(append,[[u,v],[2,3],[8]],X,Out).
+?- reducelist_func(append,[[u,v],[2,3],[8]],a,Out).
+?- reducelist_func(append,[[u,v],[2,3],[8]],[a,b],Out).
+?- reducelist_math(X,[3,2,-8,4],2,Out).
+?- reducelist_math(a,[3,2,-8,4],2,Out).
+?- reducelist_math(foo(0),[3,2,-8,4],2,Out).
+?- reducelist_math(+,X,2,Out).
+?- reducelist_math(+,a,2,Out).
+?- reducelist_math(+,[],2,Out).
+?- reducelist_math(+,[3,X,-8,4],2,Out).
+?- reducelist_math(+,[3,a,-8,4],2,Out).
+?- reducelist_math(+,[3,2,-8,4],X,Out).
+?- reducelist_math(+,[3,2,-8,4],a,Out).
+?- reducelist_math(+,[3,2,-8,4],2,Out).
+?- sublist(L,X).
+?- sublist(L,a).
+?- sublist(L,[]).
+?- sublist(L,[a,b,c]).
+?- sublist([a,b],[a,b,c]).
+?- sublist([b,c],[a,b,c]).
+?- sublist([a,c],[a,b,c]).
+?- sublist([c,a],[a,b,c]).
+?- sublist(L,[a,b,c,d,e],X,4).
+?- sublist(L,[a,b,c,d,e],a,4).
+?- sublist(L,[a,b,c,d,e],-1,4).
+?- sublist(L,[a,b,c,d,e],0,4).
+?- sublist(L,[a,b,c,d,e],5,5).
+?- sublist(L,[a,b,c,d,e],2,X).
+?- sublist(L,[a,b,c,d,e],2,a).
+?- sublist(L,[a,b,c,d,e],2,-1).
+?- sublist(L,[a,b,c,d,e],2,0).
+?- sublist(L,[a,b,c,d,e],2,6).
+?- sublist(L,X,2,4).
+?- sublist(L,a,2,4).
+?- sublist(L,[],-1,0).
+?- sublist(a,[a,b,c,d,e],2,4).
+?- sublist([a,b],[a,b,c,d,e],2,4).
+?- sublist(L,[a,b,c,d,e],2,4).
+?- sublist(L,[a,b,c,d,e],X,Y).
+?- sublist([a,b],L,X,Y).
+?- splitlist(Prefix,Suffix,L,3).
+?- splitlist(Prefix,Suffix,a,3).
+?- splitlist(a,Suffix,[a,b,c,d,e],N).
+?- splitlist([],Suffix,[a,b,c,d,e],N).
+?- splitlist(Prefix,a,[a,b,c,d,e],N).
+?- splitlist(Prefix,[],[a,b,c,d,e],N).
+?- splitlist(Prefix,Suffix,[a,b,c,d,e],N).
+?- splitlist(Prefix,Suffix,[a,b,c,d,e],3).
+?- splitlist([a,b],Suffix,[a,b,c,d,e],N).
+?- splitlist([a,b],Suffix,[a,b,c,d,e],3).
+?- splitlist(Prefix,[c,d,e],[a,b,c,d,e],N).
+?- splitlist(Prefix,[c,d,e],[a,b,c,d,e],3).
+?- grouplist([p,q,r,s,t,u,v,w],K,Sizes,Groups).
+?- grouplist([p,q,r,s,t,u,v,w],a,Sizes,Groups).
+?- grouplist([p,q,r,s,t,u,v,w],-1,Sizes,Groups).
+?- grouplist([p,q,r,s,t,u,v,w],0,Sizes,Groups).
+?- grouplist([p,q,r,s,t,u,v,w],10,Sizes,Groups).
+?- grouplist(L,3,Sizes,Groups).
+?- grouplist(a,3,Sizes,Groups).
+?- grouplist([],3,Sizes,Groups).
+?- grouplist(L,3,[4,2,2],Groups).
+?- grouplist(L,3,[4,2],Groups).
+?- grouplist(L,3,a,Groups).
+?- grouplist([p,q,r,s,t,u,v,w],3,[4,2,1],Groups).
+?- grouplist([p,q,r,s,t,u,v,w],3,[4,2],Groups).
+?- grouplist([p,q,r,s,t,u,v,w],3,[4,2,2],Groups).
+?- grouplist([p,q,r,s,t,u,v,w],3,Sizes,Groups).
+?- egrouplist([p,q,r,s,t,u,v,w],K,Groups).
+?- egrouplist([p,q,r,s,t,u,v,w],a,Groups).
+?- egrouplist([p,q,r,s,t,u,v,w],-1,Groups).
+?- egrouplist([p,q,r,s,t,u,v,w],0,Groups).
+?- egrouplist([p,q,r,s,t,u,v,w],10,Groups).
+?- egrouplist(L,3,Groups).
+?- egrouplist(a,3,Groups).
+?- egrouplist([],3,Groups).
+?- egrouplist([p,q,r,s,t,u,v,w],3,Groups).
+?- countlist(a,L,N).
+?- countlist(a,a,N).
+?- countlist(a,[],N).
+?- countlist(f(_),[f(A),f(B),f(x),g(_),f(x),f(g(_)),_,f(_)],N).
+?- countlist(X,Cs).
+?- countlist(a,Cs).
+?- countlist([],Cs).
+?- countlist([f(A),f(B),f(x),g(_),f(x),f(g(_)),_,f(_)],Cs).
+?- filter(a,L,Ys).
+?- filter(a,a,Ys).
+?- filter(a,[],Ys).
+?- filter(a,L,Ys,C).
+?- filter(a,a,Ys,C).
+?- filter(a,[],Ys,C).
+?- filter(f(_),[f(A),f(B),f(x),g(_),f(x),f(g(_)),_,f(_)],Ys).
+?- filter(f(_),[f(A),f(B),f(x),g(_),f(x),f(g(_)),_,f(_)],Ys,C).
+?- filter_not(a,L,Ys).
+?- filter_not(a,a,Ys).
+?- filter_not(a,[],Ys).
+?- filter_not(a,L,Ys,C).
+?- filter_not(a,a,Ys,C).
+?- filter_not(a,[],Ys,C).
+?- filter_not(f(_),[f(A),f(B),f(x),g(_),f(x),f(g(_)),_,f(_)],Ys).
+?- filter_not(f(_),[f(A),f(B),f(x),g(_),f(x),f(g(_)),_,f(_)],Ys,C).
+?- number_sort(Xs,Ys).
+?- number_sort(a,Ys).
+?- number_sort([],Ys).
+?- number_sort([3,X,1,2,0,5],Ys).
+?- number_sort([3,a,1,2,0,5],Ys).
+?- number_sort([3,4,1,2,0,3],Ys).
+?- number_sort([3,4,1,2,0,5],Ys).
+?- custom_sort(X,[3,4,1,2,0,5],Ys).
+?- custom_sort(a,[3,4,1,2,0,5],Ys).
+?- custom_sort(foo(0),[3,4,1,2,0,5],Ys).
+?- custom_sort(>,Xs,Ys).
+?- custom_sort(>,a,Ys).
+?- custom_sort(>,[],Ys).
+?- custom_sort(>,[3,X,1,2,0,5],Ys).
+?- custom_sort(>,[3,a,1,2,0,5],Ys).
+?- custom_sort(>,[3,4,1,2,0,3],Ys).
+?- custom_sort(>,[3,4,1,2,0,5],Ys).
+?- custom_sort(<,[3,4,1,2,0,5],Ys).
+?- custom_sort(<,[3,4,1,3,0,5],Ys).
+?- custom_sort(A,B,(A=X-_,B=Y-_,X<Y),L,Ys).
+?- custom_sort(A,B,(A=X-_,B=Y-_,X<Y),a,Ys).
+?- custom_sort(A,B,(A=X-_,B=Y-_,X<Y),[],Ys).
+?- custom_sort(A,B,Z,[3-a,2-x,5-y,2-a,3-z],Ys).
+?- custom_sort(A,B,a,[3-a,2-x,5-y,2-a,3-z],Ys).
+?- custom_sort(A,B,true,[3-a,2-x,5-y,2-a,3-z],Ys).
+?- custom_sort(A,B,fail,[3-a,2-x,5-y,2-a,3-z],Ys).
+?- custom_sort(A,B,(A=X-_,B=Y-_,X<Y),[3-a,2-x,5-y,2-a,3-z],Ys).
+?- custom_sort(X=_,Y=_,X<Y,[3-a,2-x,5-y,2-a,3-z],Ys).
+?- custom_sort(X-_,Y-_,X<Y,[3-a,2-x,5-y,2-a,3-z],Ys).
+
+
+[no program]--------------------------------------------------------------------
+
+* predicates to be tested
+  - new_bigarray/2
+  - is_bigarray/1
+  - bigarray_length/2
+  - bigarray_get/3
+  - bigarray_put/3
+  - list_to_bigarray/2
+  - bigarray_to_list/2
+* flags to be tested
+    (none)
+
+?- new_bigarray(A,-1).
+?- new_bigarray(A,0).
+?- new_bigarray(_A,100000),bigarray_length(_A,N).
+?- new_bigarray(A,5),bigarray_put(A,U,a),bigarray_get(A,3,X).
+?- new_bigarray(A,5),bigarray_put(A,x,a),bigarray_get(A,3,X).
+?- new_bigarray(A,5),bigarray_put(A,0,a),bigarray_get(A,3,X).
+?- new_bigarray(A,5),bigarray_put(A,3,a),bigarray_get(A,U,X).
+?- new_bigarray(A,5),bigarray_put(A,3,a),bigarray_get(A,x,X).
+?- new_bigarray(A,5),bigarray_put(A,3,a),bigarray_get(A,0,X).
+?- new_bigarray(A,5),bigarray_put(A,3,a),bigarray_get(A,3,X).
+?- new_bigarray(A,5),bigarray_put(A,3,a),bigarray_put(A,3,x).
+?- new_bigarray(A,5),bigarray_get(A,3,X).
+?- new_bigarray(A,5),bigarray_put(A,3,a),bigarray_put(A,1,b),bigarray_to_list(A,L).
+?- list_to_bigarray([a,b,c,X],A),bigarray_get(A,2,X),bigarray_put(A,4,x),bigarray_to_list(A,L).
+
+
+[no program]--------------------------------------------------------------------
+
+* predicates to be tested
+  - load_clauses/2-4
+  - save_clauses/2-4
+  - load_csv/2-3
+* flags to be tested
+    (none)
+
+?- load_clauses(X,Cls).
+?- load_clauses(a,Cls).
+?- load_clauses(-1,Cls).
+?- load_clauses('bloodABO.psm',Cls).
+?- load_clauses('bloodABO.psm',Cls,M,4).
+?- load_clauses('bloodABO.psm',Cls,a,4).
+?- load_clauses('bloodABO.psm',Cls,-1,4).
+?- load_clauses('bloodABO.psm',Cls,0,N).
+?- load_clauses('bloodABO.psm',Cls,0,a).
+?- load_clauses('bloodABO.psm',Cls,0,-1).
+?- load_clauses('bloodABO.psm',Cls,0,0).
+?- load_clauses('bloodABO.psm',Cls,0,4).
+?- load_clauses('bloodABO.psm',Cls,0,10000).
+?- load_clauses('bloodABO.psm',Cls,0,max).
+?- load_clauses('bloodABO.psm',Cls,X).
+?- load_clauses('bloodABO.psm',Cls,a).
+?- load_clauses('bloodABO.psm',Cls,[]).
+?- load_clauses('bloodABO.psm',Cls,[p(3)]).
+?- load_clauses('bloodABO.psm',Cls,[from(M)]).
+?- load_clauses('bloodABO.psm',Cls,[from(a)]).
+?- load_clauses('bloodABO.psm',Cls,[from(-1)]).
+?- load_clauses('bloodABO.psm',Cls,[from(0)]).
+?- load_clauses('bloodABO.psm',Cls,[skip(M)]).
+?- load_clauses('bloodABO.psm',Cls,[skip(a)]).
+?- load_clauses('bloodABO.psm',Cls,[skip(-1)]).
+?- load_clauses('bloodABO.psm',Cls,[skip(0)]).
+?- load_clauses('bloodABO.psm',Cls,[size(N)]).
+?- load_clauses('bloodABO.psm',Cls,[size(a)]).
+?- load_clauses('bloodABO.psm',Cls,[size(-1)]).
+?- load_clauses('bloodABO.psm',Cls,[size(0)]).
+?- load_clauses('bloodABO.psm',Cls,[size(4)]).
+?- load_clauses('bloodABO.psm',Cls,[size(10000)]).
+?- load_clauses('bloodABO.psm',Cls,[size(max)]).
+?- load_clauses('bloodABO.psm',Cls,[skip(0),skip(4)]).
+?- load_clauses('bloodABO.psm',Cls,[from(0),size(4)]).
+?- load_clauses('bloodABO.psm',Cls,[skip(0),size(4)]).
+?- save_clauses(X,[foo(a),foo(U,a),bar(b),bar(x),baz(Y)]).
+?- save_clauses(-1,[foo(a),foo(U,a),bar(b),bar(x),baz(Y)]).
+?- save_clauses('saved0.pl',X).
+?- save_clauses('saved0.pl',a).
+?- save_clauses('saved0.pl',[]).
+?- save_clauses('saved1.pl',[foo(a),foo(U,a),bar(b),bar(x),baz(Y)]).
+?- save_clauses('saved2.pl',[foo(a),foo(U,a),bar(b),bar(x),baz(U)]).
+(check the contents of saved{0,1,2}.pl)
+?- save_clauses('saved3.pl',[foo(a),foo(U,a),bar(b),bar(x),baz(U)],X,2).
+?- save_clauses('saved3.pl',[foo(a),foo(U,a),bar(b),bar(x),baz(U)],a,2).
+?- save_clauses('saved3.pl',[foo(a),foo(U,a),bar(b),bar(x),baz(U)],-1,2).
+?- save_clauses('saved3.pl',[foo(a),foo(U,a),bar(b),bar(x),baz(U)],0,2).
+?- save_clauses('saved3.pl',[foo(a),foo(U,a),bar(b),bar(x),baz(U)],1,X).
+?- save_clauses('saved3.pl',[foo(a),foo(U,a),bar(b),bar(x),baz(U)],1,a).
+?- save_clauses('saved3.pl',[foo(a),foo(U,a),bar(b),bar(x),baz(U)],1,-1).
+?- save_clauses('saved3.pl',[foo(a),foo(U,a),bar(b),bar(x),baz(U)],1,0).
+?- save_clauses('saved3.pl',[foo(a),foo(U,a),bar(b),bar(x),baz(U)],1,10000).
+?- save_clauses('saved3.pl',[foo(a),foo(U,a),bar(b),bar(x),baz(U)],1,max).
+?- save_clauses('saved3.pl',[foo(a),foo(U,a),bar(b),bar(x),baz(U)],1,2).
+(check the contents of saved3.pl)
+?- save_clauses('saved4.pl',[foo(a),foo(U,a),bar(b),bar(x),baz(U)],[from(X)]).
+?- save_clauses('saved4.pl',[foo(a),foo(U,a),bar(b),bar(x),baz(U)],[from(a)]).
+?- save_clauses('saved4.pl',[foo(a),foo(U,a),bar(b),bar(x),baz(U)],[from(-1)]).
+?- save_clauses('saved4.pl',[foo(a),foo(U,a),bar(b),bar(x),baz(U)],[from(0)]).
+?- save_clauses('saved4.pl',[foo(a),foo(U,a),bar(b),bar(x),baz(U)],[skip(X)]).
+?- save_clauses('saved4.pl',[foo(a),foo(U,a),bar(b),bar(x),baz(U)],[skip(a)]).
+?- save_clauses('saved4.pl',[foo(a),foo(U,a),bar(b),bar(x),baz(U)],[skip(-1)]).
+?- save_clauses('saved4.pl',[foo(a),foo(U,a),bar(b),bar(x),baz(U)],[skip(0)]).
+?- save_clauses('saved4.pl',[foo(a),foo(U,a),bar(b),bar(x),baz(U)],[skip(2)]).
+?- save_clauses('saved4.pl',[foo(a),foo(U,a),bar(b),bar(x),baz(U)],[size(X)]).
+?- save_clauses('saved4.pl',[foo(a),foo(U,a),bar(b),bar(x),baz(U)],[size(a)]).
+?- save_clauses('saved4.pl',[foo(a),foo(U,a),bar(b),bar(x),baz(U)],[size(-1)]).
+?- save_clauses('saved4.pl',[foo(a),foo(U,a),bar(b),bar(x),baz(U)],[size(0)]).
+?- save_clauses('saved4.pl',[foo(a),foo(U,a),bar(b),bar(x),baz(U)],[size(10000)]).
+?- save_clauses('saved4.pl',[foo(a),foo(U,a),bar(b),bar(x),baz(U)],[size(max)]).
+?- save_clauses('saved3.pl',[foo(a),foo(U,a),bar(b),bar(x),baz(U)],[size(2),size(2)]).
+?- save_clauses('saved4.pl',[foo(a),foo(U,a),bar(b),bar(x),baz(U)],[from(1),size(2)]).
+?- save_clauses('saved4.pl',[foo(a),foo(U,a),bar(b),bar(x),baz(U)],[skip(1),size(2)]).
+(check the contents of saved4.pl)
+?- load_csv(X,Rows).
+?- load_csv(a,Rows).
+?- load_csv(-1,Rows).
+?- load_csv('house-votes-84.data',Rows).
+?- load_csv('bridges.data',Rows).
+?- load_csv('bridges.data',Rows,[row_from(X)]).
+?- load_csv('bridges.data',Rows,[row_from(a)]).
+?- load_csv('bridges.data',Rows,[row_from(-1)]).
+?- load_csv('bridges.data',Rows,[row_from(0)]).
+?- load_csv('bridges.data',Rows,[row_skip(X)]).
+?- load_csv('bridges.data',Rows,[row_skip(a)]).
+?- load_csv('bridges.data',Rows,[row_skip(-1)]).
+?- load_csv('bridges.data',Rows,[row_skip(0)]).
+?- load_csv('bridges.data',Rows,[row_size(X)]).
+?- load_csv('bridges.data',Rows,[row_size(a)]).
+?- load_csv('bridges.data',Rows,[row_size(-1)]).
+?- load_csv('bridges.data',Rows,[row_size(0)]).
+?- load_csv('bridges.data',Rows,[row_size(1000)]).
+?- load_csv('bridges.data',Rows,[row_size(4)]).
+?- load_csv('bridges.data',Rows,[row_size(max)]).
+?- load_csv('bridges.data',Rows,[col_from(X)]).
+?- load_csv('bridges.data',Rows,[col_from(a)]).
+?- load_csv('bridges.data',Rows,[col_from(-1)]).
+?- load_csv('bridges.data',Rows,[col_from(0)]).
+?- load_csv('bridges.data',Rows,[col_skip(X)]).
+?- load_csv('bridges.data',Rows,[col_skip(a)]).
+?- load_csv('bridges.data',Rows,[col_skip(-1)]).
+?- load_csv('bridges.data',Rows,[col_skip(0)]).
+?- load_csv('bridges.data',Rows,[col_size(X)]).
+?- load_csv('bridges.data',Rows,[col_size(a)]).
+?- load_csv('bridges.data',Rows,[col_size(-1)]).
+?- load_csv('bridges.data',Rows,[col_size(0)]).
+?- load_csv('bridges.data',Rows,[col_size(1000)]).
+?- load_csv('bridges.data',Rows,[col_size(4)]).
+?- load_csv('bridges.data',Rows,[col_size(max)]).
+?- load_csv('bridges.data',Rows,[row_from(2),row_size(5)]).
+?- load_csv('bridges.data',Rows,[col_from(4),col_size(6)]).
+?- load_csv('bridges.data',Rows,[row_from(2),col_size(8)]).
+?- load_csv('bridges.data',Rows,[row_size(5),col_from(4)]).
+?- load_csv('bridges.data',Rows,[row_from(2),row_size(5),col_from(4),col_size(6)]).
+{in the following, be careful about the existence of the quote symbols}
+?- load_csv('bridges.data',Rows,[row_size(3),pred(X)]),format("~q~n",[Rows]).
+?- load_csv('bridges.data',Rows,[row_size(3),pred([])]),format("~q~n",[Rows]).
+?- load_csv('bridges.data',Rows,[row_size(3),pred(p/m)]),format("~q~n",[Rows]).
+?- load_csv('bridges.data',Rows,[row_size(3),pred(X/n)]),format("~q~n",[Rows]).
+?- load_csv('bridges.data',Rows,[row_size(3),pred(p/1)]),format("~q~n",[Rows]).
+?- load_csv('bridges.data',Rows,[row_size(3),pred(p)]),format("~q~n",[Rows]).
+?- load_csv('bridges.data',Rows,[row_size(3),pred(p/n)]),format("~q~n",[Rows]).
+?- load_csv('bridges.data',Rows,[row_size(3),pred(X)]),format("~q~n",[Rows]).
+?- load_csv('bridges.data',Rows,[row_size(3),comment(X)]),format("~q~n",[Rows]).
+?- load_csv('bridges.data',Rows,[row_size(3),comment(foo(a))]),format("~q~n",[Rows]).
+?- load_csv('bridges.data',Rows,[row_size(3),comment(a)]),format("~q~n",[Rows]).
+?- load_csv('bridges.data',Rows,[row_size(3),comment('E')]),format("~q~n",[Rows]).
+?- load_csv('bridges.data',Rows,[row_size(3),comment]),format("~q~n",[Rows]).
+?- load_csv('bridges.data',Rows,[row_size(3),double_quote(X)]),format("~q~n",[Rows]).
+?- load_csv('bridges.data',Rows,[row_size(3),double_quote(a)]),format("~q~n",[Rows]).
+?- load_csv('bridges.data',Rows,[row_size(3),double_quote(yes)]),format("~q~n",[Rows]).
+?- load_csv('bridges.data',Rows,[row_size(3),double_quote(no)]),format("~q~n",[Rows]).
+?- load_csv('bridges.data',Rows,[row_size(3),parse_number(X)]),format("~q~n",[Rows]).
+?- load_csv('bridges.data',Rows,[row_size(3),parse_number(a)]),format("~q~n",[Rows]).
+?- load_csv('bridges.data',Rows,[row_size(3),parse_number(yes)]),format("~q~n",[Rows]).
+?- load_csv('bridges.data',Rows,[row_size(3),parse_number(no)]),format("~q~n",[Rows]).
+?- load_csv('bridges.data',Rows,[row_size(3),missing(X)]),format("~q~n",[Rows]).
+?- load_csv('bridges.data',Rows,[row_size(3),missing([])]),format("~q~n",[Rows]).
+?- load_csv('bridges.data',Rows,[row_size(3),missing(foo(a))]),format("~q~n",[Rows]).
+?- load_csv('bridges.data',Rows,[row_size(3),missing('')]),format("~q~n",[Rows]).
+?- load_csv('bridges.data',Rows,[row_size(3),missing('?')]),format("~q~n",[Rows]).
+?- load_csv('bridges.data',Rows,[row_size(3),missing]),format("~q~n",[Rows]).
+?- load_csv('bridges.data',Rows,[row_size(3),pred(p/n),comment,parse_number(no),double_quote(no),missing('N/A')]),format("~q~n",[Rows]).
+
+
+[no program]--------------------------------------------------------------------
+
+* predicates to be tested
+  - expand_values/2
+  - expand_probs/2-3
+  - expand_pseudo_counts/2-3
+* flags to be tested
+    (none)
+
+?- expand_values(X,Vs).
+?- expand_values(a,Vs).
+?- expand_values([],Vs).
+?- expand_values([a,1-X,b,7-10@2],Vs).
+?- expand_values([a,1-a,b,7-10@2],Vs).
+?- expand_values([a,X-4,b,7-10@2],Vs).
+?- expand_values([a,a-4,b,7-10@2],Vs).
+?- expand_values([a,4-1,b,7-10@2],Vs).
+?- expand_values([a,4-4,b,7-10@2],Vs).
+?- expand_values([a,1-4,b,7-10@X],Vs).
+?- expand_values([a,1-4,b,7-10@a],Vs).
+?- expand_values([a,1-4,b,7-10@0],Vs).
+?- expand_values([a,1-4,b,7-10@(-1)],Vs).
+?- expand_values([a,1-4,X,7-10@2],Vs).
+?- expand_values([a,1-4,b,7-10@2],Vs).
+?- expand_values([a,1-4,b,7-10@5],Vs).
+?- expand_probs(X,3,Ps).
+?- expand_probs(a,3,Ps).
+?- expand_probs(X,Ps).
+?- expand_probs(a,Ps).
+?- expand_probs([],X,Ps).
+?- expand_probs([],a,Ps).
+?- expand_probs([],0,Ps).
+?- expand_probs([1.0],1,Ps).
+?- expand_probs([0.1,0.5,0.4],X,Ps).
+?- expand_probs([0.1,0.5,0.4],a,Ps).
+?- expand_probs([0.1,0.5,0.4],0,Ps).
+?- expand_probs([0.1,0.5,0.4],-1,Ps).
+?- expand_probs([0.1,0.5,0.4],2,Ps).
+?- expand_probs([0.1,0.5,0.4],4,Ps).
+?- expand_probs([X,0.5,0.4],3,Ps).
+?- expand_probs([a,0.5,0.4],3,Ps).
+?- expand_probs([-0.1,0.7,0.4],3,Ps).
+?- expand_probs([0.1,0.5,0.3],3,Ps).
+?- expand_probs([0.1,0.5,0.4],3,Ps).
+?- expand_probs([],Ps).
+?- expand_probs([1.0],Ps).
+?- expand_probs([X,0.5,0.4],Ps).
+?- expand_probs([a,0.5,0.4],Ps).
+?- expand_probs([-0.1,0.7,0.4],Ps).
+?- expand_probs([0.1,0.5,0.3],Ps).
+?- expand_probs([0.1,0.5,0.4],Ps).
+?- expand_probs(1.0,1,Ps).
+?- expand_probs(0.1+0.5+0.4,X,Ps).
+?- expand_probs(0.1+0.5+0.4,a,Ps).
+?- expand_probs(0.1+0.5+0.4,0,Ps).
+?- expand_probs(0.1+0.5+0.4,-1,Ps).
+?- expand_probs(0.1+0.5+0.4,2,Ps).
+?- expand_probs(0.1+0.5+0.4,4,Ps).
+?- expand_probs(X+0.5+0.4,3,Ps).
+?- expand_probs(a+0.5+0.4,3,Ps).
+?- expand_probs(-0.1+0.7+0.4,3,Ps).
+?- expand_probs(0.1+0.5+0.3,3,Ps).
+?- expand_probs(0.1+0.5+0.4,3,Ps).
+?- expand_probs(1.0,Ps).
+?- expand_probs(X+0.5+0.4,Ps).
+?- expand_probs(a+0.5+0.4,Ps).
+?- expand_probs(-0.1+0.7+0.4,Ps).
+?- expand_probs(0.1+0.5+0.3,Ps).
+?- expand_probs(0.1+0.5+0.4,Ps).
+?- expand_probs(2,1,Ps).
+?- expand_probs(2:3:8,X,Ps).
+?- expand_probs(2:3:8,a,Ps).
+?- expand_probs(2:3:8,0,Ps).
+?- expand_probs(2:3:8,-1,Ps).
+?- expand_probs(2:3:8,2,Ps).
+?- expand_probs(2:3:8,4,Ps).
+?- expand_probs(X:3:8,3,Ps).
+?- expand_probs(a:3:8,3,Ps).
+?- expand_probs(-2:3:8,3,Ps).
+?- expand_probs(2:3:8,3,Ps).
+?- expand_probs(2,Ps).
+?- expand_probs(X:3:8,Ps).
+?- expand_probs(a:3:8,Ps).
+?- expand_probs(-2:3:8,Ps).
+?- expand_probs(0:0:0,Ps).
+?- expand_probs(0:3:8,Ps).
+?- expand_probs(2:3:8,Ps).
+?- expand_probs(uniform,X,Ps).
+?- expand_probs(uniform,a,Ps).
+?- expand_probs(uniform,-1,Ps).
+?- expand_probs(uniform,0,Ps).
+?- expand_probs(uniform,1,Ps).
+?- expand_probs(uniform,3,Ps).
+?- expand_probs(f_geometric,3,Ps).
+?- expand_probs(f_geometric(X),3,Ps).
+?- expand_probs(f_geometric(a),3,Ps).
+?- expand_probs(f_geometric(-1),3,Ps).
+?- expand_probs(f_geometric(0),3,Ps).
+?- expand_probs(f_geometric(1),3,Ps).
+?- expand_probs(f_geometric(5),X,Ps).
+?- expand_probs(f_geometric(5),a,Ps).
+?- expand_probs(f_geometric(5),-1,Ps).
+?- expand_probs(f_geometric(5),0,Ps).
+?- expand_probs(f_geometric(5),1,Ps).
+?- expand_probs(f_geometric(5),3,Ps).
+?- expand_probs(f_geometric(X,asc),3,Ps).
+?- expand_probs(f_geometric(a,asc),3,Ps).
+?- expand_probs(f_geometric(-1,asc),3,Ps).
+?- expand_probs(f_geometric(0,asc),3,Ps).
+?- expand_probs(f_geometric(1,asc),3,Ps).
+?- expand_probs(f_geometric(5,X),3,Ps).
+?- expand_probs(f_geometric(5,a),3,Ps).
+?- expand_probs(f_geometric(5,asc),X,Ps).
+?- expand_probs(f_geometric(5,asc),a,Ps).
+?- expand_probs(f_geometric(5,asc),-1,Ps).
+?- expand_probs(f_geometric(5,asc),0,Ps).
+?- expand_probs(f_geometric(5,asc),1,Ps).
+?- expand_probs(f_geometric(5,asc),3,Ps).
+?- expand_probs(f_geometric(5,desc),3,Ps).
+?- expand_probs(random,X,Ps).
+?- expand_probs(random,a,Ps).
+?- expand_probs(random,-1,Ps).
+?- expand_probs(random,0,Ps).
+?- expand_probs(random,1,Ps).
+?- expand_probs(random,3,Ps).
+?- set_prism_flag(default_sw,uniform).
+?- expand_probs(default,X,Ps).
+?- expand_probs(default,a,Ps).
+?- expand_probs(default,-1,Ps).
+?- expand_probs(default,0,Ps).
+?- expand_probs(default,1,Ps).
+?- expand_probs(default,3,Ps).
+?- set_prism_flag(default_sw,f_geometric),expand_probs(default,3,Ps).
+?- set_prism_flag(default_sw,f_geometric(5)),expand_probs(default,3,Ps).
+?- set_prism_flag(default_sw,f_geometric(5,asc)),expand_probs(default,3,Ps).
+?- set_prism_flag(default_sw,random),expand_probs(default,3,Ps).
+?- expand_pseudo_counts(X,3,Cs).
+?- expand_pseudo_counts(a,3,Cs).
+?- expand_pseudo_counts(X,Cs).
+?- expand_pseudo_counts(a,Cs).
+?- expand_pseudo_counts([],X,Cs).
+?- expand_pseudo_counts([],a,Cs).
+?- expand_pseudo_counts([],0,Cs).
+?- expand_pseudo_counts([2.0],1,Cs).
+?- expand_pseudo_counts([1.0,0.5,2.0],X,Cs).
+?- expand_pseudo_counts([1.0,0.5,2.0],a,Cs).
+?- expand_pseudo_counts([1.0,0.5,2.0],0,Cs).
+?- expand_pseudo_counts([1.0,0.5,2.0],-1,Cs).
+?- expand_pseudo_counts([1.0,0.5,2.0],2,Cs).
+?- expand_pseudo_counts([1.0,0.5,2.0],4,Cs).
+?- expand_pseudo_counts([X,0.5,2.0],3,Cs).
+?- expand_pseudo_counts([a,0.5,2.0],3,Cs).
+?- expand_pseudo_counts([-0.1,0.5,2.0],3,Cs).
+?- expand_pseudo_counts([1.0,0.5,2.0],3,Cs).
+?- expand_pseudo_counts([],Cs).
+?- expand_pseudo_counts([2.0],Cs).
+?- expand_pseudo_counts([X,0.5,2.0],Cs).
+?- expand_pseudo_counts([a,0.5,2.0],Cs).
+?- expand_pseudo_counts([-0.1,0.5,2.0],Cs).
+?- expand_pseudo_counts([1.0,0.5,2.0],Cs).
+?- expand_pseudo_counts(0,3,Cs).
+?- expand_pseudo_counts(-1,3,Cs).
+?- expand_pseudo_counts(2,X,Cs).
+?- expand_pseudo_counts(2,a,Cs).
+?- expand_pseudo_counts(2,-1,Cs).
+?- expand_pseudo_counts(2,0,Cs).
+?- expand_pseudo_counts(2,1,Cs).
+?- expand_pseudo_counts(2,3,Cs).
+?- expand_pseudo_counts(uniform,X,Cs).
+?- expand_pseudo_counts(uniform,a,Cs).
+?- expand_pseudo_counts(uniform,-1,Cs).
+?- expand_pseudo_counts(uniform,0,Cs).
+?- expand_pseudo_counts(uniform,1,Cs).
+?- expand_pseudo_counts(uniform,3,Cs).
+?- expand_pseudo_counts(uniform(X),3,Cs).
+?- expand_pseudo_counts(uniform(a),3,Cs).
+?- expand_pseudo_counts(uniform(-1),3,Cs).
+?- expand_pseudo_counts(uniform(0),3,Cs).
+?- expand_pseudo_counts(uniform(5),X,Cs).
+?- expand_pseudo_counts(uniform(5),a,Cs).
+?- expand_pseudo_counts(uniform(5),-1,Cs).
+?- expand_pseudo_counts(uniform(5),0,Cs).
+?- expand_pseudo_counts(uniform(5),1,Cs).
+?- expand_pseudo_counts(uniform(5),3,Cs).
+?- expand_pseudo_counts(f_geometric,X,Cs).
+?- expand_pseudo_counts(f_geometric,a,Cs).
+?- expand_pseudo_counts(f_geometric,-1,Cs).
+?- expand_pseudo_counts(f_geometric,0,Cs).
+?- expand_pseudo_counts(f_geometric,1,Cs).
+?- expand_pseudo_counts(f_geometric,3,Cs).
+?- expand_pseudo_counts(f_geometric(X),3,Cs).
+?- expand_pseudo_counts(f_geometric(a),3,Cs).
+?- expand_pseudo_counts(f_geometric(-1),3,Cs).
+?- expand_pseudo_counts(f_geometric(0),3,Cs).
+?- expand_pseudo_counts(f_geometric(1),3,Cs).
+?- expand_pseudo_counts(f_geometric(5),X,Cs).
+?- expand_pseudo_counts(f_geometric(5),a,Cs).
+?- expand_pseudo_counts(f_geometric(5),-1,Cs).
+?- expand_pseudo_counts(f_geometric(5),0,Cs).
+?- expand_pseudo_counts(f_geometric(5),1,Cs).
+?- expand_pseudo_counts(f_geometric(5),3,Cs).
+?- expand_pseudo_counts(f_geometric(X,5),3,Cs).
+?- expand_pseudo_counts(f_geometric(a,5),3,Cs).
+?- expand_pseudo_counts(f_geometric(-1,5),3,Cs).
+?- expand_pseudo_counts(f_geometric(0,5),3,Cs).
+?- expand_pseudo_counts(f_geometric(2,X),3,Cs).
+?- expand_pseudo_counts(f_geometric(2,a),3,Cs).
+?- expand_pseudo_counts(f_geometric(2,-1),3,Cs).
+?- expand_pseudo_counts(f_geometric(2,0),3,Cs).
+?- expand_pseudo_counts(f_geometric(2,1),3,Cs).
+?- expand_pseudo_counts(f_geometric(2,5),X,Cs).
+?- expand_pseudo_counts(f_geometric(2,5),a,Cs).
+?- expand_pseudo_counts(f_geometric(2,5),-1,Cs).
+?- expand_pseudo_counts(f_geometric(2,5),0,Cs).
+?- expand_pseudo_counts(f_geometric(2,5),1,Cs).
+?- expand_pseudo_counts(f_geometric(2,5),3,Cs).
+?- expand_pseudo_counts(f_geometric(X,5,asc),3,Cs).
+?- expand_pseudo_counts(f_geometric(a,5,asc),3,Cs).
+?- expand_pseudo_counts(f_geometric(-1,5,asc),3,Cs).
+?- expand_pseudo_counts(f_geometric(0,5,asc),3,Cs).
+?- expand_pseudo_counts(f_geometric(2,X,asc),3,Cs).
+?- expand_pseudo_counts(f_geometric(2,a,asc),3,Cs).
+?- expand_pseudo_counts(f_geometric(2,-1,asc),3,Cs).
+?- expand_pseudo_counts(f_geometric(2,0,asc),3,Cs).
+?- expand_pseudo_counts(f_geometric(2,1,asc),3,Cs).
+?- expand_pseudo_counts(f_geometric(2,5,X),3,Cs).
+?- expand_pseudo_counts(f_geometric(2,5,a),3,Cs).
+?- expand_pseudo_counts(f_geometric(2,5,asc),X,Cs).
+?- expand_pseudo_counts(f_geometric(2,5,asc),a,Cs).
+?- expand_pseudo_counts(f_geometric(2,5,asc),-1,Cs).
+?- expand_pseudo_counts(f_geometric(2,5,asc),0,Cs).
+?- expand_pseudo_counts(f_geometric(2,5,asc),1,Cs).
+?- expand_pseudo_counts(f_geometric(2,5,asc),3,Cs).
+?- expand_pseudo_counts(f_geometric(2,5,desc),3,Cs).
+?- set_prism_flag(default_sw_d,uniform).
+?- expand_pseudo_counts(default,X,Ps).
+?- expand_pseudo_counts(default,a,Ps).
+?- expand_pseudo_counts(default,-1,Ps).
+?- expand_pseudo_counts(default,0,Ps).
+?- expand_pseudo_counts(default,1,Ps).
+?- expand_pseudo_counts(default,3,Ps).
+?- set_prism_flag(default_sw_a,uniform).
+?- expand_pseudo_counts(default,X,Ps).
+?- expand_pseudo_counts(default,a,Ps).
+?- expand_pseudo_counts(default,-1,Ps).
+?- expand_pseudo_counts(default,0,Ps).
+?- expand_pseudo_counts(default,1,Ps).
+?- expand_pseudo_counts(default,3,Ps).
+?- set_prism_flag(default_sw_d,2),expand_pseudo_counts(default,3,Ps).
+?- set_prism_flag(default_sw_d,f_geometric),expand_pseudo_counts(default,3,Ps).
+?- set_prism_flag(default_sw_a,2),expand_pseudo_counts(default,3,Ps).
+?- set_prism_flag(default_sw_a,f_geometric),expand_pseudo_counts(default,3,Ps).
+
+
+[hmm_wc.psm]--------------------------------------------------------------------
+
+* predicates to be tested
+  - write_call/1
+  - write_call/2
+  - ??*/1
+  - ??+/1
+  - ??-/1
+  - ??/1
+  - ??</1
+  - ??>/1
+  - sample/1    (infix form)
+  - prob/1      (infix form)
+  - probf/1     (infix form)
+  - viterbif/1  (infix form)
+* flags to be tested
+  - write_call_events
+* declarations to be tested
+  - disable_write_call
+  - include
+
+?- prism(hmm_wc).
+?- sample hmm(X)
+?- prob hmm([a,a,a,a,a,b,b,b,b,b])
+?- probf hmm([a,a,a,a,a,b,b,b,b,b])
+?- viterbif hmm([a,a,a,a,a,b,b,b,b,b]).
+?- hmm_learn(100).
+$ cp hmm_wc.psm hmm_wc2.psm
+(edit hmm_wc2.psm: replace ?? with ??*)
+?- prism(hmm_wc2).
+?- sample hmm(X)
+?- prob hmm([a,a,a,a,a,b,b,b,b,b])
+?- probf hmm([a,a,a,a,a,b,b,b,b,b])
+?- viterbif hmm([a,a,a,a,a,b,b,b,b,b]).
+?- hmm_learn(100).
+$ cp hmm_wc.psm hmm_wc2.psm
+(edit hmm_wc2.psm: replace ?? with ??<)
+?- prism(hmm_wc2).
+?- sample hmm(X)
+?- prob hmm([a,a,a,a,a,b,b,b,b,b])
+?- probf hmm([a,a,a,a,a,b,b,b,b,b])
+?- viterbif hmm([a,a,a,a,a,b,b,b,b,b]).
+?- hmm_learn(100).
+$ cp hmm_wc.psm hmm_wc2.psm
+(edit hmm_wc2.psm: replace ?? with ??>)
+?- prism(hmm_wc2).
+?- sample hmm(X)
+?- prob hmm([a,a,a,a,a,b,b,b,b,b])
+?- probf hmm([a,a,a,a,a,b,b,b,b,b])
+?- viterbif hmm([a,a,a,a,a,b,b,b,b,b]).
+?- hmm_learn(100).
+$ cp hmm_wc.psm hmm_wc2.psm
+(edit hmm_wc2.psm: replace ?? with ??+)
+?- prism(hmm_wc2).
+?- sample hmm(X)
+?- prob hmm([a,a,a,a,a,b,b,b,b,b])
+?- probf hmm([a,a,a,a,a,b,b,b,b,b])
+?- viterbif hmm([a,a,a,a,a,b,b,b,b,b]).
+?- hmm_learn(100).
+$ cp hmm_wc.psm hmm_wc2.psm
+(edit hmm_wc2.psm: replace ?? with ??-)
+?- prism(hmm_wc2).
+?- sample hmm(X)
+?- prob hmm([a,a,a,a,a,b,b,b,b,b])
+?- probf hmm([a,a,a,a,a,b,b,b,b,b])
+?- viterbif hmm([a,a,a,a,a,b,b,b,b,b]).
+?- hmm_learn(100).
+$ cp hmm_wc.psm hmm_wc2.psm
+(edit hmm_wc2.psm: replace ?? by write_call(G))
+?- prism(hmm_wc2).
+?- sample hmm(X)
+?- prob hmm([a,a,a,a,a,b,b,b,b,b])
+?- probf hmm([a,a,a,a,a,b,b,b,b,b])
+?- viterbif hmm([a,a,a,a,a,b,b,b,b,b]).
+?- hmm_learn(100).
+$ cp hmm_wc.psm hmm_wc2.psm
+(edit hmm_wc2.psm: replace ?? by write_call([call+exit],G))
+?- prism(hmm_wc2).
+?- sample hmm(X)
+?- prob hmm([a,a,a,a,a,b,b,b,b,b])
+?- probf hmm([a,a,a,a,a,b,b,b,b,b])
+?- viterbif hmm([a,a,a,a,a,b,b,b,b,b]).
+?- hmm_learn(100).
+$ cp hmm_wc.psm hmm_wc2.psm
+(edit hmm_wc2.psm: replace ?? by write_call([indent(4),marker(test)],G))
+?- prism(hmm_wc2).
+?- sample hmm(X)
+?- prob hmm([a,a,a,a,a,b,b,b,b,b])
+?- probf hmm([a,a,a,a,a,b,b,b,b,b])
+?- viterbif hmm([a,a,a,a,a,b,b,b,b,b]).
+?- hmm_learn(100).
+$ cp hmm_wc.psm hmm_wc2.psm
+?- prism(hmm_wc2).
+?- sample hmm(X)
+?- prob hmm([a,a,a,a,a,b,b,b,b,b])
+?- set_prism_flag(write_call_events,call+exit).
+?- sample hmm(X)
+?- prob hmm([a,a,a,a,a,b,b,b,b,b])
+?- probf hmm([a,a,a,a,a,b,b,b,b,b])
+?- viterbif hmm([a,a,a,a,a,b,b,b,b,b]).
+?- set_prism_flag(write_call_events,fail).
+?- sample hmm(X)
+?- prob hmm([a,a,a,a,a,b,b,b,b,b])
+?- probf hmm([a,a,a,a,a,b,b,b,b,b])
+?- viterbif hmm([a,a,a,a,a,b,b,b,b,b]).
+?- set_prism_flag(write_call_events,none).
+?- sample hmm(X)
+?- prob hmm([a,a,a,a,a,b,b,b,b,b])
+?- probf hmm([a,a,a,a,a,b,b,b,b,b])
+?- viterbif hmm([a,a,a,a,a,b,b,b,b,b]).
+?- set_prism_flag(write_call_events,off).
+?- sample hmm(X)
+?- prob hmm([a,a,a,a,a,b,b,b,b,b])
+?- probf hmm([a,a,a,a,a,b,b,b,b,b])
+?- viterbif hmm([a,a,a,a,a,b,b,b,b,b]).
+(edit hmm_wc2.psm: replace ?? in hmm/1 by ??>)
+?- prism(hmm_wc2).
+?- sample hmm(X)
+?- prob hmm([a,a,a,a,a,b,b,b,b,b])
+?- set_prism_flag(write_call_events,call+exit).
+?- sample hmm(X)
+?- prob hmm([a,a,a,a,a,b,b,b,b,b])
+?- probf hmm([a,a,a,a,a,b,b,b,b,b])
+?- viterbif hmm([a,a,a,a,a,b,b,b,b,b]).
+?- set_prism_flag(write_call_events,fail).
+?- sample hmm(X)
+?- prob hmm([a,a,a,a,a,b,b,b,b,b])
+?- probf hmm([a,a,a,a,a,b,b,b,b,b])
+?- viterbif hmm([a,a,a,a,a,b,b,b,b,b]).
+?- set_prism_flag(write_call_events,none).
+?- sample hmm(X)
+?- prob hmm([a,a,a,a,a,b,b,b,b,b])
+?- probf hmm([a,a,a,a,a,b,b,b,b,b])
+?- viterbif hmm([a,a,a,a,a,b,b,b,b,b]).
+?- set_prism_flag(write_call_events,off).
+?- sample hmm(X)
+?- prob hmm([a,a,a,a,a,b,b,b,b,b])
+?- probf hmm([a,a,a,a,a,b,b,b,b,b])
+?- viterbif hmm([a,a,a,a,a,b,b,b,b,b]).
+$ cp hmm_wc.psm hmm_wc2.psm
+(edit hmm_wc2.psm: uncomment the line :- disable_write_call.)
+?- prism(hmm_wc2).
+?- sample hmm(X)
+?- prob hmm([a,a,a,a,a,b,b,b,b,b])
+?- probf hmm([a,a,a,a,a,b,b,b,b,b])
+?- viterbif hmm([a,a,a,a,a,b,b,b,b,b]).
+?- hmm_learn(100).
+$ cp hmm_wc.psm hmm_wc2.psm
+(edit hmm_wc2.psm: replace include('hmm_wc_incl.psm') by include('hmm_wc_incl2.psm'))
+?- prism(hmm_wc2).
+
+--------------------------------------------------------------------------------

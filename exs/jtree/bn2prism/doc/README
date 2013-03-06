@@ -1,0 +1,9 @@
+**** README (bn2prism: doc) ****
+
+This directory contains documentations on BN2Prism.  For Javadoc documents,
+please see html/index.html via some Web browser.
+
+[Files and directories]
+
+  bn2prism.pdf ... Slides 
+  html/        ... API documents created by Javadoc

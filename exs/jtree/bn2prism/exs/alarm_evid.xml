@@ -1,0 +1,39 @@
+<!-- DTD for the XMLBIF-EVIDENCE 0.5 format -->
+
+<!DOCTYPE BIF-EVIDENCE [
+<!ELEMENT BIF-EVIDENCE (DESCRIPTION?,NETWORK*)>
+    <!ATTLIST BIF-EVIDENCE VERSION CDATA #REQUIRED>
+<!ELEMENT DESCRIPTION (#PCDATA)>
+<!ELEMENT NETWORK (NAME,EVIDENCE*)>
+<!ELEMENT NAME (#PCDATA)>
+<!ELEMENT EVIDENCE (VARIABLENAME,VALUE)>
+<!ELEMENT VARIABLENAME (#PCDATA)>
+<!ELEMENT VALUE (#PCDATA)>
+]>
+
+<BIF-EVIDENCE VERSION="0.5">
+    <NETWORK>
+        <NAME>Alarm</NAME>
+        <EVIDENCE>
+            <VARIABLENAME>HRSAT</VARIABLENAME>
+            <VALUE>HIGH</VALUE>
+        </EVIDENCE>
+        <!--
+        Known problem:
+            if we give an evidence that can have probability 0, the translated PRISM
+            program will return "nan".
+        <EVIDENCE>
+            <VARIABLENAME>PVSAT</VARIABLENAME>
+            <VALUE>NORMAL</VALUE>
+        </EVIDENCE>
+        -->
+        <EVIDENCE>
+            <VARIABLENAME>VENTALV</VARIABLENAME>
+            <VALUE>ZERO</VALUE>
+        </EVIDENCE>
+        <EVIDENCE>
+            <VARIABLENAME>BP</VARIABLENAME>
+            <VALUE>LOW</VALUE>
+        </EVIDENCE>
+    </NETWORK>
+</BIF-EVIDENCE>

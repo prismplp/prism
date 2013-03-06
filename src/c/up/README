@@ -1,0 +1,22 @@
+======================= README (src/c/up) ========================
+
+This directory contains C source files for the routines for
+probabilistic infererences:
+
+  Makefile.gmake  ... Makefile for GNU make
+  Makefile.nmake  ... Makefile for nmake (MSVC++) on Windows
+  Makefile.files  ... auxiliary Makefile
+  up.h            ... common header file for source code in this directory
+  em.h            ... common header file for EM learning
+  graph.{c,h}     ... explanation graphs
+  graph_aux.{c,h} ... auxiliary utilities for explanation graphs
+  em_preds.{c,h}  ... C interface (wrappers) for EM learning
+  em_ml.{c,h}     ... main routine for ML/MAP-EM learning
+  em_vb.{c,h}     ... main routine for VB-EM learning
+  em_aux_ml.{c,h} ... substantial part of ML/MAP-EM learning
+  em_aux_vb.{c,h} ... substantial part of VB-EM learning
+  em_aux.{c,h}    ... common routines for EM learning
+  viterbi.{c,h}   ... Viterbi computation
+  hindsight.{c,h} ... hindsight computation
+  flags.{c,h}     ... execution flags
+  util.{c,h}      ... misellaneous utilities

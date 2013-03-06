@@ -1,0 +1,7 @@
+bp4prism-linux32.a
+bp4prism-linux64.a
+bp4prism-darwin9.a
+bp4prism-darwin10.a
+bp4prism-win32.lib 
+bp4prism-cygwin.a
+

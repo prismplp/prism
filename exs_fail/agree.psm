@@ -1,0 +1,150 @@
+%%%%
+%%%%  A simple failure program -- agree.psm
+%%%%
+%%%%  Copyright (C) 2004,2006
+%%%%    Sato Laboratory, Dept. of Computer Science,
+%%%%    Tokyo Institute of Technology
+
+%%  I have two biased coins. I flip them and record
+%%  the outcome only when both coins agree on their outcome,
+%%  i.e. both heads or both tails. You have to guess parameters,
+%%  i.e. the probability of each coin showing heads
+%%  from a list of records such as
+%%  [agree(heads),agree(heads),agree(tails),...].
+%%
+%%  We generatively model such an experiment by a PRISM program below.
+%%  It defines agree/1 that describes a flipping of two coins
+%%  with a constraint that both outcomes must agree.
+%%  When the outcomes disagree, the generative process fails without
+%%  any outcome. Consequently prob(success), i.e. the sum of
+%%  probabilities of observable events is less than one.
+%%
+%%  To estimate correctly the probabilities of the coins, we need
+%%  their outcomes in the failed cases as well as in the successful
+%%  cases. Of course the former are not observable. So we estimate
+%%  them from a special predicate "failure" which is true
+%%  when failure occurs in the model.
+%%
+%%  We require that the user provide a definition
+%%  for the failure predicate that describes how failure occurs.
+%%  Usually it is conveniently defined as the negation of
+%%  the original program describing a generative process.
+%%  PRISM automatically removes negation when loading such programs.
+
+%%-------------------------------------
+%%  Quick start : sample session
+%%
+%%  > prism
+%%
+%%  ?- prismn(agree).
+%%  agree.psm is first compiled by FOC (first order compiler)
+%%  into a default file "temp" to eliminate negation and then
+%%  loaded by prism/1.
+%%
+%%  ?- set_sw,show_sw.
+%%  Original parameters set by set_sw are:
+%%
+%%   coin(a): heads (p: 0.800000000) tails (p: 0.200000000)
+%%   coin(b): heads (p: 0.100000000) tails (p: 0.900000000)
+%%
+%%  ?- prob(success,Ps),prob(failure,Pf),X is Ps+Pf.
+%%   X = 1.0, Pf = 0.74, Ps = 0.26
+%%   X = 1.0 => it is highly likely that our program
+%%              defines a correct probability model.
+%%
+%%  Compute the prob. distribution on heads and tails under
+%%  the original parameters using chindsight/2.
+%%  ?- chindsight(success,agree(_)).
+%%   agree(heads): 0.307692307692308
+%%   agree(tails): 0.692307692307692
+%%
+%%  Learn parameters from randomly generated 500 samples
+%%  assuming failure occurs in the model.
+%%  ?- set_sw,generate_goals(500,_Gs),learn([failure|_Gs]),show_sw.
+%%
+%%   coin(a): heads (p: 0.473469260) tails (p: 0.526530740)
+%%   coin(b): heads (p: 0.360094145) tails (p: 0.639905855)
+%%
+%%  Compute the prob. distribution on heads and tails under
+%%  the learned parameters in our failure model.
+%%  ?- chindsight(success,agree(_)).
+%%   agree(heads): 0.335998373709251
+%%   agree(tails): 0.664001626290749
+%%
+%%  Learn parameters from randomly generated 500 samples
+%%  assuming no failure in the model.
+%%  ?- set_sw,generate_goals(500,_Gs),learn(_Gs),show_sw.
+%%
+%%   coin(a): heads (p: 0.290000000) tails (p: 0.710000000)
+%%   coin(b): heads (p: 0.290000000) tails (p: 0.710000000)
+%%
+%%  Compute the prob. distribution on heads and tails under
+%%  the learned parameters in non-failure model.
+%%  ?- chindsight(success,agree(_)).
+%%   agree(heads): 0.142978578714723
+%%   agree(tails): 0.857021421285277
+%%
+%%  So our failure model estimates the original parameters
+%%  more accurately than the non-failure model.
+
+
+%%------------------------------------
+%%  Directives:
+
+values(coin(_),[heads,tails]).  % each coin has two outcomes.
+
+%%------------------------------------
+%%  Model:
+
+failure :- not(success).        % failure is defined as not(success).
+success :- agree(_).            % success <=> exist([X],agree(X))
+
+agree(A):-                      % flip two coins and
+   msw(coin(a),A),              % output the result only when
+   msw(coin(b),B),              % both outcomes agree.
+   A=B.
+
+%%  compiled failure program in "temp"
+%%    failure:- closure_success0(f0).
+%%    closure_success0(A):-closure_agree0(A).
+%%    closure_agree0(_):-
+%%       msw(coin(a),A),
+%%       msw(coin(b),B),
+%%       \+A=B.
+
+%%------------------------------------
+%%  Utilities:
+
+set_sw:-
+   set_sw(coin(a),[0.8,0.2]),
+   set_sw(coin(b),[0.1,0.9]).
+
+generate_goals(M,L):-
+   get_samples_c([inf,M],agree(_),true,L).
+
+%%  Definition in the older versions.
+%generate_goals(M,L):-
+%   M>0,
+%   ( sample(agree(X)),
+%       G = agree(X),
+%       format(" ~w~n",[G]),
+%       L = [G|Y1],
+%       M1 is M-1
+%   ; L = Y1,
+%       M1 is M
+%   ),!,
+%   generate_goals(M1,Y1).
+%generate_goals(0,[]).
+
+%%  prism_main/1 is a special predicate for batch execution.
+%%  The following command conducts learning from 500 randomly
+%%  generated samples:
+%%     > upprism prismn:agree 500
+%%  [Note] "prismn:" is needed for failure programs
+
+prism_main([Arg]):-
+   set_sw,
+   parse_atom(Arg,N),
+   generate_goals(N,Gs),
+   learn([failure|Gs]),
+   show_sw.

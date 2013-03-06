@@ -1,0 +1,311 @@
+2012-6-23 Keiichi Kubota and Yoshitaka Kameya <kameya@mi.cs.titech.ac.jp>
+  * version 2.1
+  * src/c/makefiles/Makefile.opts.gmake:
+    - modified the default platform as linux64
+  * src/c/core/{Makefile.files,glue.c,mult_ln.{c,h}},
+    src/c/core/makefiles/Makefile.files,
+    src/c/up/{Makefile.files,mcmc.h,mcmc_*.{c,h},util.{c,h},viterbi.{c,h}},
+    src/prolog/{Compile.sh,Makefile,mcmc.pl,util.pl,flags.pl}:
+    - introduced a generic version of Mark Johnson's MCMC algorithm,
+      originally developed for PCFGs
+    - added the `mcmc_message' flag to control the messages in MCMC
+  * src/c/up/{vt.h,vt_*.{c,h}}
+    - introduced Viterbi training in a maximum likelihood setting and in a
+      variational Bayes setting (thanks to Christian Theil Have for the
+      motivation)
+  * src/prolog/trans/trans.pl:
+    - fixed a bug caused by an unsafe optimization of non-probabilistic
+      clauses of probabilistic predicates (thanks to Waleed Alsanie for
+      his bug report)
+  * all:
+    - replaced free() by FREE() wherever appropriate
+  * src/c/up/em_aux.c:
+    - modified sort_occ_switches() to be called in alloc_occ_switches()
+  * src/c/up/graph.c:
+    - modified release_num_vals() to be called in pc_import_occ_switches()
+  * src/prolog/up/switch.pl:
+    - modified $pp_get_parameters/3 and $pp_get_hyperparameters so that
+      they raise an runtime exception when the outcome space of a switch
+      is changed with the clean_table flag being off
+
+2012-3-6 Yoshitaka Kameya <kameya@mi.cs.titech.ac.jp>
+  * version 2.0.3
+  * src/c/core/{bpx.{c,h},idtable.c,idtable_preds.c,termpool.c},
+    src/c/up/{em_aux,em_preds,graph,graph_aux,hindsight,util,viterbi}.c,
+    src/c/mp/{mp_em_aux,mp_em_preds,mp_sw}.c:
+    - adapted the code to B-Prolog 7.8b1 (mainly modified several prototype
+      declarations; thanks to Christian Theil Have for the motivation)
+
+2012-2-8 Yoshitaka Kameya <kameya@mi.cs.titech.ac.jp>
+  * version 2.0.2
+  * src/prolog/core/error.pl:
+    - added $pp_require_atomic/3 and its subroutines
+  * src/prolog/up/util.pl:
+    - added save_csv/2-3 (thanks to Dan Stowell for the motivation) and their
+      subroutines
+  * src/prolog/trans/bpif.pl:
+    - added $pp_consult_preds{,_cond}/2 as wrappers of consult_preds/2,
+      B-Prolog's built-in (all occurrences of consult_preds/2 are replaced
+      by $pp_consult_preds{,_cond}/2)
+  * src/prolog/up/util.pl:
+    - removed $pp_delete_tmp_out/0
+  * src/prolog/up/{main,dynamic}.pl:
+    - introduced $pd_tmp_out/2 that contains the name of a temporary byte-code
+      file used in the current process
+    - added $pp_register_tmp_out/0 that determines the name of the temporary
+      byte-code file when the system invoked
+
+2011-12-16 Yoshitaka Kameya <kameya@mi.cs.titech.ac.jp>
+  * version 2.0.1
+  * src/prolog/trans/trans.pl:
+    - introduced soft_msw/2 or b_msw/2 as backtrackable random switches
+      (thanks to Jon Sneyers for a public-domain code)
+  * src/c/up/em{,_aux}_vb.c:
+    - fixed a wrong computation in the computation of variational free energy
+      in VB-FAM (thanks to Masakazu Ishihata).
+  * src/prolog/up/flags.pl:
+    - fixed a bug that set_prism_flag(default_sw,random) was not allowed
+  * src/prolog/trans/trans.pl:
+    - fixed a bug in $pp_unexpandable_values1/1.
+  * src/prolog/up/{prob,viterbi,hindsight,util,flag}.pl:
+    - moved garbage_collect/0 (BP's built-in) to a more effective place
+    - added a flag `force_gc' that allows users to enable/disable GC after
+      probf, viterbi{f,g}, {,c}hindsight
+    - introduced $pp_garbage_collect/0 as a wrapper of garbage_collect/0
+  * src/prolog/up/{prob,viterbi,hindsight,learn,main}.pl:
+    - modified $pp_init_tables/0 to reset $pg_dummy_goal_count
+    - changed to call $pp_init_tables_if_necessary/0 before calling
+      $pp_create_dummy_goal/1
+  * src/prolog/{up/dist,core/error}.pl:
+    - modified to allow `noisy_u' as an argument for expand_probs/3
+  * src/c/core/{idtable_preds,glue}.c:
+    - added prism_{goal,sw,sw_ins}_term_nocopy_2() for terms which are
+      guaranteed to be ground
+  * src/prolog/up/{learn,prob,viterbi,hindsight}.pl:
+    - simplified the combination of pp_collect_sw_info/1 and pc_export_sw_info/1
+      into pp_export_sw_info/0 (pp_collect_init_switches/1 are also merged)
+    - added a call of garbage_collect/0 in the loop by $pp_export_sw_info/2 
+      for improvement of the memory use while updating the parameters stored
+      in the C part
+  * src/c/{core/idtable,up/graph,up/em_preds}.c:
+    - removed unused auto variables
+  * src/prolog/{core/error,core/message,up/main}.pl:
+    - fixed a wrong error handling of the options in prism/2
+  * src/c/mp/mp_preds.c:
+    - fixed a bug on the use of bpx_string_2_term() in recv_term()
+  * src/c/up/em_aux_ml.c:
+    - made safer the normalizations in update_params{,_smooth}()
+  * src/prolog/up/list.pl:
+    - added some error check routines into maplist_math/2-3, reducelist/7
+      reducelist_func/4 and reducelist_math/4
+    - removed the check routines in sublist/4 to revive the backtrackablility
+  * src/prolog/core/error.pl:
+    - added a clause to the definition of $pp_error_callable/2
+    - made $pp_test_prism_flag{,_value}/1 safer
+  * src/prolog/up/{util,switch}.pl:
+    - introduced $pp_call_with_stream/2 for safer I/O handling
+    - wrapped the core parts of I/O routines by $pp_call_with_stream/2
+    - added a simple check on the format of saved switch information
+  * src/prolog/flags.pl:
+    - prohibited `off' for the value of the learn_message flag
+    - removed the em_message flag, which should have been removed in 2.0
+    - modified set_prism_flag/2 to handle deleted flags correctly
+  * src/c/up/em.h:
+    - fixed SHOW_PROGRESS_TEMP so that '*' is not displayed when em_message == 0
+
+2010-7-14 Yoshitaka Kameya <kameya@mi.cs.titech.ac.jp>
+  * version 2.0
+  * src/*/up/*: renewed the way of handling Dirichlet hyperparameters
+    - reorganized the routines for switch handling in src/prolog/up/switch.pl:
+      + added the preds/flags *_sw_a (*_sw_d) to handle alpha (delta) values
+      + added the preds/flags *_sw_pa (*_sw_pd) to handle both parameters and
+        alpha (delta) values
+      + added the preds/flags *_sw_a (*_sw_d) to handle alpha (delta) values
+      + made the preds/flags *_sw_h (*_sw_b) being aliases to *_sw_d (*_sw_pd)
+      + made get_sw_h/5 and get_sw_b/6 unavailable due to the difficulty
+        in keeping the backward compatibility
+    - created the flags default_sw_a and default_sw_d which are exclusive
+    - added $pp_require_number{,s}_not_less_than/3 and their subroutines
+    - added alpha_to_delta/2 and delta_to_alpha/2 and their subroutines
+    - renamed $pd_prob_distrib/3 and $pd_expectation/3 to $pd_parameters/3 and
+      $pd_expectations/3, respectively
+    - introduced expand_parameters/2-3 and expand_hyperparameters/2-3 as the
+      aliases of expand_probs/2-3 and expand_pseudo_counts/2-3, respectively
+    - renamed $pp_get_distribution/3 to $pp_get_parameters/3
+  * src/*/mp/*: revived parallel EM learning
+    - rewrote the routines so that they conform to the current coding style
+  * src/prolog/up/{prob,util}.pl:
+    - introduced path probabilities into probf{i,o,v,io}/1-2
+  * src/c/up/em_aux_ml.c:
+    - fixed a bug in the check routine in update_params() (thanks to Christian
+      Theil Have)
+  * src/c/up/util.{c,h},src/c/core/{glue,xmalloc}.c:
+    - introduced $pc_mtrace/0 and $pc_muntrace/0 to utilize the mtrace utility
+      (these predicates are enabled when -DMALLOC_TRACE is added into the
+      compilation flags for the C part)
+    - introduced $pc_sleep/1 as a Prolog interface of sleep(), where the period
+      is specified in milliseconds
+  * src/c/up/graph.{c,h},src/c/core/{termpool,idtable}.c:
+    - fixed memory leaks in clean_base_egraph() and
+      clean_switch_instance_table()
+    - fixed memory leaks in term_pool_rehash() and idtable_rehash()
+    - changed alloc_switch_instance() to be called only when needed
+    - changed INIT_MAX_EGRAPH_SIZE to be 256
+  * src/prolog/trans/{trans,dump}.pl:
+    - fixed a bug that the `load' option didn't work in prism/2
+    - fixed a bug that $pp_trans_prob_body/7 failed for not(G) and \+(G)
+    - renamed $pp_trans_non_prob_{cls,body}/2
+                -> $pp_strip_write_call_{cls,body}/2
+    - modified $pp_gen_initialize_var_aux/2 to be more strict
+  * src/prolog/up/expl.pl:
+    - changed $pp_expl_goals/1 to be tail-recursive (thanks to Christian Theil
+      Have)
+  * src/prolog/up/prob.pl:
+    - fixed a bug that get_{subgoal,switch}_hashtable/1 were not available
+    - inserted garbage_collect/0 into $pp_compute_expls/6
+  * src/c/up/flags.{c,h},src/c/mp/mp_flags.c,
+    src/c/core/glue.c,src/prolog/flags.pl:
+    - changed the possible values for the em_progress and the search_progress
+      flags as [1,+inf]
+    - allowed `random' as the value of the default_sw flag
+    - removed the reduce_copy flag
+    - removed the smooth flag
+  * src/prolog/{up/learn.pl,mp/mp_learn.pl},src/c/{up/em_preds.c,mp/em_preds.c},
+    src/c/up/{em_aux,viterbi}.c,src/prolog/up/flags.pl:
+    - removed the params_after_vbem flag
+    - made parameters being automatically averaged in advance of the Viterbi
+      inference based on hyperparameters
+  * src/prolog/up/{flags,learn,util}.pl,src/prolog/mp/mp_learn.pl:
+    - added the learn_message flag to control the learning messages
+  * src/prolog/up/main.pl:
+    - added aliase predicates for show_prob_preds/0 and show_tabled_preds/0
+    - added is_prob_pred/1-2 and is_tabled_pred/1-2
+      (thanks to Henning Christiansen)
+    - fixed a bug that the 'consult' mode didn't work at all
+    - added new operators (thanks to Jon Sneyers):
+          times, sample, prob, probf, viterbi, viterbif, hindsight, etc.
+  * src/prolog/up/learn.pl:
+    - modified to accept 'G times C' as an infix version of count(G,C)
+      (Thanks to Jon Sneyers)
+  * src/prolog/up/switch.pl:
+    - changed fix_sw{,_d,_a}/2 to call $pp_unfix_sw{,_h}/2 first
+    - fixed a bug that show_sw{,_d,_a}/1 didn't call $pp_registered_sw/1 in
+      findall/3.
+  * src/prolog/up/hash.pl:
+    - fixed a problem that #buckets of the hashtable in $pp_hashtable_put/3
+      can exceed 65536 (thanks to Christian Theil Have)
+  * src/prolog/core/random.pl:
+    - fixed a bug that random_multiselect/3 didn't work
+  * src/prolog/up/dist.pl,src/prolog/core/error.pl:
+    - made $pp_test_probabilities_plus/1 and $pp_test_ratio/1 more strict
+    - fixed a bug that no exception was raised when calling expand_probs(2,Ps)
+      (it failed instead)
+    - fixed a bug that the termination clause of $pp_ratio_to_probs/3,
+      $pp_gen_geom_list/4, $pp_gen_rand_list/2 and $pp_gen_dup_list/3 do not
+      have the cut symbols.
+    - improved the error handling in expand_probs/3 and expand_pseudo_counts/3
+  * src/prolog/up/list.pl:
+    - improved the error handling in built-ins for statistical operations
+  * src/prolog/{up/sample.pl,up/expl.pl,bp/eval.pl}:
+    - moved the definitions of $print_call/6, eval_call/2 and eval_debug_call/3
+      in sample.pl into eval.pl to avoid the warnings on contiguous predicates
+    - changed the indentation of the status labels ('Call:', 'Exit:' and so on)
+  * src/prolog/foc/fo.pl:
+    - reordered the predicate definitions to avoid the warnings on contiguous
+      predicates
+    - redefined write_clause/1-2 and write_clause2/1 as the aliases of
+      portray_clause/1-2 provided in B-Prolog (old definitions are commented
+      out)
+  * bin/{,up,mp}prism:
+    - enlarged the program area's default initial size: 4M words -> 8M words
+  * all: replaced CR+LF with LF at the end of each line
+
+2010-3-15 Yoshitaka Kameya <kameya@mi.cs.titech.ac.jp>
+  * version 2.0 beta 4
+  * all: integrated with B-Prolog 7.4
+    - fixed a problem of BP 7.3 related to the table area extension
+    - converted the clauses of the form (H :- G : B) and (H :- G ? B) into
+      (H, G => B) and (H, G ?=> B), respectively, since the former forms are
+      obsolete in B-Prolog 7.4
+  * added the static library of B-Prolog for Mac OS X 10.6 (Snow Leopard)
+    - now we have two libraries bp4prism-darwin9.a (10.5) and
+      bp4prism-darwin10.a (10.6) for Mac OS X
+  * added bin/upprism.bat
+  * added doc/devel/cpreds.txt, a document on the usage of C interface in PRISM
+  * renewed the usage of the multi-valued switch declarations
+    - values/2 in the user program is translated into $pu_values/2
+    - prolog/trans/trans.pl:
+        entirely changed the subroutines called from $pp_trans_phase2/3
+    - prolog/up/switch.pl:
+        reorganized the get_values family -- get_values/2 will be used in the
+        clause bodies instead of values/2, get_values{0,1}/2 are the variations
+        of get_values/2, and $pp_get_values/2 is just an internal predicate
+        that does not any input check
+    - prolog/up/switch.pl:
+        changed set_sw_all{,_h}/2 not to try setting parameters/hyperparameters
+        to the switches which have not been registered yet
+    - prolog/up/util.pl:
+        introduced expand_value1/2 which is the non-exception version of
+        expand_values/2
+    - prolog/up/main.pl: changed the definition of show_values/0
+  * reorganized the routines related to scaling
+    - abolished 'constant scaling'
+    - removed the flags log_viterbi, scaling and scaling_factor
+    - introduced the log_scale flag
+    - c/up/*.c: made the scaling-related functions switched by the log_scale
+        variable
+    - c/up/hindsight.c: removed *_scaling_const()
+    - c/up/em_aux.c: removed compute_path_length()
+  * prolog/{up/dist.pl,core/error.pl}:
+      renamed dist_to_probs/3 to expand_probs/3 and spec_to_pseudo_counts/3 to
+      expand_pseudo_counts/3 (accordingly the releated predicates were also
+      reorganized)
+  * prolog/up/flag.pl: changed the default value of the explicit_empty_expls
+      flag to be 'off'
+  * prolog/up/switch.pl: changed the definition of get_reg_sw/1
+  * prolog/up/expl.pl: modified the definition of $prism_expl_msw/3
+  * prolog/core/error.pl: removed some redundancy in error handling routines
+  * prolog/*/*.pl: corrected the inconsistencies concerning error messages
+  * c/core/fputil.h: slightly modified the definitions of isfinite, isnan and
+      INFINITY to avoid the warnings on redefinition with a newer gcc on Linux
+  * c/core/glue.c,c/up/util.c,prolog/up/util.pl:
+      introduced lngamma/2 and the related C functions (the definitions may be
+      moved to the other places in future)
+  * exs/phmm.psm: removed a table declaration for get_index just for avoiding
+      warnings
+
+2009-11-24 Yoshitaka Kameya <kameya@mi.cs.titech.ac.jp>
+  * version 2.0 beta 3
+  * all: integrated with B-Prolog 7.3
+    - replaced bp.out and the bp4prism headers/libraries with the ones of BP 7.3
+    - the size of the input buffer is enlarged to 256 KiB (PRISM only)
+    - prolog/*.pl: replaced all appearances of tabled(_) with tabled(_,_,_,_)
+  * c/up/graph.c: made pc_add_egraph_path_3() and add_egraph_path() safer
+  * c/core/error.c: added err_invalid_goal_id and err_invalid_switch_instance_id
+  * prolog/trans/trans.pl:
+    - $pp_trans_prob_cls/5: modified to add a wrapper for exceptions in
+        $prism_eg_path/4
+    - $pp_collect_preds/2: fixed a bug that non-probabilistic predicates that
+        call values/2 are classified as probabilistic
+    - $pp_trans_prob_body/7: fixed a bug that the negated calls (with \+ or not)
+        of probabilistic predicates are incorrectly translated
+  * prolog/core/messages.pl: added a message of an internal error (id:9805)
+
+2009-11-12 Yoshitaka Kameya <kameya@mi.cs.titech.ac.jp>
+  * version 2.0 beta 2
+  * all: fixed several bugs (thanks to Jon Sneyers and Chander Iyer):
+    - set_sw_all/0-2 didn't work
+    - the write_call predicates didn't work - count/2 was not allowed in the
+      observed data 
+    - the translator didn't appropriately insert a routine for
+      initializations of variables in the disjunctive clause bodies
+      (this possibly makes explanation search incorrect)
+    - the static libraries of B-Prolog for other platforms were included
+      in the package
+
+2009-8-31 Yusuke Izumi and Yoshitaka Kameya <kameya@mi.cs.titech.ac.jp>
+  * version 2.0 beta 1
+    - entirely renewed the translator from PRISM to Prolog
+    - entirely renewed the hashtables (and the related routines) for
+      tabled subgoals and random switches
+    - introduced a unified error handling mechanism

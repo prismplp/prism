@@ -1,0 +1,44 @@
+# -*- Makefile -*-
+
+##----------------------------------------------------------------------
+
+OBJS = mp_core.$(O)          \
+       mp_em_aux.$(O)        \
+       mp_em_ml.$(O)         \
+       mp_em_preds.$(O)      \
+       mp_em_vb.$(O)         \
+       mp_flags.$(O)         \
+       mp_preds.$(O)         \
+       mp_sw.$(O)
+
+##----------------------------------------------------------------------
+
+BP4P_H = ..$(S)bp4prism$(S)include$(S)bprolog.h                     \
+         ..$(S)bp4prism$(S)include$(S)bapi.h                        \
+         ..$(S)bp4prism$(S)include$(S)basic.h                       \
+         ..$(S)bp4prism$(S)include$(S)extern_decl.h                 \
+         ..$(S)bp4prism$(S)include$(S)frame.h                       \
+         ..$(S)bp4prism$(S)include$(S)term.h
+
+BP4P_A = ..$(S)bp4prism$(S)lib$(S)bp4prism-$(PLATFORM).$(A)
+
+##----------------------------------------------------------------------
+
+BPX_H  = $(BP4P_H) ..$(S)core$(S)bpx.h ..$(S)core$(S)stuff.h
+ERR_H  = ..$(S)core$(S)error.h
+UP_H   = ..$(S)up$(S)up.h
+EM_H   = ..$(S)up$(S)em.h
+MP_H   = mp.h
+
+##----------------------------------------------------------------------
+
+mp_core.$(O)     : $(UP_H) $(MP_H)
+mp_em_aux.$(O)   : $(UP_H) $(EM_H) $(MP_H)
+mp_em_ml.$(O)    : $(UP_H) $(EM_H) $(MP_H)
+mp_em_preds.$(O) : $(UP_H) $(EM_H) $(MP_H)
+mp_em_vb.$(O)    : $(UP_H) $(EM_H) $(MP_H)
+mp_flags.$(O)    : $(MP_H)
+mp_preds.$(O)    : $(UP_H) $(ERR_H) $(MP_H)
+mp_sw.$(O)       : $(UP_H) $(ERR_H) $(MP_H)
+
+##----------------------------------------------------------------------

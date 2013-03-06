@@ -1,0 +1,62 @@
+========================================================
+  Developer's guide on C-interface predicates in PRISM
+========================================================
+
+Generally speaking, it is free to add Prolog predicates that call some C
+functions in any style, using the external language interface with C provided
+in B-Prolog.  On the other hand, the source code would be organized better
+if you could follow the coding style in PRISM's source code.  Please see also
+'names.txt' in the same directory for the naming rules.
+
+As a simple example, let us define a predicate cubic(X,Y) where Y is a cubic
+of X.  Typically, the following steps are needed:
+
+  Step 1. Define a C function that makes a substantial computation in some
+          C source file:
+
+            double cubic(double x)
+            {
+               return x * x * x;
+            }
+
+  Step 2. Define a wrapper C function pc_cubic_2():
+
+            int pc_cubic_2(void)
+            {
+              double x = bpx_get_float(bpx_get_call_arg(1,2));
+              return bpx_unify(bpx_get_call_arg(2,2),bpx_build_float(cubic(x)));
+            }
+
+          The functions whose names begin with "bpx_" are the C interface
+          functions of B-Prolog customized to the PRISM system.  The usage of a
+          function bpx_XXX() is the same as that of bp_XXX(), which is provided
+          in B-Prolog (see B-Prolog's user's manual).  In our naming rule,
+          "pc_" is a prefix that indicates the function is a wrapper C function,
+          and the suffix "_2" indicates the arity of the predicate we are going
+          to define.
+
+  Step 3. Add an entry to bp4p_register_preds() in c/core/glue.c as follows.
+   
+            void bp4p_register_preds(void)
+            {
+                  :
+               REGISTER_CPRED(cubic, 2);
+                  :
+            }
+
+          One may find that REGISTER_CPRED is a bit tricky macro. With this
+          setting, we have a Prolog predicate $pc_cubic/2 that calls the C
+          function pc_cubic_2().
+
+  Step 4. Define cubic/2 that calls $pc_cubic/2 in some Prolog source file:
+
+            cubic(X,Y) :- $pc_cubic(X,Y).
+
+          It would be easier to add an error handling routine into the
+          definition of cubic/2 rather than the definition of pc_cubic_2()
+          above.
+
+  Step 5. Recompile the C source code and the Prolog source code as usual.
+
+If you wish to add a C source file or a Prolog source file, please modify the
+Makefiles, or their related files, accordingly.

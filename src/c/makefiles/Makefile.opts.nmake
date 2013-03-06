@@ -1,0 +1,33 @@
+# -*- Makefile -*-
+
+!IFNDEF PLATFORM
+PLATFORM = win32
+!ENDIF
+
+!IFNDEF PROCTYPE
+PROCTYPE = up
+!ENDIF
+
+##----------------------------------------------------------------------
+
+TARGET      = prism_$(PLATFORM).exe
+TARGETFLAG  = /Fe
+
+MAKEFILE    = Makefile.nmake
+
+CC          = cl
+CFLAGS      = /O2 /nologo /EHsc /I..\bp4prism\include /I..
+LDFLAGS     = /nologo
+CP          = copy /y
+RM          = del /q /f
+O           = obj
+A           = lib
+S           = \ #
+
+##----------------------------------------------------------------------
+
+!IF "$(PLATFORM)" == "win32"
+CFLAGS      = $(CFLAGS) /DWIN32 /DNT
+!ENDIF
+
+##----------------------------------------------------------------------

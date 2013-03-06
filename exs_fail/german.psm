@@ -1,0 +1,114 @@
+%%%%
+%%%%  German nouns and articles -- german.psm
+%%%%
+%%%%  Copyright (C) 2004,2006
+%%%%    Sato Laboratory, Dept. of Computer Science,
+%%%%    Tokyo Institute of Technology
+
+
+%%  This program partially models the agreement in gender and
+%%  nominative case for nouns and definite articles in German.
+%%
+%%    +-----+----------------------------+
+%%    | cat |   case     gender    word  |
+%%    |-----+----------------------------|
+%%    | det |   nom       m        der   |
+%%    |     |   nom       f        die   |
+%%    |-----+----------------------------|
+%%    |  n  |   nom       m        man   |
+%%    |     |   nom       f        frau  |
+%%    +-----+----------------------------+
+
+%%-------------------------------------
+%%  Quick start : sample session
+%%
+%%  > prism
+%%
+%%  ?- prismn(german),set_sw,show_sw.
+%%    det: [m,nom,der]  (p: 0.200000000) [f,nom,die]  (p: 0.800000000)
+%%      n: [m,nom,mann] (p: 0.600000000) [f,nom,frau] (p: 0.400000000)
+%%
+%%  Check if we define a distribution correctly
+%%  ?- prob(success,Ps),prob(failure,Pf),X is Ps+Pf.
+%%  ?- prob(np(_),Ps),prob(failure,Pf),X is Ps+Pf.
+%%
+%%  Learning test assuming failure (close to original values)
+%%  ?- set_sw,generate_np(100,_Gs),learn([failure|_Gs]).
+%%  ?- show_sw.
+%%    det: [m,nom,der]  (p: 0.219747070) [f,nom,die]  (p: 0.780252930)
+%%      n: [m,nom,mann] (p: 0.567720664) [f,nom,frau] (p: 0.432279336)
+%%
+%%  Learning test assuming no failure
+%%  ?- set_sw,generate_np(100,_Gs),learn(_Gs).
+%%  ?- show_sw.
+%%    det: [m,nom,der]  (p: 0.140000000) [f,nom,die]  (p: 0.860000000)
+%%      n: [m,nom,mann] (p: 0.140000000) [f,nom,frau] (p: 0.860000000)
+
+:- set_prism_flag(restart,20).
+
+%%------------------------------------
+%%  Directives:
+
+values(det, [[m,nom,der], [f,nom,die]]).
+values(n,   [[m,nom,mann],[f,nom,frau]]).
+
+%%------------------------------------
+%%  Generation program (basic model):
+%%    gen_np/1 first probabilistically generates an article,
+%%    and then also probabilistically generates a noun but
+%%    independently of the former. If the gender and case of two
+%%    words does not agree, this generation process fails.
+%%
+%%    The use of ap(-pend) is undesirable because of its list-copying
+%%    nature though it makes failure/0 compilable by FOC.
+
+failure :- not(success).        % failure :- not(exist([X],gen_np(X))).
+success :- gen_np(_).
+
+gen_np(L):-                     % the gender and case of an article
+   gen_det(Gen,Case,L1),        % and a noun must agree.
+   gen_n(Gen,Case,L2),
+   ap(L1,L2,L).
+gen_det(Gen,Case,[Wd]):-
+   msw(det,R),R=[Gen,Case,Wd].
+gen_n(Gen,Case,[Wd]):-
+   msw(n,R),R=[Gen,Case,Wd].
+
+fo_sort(ap(list,list,list)).
+ap([],Y,Y).
+ap([H|X],Y,[H|Z]):- ap(X,Y,Z).
+
+%%  Parsing program:
+%%    np/1 uses d-list and usable for genearation and parsing, but
+%%    failire :- not(exist([X],np(X))) is not compilable by FOC.
+
+np(L) :- np(L,[]). 
+np(L1,L3):- 
+   det(Gen,Case,L1,L2),
+   n(Gen,Case,L2,L3).
+det(Gen,Case,[Wd|L2],L2):-
+   msw(det,R),R = [Gen,Case,Wd].
+n(Gen,Case,[Wd|L3],L3):-
+   msw(n,R), R = [Gen,Case,Wd].
+
+%%------------------------------------
+%%  Utilities:
+
+set_sw:-
+   set_sw(det,[0.2,0.8]),
+   set_sw(n,  [0.6,0.4]).
+
+generate_np(N,Gs):-
+   get_samples_c([inf,N],np(_),true,Gs).
+
+%%  Definition in the older versions.
+%generate_np(N,Gs):-             % create a list of random samples
+%   N>0,
+%   ( sample(np(X)),
+%       format("  ~w~n",[X]),
+%       Gs =[np(X)|Y],
+%       N1 is N-1
+%   ; Gs = Y,
+%       N1 is N ),!,
+%   generate_np(N1,Y).
+%generate_np(0,[]).
