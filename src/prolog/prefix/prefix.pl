@@ -1,3 +1,25 @@
+prprobg(Goal):-
+    (get_prism_flag(log_scale,on)->Text='Log-probability';Text='Probability'),
+    prprobg(Goal,L),
+    foreach(S in L,[G,P],
+    ([P,G]=S,format("~w of ~w is: ~15f~n",[Text,G,P]))).
+
+prprobg(Goal,Probs):-
+    vars_set(Goal,Vars),
+    probf(Goal,N),
+    N=[node(_,Z)|_],
+    foreach(S in Z,ac(Ps,[]),[P,G|Vars],
+    (S=path([G],[]),Goal=G->prprob(G,P),Ps^1=[[P,G]|Ps^0];true)),
+	sort(>,Ps,Probs).
+probg(Goal,Probs):-
+    vars_set(Goal,Vars),
+    probf(Goal,N),
+    N=[node(_,Z)|_],
+    foreach(S in Z,ac(Ps,[]),[P,G|Vars],
+    (S=path([G],[]),Goal=G->prob(G,P),Ps^1=[[P,G]|Ps^0];true)),
+	sort(>,Ps,Probs).
+
+
 prprob(Goal) :-
   prprob(Goal,P),
   (get_prism_flag(log_scale,on)->Text='Log-probability';Text='Probability'),
