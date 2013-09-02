@@ -57,7 +57,7 @@ find_scc(Goal,Components,CompT) :-
 replace_prob(Id,Mapping,P):-
   !,(X=(Id,P),member(X,Mapping)),!.
 
-$prprobfi(Goal,OrgExpls,Decode,NewExpls) :-
+$prprobfi(Goal,OrgExpls,Decode,NewExpls2) :-
   % Testing goal
   (Decode=0->probefi(Goal,OrgExpls);probfi(Goal,OrgExpls)),
   % Transforming graph
@@ -87,7 +87,23 @@ $prprobfi(Goal,OrgExpls,Decode,NewExpls) :-
   ,NewPath=path(NewGNodes,SNodes,PP)),Paths,NewPaths)
   ,replace_prob(Id,IMapping,NewP),NewExpl = node(Id, NewPaths ,NewP) ),OrgExpls,NewExpls),
   % TODO:Re-calculate path-probabilities
+  get_prism_flag(log_scale,LogScale),
+  %( LogScale == on -> Vi is Vg + Vs ; Vi is Vg * Vs),
+  maplist(E,NewExpl,(E=node(Id,Paths,P),
+  maplist(Path,NewPath,(Path=path(GNodes,SNodes,PP),
+  maplist(GNode,GP,(GNode=gnode(GID,GP)),GNodes,GNodeProbs),
+  maplist(SNode,SP,(SNode=snode(SID,SP)),SNodes,SNodeProbs),
+  ( LogScale == on -> (
+    reducelist(Y0,X,Y1,(Y1 is Y0+X),GNodeProbs,0.0,TempP),
+    reducelist(Y0,X,Y1,(Y1 is Y0+X),SNodeProbs,TempP,PathP)
+  );(
+    reducelist(Y0,X,Y1,(Y1 is Y0*X),GNodeProbs,1.0,TempP),
+    reducelist(Y0,X,Y1,(Y1 is Y0*X),SNodeProbs,TempP,PathP)
+  )),
+  NewPath=path(GNodes,SNodes,PathP)),Paths,NewPaths)
+  ,NewExpl = node(Id, NewPaths ,P) ),NewExpls,NewExpls2),
   %
   $pp_garbage_collect.
+
 
 
