@@ -93,6 +93,7 @@ $pp_prism_flag(verb,special($pp_check_verb),none,$pp_set_verb).
 $pp_prism_flag(viterbi_mode,enum([params,hparams,ml,vb]),ml,$none).
 $pp_prism_flag(warn,bool,off,$pc_set_warn).
 $pp_prism_flag(write_call_events,special($pp_check_write_call_events),all,$none).
+$pp_prism_flag(error_on_invalid_distribution,bool,on,$none).
 
 % first flag is enabled by default
 $pp_prism_flag_exclusive([default_sw_d,default_sw_a]).

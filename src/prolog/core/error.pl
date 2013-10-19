@@ -707,8 +707,9 @@ $pp_error_prism_flag_value(Flag,Value,
 %%----------------------------------------
 
 $pp_require_distribution(X,MsgID,Source) :-
+    get_prism_flag(error_on_invalid_distribution,F),
     ( $pp_test_distribution(X) -> true
-    ; $pp_raise_on_require([X],MsgID,Source,$pp_error_distribution)
+    ; F=off ;$pp_raise_on_require([X],MsgID,Source,$pp_error_distribution)
     ).
 
 % we do not check each element at this moment
