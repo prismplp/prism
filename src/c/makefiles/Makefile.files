@@ -36,12 +36,21 @@ UP_OBJS   = up$(S)graph.$(O)            \
             up$(S)hindsight.$(O)        \
             up$(S)flags.$(O)            \
             up$(S)util.$(O)             \
-            up$(S)prefix.$(O)           \
-            lapack$(S)liblapack.$(A)    \
-            lapack$(S)liblapacke.$(A)   \
-            lapack$(S)libtmglib.$(A)    \
-            lapack$(S)libblas.$(A)      
+            up$(S)prefix.$(O)           
 
+ifeq ($(PLATFORM),linux64)
+## this order is important
+LAPACK_OBJS = lapack$(S)liblapacke.$(A)    \
+            lapack$(S)liblapack.$(A)   \
+            lapack$(S)libtmglib.$(A)    \
+            lapack$(S)librefblas.$(A)      
+endif
+ifeq ($(PLATFORM),linux32)
+LAPACK_OBJS = lapack32$(S)liblapacke.$(A)    \
+            lapack32$(S)liblapack.$(A)   \
+            lapack32$(S)libtmglib.$(A)    \
+            lapack32$(S)librefblas.$(A)      
+endif
 MP_OBJS   = mp$(S)mp_core.$(O)          \
             mp$(S)mp_em_aux.$(O)        \
             mp$(S)mp_em_ml.$(O)         \
@@ -51,7 +60,7 @@ MP_OBJS   = mp$(S)mp_core.$(O)          \
             mp$(S)mp_preds.$(O)         \
             mp$(S)mp_sw.$(O)
 
-OBJS    = $(CORE_OBJS) $(UP_OBJS)
+OBJS    = $(CORE_OBJS) $(UP_OBJS) $(LAPACK_OBJS)
 
 ##----------------------------------------------------------------------
 

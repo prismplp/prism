@@ -20,12 +20,20 @@ probg(Goal,Probs):-
 	sort(>,Ps,Probs).
 
 
-prprob(Goal) :-
-  prprob(Goal,P),
+cyc_prob(Goal) :-
+  cyc_prob(Goal,P),
   (get_prism_flag(log_scale,on)->Text='Log-probability';Text='Probability'),
   format("~w of ~w is: ~15f~n",[Text,Goal,P]).
 
-prprob(Goal,Prob) :-
+find_scc(Goal,Components,CompT) :-
+  % Testing goal
+  probefi(Goal,ExpGraph),
+  % Transforming graph
+  $pp_trans_graph(ExpGraph,HGraph,_,_),
+  % Finding SCC
+  $pp_find_scc(HGraph,Components,CompT).
+
+cyc_prob(Goal,Prob) :-
   % Testing goal
   probefi(Goal,ExpGraph),
   % Transforming graph
@@ -36,28 +44,22 @@ prprob(Goal,Prob) :-
   $pp_solve_graph(HGraph,Components,CompTable,ProbTable),
   bigarray_get(ProbTable,1,Prob),!.
 
-prprobfi(Goal):-
-  prprobfi(Goal,Expls),print_graph(Expls,[lr('<=>')]).
-prprobefi(Goal):-
-  prprobefi(Goal,Expls),print_graph(Expls,[lr('<=>')]).
 
-prprobfi(Goal,Expls) :-
-  $prprobfi(Goal,_,1,Expls).
-prprobefi(Goal,Expls) :-
-  $prprobfi(Goal,_,0,Expls).
 
-find_scc(Goal,Components,CompT) :-
-  % Testing goal
-  probefi(Goal,ExpGraph),
-  % Transforming graph
-  $pp_trans_graph(ExpGraph,HGraph,_,_),
-  % Finding SCC
-  $pp_find_scc(HGraph,Components,CompT).
+cyc_probfi(Goal):-
+  cyc_probfi(Goal,Expls),print_graph(Expls,[lr('<=>')]).
+cyc_probefi(Goal):-
+  cyc_probefi(Goal,Expls),print_graph(Expls,[lr('<=>')]).
 
-replace_prob(Id,Mapping,P):-
+cyc_probfi(Goal,Expls) :-
+  $pp_cyc_probfi(Goal,_,1,Expls).
+cyc_probefi(Goal,Expls) :-
+  $pp_cyc_probfi(Goal,_,0,Expls).
+
+$pp_cyc_replace_prob(Id,Mapping,P):-
   !,(X=(Id,P),member(X,Mapping)),!.
 
-$prprobfi(Goal,OrgExpls,Decode,NewExpls2) :-
+$pp_cyc_probfi(Goal,OrgExpls,Decode,NewExpls2) :-
   % Testing goal
   (Decode=0->probefi(Goal,OrgExpls);probfi(Goal,OrgExpls)),
   % Transforming graph
@@ -83,9 +85,9 @@ $prprobfi(Goal,OrgExpls,Decode,NewExpls2) :-
   % Replacing probabilities
   maplist(E,NewExpl,(E=node(Id,Paths,P),
   maplist(Path,NewPath,(Path=path(GNodes,SNodes,PP),
-  maplist(GNode,NewGNode,(GNode=gnode(GID,GP),replace_prob(GID,IMapping,NewGP),NewGNode=gnode(GID,NewGP)),GNodes,NewGNodes)
+  maplist(GNode,NewGNode,(GNode=gnode(GID,GP),$pp_cyc_replace_prob(GID,IMapping,NewGP),NewGNode=gnode(GID,NewGP)),GNodes,NewGNodes)
   ,NewPath=path(NewGNodes,SNodes,PP)),Paths,NewPaths)
-  ,replace_prob(Id,IMapping,NewP),NewExpl = node(Id, NewPaths ,NewP) ),OrgExpls,NewExpls),
+  ,$pp_cyc_replace_prob(Id,IMapping,NewP),NewExpl = node(Id, NewPaths ,NewP) ),OrgExpls,NewExpls),
   % TODO:Re-calculate path-probabilities
   get_prism_flag(log_scale,LogScale),
   %( LogScale == on -> Vi is Vg + Vs ; Vi is Vg * Vs),
