@@ -37,6 +37,7 @@ UP_OBJS   = up$(S)graph.$(O)            \
             up$(S)flags.$(O)            \
             up$(S)util.$(O)             \
             up$(S)prefix.$(O)           \
+            up$(S)infix.$(O)           \
             lapack$(S)liblapack.$(A)    \
             lapack$(S)liblapacke.$(A)   \
             lapack$(S)libtmglib.$(A)    \

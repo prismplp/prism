@@ -44,6 +44,7 @@ PL_MP    = mp/mp_main.pl        \
 PL_BP    = bp/eval.pl
 
 PL_PREFIX= prefix/prefix.pl      \
+           prefix/infix.pl \
            prefix/trans_graph.pl \
            prefix/find_scc.pl    \
            prefix/solve_graph.pl
