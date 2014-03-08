@@ -3,10 +3,10 @@
 ##----------------------------------------------------------------------
 
 COMPILER    = Compile.sh
-TARGETS     = prism.out mpprism.out batch.out
+TARGETS     = prism.out mpprism.out batch.out foc.out
 INSTALLDIR  = ../../bin
 
-VERSION     = 2.1a5
+VERSION     = 2.1.1
 
 PL_CORE  = core/message.pl      \
            core/error.pl        \
@@ -42,6 +42,8 @@ PL_MP    = mp/mp_main.pl        \
            mp/mp_learn.pl
 
 PL_BP    = bp/eval.pl
+PL_FOC   = foc/fo.pl            \
+           foc/fo_prismn.pl
 
 PL_PREFIX= prefix/prefix.pl      \
            prefix/infix.pl \
@@ -52,6 +54,7 @@ PL_PREFIX= prefix/prefix.pl      \
 PL_UP_ALL   = $(PL_CORE) $(PL_UP) $(PL_TRANS) $(PL_BP) $(PL_PREFIX)
 PL_MP_ALL   = $(PL_MP)
 PL_BAT_ALL  = $(PL_BAT)
+PL_FOC_ALL  = $(PL_FOC)
 
 ##----------------------------------------------------------------------
 
@@ -61,7 +64,7 @@ install: $(TARGETS)
 	cp $(TARGETS) $(INSTALLDIR)
 
 clean:
-	rm -f $(TARGETS) prism.pl mpprism.pl batch.pl
+	rm -f $(TARGETS) prism.pl mpprism.pl batch.pl foc.pl
 
 prism.pl: $(PL_UP_ALL)
 	cat $^ > $@
@@ -70,6 +73,9 @@ mpprism.pl: $(PL_MP_ALL)
 	cat $^ > $@
 
 batch.pl: $(PL_BAT_ALL)
+	cat $^ > $@
+
+foc.pl: $(PL_FOC_ALL)
 	cat $^ > $@
 
 %.out: %.pl $(COMPILER)
