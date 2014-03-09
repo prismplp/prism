@@ -51,7 +51,7 @@ struct ViterbiEntry {
 typedef struct ExplGraphNode *EG_NODE_PTR;
 struct ExplGraphNode {
     int id;
-    double inside, outside;  /* inside and outside propabilities */
+    double inside, outside, value;  /* inside and outside propabilities */
     double max;              /* max probabilities */
     EG_PATH_PTR max_path;    /* pointer to the path with max prob. */
     V_ENT_PTR *top_n;        /* top-N list (for top-N Viterbi) */

@@ -143,7 +143,6 @@ int pc_compute_probf_1(void)
         compute_max();
         return BP_TRUE;
     }
-
     failure_root_index = -1;
 
     /* [31 Mar 2008, by yuizumi]

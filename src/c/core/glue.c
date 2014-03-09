@@ -165,7 +165,7 @@ void bp4p_register_preds(void)
     /* up/prefix.c */
     REGISTER_CPRED(lapack_solve,4);
     /* up/infix.c */
-    REGISTER_CPRED(infix,1);
+    REGISTER_CPRED(infix,2);
 
 #ifdef MPI
     /* mp/mp_preds.c */

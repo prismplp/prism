@@ -27,6 +27,7 @@ OBJS = graph.$(O)             \
        prefix.$(O)            \
        infix.$(O)
 
+
 ##----------------------------------------------------------------------
 
 BP4P_H = ..$(S)bp4prism$(S)include$(S)bprolog.h                     \

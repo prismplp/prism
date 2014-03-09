@@ -254,9 +254,9 @@ $pp_compute_expls(Goal,GLabel,Expls,Decode,PrMode,T0) :-
     $pc_prism_goal_id_get(Goal,Gid),
     $pc_alloc_sort_egraph(Gid),
     cputime(T3),
-    ( PrMode == 0 -> true
-    ; $pp_export_sw_info,
-      $pc_compute_probf(PrMode)
+    (  PrMode == 0 -> true
+    ;  $pp_export_sw_info,
+       $pc_compute_probf(PrMode)
     ),
     cputime(T4),
     $pc_import_sorted_graph_size(Size),

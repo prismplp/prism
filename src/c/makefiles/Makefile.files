@@ -37,6 +37,7 @@ UP_OBJS   = up$(S)graph.$(O)            \
             up$(S)flags.$(O)            \
             up$(S)util.$(O)             \
             up$(S)prefix.$(O)           \
+            up$(S)liblbfgs-1.10$(S)lib$(S)lbfgs.$(O)    \
             up$(S)infix.$(O)           
 
 ifeq ($(PLATFORM),linux64)

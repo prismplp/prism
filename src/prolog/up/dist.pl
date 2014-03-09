@@ -25,7 +25,7 @@ $pp_normalize_ratio(Ratio,Probs) :-
 $pp_ratio_to_probs([],_,[]) :- !.
 $pp_ratio_to_probs([X|Xs],Denom,[Y|Ys]) :-
     get_prism_flag(error_on_invalid_distribution,F),
-    F=on->(Y is X / Denom);(Y is X),!,
+    (F=on->(Y is X / Denom);(Y is X)),!,
     $pp_ratio_to_probs(Xs,Denom,Ys).
 
 $pp_check_expanded_prob_size(List,N,Source) :-
