@@ -1,0 +1,121 @@
+:-dynamic tr/3.
+atom_cat(As,A):-atom2chars(As,L),atom_chars(A,L).
+atom2chars([],[]).
+atom2chars([A|Rest],L):-atom_chars(A,CA),atom2chars(Rest,LL),append(CA,LL,L).
+
+get_terminal(List):-findall(A,get_values(_,A),SL),flatten(SL,SLL), 
+	findall(A,get_values(A,_),get_values(A,_),L),maplist(X,Y,(member(X,L)->Y=[];Y=X),SLL,Temp1),
+	unique(Temp1,Temp2),delete(Temp2,[],List).
+
+make_prefix_dfa(Infix):-make_prefix_dfa(Infix,_).
+make_prefix_dfa(Infix,SList):-delete(Infix,'$',List),unique(List,Actions),make_prefix_dfa(List,Actions,SList).
+make_prefix_dfa(List,Actions,[s0|SList]):-length(List,L),LM is L-1,Counter@=[I:I in 1..L],CounterM@=[I:I in 1..LM],
+	maplist(C,X,Y,(term2atom(C,CC),atom_cat(['s',CC,'_',X],Y)),Counter,List,TempSList),
+	reverse(TempSList,Temp),Temp=[_|SRest],reverse([sf|SRest],SList),  % replace s_n_end and sf
+	Arr@=[[SI,A]:A in Actions,SI in CounterM],   % make an array of [current state,action] pairs
+	maplist([SI,A],Y,(make_tr(SI,A,Y,List)),Arr,Res),  % make next state
+	retractall(tr(_,_,_)),
+	format(">>>~w\n",Res),
+	format(">>>~w\n",SList),
+	format(">>>~w\n",Actions).
+	%format(">>>~w\n",IniRes3),
+	% convert simbols from index
+	%format(">>>~w\n",SRes),
+	%assert_tr(SRes).
+
+
+make_dfa(Infix):-make_dfa(Infix,_).
+make_dfa(Infix,SList):-delete(Infix,'$',List),unique(List,Actions),make_dfa(List,Actions,SList).
+make_dfa(List,Actions,[s0|SList]):-length(List,L),LM is L-1,Counter@=[I:I in 1..L],CounterM@=[I:I in 1..LM],
+	maplist(C,X,Y,(term2atom(C,CC),atom_cat(['s',CC,'_',X],Y)),Counter,List,TempSList),
+	reverse(TempSList,Temp),Temp=[_|SRest],reverse([sf|SRest],SList),  % replace s_n_end and sf
+	Arr@=[[SI,A]:A in Actions,SI in CounterM],   % make an array of [current state,action] pairs
+	maplist([SI,A],Y,(make_tr(SI,A,Y,List)),Arr,Res),  % make next state
+	retractall(tr(_,_,_)),
+	nth(1,List,Act1),nth(1,SList,S1),assert(tr(s0,Act1,S1)),   % make first transition
+	delete(Actions,Act1,OAct),
+	maplist(O,[s0,O,s0],true,OAct,IniRes1),
+	assert_tr(IniRes1),
+	get_terminal(AllActions),
+	maplist(X,Y,(member(X,Actions)->Y=[];Y=X),AllActions,Temp1),
+	delete(Temp1,[],YOAct),
+	S0A@=[[S0,A]:S0 in [s0|SRest],A in YOAct],
+	%format("~w\n",YOAct),
+	%format("~w\n",S0A),
+	maplist([S0,A],[S0,A,s0],true,S0A,IniRes2),
+	assert_tr(IniRes2),
+	maplist(A,[sf,A,sf],true,AllActions,IniRes3),
+	assert_tr(IniRes3),
+	%format(">>>~w\n",IniRes1),
+	%format(">>>~w\n",IniRes2),
+	%format(">>>~w\n",IniRes3),
+	% convert simbols from index
+	maplist([SI,A,TI],[SSI,A,TTI],(
+		(SI=0->SSI=s0;nth(SI,SList,SSI)),
+		(TI=0->TTI=s0;nth(TI,SList,TTI))
+	),Res,SRes),
+	%format(">>>~w\n",SRes),
+	assert_tr(SRes).
+
+make_dfai(Infix):-make_dfai(Infix,_).
+make_dfai(Infix,SList):-delete(Infix,'$',List),unique(List,Actions),make_dfai(List,Actions,SList).
+make_dfai(List,Actions,[0|Counter]):-length(List,L),LM is L-1,Counter@=[I:I in 1..L],CounterM@=[I:I in 1..LM],
+	Arr@=[[SI,A]:A in Actions,SI in CounterM],   % make an array of [current state,action] pairs
+	maplist([SI,A],Y,(make_tr(SI,A,Y,List)),Arr,Res),  % make next state
+	retractall(tr(_,_,_)),
+	nth(1,List,Act1),assert(tr(0,Act1,1)),   % make first transition
+	delete(Actions,Act1,OAct),
+	maplist(O,[0,O,0],true,OAct,IniRes1),
+	assert_tr(IniRes1),
+	get_terminal(AllActions),
+	maplist(X,Y,(member(X,Actions)->Y=[];Y=X),AllActions,Temp1),
+	delete(Temp1,[],YOAct),
+	S0A@=[[S0,A]:S0 in [0|CounterM],A in YOAct],
+	%format("~w\n",YOAct),
+	%format("~w\n",S0A),
+	maplist([S0,A],[S0,A,0],true,S0A,IniRes2),
+	assert_tr(IniRes2),
+	maplist(A,[L,A,L],true,AllActions,IniRes3),
+	assert_tr(IniRes3),
+	%format(">>>~w\n",IniRes1),
+	%format(">>>~w\n",IniRes2),
+	%format(">>>~w\n",IniRes3),
+	% convert simbols from index
+	%format(">>>~w\n",SRes),
+	assert_tr(Res).
+
+
+%%%%%%%%%%%
+%%%%%%%%%%%
+unique([],[]).
+unique([H|T],[H|TU]) :- delete(T,H,TN), unique(TN,TU).
+
+assert_tr([]).
+assert_tr([[S,A,T]|L]):-assert(tr(S,A,T)),assert_tr(L).
+assert_tr([[A,T]|L]):-assert(tr(_,A,T)),assert_tr(L).
+
+make_tr(SI,A,[SI,A,TI],List):-
+	sublist_r(List,Sublist),
+	nth(SI,Sublist,SL),
+	L=[A|SL],
+	sublist_r(L,SubMatchL),
+	maplist(X,Y,(pre_match(X,List,T),length(X,XLen),length(T,TLen),XLen=TLen->Y=1;Y=0),SubMatchL,NL),
+	lst_one(NL,TI).
+
+lst_one(L,Id):-lst_one(L,1,Id),(var(Id)->Id=0;true).
+lst_one([],_,_).
+lst_one([A|L],Idx,Id):-Idx2 is Idx+1,lst_one(L,Idx2,Id),((A=1,var(Id))->Id=Idx;true).
+
+pre_match(_,[],[]).
+pre_match([],_,[]).
+pre_match([A|RA],[B|RB],Out):-A=B->(pre_match(RA,RB,OutC),Out=[A|OutC]);(Out=[]).
+
+sublist_r(List,X):-reverse(List,RList),sublist_r_rec(RList,RX),reverse(RX,X).
+sublist_r_rec([],[]).
+sublist_r_rec(List,[List|X]):-List=[_|L],sublist_r_rec(L,X).
+
+sublist(List,X):-reverse(List,RList),sublist_rec(RList,RX),reverse(RX,X).
+sublist_rec([],[]).
+sublist_rec(List,[RList|X]):-reverse(List,RList),List=[_|L],sublist_rec(L,X).
+
+

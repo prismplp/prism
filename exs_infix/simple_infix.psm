@@ -1,0 +1,64 @@
+%% file = simple_infix.psm
+%--------------------------------------
+% [Usage]
+% $ inprism
+% ?- prism(simple_infix),in_prob(infix([a]))
+% Probability is 0.679449
+% 
+% [Explanation graph]
+%probf(infix([a]))                      
+%infix([a])
+%	<=> infix(s0,sf,s)
+%infix(s0,sf,s)
+%	<=> infix(s0,sf,a) & msw(s,[a])
+%		v infix(s0,sf,s) & infix(sf,sf,s) & msw(s,[s,s])
+%		v infix(s0,s0,s) & infix(s0,sf,s) & msw(s,[s,s])
+%infix(s0,sf,a)
+%infix(sf,sf,s)
+%	<=> infix(sf,sf,a) & msw(s,[a])
+%		v infix(sf,sf,b) & msw(s,[b])
+%		v infix(sf,sf,s) & infix(sf,sf,s) & msw(s,[s,s])
+%infix(sf,sf,a)
+%infix(sf,sf,b)
+%infix(s0,s0,s)
+%	<=> infix(s0,s0,b) & msw(s,[b])
+%		 v infix(s0,s0,s) & infix(s0,s0,s) & msw(s,[s,s])
+%infix(s0,s0,b)
+%
+% [Equations]
+% x[1] : 0.2*x[3]*x[1]+0.2*x[1]*x[2]+0.5
+% x[2] : 0.2*x[2]*x[2]+0.3+0.5
+% x[3] : 0.2*x[3]*x[3]+0.3
+%
+% [Solutions]
+% x[1]>=0,x[2]>=0,x[3]>=0
+% x[1] -> 0.679449, x[2] -> 1, x[3] -> 0.320551
+% x[1] -> 3.67945, x[2] -> 4, x[3] -> 0.320551
+%%--------------------------------------
+
+:- set_prism_flag(error_on_cycle,off).
+
+%--------------------------------------
+:-include('dfa.psm').
+:-include('rule.pl').
+
+:- p_not_table dummy/3.
+
+infix(L):-
+	make_dfa(L),
+	start_symbol(C),
+	dummy(s0,sf,[C]).
+
+
+dummy(S0,S2,[A|R]):-
+	infix(S0,S1,A),dummy(S1,S2,R).
+	dummy(S,S,[]).
+
+infix(S0,S1,A):-
+	( get_values(A,_) ->             % A : nonterminal
+		msw(A,RHS),
+		dummy(S0,S1,RHS)
+	; tr(S0,A,S1)
+	).
+infix(S,S,[]).
+

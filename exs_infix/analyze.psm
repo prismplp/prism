@@ -1,0 +1,296 @@
+% file = analyze.psm
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%                                                           %%%%%%
+%%%%%%             <<  PRISM program analyzer >>                 %%%%%%
+%%%%%%                                                           %%%%%%
+%%%%%%    Copyright (C) 2004, 2014, All rights reserved          %%%%%%
+%%%%%%    Taisuke Sato                                           %%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% To use, include in the source program
+%  :- include('analyze.psm').
+
+% Defined predicates:
+% analyze(TopG) ... analyzes how often nodes are referred to
+%    by other nodes (Nref). What it actually does is to count
+%    the number of times a goal appears in the bodies of other clauses
+%    in the explanation graph (NodeL) obtained from probf(TopG,NodeL).
+%
+%    <Nnodes,Nref,NId,Nmsw,Npath> is displayed for each goal G where
+%       Nnodes = #different nodes in the explanation graph
+%       Nref  = G is shared  #Nref times by upper layer clause bodies 
+%       NId  =  the total sum of |IdL|  s.t. Id <=> IdL & MswL v ...
+%       Nmsw  = the total sum of |MswL| s.t. Id <=> IdL & MswL v ...
+%       Npath = |PathL| = #disjuncts
+% analyze(TopG,Stats) ... returns Stats = [Nnodes,Nref,NId,Nmsw,Npath]
+%
+% optimize(TopG) ... shrinks the explanation graph
+%    by unfolding unit clauses (at most one msw atom in the body)
+%    and those goals that appear just once in the graph as a subgoal in a clause body
+%    and have only one path (no alternative).
+% optimize(TopG,OptEG) ... returns an optimized explanation graph
+% optimize(TopG,OptEG,Stats) ... optimize(TopG,OptNodeL) with
+%    Stats = [size(#graph_nodes),nodes(#nodes),
+%             size_opt(#optimized_graph_nodes),nodes_opt(#optimized_nodes)]
+
+% > prism(pdcg2),set_sw_all.
+% ?- analyze(pdcg([n,p,v])).
+% ?- analyze(pdcg([n,p,v]),Stats).
+% ?- optimize(pdcg([n,p,v])).
+% ?- optimize(pdcg([n,p,v]),_,Stats).
+% ?- analyze(pdcg([adv,adv,n,c,n,p,v])).
+% ?- optimize(pdcg([adv,adv,n,c,n,p,v])).
+% ?- optimize(pdcg([adv,adv,n,c,n,p,v]),_EG),print_graph(_EG,[lr('<=>')]).
+% ?- optimize(pdcg([adv,adv,v,n,p,v]),_,Stats).
+
+%----------------------------------------------------------
+% NodeL = [ Node1, Node2,...lower-node... ]  <- returned by probf(Goal,NodeL)
+% Node = node(node_Id, PathL) 
+% PathL = [path( ... ),...] or []
+% path( ... ) = path([ lower-node-Id,... ],[msw(name,value),...])
+%                        (IdL)              (MswL)
+% node-Id = ground-atom
+
+:- dynamic ref_count/5.
+     % ref_count(Id,Nref,NId,Nmsw,Npath)
+     % Nref  = Id is shared  #Nref times by upper layer clause bodies 
+     % NId  =  the total sum of |IdL|  s.t. Id <=> IdL & MswL v ...
+     % Nmsw  = the total sum of |MswL| s.t. Id <=> IdL & MswL v ...
+     % Npath = |PathL| = #disjuncts
+:- dynamic graph_node/2.  % graph_node(Id,PathL)
+:- dynamic unfoldable/1.
+     % ref_count(Id, Nref=1, NId,   Nmsw,   Npath=1) => Id is just a relay node
+     % ref_count(Id, Nref,   NId,   Nmsw=0, Npath=0) => Id is a unit clause
+     % ref_count(Id, Nref,   NId=0, Nmsw=1, Npath)   => Id is a unit msw
+
+
+optimize(TopG):- optimize_graph(TopG).
+optimize(TopG,OptNodeL):- optimize_graph(TopG,OptNodeL).
+optimize(TopG,OptNodeL,Stats):- optimize_graph(TopG,OptNodeL,Stats).
+
+optimize_graph(TopG):-
+   probf(TopG,NodeL),
+   numbervars(NodeL,1,_),    % In case NodeL contains vars
+   optimize_graph2(TopG,NodeL,OptNodeL),
+   print_graph(OptNodeL,[lr('<=>')]),nl,
+   mk_countL(TopG,OptNodeL,OptCountL),
+   print_count(OptCountL),nl,
+   count_node(NodeL,X),length(NodeL,LenX),
+   count_node(OptNodeL,Y),length(OptNodeL,LenY),
+   format(" #graph_nodes shrunk from ~d to ~d~n",[X,Y]),
+   format(" #nodes shrunk from ~d to ~d~n",[LenX,LenY]).
+
+optimize_graph(TopG,OptNodeL):-
+   probf(TopG,NodeL),
+   numbervars(NodeL,1,_),   % In case NodeL contains vars
+   optimize_graph2(TopG,NodeL,OptNodeL).
+
+optimize_graph(TopG,OptNodeL,
+     [size(SizeX),nodes(NodesX),size_opt(SizeY),nodes_opt(NodesY)]):-
+   probf(TopG,NodeL),
+   optimize_graph2(TopG,NodeL,OptNodeL),
+   count_node(NodeL,SizeX), length(NodeL,NodesX),
+   count_node(OptNodeL,SizeY), length(OptNodeL,NodesY).
+
+% Given a support graph "NodeL" for a top-goal "TopG",
+% this pred. optimizes "NodeL" to "OptL"
+optimize_graph2(TopG,NodeL,OptL):-
+   assert_count(TopG,NodeL,CountL), % assert ref_count/5
+   assert_unfoldable(CountL),       % summarize ref_count/5 in CountL
+   assert_graph_nodes(NodeL),       % assert graph nodes
+   optimize_nodes(NodeL,NewNodeL),
+   retractall(unfoldable(_)),
+   retractall(graph_node(_,_)),
+   retractall(ref_count(_,_,_,_,_)),
+   length(NodeL,X), length(NewNodeL,Y),    
+   ( X =< Y -> OptL = NewNodeL
+   ; X > Y,
+       optimize_graph2(TopG,NewNodeL,OptL) ).
+
+
+%-----------------------------------
+% Main routine to unfold goals
+optimize_nodes([Node|X],NewNodeL):-
+   Node = node(Id,PathL),
+   ( ref_count(Id,0,_,_,_), % only nodes having 0 reference are eliminated
+%        format( "   0-ref. eliminated = ~w~n", [Id]),
+        NewNodeL = Y
+   ; optimize_pathL(PathL,NewPathL),
+        NewNodeL = [node(Id,NewPathL)|Y]
+   ),!,
+   optimize_nodes(X,Y).
+optimize_nodes([],[]).
+
+mk_countL(TopG,NodeL,CountL):-
+   assert_all_nodes(TopG,NodeL),
+   count_reference(NodeL),
+   findall([Id,Nref,NId,Nmsw,Npath],ref_count(Id,Nref,NId,Nmsw,Npath),CountL),
+   ( retract(ref_count(_,_,_,_,_)), fail ; true ),!.
+
+assert_count(TopG,NodeL,CountL):-
+   assert_all_nodes(TopG,NodeL),
+   count_reference(NodeL),
+   findall([Id,Nref,NId,Nmsw,Npath],ref_count(Id,Nref,NId,Nmsw,Npath),CountL).
+
+decr_count(Id):-
+   retract(ref_count(Id,Nref,NId,Nmsw,Npath)),
+   N1 is Nref-1,
+   assert(ref_count(Id,N1,NId,Nmsw,Npath)).
+decr_countL([Id|X]):-
+   decr_count(Id),!,
+   decr_countL(X).
+decr_countL([]).
+
+optimize_pathL([path([],[])|_],[]):-!.  %%% path([],[]) is always true
+optimize_pathL([path(IdL,MswL)|X],NewPathL):-
+   optimize_path(IdL,NewIdL,MswL,NewMswL),
+   ( NewIdL==[], NewMswL==[],
+        NewPathL=Y
+   ; NewPath=path(NewIdL,NewMswL),
+        NewPathL=[NewPath|Y] ),!,
+   optimize_pathL(X,Y).
+optimize_pathL([],[]).
+
+% main predicate to unfold unfoldable subgoals 
+optimize_path([ChId|X],NewIdL,MswL,NewMswL):-
+   ( unfoldable(ChId),
+       graph_node(ChId,PathL),
+%       format( " unfoldable = ~w~n", [ChId]),
+      ( PathL == [],   % ChId = unit clause
+           decr_count(ChId),
+           NewIdL=Y, NewMswL=Z
+      ; PathL = [ path([],[]) ],   % ChId = unit clause
+           decr_count(ChId),       % bug of PRISM1.7,
+           NewIdL=Y, NewMswL=Z     % [path([],[])] => [] in PRISM1.8
+      ; PathL = [ path(IdL2,MswL2) ], % ChId has only one path
+           decr_count(ChId),
+           unfold_append(IdL2,Y,NewIdL),
+           unfold_append(MswL2,Z,NewMswL) )
+   ; NewIdL=[ChId|Y], NewMswL=Z ),!,
+   optimize_path(X,Y,MswL,Z).
+optimize_path([],[],MswL,MswL).
+
+unfold_append([],Y,Y).
+unfold_append([H|X],Y,[H|Z]):- unfold_append(X,Y,Z).
+
+
+analyze(TopG):- analyze(TopG,print).
+analyze(TopG,Stats):-
+   probf(TopG,NodeL),   %  UnfoldL -> [Id,Nref,NId,Nmsw,Npath]...
+   assert_all_nodes(TopG,NodeL),
+   count_reference(NodeL),
+   findall([Id,Nref,NId,Nmsw,Npath],ref_count(Id,Nref,NId,Nmsw,Npath),CountL),
+   retractall(ref_count(_,_,_,_,_)),
+   count_statistics(CountL,Ave),
+   ( Stats == print -> print_count(CountL)
+   ; Stats = Ave ),
+   format(" #nodes = ~d, avg_parents = ~3g, avg_subgoals = ~3g, avg_msws = ~3g, avg_disjuncts = ~3g~n",Ave),
+   nl.
+
+count_statistics(CountL,Ave):-
+   count_statistics(CountL, %  Id with no parents is not considered
+   0,  %    S_g:  total sum of # goals that have parents
+   0,  %  S_ref:  total sum of # Nref  (parents)
+   0,  % S_subg:  total sum of # NId   (subgoals)
+   0,  %  S_msw:  total sum of # Nmsw
+   0,  % S_path:  total sum of # Npath (disjuncts)
+   Ave).
+
+count_statistics([Data|X],S_g,S_ref,S_subg,S_msw,S_path,Ave):-
+   Data = [_,Nref,NId,Nmsw,Npath],
+   ( Nref=0, S_g2 is S_g ; S_g2 is S_g+1 ),!,
+   S_ref2   is S_ref+Nref,
+   S_subg2  is S_subg+NId,
+   S_msw2   is S_msw+Nmsw,
+   S_path2  is S_path+Npath,
+   count_statistics(X,S_g2,S_ref2,S_subg2,S_msw2,S_path2,Ave).
+count_statistics([],S_g,S_ref,S_subg,S_msw,S_path,Ave):-
+   Ave_ref  is S_ref/S_g,
+   Ave_subg is S_subg/S_g,
+   Ave_msw  is S_msw/S_g,
+   Ave_disjuncts is S_path/S_g,
+   Ave =[S_g,Ave_ref,Ave_subg,Ave_msw,Ave_disjuncts].
+
+find_unfoldable([[Id,Nref,NId,Nmsw,Npath]|X],UnfoldL):-
+   ( unfoldable(Nref,NId,Nmsw,Npath),
+       UnfoldL =[[Id,Nref,NId,Nmsw,Npath]|Y]
+   ; UnfoldL=Y ),!,
+   find_unfoldable(X,Y).
+find_unfoldable([],[]).
+
+assert_unfoldable([[Id,Nref,NId,Nmsw,Npath]|X]):-
+   ( unfoldable(Nref,NId,Nmsw,Npath),
+       assertz(unfoldable(Id))
+   ; true ),!,
+   assert_unfoldable(X).
+assert_unfoldable([]).
+
+unfoldable(Nref,NId,Nmsw,Npath):-  % Node is unfoldable if it
+   ( Nmsw == 0, Npath == 0     % is a unit clause, or
+   ; Nref == 1, Npath == 1     % has one parent and one path, or
+   ; NId == 0,  Nmsw == 1, Npath == 1
+                               % has only one path with one msw
+   ),!.
+
+print_count([[Id,Nref,NId,Nmsw,Npath]|L2]):-
+   format(" ~d  ~d  ~d  ~d :~t~w~n",[Nref,NId,Nmsw,Npath,Id]),!,
+   print_count(L2).
+print_count([]).
+
+% this pred. counts and asserts various statistics 
+count_reference(NodeL):-
+   NodeL=[node(Id,PathL)|L2],
+   count_reference2(PathL,0,IdNum,0,MswNum),
+
+   ( PathL=[ path([],[]) ], PathNum=0  % bug of PRISM1.7
+   ; length(PathL,PathNum) ),!,        % [path([],[])] should be []
+                                       % in PRISM1.8
+   retract(ref_count(Id,Nref,_,_,_)),
+   assertz(ref_count(Id,Nref,IdNum,MswNum,PathNum)),!,
+   count_reference(L2).
+count_reference([]).
+
+count_reference2([Path|L2],J,IdNum,K,MswNum):-
+   Path = path(IdL,MswL),
+   length(IdL,J1),  J2 is J1+J,
+   length(MswL,K1), K2 is K1+K,
+   count_reference3(IdL),!,
+   count_reference2(L2,J2,IdNum,K2,MswNum).
+count_reference2([],J,J,K,K).
+
+count_reference3([Id|L2]):-
+  ( retract(ref_count(Id,Nref,_,_,_)),
+      Nref1 is Nref+1,
+      assertz(ref_count(Id,Nref1,0,0,0))
+  ; true ),!,
+  count_reference3(L2).
+count_reference3([]).
+
+assert_all_nodes(TopG,[Node|X]):-
+   Node = node(Id,_),
+   assertz(ref_count(Id,0,0,0,0)),!,
+   assert_all_nodes(TopG,X).
+assert_all_nodes(TopG,[]):-  % <= top node must have a positive
+   retract(ref_count(TopG,_,_,0,0)),   % reference. O.w. lower nodes
+   asserta(ref_count(TopG,1,0,0,0)).   % will be eliminated
+
+assert_graph_nodes([Node|X]):-
+   Node = node(Id,PathL),
+   assertz(graph_node(Id,PathL)),!,
+   assert_graph_nodes(X).
+assert_graph_nodes([]).
+
+count_node(NodeL,Total):-
+   count_node2(NodeL,0,Total).
+
+count_node2([node(_,PathL)|L2],N,Total):-
+   count_node3(PathL,0,NChId),
+   N2 is 1+NChId+N,!,
+   count_node2(L2,N2,Total).
+count_node2([],N,N).
+
+count_node3([path(IdL,MswL)|L2],J,NChId):-
+   length(IdL, X),
+   length(MswL,Y), 
+   J2 is J+X+Y,!,
+   count_node3(L2,J2,NChId).
+count_node3([],J,J).
