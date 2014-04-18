@@ -45,13 +45,13 @@ PL_BP    = bp/eval.pl
 PL_FOC   = foc/fo.pl            \
            foc/fo_prismn.pl
 
-PL_PREFIX= prefix/prefix.pl      \
-           prefix/infix.pl \
-           prefix/trans_graph.pl \
-           prefix/find_scc.pl    \
-           prefix/solve_graph.pl
+PL_CYCLE = cycle/cyc_prob.pl      \
+           cycle/infix.pl       \
+           cycle/trans_graph.pl \
+           cycle/find_scc.pl    \
+           cycle/solve_graph.pl
 
-PL_UP_ALL   = $(PL_CORE) $(PL_UP) $(PL_TRANS) $(PL_BP) $(PL_PREFIX)
+PL_UP_ALL   = $(PL_CORE) $(PL_UP) $(PL_TRANS) $(PL_BP) $(PL_CYCLE)
 PL_MP_ALL   = $(PL_MP)
 PL_BAT_ALL  = $(PL_BAT)
 PL_FOC_ALL  = $(PL_FOC)

@@ -36,7 +36,7 @@ UP_OBJS   = up$(S)graph.$(O)            \
             up$(S)hindsight.$(O)        \
             up$(S)flags.$(O)            \
             up$(S)util.$(O)             \
-            up$(S)prefix.$(O)           \
+            up$(S)linear_eq.$(O)           \
             up$(S)lbfgs.$(O)            \
             up$(S)infix.$(O)           
 
