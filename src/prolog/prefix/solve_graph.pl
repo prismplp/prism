@@ -44,7 +44,7 @@ $pp_solve_component(G,CompNodes,CompTable,ProbTable) :-
   ; % Transform to list and call c interface for solving
     bigarray_to_list(A,AList),
     bigarray_to_list(B,BList),
-    ( $pc_lapack_solve(Length, AList, BList, XList) ->
+    ( $pc_solve_linear_system(Length, AList, BList, XList) ->
       list_to_bigarray(XList, X)
     ; $pp_raise_evaluation_error($msg(0200),['system not solvable'],non_solvable,$pp_solve_component/4)
     )

@@ -1,7 +1,6 @@
 #ifndef __PREFIX_H__
 #define __PREFIX_H__
 
-int lapack_solve(void);
-int pc_lapack_solve_4(void);
+int pc_solve_linear_system_4(void);
 
 #endif /* __PREFIX_H__ */

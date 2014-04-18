@@ -3,7 +3,14 @@
 ROOT = .
 
 !INCLUDE $(ROOT)\makefiles\Makefile.opts.nmake
+# !INCLUDE $(ROOT)\makefiles\Makefile.files
+
+!IF "$(MATRIX)"=="lapack"
+!INCLUDE $(ROOT)\makefiles\Makefile_lapack.files
+!ELSE
 !INCLUDE $(ROOT)\makefiles\Makefile.files
+!ENDIF
+
 
 ##----------------------------------------------------------------------
 
@@ -46,7 +53,7 @@ mp_all:
 	$(MAKE) -f $(MAKEFILE) all
 	@cd ..
 
-$(TARGET): $(SUBDIRS) $(BP4P_A)
+$(TARGET): $(SUBDIRS) $(BP4P_A) $(OBJS)
 	$(CC) $(TARGETFLAG)$(TARGET) $(OBJS) $(BP4P_A) $(LDFLAGS)
 
 ##----------------------------------------------------------------------

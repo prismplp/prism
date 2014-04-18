@@ -3,7 +3,21 @@
 ROOT = ..
 
 !INCLUDE $(ROOT)\makefiles\Makefile.opts.nmake
+
+!IF "$(MATRIX)"=="lapack"
+!INCLUDE Makefile_lapack.files
+!ELSE
 !INCLUDE Makefile.files
+!ENDIF
+
+!IF "$(MATRIX)"=="lapack"
+## this order is important
+LAPACK_OBJS = lapack$(S)liblapacke.$(A)    \
+            lapack$(S)liblapack.$(A)   \
+            lapack$(S)libtmglib.$(A)    \
+            lapack$(S)librefblas.$(A)      
+!ENDIF
+
 
 ##----------------------------------------------------------------------
 

@@ -8,6 +8,9 @@ PLATFORM = win32
 PROCTYPE = up
 !ENDIF
 
+!IFNDEF MATRIX
+MATRIX = eigen
+!ENDIF
 ##----------------------------------------------------------------------
 
 TARGET      = prism_$(PLATFORM).exe
@@ -16,13 +19,21 @@ TARGETFLAG  = /Fe
 MAKEFILE    = Makefile.nmake
 
 CC          = cl
-CFLAGS      = /O2 /nologo /EHsc /I..\bp4prism\include /I..
-LDFLAGS     = /nologo
 CP          = copy /y
 RM          = del /q /f
 O           = obj
 A           = lib
 S           = \ #
+
+!IF "$(MATRIX)"=="lapack"
+CFLAGS      = /O2 /nologo /EHsc /I..\bp4prism\include /I.. /I..\lapack /I..\up\liblbfgs-1.10\include
+LDFLAGS     = /nologo
+!ELSE
+CFLAGS      = /O2 /nologo /EHsc /I..\bp4prism\include /I.. /I..\eigen /I..\up\liblbfgs-1.10\include
+CPPFLAGS=$(CFLAGS)
+LDFLAGS     = /nologo
+!ENDIF
+
 
 ##----------------------------------------------------------------------
 

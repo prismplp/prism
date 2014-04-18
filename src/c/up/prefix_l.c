@@ -3,10 +3,12 @@
 #include "lapacke.h"
 #include "bprolog.h"
 
+int lapack_solve(void);
+
 // need to declare this function before
 double bpx_get_float(TERM t);
 
-int pc_lapack_solve_4(void) {
+int pc_solve_linear_system_4(void) {
   // get arguments
   TERM pr_n, pr_A, pr_b, pr_x;
   pr_n = bpx_get_call_arg(1,4); // first argument: vector size
