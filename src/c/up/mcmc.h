@@ -21,15 +21,15 @@
 
 typedef struct SwitchCount *SW_COUNT_PTR;
 struct SwitchCount {
-    int sw_ins_id;
-    int count;
+	int sw_ins_id;
+	int count;
 };
 
 typedef struct PredictAns *PR_ANS_PTR;
 struct PredictAns {
-    int rank;
-    double logP;
-    struct PredictAns *next;
+	int rank;
+	double logP;
+	struct PredictAns *next;
 };
 
 /*------------------------------------------------------------------------*/

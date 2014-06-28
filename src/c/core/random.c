@@ -57,101 +57,97 @@ static unsigned long mt[N]; /* the array for the state vector  */
 static int mti=N+1; /* mti==N+1 means mt[N] is not initialized */
 
 /* initializes mt[N] with a seed */
-static void init_genrand(unsigned long s)
-{
-    mt[0]= s & 0xffffffffUL;
-    for (mti=1; mti<N; mti++) {
-        mt[mti] =
-            (1812433253UL * (mt[mti-1] ^ (mt[mti-1] >> 30)) + mti);
-        /* See Knuth TAOCP Vol2. 3rd Ed. P.106 for multiplier. */
-        /* In the previous versions, MSBs of the seed affect   */
-        /* only MSBs of the array mt[].                        */
-        /* 2002/01/09 modified by Makoto Matsumoto             */
-        mt[mti] &= 0xffffffffUL;
-        /* for >32 bit machines */
-    }
+static void init_genrand(unsigned long s) {
+	mt[0]= s & 0xffffffffUL;
+	for (mti=1; mti<N; mti++) {
+		mt[mti] =
+		    (1812433253UL * (mt[mti-1] ^ (mt[mti-1] >> 30)) + mti);
+		/* See Knuth TAOCP Vol2. 3rd Ed. P.106 for multiplier. */
+		/* In the previous versions, MSBs of the seed affect   */
+		/* only MSBs of the array mt[].                        */
+		/* 2002/01/09 modified by Makoto Matsumoto             */
+		mt[mti] &= 0xffffffffUL;
+		/* for >32 bit machines */
+	}
 }
 
 /* initialize by an array with array-length */
 /* init_key is the array for initializing keys */
 /* key_length is its length */
 /* slight change for C++, 2004/2/26 */
-void init_by_array(unsigned long init_key[], int key_length)
-{
-    int i, j, k;
-    init_genrand(19650218UL);
-    i=1;
-    j=0;
-    k = (N>key_length ? N : key_length);
-    for (; k; k--) {
-        mt[i] = (mt[i] ^ ((mt[i-1] ^ (mt[i-1] >> 30)) * 1664525UL))
-                + init_key[j] + j; /* non linear */
-        mt[i] &= 0xffffffffUL; /* for WORDSIZE > 32 machines */
-        i++;
-        j++;
-        if (i>=N) {
-            mt[0] = mt[N-1];
-            i=1;
-        }
-        if (j>=key_length) j=0;
-    }
-    for (k=N-1; k; k--) {
-        mt[i] = (mt[i] ^ ((mt[i-1] ^ (mt[i-1] >> 30)) * 1566083941UL))
-                - i; /* non linear */
-        mt[i] &= 0xffffffffUL; /* for WORDSIZE > 32 machines */
-        i++;
-        if (i>=N) {
-            mt[0] = mt[N-1];
-            i=1;
-        }
-    }
+void init_by_array(unsigned long init_key[], int key_length) {
+	int i, j, k;
+	init_genrand(19650218UL);
+	i=1;
+	j=0;
+	k = (N>key_length ? N : key_length);
+	for (; k; k--) {
+		mt[i] = (mt[i] ^ ((mt[i-1] ^ (mt[i-1] >> 30)) * 1664525UL))
+		        + init_key[j] + j; /* non linear */
+		mt[i] &= 0xffffffffUL; /* for WORDSIZE > 32 machines */
+		i++;
+		j++;
+		if (i>=N) {
+			mt[0] = mt[N-1];
+			i=1;
+		}
+		if (j>=key_length) j=0;
+	}
+	for (k=N-1; k; k--) {
+		mt[i] = (mt[i] ^ ((mt[i-1] ^ (mt[i-1] >> 30)) * 1566083941UL))
+		        - i; /* non linear */
+		mt[i] &= 0xffffffffUL; /* for WORDSIZE > 32 machines */
+		i++;
+		if (i>=N) {
+			mt[0] = mt[N-1];
+			i=1;
+		}
+	}
 
-    mt[0] = 0x80000000UL; /* MSB is 1; assuring non-zero initial array */
+	mt[0] = 0x80000000UL; /* MSB is 1; assuring non-zero initial array */
 }
 
 /* generates a random number on [0,0xffffffff]-interval */
-static unsigned long genrand_int32(void)
-{
-    unsigned long y;
-    static unsigned long mag01[2]= {0x0UL, MATRIX_A};
-    /* mag01[x] = x * MATRIX_A  for x=0,1 */
+static unsigned long genrand_int32(void) {
+	unsigned long y;
+	static unsigned long mag01[2]= {0x0UL, MATRIX_A};
+	/* mag01[x] = x * MATRIX_A  for x=0,1 */
 
-    if (mti >= N) { /* generate N words at one time */
-        int kk;
+	if (mti >= N) { /* generate N words at one time */
+		int kk;
 
-        if (mti == N+1)   /* if init_genrand() has not been called, */
-            init_genrand(5489UL); /* a default initial seed is used */
+		if (mti == N+1)   /* if init_genrand() has not been called, */
+			init_genrand(5489UL); /* a default initial seed is used */
 
-        for (kk=0; kk<N-M; kk++) {
-            y = (mt[kk]&UPPER_MASK)|(mt[kk+1]&LOWER_MASK);
-            mt[kk] = mt[kk+M] ^ (y >> 1) ^ mag01[y & 0x1UL];
-        }
-        for (; kk<N-1; kk++) {
-            y = (mt[kk]&UPPER_MASK)|(mt[kk+1]&LOWER_MASK);
-            mt[kk] = mt[kk+(M-N)] ^ (y >> 1) ^ mag01[y & 0x1UL];
-        }
-        y = (mt[N-1]&UPPER_MASK)|(mt[0]&LOWER_MASK);
-        mt[N-1] = mt[M-1] ^ (y >> 1) ^ mag01[y & 0x1UL];
+		for (kk=0; kk<N-M; kk++) {
+			y = (mt[kk]&UPPER_MASK)|(mt[kk+1]&LOWER_MASK);
+			mt[kk] = mt[kk+M] ^ (y >> 1) ^ mag01[y & 0x1UL];
+		}
+		for (; kk<N-1; kk++) {
+			y = (mt[kk]&UPPER_MASK)|(mt[kk+1]&LOWER_MASK);
+			mt[kk] = mt[kk+(M-N)] ^ (y >> 1) ^ mag01[y & 0x1UL];
+		}
+		y = (mt[N-1]&UPPER_MASK)|(mt[0]&LOWER_MASK);
+		mt[N-1] = mt[M-1] ^ (y >> 1) ^ mag01[y & 0x1UL];
 
-        mti = 0;
-    }
+		mti = 0;
+	}
 
-    y = mt[mti++];
+	y = mt[mti++];
 
-    /* Tempering */
-    y ^= (y >> 11);
-    y ^= (y << 7) & 0x9d2c5680UL;
-    y ^= (y << 15) & 0xefc60000UL;
-    y ^= (y >> 18);
+	/* Tempering */
+	y ^= (y >> 11);
+	y ^= (y << 7) & 0x9d2c5680UL;
+	y ^= (y << 15) & 0xefc60000UL;
+	y ^= (y >> 18);
 
-    return y;
+	return y;
 }
 
 /* generates a random number on [0,1) with 53-bit resolution */
-static double genrand_res53(void)
-{
-    unsigned long a=genrand_int32()>>5, b=genrand_int32()>>6;
-    return(a*67108864.0+b)*(1.0/9007199254740992.0);
+static double genrand_res53(void) {
+	unsigned long a=genrand_int32()>>5, b=genrand_int32()>>6;
+	return(a*67108864.0+b)*(1.0/9007199254740992.0);
 }
 /* These real versions are due to Isaku Wada, 2002/01/09 added */
 
@@ -175,46 +171,42 @@ static int gauss_flag = 0;
 
 /*--------------------------------------------------------------------*/
 
-int random_int(int n)
-{
-    unsigned long p, q, r;
+int random_int(int n) {
+	unsigned long p, q, r;
 
-    assert(n > 0);
+	assert(n > 0);
 
-    if (n == 1) {
-        return 0;
-    }
+	if (n == 1) {
+		return 0;
+	}
 
-    p = 0xFFFFFFFFul - (0xFFFFFFFFul % n + 1) % n;
-    q = p / n + 1;
+	p = 0xFFFFFFFFul - (0xFFFFFFFFul % n + 1) % n;
+	q = p / n + 1;
 
-    while ((r = genrand_int32()) > p) ;
-    return (int)(r / q);
+	while ((r = genrand_int32()) > p) ;
+	return (int)(r / q);
 }
 
-double random_float(void)
-{
-    return genrand_res53();
+double random_float(void) {
+	return genrand_res53();
 }
 
 /* Box-Muller method */
-double random_gaussian(double mu, double sigma)
-{
-    double u1, u2;
-    static double g1, g2;
+double random_gaussian(double mu, double sigma) {
+	double u1, u2;
+	static double g1, g2;
 
-    gauss_flag = !(gauss_flag);
+	gauss_flag = !(gauss_flag);
 
-    if (gauss_flag) {
-        u1 = genrand_res53();
-        u2 = genrand_res53();
-        g1 = sqrt(-2.0 * log(u1)) * cos(2.0 * M_PI * u2);
-        g2 = sqrt(-2.0 * log(u1)) * sin(2.0 * M_PI * u2);
-        return sigma * g1 + mu;
-    }
-    else {
-        return sigma * g2 + mu;
-    }
+	if (gauss_flag) {
+		u1 = genrand_res53();
+		u2 = genrand_res53();
+		g1 = sqrt(-2.0 * log(u1)) * cos(2.0 * M_PI * u2);
+		g2 = sqrt(-2.0 * log(u1)) * sin(2.0 * M_PI * u2);
+		return sigma * g1 + mu;
+	} else {
+		return sigma * g2 + mu;
+	}
 }
 
 /*  N(0,1)-version:
@@ -245,182 +237,168 @@ double random_gaussian(void)
 
 /*--------------------------------------------------------------------*/
 
-int pc_random_auto_seed_1(void)
-{
-    BPLONG seed = (BPLONG)(time(NULL));
-    return bpx_unify(ARG(1,1), bpx_build_integer(seed));
+int pc_random_auto_seed_1(void) {
+	BPLONG seed = (BPLONG)(time(NULL));
+	return bpx_unify(ARG(1,1), bpx_build_integer(seed));
 }
 
-int pc_random_init_by_seed_1(void)
-{
-    init_genrand((unsigned long)(bpx_get_integer(ARG(1,1))));
-    return BP_TRUE;
+int pc_random_init_by_seed_1(void) {
+	init_genrand((unsigned long)(bpx_get_integer(ARG(1,1))));
+	return BP_TRUE;
 }
 
-int pc_random_init_by_list_1(void)
-{
-    unsigned long *seed;
-    TERM t, u;
+int pc_random_init_by_list_1(void) {
+	unsigned long *seed;
+	TERM t, u;
 
-    VECTOR_INIT(seed);
+	VECTOR_INIT(seed);
 
-    t = ARG(1,1);
+	t = ARG(1,1);
 
-    while (! bpx_is_nil(t)) {
-        u = bpx_get_car(t);
-        t = bpx_get_cdr(t);
-        VECTOR_PUSH(seed, (unsigned long)(bpx_get_integer(u)));
-    }
+	while (! bpx_is_nil(t)) {
+		u = bpx_get_car(t);
+		t = bpx_get_cdr(t);
+		VECTOR_PUSH(seed, (unsigned long)(bpx_get_integer(u)));
+	}
 
-    init_by_array(seed, VECTOR_SIZE(seed));
-    return BP_TRUE;
+	init_by_array(seed, VECTOR_SIZE(seed));
+	return BP_TRUE;
 }
 
-int pc_random_float_1(void)
-{
-    return bpx_unify(ARG(1,1), bpx_build_float(random_float()));
+int pc_random_float_1(void) {
+	return bpx_unify(ARG(1,1), bpx_build_float(random_float()));
 }
 
-int pc_random_gaussian_1(void)
-{
-    return bpx_unify(ARG(1,1), bpx_build_float(random_gaussian(0.0,1.0)));
+int pc_random_gaussian_1(void) {
+	return bpx_unify(ARG(1,1), bpx_build_float(random_gaussian(0.0,1.0)));
 }
 
-int pc_random_int_2(void)
-{
-    int n_max = bpx_get_integer(ARG(1,2));
-    int n_out = random_int(n_max);
-    return bpx_unify(ARG(2,2), bpx_build_integer((BPLONG)(n_out)));
+int pc_random_int_2(void) {
+	int n_max = bpx_get_integer(ARG(1,2));
+	int n_out = random_int(n_max);
+	return bpx_unify(ARG(2,2), bpx_build_integer((BPLONG)(n_out)));
 }
 
-int pc_random_int_3(void)
-{
-    int n_min = bpx_get_integer(ARG(1,3));
-    int n_max = bpx_get_integer(ARG(2,3));
-    int n_out = random_int(n_max - n_min + 1) + n_min;
-    return bpx_unify(ARG(3,3), bpx_build_integer((BPLONG)(n_out)));
+int pc_random_int_3(void) {
+	int n_min = bpx_get_integer(ARG(1,3));
+	int n_max = bpx_get_integer(ARG(2,3));
+	int n_out = random_int(n_max - n_min + 1) + n_min;
+	return bpx_unify(ARG(3,3), bpx_build_integer((BPLONG)(n_out)));
 }
 
 /*--------------------------------------------------------------------*/
 
-int pc_random_get_state_1(void)
-{
-    int  i, j;
-    TERM t, u;
-    unsigned long temp;
+int pc_random_get_state_1(void) {
+	int  i, j;
+	TERM t, u;
+	unsigned long temp;
 
-    t = bpx_build_structure("$randstate", 4 * N / 3 + 1);
-    bpx_unify(bpx_get_arg(1, t), bpx_build_integer(mti));
+	t = bpx_build_structure("$randstate", 4 * N / 3 + 1);
+	bpx_unify(bpx_get_arg(1, t), bpx_build_integer(mti));
 
-    for (i = 0; i < 4 * N / 3; i++) {
-        j = i / 4 * 3;
-        temp = 0;
+	for (i = 0; i < 4 * N / 3; i++) {
+		j = i / 4 * 3;
+		temp = 0;
 
-        if (i % 4 > 0) {
-            temp |= mt[j + i % 4 - 1] << (8 * (3 - i % 4));
-        }
-        if (i % 4 < 3) {
-            temp |= mt[j + i % 4 - 0] >> (8 * (1 + i % 4));
-        }
+		if (i % 4 > 0) {
+			temp |= mt[j + i % 4 - 1] << (8 * (3 - i % 4));
+		}
+		if (i % 4 < 3) {
+			temp |= mt[j + i % 4 - 0] >> (8 * (1 + i % 4));
+		}
 
-        temp &= 0xFFFFFF; /* == 2^24 - 1 */
-        u = bpx_get_arg(i + 2, t);
-        bpx_unify(u, bpx_build_integer(temp));
-    }
+		temp &= 0xFFFFFF; /* == 2^24 - 1 */
+		u = bpx_get_arg(i + 2, t);
+		bpx_unify(u, bpx_build_integer(temp));
+	}
 
-    return bpx_unify(ARG(1,1), t);
+	return bpx_unify(ARG(1,1), t);
 }
 
-int pc_random_set_state_1(void)
-{
-    int  i, j;
-    TERM term;
-    unsigned long temp;
+int pc_random_set_state_1(void) {
+	int  i, j;
+	TERM term;
+	unsigned long temp;
 
-    term = ARG(1,1);
+	term = ARG(1,1);
 
-    assert(strcmp(bpx_get_name(term), "$randstate") == 0);
-    assert(bpx_get_arity(term) == 4 * N / 3 + 1);
+	assert(strcmp(bpx_get_name(term), "$randstate") == 0);
+	assert(bpx_get_arity(term) == 4 * N / 3 + 1);
 
-    mti = bpx_get_integer(bpx_get_arg(1, term));
+	mti = bpx_get_integer(bpx_get_arg(1, term));
 
-    for (i = 0; i < N; i++) {
-        j = i / 3 * 4;
-        mt[i] = 0;
-        temp = bpx_get_integer(bpx_get_arg(j + i % 3 + 2, term));
-        mt[i] |= temp << (8 * (1 + i % 3));
-        temp = bpx_get_integer(bpx_get_arg(j + i % 3 + 3, term));
-        mt[i] |= temp >> (8 * (2 - i % 3));
-        mt[i] &= 0xFFFFFFFF;
-    }
+	for (i = 0; i < N; i++) {
+		j = i / 3 * 4;
+		mt[i] = 0;
+		temp = bpx_get_integer(bpx_get_arg(j + i % 3 + 2, term));
+		mt[i] |= temp << (8 * (1 + i % 3));
+		temp = bpx_get_integer(bpx_get_arg(j + i % 3 + 3, term));
+		mt[i] |= temp >> (8 * (2 - i % 3));
+		mt[i] &= 0xFFFFFFFF;
+	}
 
-    return BP_TRUE;
+	return BP_TRUE;
 }
 
 /*--------------------------------------------------------------------*/
 
 /* GS algorithm [Ahrens and Dieter 1974] */
-static double gs_algorithm(double a)
-{
-    double u,v;
-    double c,p,x;
+static double gs_algorithm(double a) {
+	double u,v;
+	double c,p,x;
 
-    u = random_float();
-    c = (exp(1) + a) / exp(1);
-    p = c * u;
+	u = random_float();
+	c = (exp(1) + a) / exp(1);
+	p = c * u;
 
-    while (1) {
-        if (p <= 1) {
-            x = pow(p, (1 / a));
-            v = random_float();
-            if (v <= exp(-x)) {
-                return x;
-            }
-        }
-        else {
-            x = -log((c - p) / a);
-            v = random_float();
-            if (v <= pow(x, (a - 1))) {
-                return x;
-            }
-        }
-    }
+	while (1) {
+		if (p <= 1) {
+			x = pow(p, (1 / a));
+			v = random_float();
+			if (v <= exp(-x)) {
+				return x;
+			}
+		} else {
+			x = -log((c - p) / a);
+			v = random_float();
+			if (v <= pow(x, (a - 1))) {
+				return x;
+			}
+		}
+	}
 }
 
 /* Sampler from Gamma distribution */
-double sample_gamma(double k, double theta)
-{
-    int i;
-    double n,delta,x,sum = 0.0;
+double sample_gamma(double k, double theta) {
+	int i;
+	double n,delta,x,sum = 0.0;
 
-    n = floor(k);
+	n = floor(k);
 
-    for (i = 0; i < n; i++) {
-        sum -= log(random_float());
-    }
+	for (i = 0; i < n; i++) {
+		sum -= log(random_float());
+	}
 
-    if (n == k) {
-        return theta * sum;
-    }
-    else {
-        delta = k - n;
-        x = gs_algorithm(delta);
-        return theta * (x + sum);
-    }
+	if (n == k) {
+		return theta * sum;
+	} else {
+		delta = k - n;
+		x = gs_algorithm(delta);
+		return theta * (x + sum);
+	}
 }
 
 /* Sampler from Dirichlet distribution */
-void sample_dirichlet(double *as, int size, double *ps)
-{
-    int i;
-    double sum = 0.0;
+void sample_dirichlet(double *as, int size, double *ps) {
+	int i;
+	double sum = 0.0;
 
-    for (i = 0; i < size; i++) {
-        ps[i] = sample_gamma(as[i], 1.0);
-        sum += ps[i];
-    }
+	for (i = 0; i < size; i++) {
+		ps[i] = sample_gamma(as[i], 1.0);
+		sum += ps[i];
+	}
 
-    for (i = 0; i < size; i++) {
-        ps[i] /= sum;
-    }
+	for (i = 0; i < size; i++) {
+		ps[i] /= sum;
+	}
 }

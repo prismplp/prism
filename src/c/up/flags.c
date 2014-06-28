@@ -43,130 +43,109 @@ int     debug_level         = 0;
 
 /*------------------------------------------------------------------------*/
 
-int pc_set_daem_1(void)
-{
-    daem = bpx_get_integer(bpx_get_call_arg(1,1));
-    return BP_TRUE;
+int pc_set_daem_1(void) {
+	daem = bpx_get_integer(bpx_get_call_arg(1,1));
+	return BP_TRUE;
 }
 
-int pc_set_em_message_1(void)
-{
-    em_message = bpx_get_integer(bpx_get_call_arg(1,1));
-    return BP_TRUE;
+int pc_set_em_message_1(void) {
+	em_message = bpx_get_integer(bpx_get_call_arg(1,1));
+	return BP_TRUE;
 }
 
-int pc_set_em_progress_1(void)
-{
-    em_progress = bpx_get_integer(bpx_get_call_arg(1,1));
-    return BP_TRUE;
+int pc_set_em_progress_1(void) {
+	em_progress = bpx_get_integer(bpx_get_call_arg(1,1));
+	return BP_TRUE;
 }
 
-int pc_set_error_on_cycle_1(void)
-{
-    error_on_cycle = bpx_get_integer(bpx_get_call_arg(1,1));
-    return BP_TRUE;
+int pc_set_error_on_cycle_1(void) {
+	error_on_cycle = bpx_get_integer(bpx_get_call_arg(1,1));
+	return BP_TRUE;
 }
 
-int pc_set_explicit_empty_expls_1(void)
-{
-    explicit_empty_expls = bpx_get_integer(bpx_get_call_arg(1,1));
-    return BP_TRUE;
+int pc_set_explicit_empty_expls_1(void) {
+	explicit_empty_expls = bpx_get_integer(bpx_get_call_arg(1,1));
+	return BP_TRUE;
 }
 
-int pc_set_fix_init_order_1(void)
-{
-    fix_init_order = bpx_get_integer(bpx_get_call_arg(1,1));
-    return BP_TRUE;
+int pc_set_fix_init_order_1(void) {
+	fix_init_order = bpx_get_integer(bpx_get_call_arg(1,1));
+	return BP_TRUE;
 }
 
-int pc_set_init_method_1(void)
-{
-    init_method = bpx_get_integer(bpx_get_call_arg(1,1));
-    return BP_TRUE;
+int pc_set_init_method_1(void) {
+	init_method = bpx_get_integer(bpx_get_call_arg(1,1));
+	return BP_TRUE;
 }
 
-int pc_set_itemp_init_1(void)
-{
-    itemp_init = bpx_get_float(bpx_get_call_arg(1,1));
-    return BP_TRUE;
+int pc_set_itemp_init_1(void) {
+	itemp_init = bpx_get_float(bpx_get_call_arg(1,1));
+	return BP_TRUE;
 }
 
-int pc_set_itemp_rate_1(void)
-{
-    itemp_rate = bpx_get_float(bpx_get_call_arg(1,1));
-    return BP_TRUE;
+int pc_set_itemp_rate_1(void) {
+	itemp_rate = bpx_get_float(bpx_get_call_arg(1,1));
+	return BP_TRUE;
 }
 
-int pc_set_log_scale_1(void)
-{
-    log_scale = bpx_get_integer(bpx_get_call_arg(1,1));
-    return BP_TRUE;
+int pc_set_log_scale_1(void) {
+	log_scale = bpx_get_integer(bpx_get_call_arg(1,1));
+	return BP_TRUE;
 }
 
-int pc_set_max_iterate_1(void)
-{
-    max_iterate = bpx_get_integer(bpx_get_call_arg(1,1));
-    return BP_TRUE;
+int pc_set_max_iterate_1(void) {
+	max_iterate = bpx_get_integer(bpx_get_call_arg(1,1));
+	return BP_TRUE;
 }
 
-int pc_set_mcmc_message_1(void)
-{
-    mcmc_message = bpx_get_integer(bpx_get_call_arg(1,1));
-    return BP_TRUE;
+int pc_set_mcmc_message_1(void) {
+	mcmc_message = bpx_get_integer(bpx_get_call_arg(1,1));
+	return BP_TRUE;
 }
 
-int pc_set_mcmc_progress_1(void)
-{
-    mcmc_progress = bpx_get_integer(bpx_get_call_arg(1,1));
-    return BP_TRUE;
+int pc_set_mcmc_progress_1(void) {
+	mcmc_progress = bpx_get_integer(bpx_get_call_arg(1,1));
+	return BP_TRUE;
 }
 
-int pc_set_num_restart_1(void)
-{
-    num_restart = bpx_get_integer(bpx_get_call_arg(1,1));
-    return BP_TRUE;
+int pc_set_num_restart_1(void) {
+	num_restart = bpx_get_integer(bpx_get_call_arg(1,1));
+	return BP_TRUE;
 }
 
-int pc_set_prism_epsilon_1(void)
-{
-    prism_epsilon = bpx_get_float(bpx_get_call_arg(1,1));
-    return BP_TRUE;
+int pc_set_prism_epsilon_1(void) {
+	prism_epsilon = bpx_get_float(bpx_get_call_arg(1,1));
+	return BP_TRUE;
 }
 
-int pc_set_show_itemp_1(void)
-{
-    show_itemp = bpx_get_integer(bpx_get_call_arg(1,1));
-    return BP_TRUE;
+int pc_set_show_itemp_1(void) {
+	show_itemp = bpx_get_integer(bpx_get_call_arg(1,1));
+	return BP_TRUE;
 }
 
-int pc_set_std_ratio_1(void)
-{
-    std_ratio = bpx_get_float(bpx_get_call_arg(1,1));
-    return BP_TRUE;
+int pc_set_std_ratio_1(void) {
+	std_ratio = bpx_get_float(bpx_get_call_arg(1,1));
+	return BP_TRUE;
 }
 
-int pc_set_verb_em_1(void)
-{
-    verb_em = bpx_get_integer(bpx_get_call_arg(1,1));
-    return BP_TRUE;
+int pc_set_verb_em_1(void) {
+	verb_em = bpx_get_integer(bpx_get_call_arg(1,1));
+	return BP_TRUE;
 }
 
-int pc_set_verb_graph_1(void)
-{
-    verb_graph = bpx_get_integer(bpx_get_call_arg(1,1));
-    return BP_TRUE;
+int pc_set_verb_graph_1(void) {
+	verb_graph = bpx_get_integer(bpx_get_call_arg(1,1));
+	return BP_TRUE;
 }
 
-int pc_set_warn_1(void)
-{
-    warn = bpx_get_integer(bpx_get_call_arg(1,1));
-    return BP_TRUE;
+int pc_set_warn_1(void) {
+	warn = bpx_get_integer(bpx_get_call_arg(1,1));
+	return BP_TRUE;
 }
 
-int pc_set_debug_level_1(void)
-{
-    debug_level = bpx_get_integer(bpx_get_call_arg(1,1));
-    return BP_TRUE;
+int pc_set_debug_level_1(void) {
+	debug_level = bpx_get_integer(bpx_get_call_arg(1,1));
+	return BP_TRUE;
 }
 
 /*------------------------------------------------------------------------*/

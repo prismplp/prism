@@ -29,18 +29,18 @@ static BPLONG_PTR work;
 /*--------------------------------------------------------------------*/
 
 struct term_pool {
-    BPLONG_PTR head;
-    BPLONG_PTR curr;
-    BPLONG_PTR tail;
-    struct hash_entry **bucks;
-    size_t nbucks;
-    size_t count;
+	BPLONG_PTR head;
+	BPLONG_PTR curr;
+	BPLONG_PTR tail;
+	struct hash_entry **bucks;
+	size_t nbucks;
+	size_t count;
 };
 
 struct hash_entry {
-    TERM term;
-    BPULONG hash;
-    struct hash_entry *next;
+	TERM term;
+	BPULONG hash;
+	struct hash_entry *next;
 };
 
 /*--------------------------------------------------------------------*/
@@ -60,365 +60,351 @@ int     unifyNumberedTerms(TERM, TERM);
 
 static ptrdiff_t trail_pos0 = 0;
 
-static void number_vars(TERM term)
-{
-    assert(trail_pos0 == 0);
+static void number_vars(TERM term) {
+	assert(trail_pos0 == 0);
 
-    trail_pos0 = trail_up_addr - trail_top;
-    PREPARE_NUMBER_TERM(0);
-    numberVarTermOpt(term);
+	trail_pos0 = trail_up_addr - trail_top;
+	PREPARE_NUMBER_TERM(0);
+	numberVarTermOpt(term);
 
-    if (number_var_exception != 0) {
-        prism_quit("suspension variables not supported in Prism");
-    }
+	if (number_var_exception != 0) {
+		prism_quit("suspension variables not supported in Prism");
+	}
 }
 
-static void revert_vars(void)
-{
-    BPLONG_PTR trail_top0;
+static void revert_vars(void) {
+	BPLONG_PTR trail_top0;
 
-    assert(trail_pos0 != 0);
+	assert(trail_pos0 != 0);
 
-    trail_top0 = trail_up_addr - trail_pos0;
-    UNDO_TRAILING;
-    trail_pos0 = 0;
+	trail_top0 = trail_up_addr - trail_pos0;
+	UNDO_TRAILING;
+	trail_pos0 = 0;
 }
 
 /* [29 Mar 2009, by yuizumi]
  * See Also: "Algorithms in C, Third Edition," by Robert Sedgewick,
  * Addison-Wesley, 1998.
  */
-static BPULONG prism_hash_value(TERM term)
-{
-    TERM    t, u, *rest;
-    BPLONG  i, n;
-    SYM_REC_PTR sym;
+static BPULONG prism_hash_value(TERM term) {
+	TERM    t, u, *rest;
+	BPLONG  i, n;
+	SYM_REC_PTR sym;
 
-    BPULONG a = 2130563839ul;
-    BPULONG b = 1561772629ul;
-    BPULONG h = 0;
+	BPULONG a = 2130563839ul;
+	BPULONG b = 1561772629ul;
+	BPULONG h = 0;
 
-    rest = work;
+	rest = work;
 
-    VECTOR_PUSH(rest, term);
+	VECTOR_PUSH(rest, term);
 
-    while (! VECTOR_EMPTY(rest)) {
-        t = VECTOR_POP(rest);
-
-nderef_loop:
-        switch (XTAG(t)) {
-        case REF0:
-        case REF1:
-            XNDEREF(t, nderef_loop);
-            assert(false); /* numbered by number_vars() */
-
-        case ATM:
-        case INT:
-        case NVAR:
-            u = t;
-            break;
-
-        case LST:
-            VECTOR_PUSH(rest, GET_CDR(t));
-            VECTOR_PUSH(rest, GET_CAR(t));
-            u = LST;
-            break;
-
-        case STR:
-            sym = GET_STR_SYM_REC(t);
-            n = GET_ARITY(sym);
-            for (i = n; i >= 1; i--) {
-                VECTOR_PUSH(rest, GET_ARG(t, i));
-            }
-            u = ADDTAG(sym, STR);
-            break;
-
-        case SUSP:
-            assert(false); /* rejected by number_vars() */
-
-        default:
-            assert(false);
-        }
-
-        h = a * h + (BPULONG)(u);
-        a *= b;
-    }
-
-    work = rest;
-    return h;
-}
-
-/*--------------------------------------------------------------------*/
-
-static BPLONG_PTR term_pool_allocate(TERM_POOL *this, size_t size)
-{
-    BPLONG_PTR p_tmp;
-
-    assert(size <= MAX_ARITY + 1);
-
-    if (this->head == NULL || this->curr + size > this->tail) {
-        BP_MALLOC(p_tmp, BLOCK_SIZE);
-        *p_tmp = (BPLONG)(this->head);
-        this->head = p_tmp + 0;
-        this->curr = p_tmp + 1;
-        this->tail = p_tmp + BLOCK_SIZE;
-    }
-
-    p_tmp = this->curr;
-    this->curr += size;
-    return p_tmp;
-}
-
-/*--------------------------------------------------------------------*/
-
-static TERM term_pool_store(TERM_POOL *this, TERM term)
-{
-    TERM    *p, *q, **rest;
-    BPLONG  i, n;
-
-    SYM_REC_PTR sym;
-
-    rest = (void *)(work);
-
-    VECTOR_PUSH(rest, &term);
-
-    while (! VECTOR_EMPTY(rest)) {
-        p = VECTOR_POP(rest);
+	while (! VECTOR_EMPTY(rest)) {
+		t = VECTOR_POP(rest);
 
 nderef_loop:
-        switch (XTAG(*p)) {
-        case REF0:
-        case REF1:
-            XNDEREF(*p, nderef_loop);
-            assert(false); /* numbered by number_vars() */
+		switch (XTAG(t)) {
+		case REF0:
+		case REF1:
+			XNDEREF(t, nderef_loop);
+			assert(false); /* numbered by number_vars() */
 
-        case ATM:
-        case INT:
-        case NVAR:
-            break;
+		case ATM:
+		case INT:
+		case NVAR:
+			u = t;
+			break;
 
-        case LST:
-            q = term_pool_allocate(this, 2);
-            *(q + 1) = GET_CDR(*p);
-            VECTOR_PUSH(rest, q + 1);
-            *(q + 0) = GET_CAR(*p);
-            VECTOR_PUSH(rest, q + 0);
-            *p = ADDTAG(q, LST);
-            break;
+		case LST:
+			VECTOR_PUSH(rest, GET_CDR(t));
+			VECTOR_PUSH(rest, GET_CAR(t));
+			u = LST;
+			break;
 
-        case STR:
-            sym = GET_STR_SYM_REC(*p);
-            n = GET_ARITY(sym);
-            q = term_pool_allocate(this, n + 1);
-            *q = (TERM)(sym);
-            for (i = n; i >= 1; i--) {
-                *(q + i) = GET_ARG(*p, i);
-                VECTOR_PUSH(rest, q + i);
-            }
-            *p = ADDTAG(q, STR);
-            break;
+		case STR:
+			sym = GET_STR_SYM_REC(t);
+			n = GET_ARITY(sym);
+			for (i = n; i >= 1; i--) {
+				VECTOR_PUSH(rest, GET_ARG(t, i));
+			}
+			u = ADDTAG(sym, STR);
+			break;
 
-        case SUSP:
-            assert(false); /* rejected by number_vars() */
+		case SUSP:
+			assert(false); /* rejected by number_vars() */
 
-        default:
-            assert(false);
-        }
-    }
+		default:
+			assert(false);
+		}
 
-    work = (void *)(rest);
-    return term;
+		h = a * h + (BPULONG)(u);
+		a *= b;
+	}
+
+	work = rest;
+	return h;
 }
 
 /*--------------------------------------------------------------------*/
 
-static void term_pool_rehash(TERM_POOL *this)
-{
-    struct hash_entry **bucks, *p, *q;
-    size_t nbucks, i;
+static BPLONG_PTR term_pool_allocate(TERM_POOL *this, size_t size) {
+	BPLONG_PTR p_tmp;
 
-    nbucks = 2 * this->nbucks + 1;
+	assert(size <= MAX_ARITY + 1);
 
-    /* find the next prime number */
-    for (i = 3; i * i <= nbucks; ) {
-        if (nbucks % i == 0) {
-            nbucks += 2;
-            i = 3;
-        }
-        else {
-            i += 2;
-        }
-    }
+	if (this->head == NULL || this->curr + size > this->tail) {
+		BP_MALLOC(p_tmp, BLOCK_SIZE);
+		*p_tmp = (BPLONG)(this->head);
+		this->head = p_tmp + 0;
+		this->curr = p_tmp + 1;
+		this->tail = p_tmp + BLOCK_SIZE;
+	}
 
-    bucks = MALLOC(sizeof(struct hash_entry *) * nbucks);
-
-    for (i = 0; i < nbucks; i++)
-        bucks[i] = NULL;
-
-    for (i = 0; i < this->nbucks; i++) {
-        p = this->bucks[i];
-
-        while (p != NULL) {
-            q = p;
-            p = p->next;
-            q->next = bucks[q->hash % nbucks];
-            bucks[q->hash % nbucks] = q;
-        }
-    }
-
-    FREE(this->bucks);
-
-    this->nbucks = nbucks;
-    this->bucks = bucks;
+	p_tmp = this->curr;
+	this->curr += size;
+	return p_tmp;
 }
 
 /*--------------------------------------------------------------------*/
 
-static TERM term_pool_search(const TERM_POOL *this, TERM term, BPULONG hash)
-{
-    struct hash_entry *p;
+static TERM term_pool_store(TERM_POOL *this, TERM term) {
+	TERM    *p, *q, **rest;
+	BPLONG  i, n;
 
-    p = this->bucks[hash % this->nbucks];
+	SYM_REC_PTR sym;
 
-    while (p != NULL) {
-        if (hash == p->hash) {
-            if (unifyNumberedTerms(term, p->term)) {
-                return p->term;
-            }
-        }
-        p = p->next;
-    }
+	rest = (void *)(work);
 
-    return NULL_TERM;
-}
+	VECTOR_PUSH(rest, &term);
 
-static TERM term_pool_insert(TERM_POOL *this, TERM term, BPULONG hash)
-{
-    struct hash_entry *entry;
-
-    if (++(this->count) >= this->nbucks)
-        term_pool_rehash(this);
-
-    entry = MALLOC(sizeof(struct hash_entry));
-    entry->term = term_pool_store(this, term);
-    entry->hash = hash;
-    entry->next = this->bucks[hash % this->nbucks];
-    this->bucks[hash % this->nbucks] = entry;
-
-    return entry->term;
-}
-
-/*--------------------------------------------------------------------*/
-
-static TERM term_pool_intern(const TERM_POOL *this1, TERM_POOL *this2, TERM term)
-{
-    BPULONG hash;
-    TERM    rval;
-
-    assert(this2 == NULL || this2 == this1);
+	while (! VECTOR_EMPTY(rest)) {
+		p = VECTOR_POP(rest);
 
 nderef_loop:
-    switch (XTAG(term)) {
-    case REF0:
-    case REF1:
-        XNDEREF(term, nderef_loop);
-        return MAKE_NVAR(0);
+		switch (XTAG(*p)) {
+		case REF0:
+		case REF1:
+			XNDEREF(*p, nderef_loop);
+			assert(false); /* numbered by number_vars() */
 
-    case ATM:
-    case INT:
-    case NVAR:
-        return term;
+		case ATM:
+		case INT:
+		case NVAR:
+			break;
 
-    case LST:
-    case STR:
-        break;
+		case LST:
+			q = term_pool_allocate(this, 2);
+			*(q + 1) = GET_CDR(*p);
+			VECTOR_PUSH(rest, q + 1);
+			*(q + 0) = GET_CAR(*p);
+			VECTOR_PUSH(rest, q + 0);
+			*p = ADDTAG(q, LST);
+			break;
 
-    case SUSP:
-        prism_quit("suspension variables not supported in Prism");
+		case STR:
+			sym = GET_STR_SYM_REC(*p);
+			n = GET_ARITY(sym);
+			q = term_pool_allocate(this, n + 1);
+			*q = (TERM)(sym);
+			for (i = n; i >= 1; i--) {
+				*(q + i) = GET_ARG(*p, i);
+				VECTOR_PUSH(rest, q + i);
+			}
+			*p = ADDTAG(q, STR);
+			break;
 
-    default:
-        assert(false);
-    }
+		case SUSP:
+			assert(false); /* rejected by number_vars() */
 
-    number_vars(term);
+		default:
+			assert(false);
+		}
+	}
 
-    hash = prism_hash_value(term);
-    rval = term_pool_search(this1, term, hash);
-
-    if (rval == NULL_TERM && this2 != NULL) {
-        rval = term_pool_insert(this2, term, hash);
-    }
-
-    revert_vars();
-
-    return rval;
+	work = (void *)(rest);
+	return term;
 }
 
 /*--------------------------------------------------------------------*/
 
-TERM_POOL * term_pool_create(void)
-{
-    TERM_POOL *this;
-    int i;
+static void term_pool_rehash(TERM_POOL *this) {
+	struct hash_entry **bucks, *p, *q;
+	size_t nbucks, i;
 
-    this = MALLOC(sizeof(struct term_pool));
+	nbucks = 2 * this->nbucks + 1;
 
-    this->head   = NULL;
-    this->curr   = NULL;
-    this->tail   = NULL;
-    this->nbucks = 17;
-    this->count  = 0;
-    this->bucks  = MALLOC(sizeof(struct hash_entry *) * this->nbucks);
+	/* find the next prime number */
+	for (i = 3; i * i <= nbucks; ) {
+		if (nbucks % i == 0) {
+			nbucks += 2;
+			i = 3;
+		} else {
+			i += 2;
+		}
+	}
 
-    for (i = 0; i < this->nbucks; i++)
-        this->bucks[i] = NULL;
+	bucks = MALLOC(sizeof(struct hash_entry *) * nbucks);
 
-    if (work == NULL) {
-        VECTOR_INIT_CAPA(work, 4096);
-    }
+	for (i = 0; i < nbucks; i++)
+		bucks[i] = NULL;
 
-    return this;
+	for (i = 0; i < this->nbucks; i++) {
+		p = this->bucks[i];
+
+		while (p != NULL) {
+			q = p;
+			p = p->next;
+			q->next = bucks[q->hash % nbucks];
+			bucks[q->hash % nbucks] = q;
+		}
+	}
+
+	FREE(this->bucks);
+
+	this->nbucks = nbucks;
+	this->bucks = bucks;
 }
 
 /*--------------------------------------------------------------------*/
 
-void term_pool_delete(TERM_POOL *this)
-{
-    BPLONG_PTR p1, p2;
-    struct hash_entry *q1, *q2;
-    int i;
+static TERM term_pool_search(const TERM_POOL *this, TERM term, BPULONG hash) {
+	struct hash_entry *p;
 
-    p1 = this->head;
+	p = this->bucks[hash % this->nbucks];
 
-    while (p1 != NULL) {
-        p2 = p1;
-        p1 = (BPLONG_PTR)(*p1);
-        FREE(p2);
-    }
+	while (p != NULL) {
+		if (hash == p->hash) {
+			if (unifyNumberedTerms(term, p->term)) {
+				return p->term;
+			}
+		}
+		p = p->next;
+	}
 
-    for (i = 0; i < this->nbucks; i++) {
-        q1 = this->bucks[i];
-        while (q1 != NULL) {
-            q2 = q1;
-            q1 = q1->next;
-            FREE(q2);
-        }
-    }
+	return NULL_TERM;
+}
 
-    FREE(this->bucks);
-    FREE(this);
+static TERM term_pool_insert(TERM_POOL *this, TERM term, BPULONG hash) {
+	struct hash_entry *entry;
+
+	if (++(this->count) >= this->nbucks)
+		term_pool_rehash(this);
+
+	entry = MALLOC(sizeof(struct hash_entry));
+	entry->term = term_pool_store(this, term);
+	entry->hash = hash;
+	entry->next = this->bucks[hash % this->nbucks];
+	this->bucks[hash % this->nbucks] = entry;
+
+	return entry->term;
 }
 
 /*--------------------------------------------------------------------*/
 
-TERM term_pool_retrieve(const TERM_POOL *this, TERM term)
-{
-    return term_pool_intern(this, NULL, term);
+static TERM term_pool_intern(const TERM_POOL *this1, TERM_POOL *this2, TERM term) {
+	BPULONG hash;
+	TERM    rval;
+
+	assert(this2 == NULL || this2 == this1);
+
+nderef_loop:
+	switch (XTAG(term)) {
+	case REF0:
+	case REF1:
+		XNDEREF(term, nderef_loop);
+		return MAKE_NVAR(0);
+
+	case ATM:
+	case INT:
+	case NVAR:
+		return term;
+
+	case LST:
+	case STR:
+		break;
+
+	case SUSP:
+		prism_quit("suspension variables not supported in Prism");
+
+	default:
+		assert(false);
+	}
+
+	number_vars(term);
+
+	hash = prism_hash_value(term);
+	rval = term_pool_search(this1, term, hash);
+
+	if (rval == NULL_TERM && this2 != NULL) {
+		rval = term_pool_insert(this2, term, hash);
+	}
+
+	revert_vars();
+
+	return rval;
 }
 
-TERM term_pool_register(TERM_POOL *this, TERM term)
-{
-    return term_pool_intern(this, this, term);
+/*--------------------------------------------------------------------*/
+
+TERM_POOL * term_pool_create(void) {
+	TERM_POOL *this;
+	int i;
+
+	this = MALLOC(sizeof(struct term_pool));
+
+	this->head   = NULL;
+	this->curr   = NULL;
+	this->tail   = NULL;
+	this->nbucks = 17;
+	this->count  = 0;
+	this->bucks  = MALLOC(sizeof(struct hash_entry *) * this->nbucks);
+
+	for (i = 0; i < this->nbucks; i++)
+		this->bucks[i] = NULL;
+
+	if (work == NULL) {
+		VECTOR_INIT_CAPA(work, 4096);
+	}
+
+	return this;
+}
+
+/*--------------------------------------------------------------------*/
+
+void term_pool_delete(TERM_POOL *this) {
+	BPLONG_PTR p1, p2;
+	struct hash_entry *q1, *q2;
+	int i;
+
+	p1 = this->head;
+
+	while (p1 != NULL) {
+		p2 = p1;
+		p1 = (BPLONG_PTR)(*p1);
+		FREE(p2);
+	}
+
+	for (i = 0; i < this->nbucks; i++) {
+		q1 = this->bucks[i];
+		while (q1 != NULL) {
+			q2 = q1;
+			q1 = q1->next;
+			FREE(q2);
+		}
+	}
+
+	FREE(this->bucks);
+	FREE(this);
+}
+
+/*--------------------------------------------------------------------*/
+
+TERM term_pool_retrieve(const TERM_POOL *this, TERM term) {
+	return term_pool_intern(this, NULL, term);
+}
+
+TERM term_pool_register(TERM_POOL *this, TERM term) {
+	return term_pool_intern(this, this, term);
 }
 
 /*--------------------------------------------------------------------*/

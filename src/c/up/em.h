@@ -10,35 +10,35 @@
 /*------------------------------------------------------------------------*/
 
 struct EM_Engine {
-    int     smooth;             /* [in ] flag: use MAP? */
-    double  lambda;             /* [out] log post */
-    double  likelihood;         /* [out] log likelihood */
-    int     iterate;            /* [out] number of iterations */
-    double  bic;                /* [out] BIC score */
-    double  cs;                 /* [out] CS score */
+	int     smooth;             /* [in ] flag: use MAP? */
+	double  lambda;             /* [out] log post */
+	double  likelihood;         /* [out] log likelihood */
+	int     iterate;            /* [out] number of iterations */
+	double  bic;                /* [out] BIC score */
+	double  cs;                 /* [out] CS score */
 
-    /* Functions called during computation. */
-    int     (* compute_inside         )(void);
-    int     (* examine_inside         )(void);
-    int     (* compute_expectation    )(void);
-    double  (* compute_likelihood     )(void);
-    double  (* compute_log_prior      )(void);
-    int     (* update_params          )(void);
+	/* Functions called during computation. */
+	int     (* compute_inside         )(void);
+	int     (* examine_inside         )(void);
+	int     (* compute_expectation    )(void);
+	double  (* compute_likelihood     )(void);
+	double  (* compute_log_prior      )(void);
+	int     (* update_params          )(void);
 };
 
 struct VBEM_Engine {
-    double  free_energy;        /* [out] free energy */
-    int     iterate;            /* [out] number of iterations */
+	double  free_energy;        /* [out] free energy */
+	int     iterate;            /* [out] number of iterations */
 
-    /* Functions called during computation. */
-    int     (* compute_pi             )(void);
-    int     (* compute_inside         )(void);
-    int     (* examine_inside         )(void);
-    int     (* compute_expectation    )(void);
-    double  (* compute_free_energy_l0 )(void);
-    double  (* compute_free_energy_l1 )(void);
-    double  (* compute_likelihood     )(void);
-    int     (* update_hyperparams     )(void);
+	/* Functions called during computation. */
+	int     (* compute_pi             )(void);
+	int     (* compute_inside         )(void);
+	int     (* examine_inside         )(void);
+	int     (* compute_expectation    )(void);
+	double  (* compute_free_energy_l0 )(void);
+	double  (* compute_free_energy_l1 )(void);
+	double  (* compute_likelihood     )(void);
+	int     (* update_hyperparams     )(void);
 };
 
 typedef struct EM_Engine   * EM_ENG_PTR;

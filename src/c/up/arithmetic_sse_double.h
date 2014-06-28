@@ -39,30 +39,28 @@
 #include <emmintrin.h>
 #endif/*HAVE_EMMINTRIN_H*/
 
-inline static void* vecalloc(size_t size)
-{
+inline static void* vecalloc(size_t size) {
 #if     defined(_MSC_VER)
-    void *memblock = _aligned_malloc(size, 16);
+	void *memblock = _aligned_malloc(size, 16);
 #elif   defined(__APPLE__)  /* OS X always aligns on 16-byte boundaries */
-    void *memblock = malloc(size);
+	void *memblock = malloc(size);
 #else
-    void *memblock = NULL, *p = NULL;
-    if (posix_memalign(&p, 16, size) == 0) {
-        memblock = p;
-    }
+	void *memblock = NULL, *p = NULL;
+	if (posix_memalign(&p, 16, size) == 0) {
+		memblock = p;
+	}
 #endif
-    if (memblock != NULL) {
-        memset(memblock, 0, size);
-    }
-    return memblock;
+	if (memblock != NULL) {
+		memset(memblock, 0, size);
+	}
+	return memblock;
 }
 
-inline static void vecfree(void *memblock)
-{
+inline static void vecfree(void *memblock) {
 #ifdef	_MSC_VER
-    _aligned_free(memblock);
+	_aligned_free(memblock);
 #else
-    free(memblock);
+	free(memblock);
 #endif
 }
 

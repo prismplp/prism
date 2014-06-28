@@ -10,23 +10,23 @@
 /*------------------------------------------------------------------------*/
 
 struct VT_Engine {
-    int     smooth;             /* [in ] flag: use MAP? */
-    double  lambda;             /* [out] log post */
-    double  likelihood;         /* [out] log likelihood */
-    int     iterate;            /* [out] number of iterations */
+	int     smooth;             /* [in ] flag: use MAP? */
+	double  lambda;             /* [out] log post */
+	double  likelihood;         /* [out] log likelihood */
+	int     iterate;            /* [out] number of iterations */
 
-    /* Functions called during computation. */
-    double  (* compute_log_prior      )(void);
-    int     (* update_params          )(void);
+	/* Functions called during computation. */
+	double  (* compute_log_prior      )(void);
+	int     (* update_params          )(void);
 };
 
 struct VBVT_Engine {
-    double  free_energy;        /* [out] free energy */
-    int     iterate;            /* [out] number of iterations */
+	double  free_energy;        /* [out] free energy */
+	int     iterate;            /* [out] number of iterations */
 
-    /* Functions called during computation. */
-    int     (* compute_pi             )(void);
-    double  (* compute_free_energy_l1 )(void);
+	/* Functions called during computation. */
+	int     (* compute_pi             )(void);
+	double  (* compute_free_energy_l1 )(void);
 };
 
 typedef struct VT_Engine   * VT_ENG_PTR;

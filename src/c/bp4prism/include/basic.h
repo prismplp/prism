@@ -53,11 +53,11 @@ typedef long int            BPLONG;    /* 32 or 64 bits only for return types of
 typedef unsigned long int   BPULONG;    /* 32 or 64 bits */
 typedef unsigned int        UW32;     /* 32 bits */
 
-typedef CHAR  *CHAR_PTR; 
+typedef CHAR  *CHAR_PTR;
 typedef BYTE  *BYTE_PTR;
 typedef UW16  *UW16_PTR;
 typedef BPLONG  *BPLONG_PTR;
-typedef UW32  *UW32_PTR; 
+typedef UW32  *UW32_PTR;
 
 /* [10 Apr 2007, by yuizumi]
  * Required to build a universal binary on Mac OS X.
@@ -79,37 +79,37 @@ typedef UW32  *UW32_PTR;
 typedef struct sym_rec *SYM_REC_PTR;
 
 typedef struct sym_rec {
-  BYTE      etype;
-  BYTE      spy;
-  UW16      arity;
-  UW16      length;
-  CHAR_PTR  nameptr;
-  SYM_REC_PTR next;
-  int       (*ep)(void);   /* entry point to byte code,global var, c function, booltable */
+	BYTE      etype;
+	BYTE      spy;
+	UW16      arity;
+	UW16      length;
+	CHAR_PTR  nameptr;
+	SYM_REC_PTR next;
+	int       (*ep)(void);   /* entry point to byte code,global var, c function, booltable */
 } SYM_REC;
 
 
-typedef struct event_func_data {	
-  SYM_REC_PTR func;
-  int signo;
+typedef struct event_func_data {
+	SYM_REC_PTR func;
+	int signo;
 } EVENT_FUNC;
 
 /* An interpreted predicate (consulted or dynamic) is stored as a record of the following form:
-   ref_count :   Number of unfinished calls of clause(Head,Body) 
-   retr_count :  Number of unfinished calls of retract(Clause). 
+   ref_count :   Number of unfinished calls of clause(Head,Body)
+   retr_count :  Number of unfinished calls of retract(Clause).
                  The space of a retracted clause can be freed if (retra_count<=1 && ref_count==0).
    cl_count :    Number of clauses in the predicate
    bucket_size : Hashtable size. Initial value = number of clauses if static; 3 if dynamic
                  Hashtable size is doubled automatically if the count is greater than bucket_size.
    hashtable:    Pointer to the hashtable
-*/		 
+*/
 typedef struct {
-  BPLONG ref_count;
-  BPLONG retr_count;
-  BPLONG cl_count;
-  BPLONG time_stamp;
-  BPLONG bucket_size;
-  BPLONG_PTR hashtable;
+	BPLONG ref_count;
+	BPLONG retr_count;
+	BPLONG cl_count;
+	BPLONG time_stamp;
+	BPLONG bucket_size;
+	BPLONG_PTR hashtable;
 } InterpretedPred;
 typedef InterpretedPred *InterpretedPredPtr;
 
@@ -118,8 +118,8 @@ typedef InterpretedPred *InterpretedPredPtr;
    list : list of clauses hashed to this bucket
 */
 typedef struct {
-  BPLONG_PTR tail;
-  BPLONG list;
+	BPLONG_PTR tail;
+	BPLONG list;
 } InterpretedPredBucket;
 typedef InterpretedPredBucket *InterpretedPredBucketPtr;
 
@@ -131,39 +131,39 @@ typedef InterpretedPredBucket *InterpretedPredBucketPtr;
    death_time_stamp: time it was retracted
 */
 typedef struct {
-  BPLONG cl_ref;
-  BPLONG head;
-  BPLONG body;
-  BPLONG birth_time_stamp;
-  BPLONG death_time_stamp;
+	BPLONG cl_ref;
+	BPLONG head;
+	BPLONG body;
+	BPLONG birth_time_stamp;
+	BPLONG death_time_stamp;
 } InterpretedClause;
 typedef InterpretedClause *InterpretedClausePtr;
 
 /* used for hash-consing for findall area and table area */
 typedef struct {
-  BPLONG_PTR htable; 
-  BPLONG size;     
-  BPLONG count;    
+	BPLONG_PTR htable;
+	BPLONG size;
+	BPLONG count;
 } GTERMS_HTABLE;
 
 typedef GTERMS_HTABLE *GTERMS_HTABLE_PTR;
 
 /* used for findall area and table area*/
 typedef struct {
-  BPLONG_PTR low_addr,up_addr,top;
-  GTERMS_HTABLE_PTR gterms_htable_ptr;
-  int num_expansions;
+	BPLONG_PTR low_addr,up_addr,top;
+	GTERMS_HTABLE_PTR gterms_htable_ptr;
+	int num_expansions;
 } NUMBERED_TERM_AREA_RECORD;
 
 typedef NUMBERED_TERM_AREA_RECORD *NUMBERED_TERM_AREA_RECORD_PTR;
 
 #ifdef BUILTIN_PROTO_CHECK
-typedef union {	
-int  (*func0)(void);
-int  (*func1)(BPLONG w);
-int  (*func2)(BPLONG w,BPLONG x);
-int  (*func3)(BPLONG w,BPLONG x,BPLONG y);
-int  (*func4)(BPLONG w,BPLONG x,BPLONG y,BPLONG z);
+typedef union {
+	int  (*func0)(void);
+	int  (*func1)(BPLONG w);
+	int  (*func2)(BPLONG w,BPLONG x);
+	int  (*func3)(BPLONG w,BPLONG x,BPLONG y);
+	int  (*func4)(BPLONG w,BPLONG x,BPLONG y,BPLONG z);
 } Builtin_funcs;
 
 typedef struct {
@@ -215,7 +215,7 @@ typedef int (*Builtins)();
 extern int curr_toam_status;
 
 #ifdef WIN32
-#define INLINE 
+#define INLINE
 #else
 #define INLINE inline
 #endif
@@ -285,7 +285,7 @@ extern BPLONG_PTR  gc_upper;
 extern int      gc_is_working;
 extern BPLONG_PTR  copy_area_low, copy_area_high;
 
-                                  /* ptr to the failb inst */
+/* ptr to the failb inst */
 extern BPLONG_PTR  top;
 extern BPLONG_PTR  arreg;           /* last activation record       */
 extern BPLONG_PTR  local_top;
@@ -469,77 +469,77 @@ extern BPLONG num_stack_expansions;
 extern BPLONG num_trail_expansions;
 extern BPLONG num_parea_expansions;
 
-extern SYM_REC_PTR 
-  str_BUILTIN_ERROR1,
-  str_BUILTIN_ERROR2,
-  str_BUILTIN_ERROR3,
-  str_BUILTIN_ERROR4,
-  str_DOMAIN_ERROR,
-  str_EVALUATION_ERROR,
-  str_EXISTENCE_ERROR,
-  str_PERMISSION_ERROR,
-  str_REPRESENTATION_ERROR,
-  str_RESOURCE_ERROR,
-  str_TYPE_ERROR,
-  str_SYNTAX_ERROR;
+extern SYM_REC_PTR
+str_BUILTIN_ERROR1,
+str_BUILTIN_ERROR2,
+str_BUILTIN_ERROR3,
+str_BUILTIN_ERROR4,
+str_DOMAIN_ERROR,
+str_EVALUATION_ERROR,
+str_EXISTENCE_ERROR,
+str_PERMISSION_ERROR,
+str_REPRESENTATION_ERROR,
+str_RESOURCE_ERROR,
+str_TYPE_ERROR,
+str_SYNTAX_ERROR;
 
-extern BPLONG 
-  et_OUT_OF_MEMORY,
-  et_OUT_OF_MEMORY_STACK,
-  et_OUT_OF_MEMORY_TABLE,
-  et_ACCESS, 
-  et_ATOM,
-  et_ATOMIC,
-  et_BINARY_STREAM,
-  et_BYTE,
-  et_CALLABLE,
-  et_CHARACTER,
-  et_CHARACTER_CODE,
-  et_COMPOUND,
-  et_CREATE, 
-  et_EVALUABLE,
-  et_FLAG,
-  et_FLAG_VALUE,
-  et_FLOAT_OVERFLOW,
-  et_INPUT, 
-  et_INTEGER,
-  et_INT_OVERFLOW,
-  et_IN_BYTE,
-  et_IN_CHARACTER,
-  et_IN_ESCCHARACTER,
-  et_IN_CHARACTER_CODE,
-  et_INSTANTIATION_ERROR,
-  et_IO_MODE,
-  et_LIST,
-  et_MAX_ARITY,
-  et_MAX_INTEGER,
-  et_MODIFY, 
-  et_NON_EMPTY_LIST,
-  et_NOT_LESS_THAN_ZERO,
-  et_NUMBER,
-  et_OPEN, 
-  et_OPERATOR,
-  et_OPERATOR_PRIORITY,
-  et_OUTPUT, 
-  et_PAST_END_OF_STREAM,
-  et_PREDICATE_INDICATOR,
-  et_PRIVATE_PROCEDURE,
-  et_PROCEDURE,
-  et_PROLOG_FLAG,
-  et_READ_OPTION,
-  et_REPOSITION, 
-  et_SOURCE_SINK,
-  et_STATIC_PROCEDURE,
-  et_STREAM,
-  et_STREAM_OPTION,
-  et_STREAM_OR_ALIAS,
-  et_STREAM_PROPERTY,
-  et_TEXT_STREAM,
-  et_UNDEFINED,
-  et_UNDERFLOW,
-  et_VARIABLE,
-  et_WRITE_OPTION,
-  et_ZERO_DIVISOR,
-  et_BIGINT_TOO_LONG;
+extern BPLONG
+et_OUT_OF_MEMORY,
+et_OUT_OF_MEMORY_STACK,
+et_OUT_OF_MEMORY_TABLE,
+et_ACCESS,
+et_ATOM,
+et_ATOMIC,
+et_BINARY_STREAM,
+et_BYTE,
+et_CALLABLE,
+et_CHARACTER,
+et_CHARACTER_CODE,
+et_COMPOUND,
+et_CREATE,
+et_EVALUABLE,
+et_FLAG,
+et_FLAG_VALUE,
+et_FLOAT_OVERFLOW,
+et_INPUT,
+et_INTEGER,
+et_INT_OVERFLOW,
+et_IN_BYTE,
+et_IN_CHARACTER,
+et_IN_ESCCHARACTER,
+et_IN_CHARACTER_CODE,
+et_INSTANTIATION_ERROR,
+et_IO_MODE,
+et_LIST,
+et_MAX_ARITY,
+et_MAX_INTEGER,
+et_MODIFY,
+et_NON_EMPTY_LIST,
+et_NOT_LESS_THAN_ZERO,
+et_NUMBER,
+et_OPEN,
+et_OPERATOR,
+et_OPERATOR_PRIORITY,
+et_OUTPUT,
+et_PAST_END_OF_STREAM,
+et_PREDICATE_INDICATOR,
+et_PRIVATE_PROCEDURE,
+et_PROCEDURE,
+et_PROLOG_FLAG,
+et_READ_OPTION,
+et_REPOSITION,
+et_SOURCE_SINK,
+et_STATIC_PROCEDURE,
+et_STREAM,
+et_STREAM_OPTION,
+et_STREAM_OR_ALIAS,
+et_STREAM_PROPERTY,
+et_TEXT_STREAM,
+et_UNDEFINED,
+et_UNDERFLOW,
+et_VARIABLE,
+et_WRITE_OPTION,
+et_ZERO_DIVISOR,
+et_BIGINT_TOO_LONG;
 
-#endif	
+#endif

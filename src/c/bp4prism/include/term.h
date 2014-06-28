@@ -87,7 +87,7 @@
 #ifdef LINUX
 #ifdef M64BITS
 #define ADDTAG(op,tag)    ((BPLONG)(op) | tag)
-#define UNTAG_ADDR(op)         op &= VAL_MASK0 
+#define UNTAG_ADDR(op)         op &= VAL_MASK0
 #define UNTAGGED_ADDR(op)      (((BPLONG)op) & VAL_MASK0)
 #define UNTAGGED_TOPON_ADDR(op) UNTAGGED_ADDR(op)
 #else
@@ -98,7 +98,7 @@
 #endif
 #else
 #define ADDTAG(op,tag)    ((BPLONG)(op) | tag)
-#define UNTAG_ADDR(op)         op &= VAL_MASK0 
+#define UNTAG_ADDR(op)         op &= VAL_MASK0
 #define UNTAGGED_ADDR(op)      (((BPLONG)(op)) & VAL_MASK0)
 #define UNTAGGED_TOPON_ADDR(op) UNTAGGED_ADDR(op)
 #endif
@@ -111,7 +111,7 @@
 #define UNTAGGED_TOPON_ADDR(op) (((BPLONG)op) & ~0x3L)
 #else
 #define ADDTAG(op,tag)    ((BPLONG)(op) | tag)
-#define UNTAG_ADDR(op)         op &= VAL_MASK0 
+#define UNTAG_ADDR(op)         op &= VAL_MASK0
 #define UNTAGGED_ADDR(op)      (((BPLONG)op) & VAL_MASK0)
 #define UNTAGGED_TOPON_ADDR(op) (((BPLONG)op) & VAL_MASK0)
 #endif
@@ -144,11 +144,11 @@
 
 #define DEREF_NONVAR(op) while (ISREF(op)) \
                             op = FOLLOW(op)  \
-
+ 
 #define DEREF_SUSP_VAR(op,dv_ptr) while (ISREF(op)){ \
                             dv_ptr = op; \
                             op = FOLLOW(op);}  \
-
+ 
 #define NDEREF(op,labl)  top = (BPLONG_PTR)FOLLOW(op);    \
 			 if ((BPLONG)top!=op) { \
                           op = (BPLONG)top;   \
@@ -263,7 +263,7 @@
               StrCode \
            } else if (IS_SUSP_VAR(op)) \
               SuspCode; \
-
+ 
 #define SWITCH_OP_INT(op,nderef,VarCode,IntCode,OtherCode) \
     nderef:if (ISINT(op)) \
               IntCode \
@@ -507,8 +507,8 @@
 
 #define A_DV_bit_vector_ptr(dv_ptr) (dv_ptr+1)
 #define DV_bit_vector_ptr(dv_ptr) FOLLOW(dv_ptr+1)
-/* 
-   bit_vector_ptr points to a variable-sized structure of the following fields 
+/*
+   bit_vector_ptr points to a variable-sized structure of the following fields
    low_ptr
    up_ptr
    low_ptr : word
@@ -559,7 +559,7 @@
 #endif
 
 /****************** bit vector **************************/
-/* 
+/*
    WORD_NUMBER(val)
     val              word_number
    32..63            1
