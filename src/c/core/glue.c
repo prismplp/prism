@@ -164,6 +164,27 @@ void bp4p_register_preds(void) {
 	REGISTER_CPRED(infix,2);
 	REGISTER_CPRED(cyc_em,6);
 
+	/* up/feature.c */
+	REGISTER_CPRED(compute_feature,2);
+	REGISTER_CPRED(compute_fprobf,1);
+	REGISTER_CPRED(get_snode_feature,3);
+	REGISTER_CPRED(crf_prepare,4);
+	REGISTER_CPRED(prism_grd,2);
+
+	/* up/crfviterbi.c */
+	REGISTER_CPRED(compute_crfviterbi,5);
+	REGISTER_CPRED(compute_n_crfviterbi,3);
+	REGISTER_CPRED(compute_crfhindsight,4);
+	REGISTER_CPRED(import_occ_crf_switches,3);
+	REGISTER_CPRED(set_annealing_weight,1);
+	REGISTER_CPRED(set_crf_learning_rate,1);
+	REGISTER_CPRED(set_crf_epsilon,1);
+	REGISTER_CPRED(set_crf_golden_b,1);
+	REGISTER_CPRED(set_crf_init_method,1);
+	REGISTER_CPRED(set_crf_learn_mode,1);
+	REGISTER_CPRED(set_crf_ls_rho,1);
+	REGISTER_CPRED(set_crf_ls_c1,1);
+	REGISTER_CPRED(set_crf_penalty,1);
 #ifdef MPI
 	/* mp/mp_preds.c */
 	REGISTER_CPRED(mp_size,1);

@@ -6,14 +6,15 @@ set_sw(Sw) :- set_sw(Sw,default).
 set_sw(Sw,Dist) :-
     $pp_require_ground(Sw,$msg(0101),set_sw/2),
     $pp_require_switch_outcomes(Sw,$msg(0102),set_sw/2),
-    $pp_require_distribution(Dist,$msg(0200),set_sw/2),
+    (get_prism_flag(crf_enable,on) -> $pp_require_crf_params(Dist,$msg(0200),set_sw/2)
+       ;$pp_require_distribution(Dist,$msg(0200),set_sw/2)),
     $pp_set_sw(Sw,Dist).
 
 $pp_set_sw(Sw,Dist) :-
     ( $pd_fixed_parameters(Sw) -> $pp_raise_warning($msg(0109),[Sw])
     ; $pp_get_values(Sw,Values),
       length(Values,N),
-      expand_probs(Dist,N,Probs),
+      (get_prism_flag(crf_enable,on) -> expand_fprobs(Dist,N,Probs);expand_probs(Dist,N,Probs)),
       ( retract($pd_parameters(Sw,_,_)) -> true ; true),
       assert($pd_parameters(Sw,Values,Probs))
     ),!.
@@ -37,7 +38,8 @@ $pp_set_sw_list([Sw|Sws],Dist) :-
 fix_sw(Sw,Dist) :-
     $pp_require_ground(Sw,$msg(0101),fix_sw/2),
     $pp_require_switch_outcomes(Sw,$msg(0102),fix_sw/2),
-    $pp_require_distribution(Dist,$msg(0200),fix_sw/2),
+    (get_prism_flag(crf_enable,on) -> $pp_require_crf_params(Dist,$msg(0200),fix_sw/2)
+       ;$pp_require_distribution(Dist,$msg(0200),set_sw/2)),
     $pp_unfix_sw(Sw),
     $pp_set_sw(Sw,Dist),
     $pp_fix_sw(Sw),!.
@@ -221,7 +223,7 @@ $pp_expand_pseudo_counts(Caller,Spec,N,Alphas,Deltas) :-
     ),
     ( Mode = alpha ->
         Alphas = Hs,
-        ( $pp_test_positive_numbers(Alphas) -> true
+        ((get_prism_flag(crf_enable,on) -> $pp_test_numbers(Alphas);$pp_test_positive_numbers(Alphas)) -> true
         ; $pp_raise_domain_error($msg(0208),[Spec],[alphas,Spec],Caller)
         ),                                        % a bit dirty
         $pp_alpha_to_delta(Alphas,Deltas)
@@ -849,8 +851,9 @@ get_reg_sw_list(Sws) :-
 %%----------------------------------------
 
 alpha_to_delta(Alphas,Deltas) :-
-     $pp_require_non_negative_numbers(Alphas,$msg(0208),alpha_to_delta/2),
-     $pp_alpha_to_delta(Alphas,Deltas).
+    (get_prism_flag(crf_enable,on) -> $pp_require_numbers(Alphas,$msg(0208),alpha_to_delta/2)
+      ;$pp_require_non_negative_numbers(Alphas,$msg(0208),alpha_to_delta/2)),
+    $pp_alpha_to_delta(Alphas,Deltas).
 
 $pp_alpha_to_delta([],[]).
 $pp_alpha_to_delta([Alpha|Alphas],[Delta|Deltas]) :-
@@ -858,8 +861,9 @@ $pp_alpha_to_delta([Alpha|Alphas],[Delta|Deltas]) :-
      $pp_alpha_to_delta(Alphas,Deltas).
 
 delta_to_alpha(Deltas,Alphas) :-
-     $pp_require_non_negative_numbers(Deltas,$msg(0209),delta_to_alpha/2),
-     $pp_delta_to_alpha(Deltas,Alphas).
+    (get_prism_flag(crf_enable,on) -> $pp_require_numbers(Delta,$msg(0208),delta_to_alpha/2)
+      ;$pp_require_non_negative_numbers(Deltas,$msg(0209),delta_to_alpha/2)),
+    $pp_delta_to_alpha(Deltas,Alphas).
 
 $pp_delta_to_alpha([],[]).
 $pp_delta_to_alpha([Delta|Deltas],[Alpha|Alphas]) :-

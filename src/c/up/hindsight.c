@@ -5,6 +5,7 @@
 #include "up/em_aux_ml.h"
 #include "up/flags.h"
 #include "up/util.h"
+#include "up/feature.h"
 
 /*------------------------------------------------------------------------*/
 
@@ -242,6 +243,71 @@ int pc_compute_hindsight_4(void) {
 		RET_ON_ERR(get_hindsight_goals_scaling_log_exp(p_subgoal,is_cond));
 	} else {
 		RET_ON_ERR(compute_inside_scaling_none());
+		RET_ON_ERR(compute_outside_scaling_none());
+		RET_ON_ERR(get_hindsight_goals_scaling_none(p_subgoal,is_cond));
+	}
+
+	if (hindsight_goal_size > 0) {
+		/* Build the list of pairs of a subgoal and its hindsight probability */
+		p_hindsight_pairs = bpx_build_list();
+		t = p_hindsight_pairs;
+
+		for (j = 0; j < hindsight_goal_size; j++) {
+			p_pair = bpx_build_list();
+
+			t1 = p_pair;
+			bpx_unify(bpx_get_car(t1),
+			          bpx_build_integer(hindsight_goals[j]));
+			bpx_unify(bpx_get_cdr(t1),bpx_build_list());
+
+			t1 = bpx_get_cdr(t1);
+			bpx_unify(bpx_get_car(t1),bpx_build_float(hindsight_probs[j]));
+			bpx_unify(bpx_get_cdr(t1),bpx_build_nil());
+
+			bpx_unify(bpx_get_car(t),p_pair);
+
+			if (j == hindsight_goal_size - 1) {
+				bpx_unify(bpx_get_cdr(t),bpx_build_nil());
+			} else {
+				bpx_unify(bpx_get_cdr(t),bpx_build_list());
+				t = bpx_get_cdr(t);
+			}
+		}
+	} else {
+		p_hindsight_pairs = bpx_build_nil();
+	}
+
+	FREE(hindsight_goals);
+	FREE(hindsight_probs);
+
+	return bpx_unify(bpx_get_call_arg(4,4),p_hindsight_pairs);
+}
+
+/*---[crf hindsight]------------------------------------------------------*/
+
+int pc_compute_crfhindsight_4(void) {
+	TERM p_subgoal,p_hindsight_pairs,t,t1,p_pair;
+	int goal_id,is_cond,j;
+
+	goal_id   = bpx_get_integer(bpx_get_call_arg(1,4));
+	p_subgoal = bpx_get_call_arg(2,4);
+	is_cond   = bpx_get_integer(bpx_get_call_arg(3,4));
+
+	initialize_egraph_index();
+	alloc_sorted_egraph(1);
+	RET_ON_ERR(sort_one_egraph(goal_id,0,1));
+	if (verb_graph) print_egraph(0,PRINT_NEUTRAL);
+
+	alloc_hindsight_goals();
+
+	initialize_weights();
+
+	if (log_scale) {
+		RET_ON_ERR(compute_feature_scaling_log_exp());
+		RET_ON_ERR(compute_outside_scaling_log_exp());
+		RET_ON_ERR(get_hindsight_goals_scaling_log_exp(p_subgoal,is_cond));
+	} else {
+		RET_ON_ERR(compute_feature_scaling_none());
 		RET_ON_ERR(compute_outside_scaling_none());
 		RET_ON_ERR(get_hindsight_goals_scaling_none(p_subgoal,is_cond));
 	}

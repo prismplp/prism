@@ -149,6 +149,12 @@ $pp_trans_values([pred(F,3,_,_,_,Cls0)|Preds0],
     $pp_trans_values_demon_clauses(Cls0,Cls1,DemonAux),
     append(Cls1,ValCls1,ValCls),!,
     $pp_trans_values(Preds0,Preds,ValCls1,Demon,_).
+$pp_trans_values([pred(F,4,_,_,_,Cls0)|Preds0],
+                 Preds,ValCls,Demon,DemonAux) :-
+    (F = values ; F = values_x),!,
+    $pp_trans_values_demon_clauses_4(Cls0,Cls1,DemonAux),
+    append(Cls1,ValCls1,ValCls),!,
+    $pp_trans_values(Preds0,Preds,ValCls1,Demon,_).
 $pp_trans_values([pred($damon_load,0,_,_,_,[($damon_load:-Demon)|_])|Preds0],
                  Preds,ValCls,Demon,DemonAux) :- !,
     $pp_trans_values(Preds0,Preds,ValCls,_,DemonAux).
@@ -159,6 +165,26 @@ $pp_trans_values_clauses([],[]).
 $pp_trans_values_clauses([Cl0|Cls0],[Cl|Cls]) :-
     $pp_trans_values_one_clause(Cl0,Cl),!,
     $pp_trans_values_clauses(Cls0,Cls).
+
+/*for D-PRISM*/
+$pp_trans_values_demon_clauses_4([],[],true).
+$pp_trans_values_demon_clauses_4([Cl0|Cls0],[Cl|Cls],Demon) :-
+      ( Cl0 = (values(Sw,Vals0,Demons,Demons0):-Body)   -> true
+      ; Cl0 = (values_x(Sw,Vals0,Demons,Demons0):-Body) -> true
+      ; Cl0 = values(Sw,Vals0,Demons,Demons0)           -> Body = true
+      ; Cl0 = values_x(Sw,Vals0,Demons,Demons0)         -> Body = true
+      ),
+      $pp_build_expand_values(Vals0,Vals,Expand),
+      Cl = ($pu_values(Sw,Vals):-Body,Expand),
+      ( ground(Sw),ground(Demons)
+          -> $pp_trans_values_demons(Sw,Demons,Demon1), Demon = (Demon1,Demon2)
+      ; $pp_raise_warning($msg(1104),[Sw,Demons]), Demon = Demon2
+      ),
+      ( ground(Demons0)
+          -> $pp_trans_values_demons(Sw,Demons0,Demon0), Demon2 = (Demon0,Demon3)
+      ; $pp_raise_warning($msg(1104),[Sw,Demons0]), Demon = Demon3
+      ),!,
+      $pp_trans_values_demon_clauses(Cls0,Cls,Demon3).
 
 $pp_trans_values_one_clause(Cl0,Cl) :-
     ( Cl0 = (values(Sw,Vals0):-Body)   -> true
@@ -201,6 +227,8 @@ $pp_trans_values_demons(Sw,Demon0,Demon) :-
     ; Demon0 = fix_d@HParams -> Demon = $query(fix_sw_d(Sw,HParams))
     ; Demon0 = fix_h@HParams -> Demon = $query(fix_sw_d(Sw,HParams))
     ; Demon0 = Params        -> Demon = $query(set_sw(Sw,Params))
+    ; Demon0 = set_l@Lambdas -> Demon = $query(set_sw(Sw,Lambdas))
+    ; Demon0 = set_w@Weights -> Demon = $query(set_sw_a(Sw,Weights))
     ).
 
 $pp_build_expand_values(Vals0,Vals,Expand) :-
@@ -477,7 +505,12 @@ $pp_trans_prob_cls([(Head0:-Body0)|Cls0],Cls,F,Tabled,Info) =>
     ((nonvar(Tabled),Tabled = tabled(_,_,_,_)) ->
         Head =.. [F,Gid0|Args],
         $pp_trans_prob_body(Body0,Body1,Gids,[],Sids,[],Info),
-        RegistPath = $prism_eg_path(Gid0,Gids,Sids),
+        (get_prism_flag(crf_enable,on) ->
+          ( Gids == [], Sids == [] -> RegistPath = true
+          ; RegistPath = $prism_eg_path(Gid0,Gids,Sids)
+          )
+        ;RegistPath = $prism_eg_path(Gid0,Gids,Sids)
+        ),
         Body = (Body1,
                 $pc_prism_goal_id_register(Head0,Gid0),
                 RegistPath)

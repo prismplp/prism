@@ -24,6 +24,15 @@ int pc_set_verb_em_1(void);
 int pc_set_verb_graph_1(void);
 int pc_set_warn_1(void);
 int pc_set_debug_level_1(void);
+int pc_set_annealing_weight_1(void);
+int pc_set_crf_learning_rate_1(void);
+int pc_set_crf_epsilon_1(void);
+int pc_set_crf_golden_b_1(void);
+int pc_set_crf_init_method_1(void);
+int pc_set_crf_learn_mode_1(void);
+int pc_set_crf_ls_rho_1(void);
+int pc_set_crf_ls_c1_1(void);
+int pc_set_crf_penalty_1(void);
 
 /*========================================================================*/
 
@@ -48,5 +57,14 @@ extern int     verb_em;
 extern int     verb_graph;
 extern int     warn;
 extern int     debug_level;
+extern double annealing_weight;
+extern int     crf_learning_rate;
+extern double  crf_epsilon;
+extern double  crf_golden_b;
+extern int     crf_init_method;
+extern int     crf_learn_mode;
+extern double  crf_ls_rho;
+extern double  crf_ls_c1;
+extern double  crf_penalty;
 
 #endif /* FLAGS_H */

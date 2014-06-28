@@ -61,6 +61,8 @@ struct ExplGraphNode {
 	double first_outside;
 	char has_first_outside;
 	char visited;   /* flag: each node needs to occur at most once  */
+	double crfprob; /*[D-PRISM] p(E|G) in CRF */
+	int root_id; /*[D-PRISM] root id used in CRF */
 };
 
 typedef struct ViterbiList *V_LIST_PTR;
@@ -90,6 +92,12 @@ struct SwitchInstance {
 	double total_expect;      /* Sigma ru */
 	double best_total_expect; /* best Sigma ru */
 	int    count;    /* number of occurrences in complete data */
+	double current_inside; /*[DPRISM] current inside use in line-search(CRF) */
+	double gradient; /*[D-PRISM] gradient of CRF log-likelihood (in SAG, latest gradient) */
+	double sag_gradient; /*[D-PRISM] sum of gradient used in SAG */
+	double *LBFGS_s; /*[D-PRISM]*/
+	double *LBFGS_y;/*[D-PRISM]*/
+	double LBFGS_q;/*[D-PRISM]*/
 	SW_INS_PTR next; /* connect next instance of the same switch */
 };
 
@@ -97,6 +105,8 @@ typedef struct ObservedFactNode *ROOT;
 struct ObservedFactNode {
 	int id;
 	int count; /* number of occurrences */
+	int pid; /*[D-PRISM] parent goal id in CRF */
+	int sgd_count; /*[D-PRISM] number of sampled occurrences in SGD */
 };
 
 #define CTRLC_PRESSED (toam_signal_vec & INTERRUPT)

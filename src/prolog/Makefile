@@ -34,6 +34,11 @@ PL_UP    = up/dynamic.pl        \
            up/hash.pl           \
            up/flags.pl          \
            up/util.pl           \
+           up/feature.pl        \
+           up/crflearn.pl       \
+           up/crfviterbi.pl     \
+           up/crfhindsight.pl   \
+           up/fprob.pl          \
            up/bigarray.pl
 
 PL_BAT   = up/batch.pl

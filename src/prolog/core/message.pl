@@ -124,6 +124,13 @@ $pp_message($msg(1505),error,"switch information does not exist -- {1}").
 $pp_message($msg(1506),error,"MCMC sampling has not been done").
 $pp_message($msg(1507),error,"invalid number of trials; positive integer expected -- {1}").
 
+% Errors in CRF
+$pp_message($msg(1600),error,"no feature function; fsw/3 undefined").
+$pp_message($msg(1601),error,"non-ground goal name -- {1}").
+$pp_message($msg(1602),error,"invalid goal argument; goal/2 expected -- {1}").
+$pp_message($msg(1603),error,"`failure' is not allowed in CRF learn -- {1}").
+$pp_message($msg(1604),error,"goal/1 to compute Z(goal) is not defined -- (1)").
+
 %%
 %% Errors related to built-ins for auxiliary operations
 %%

@@ -10,6 +10,11 @@ void compute_n_max(int);
 
 void get_only_nth_most_likely_path(int, int, TERM *);
 
+void compute_n_crf_max(int);/*[D-PRISM]*/
+void get_n_most_likely_path(int,int,TERM *);
+void get_most_likely_path(int,TERM *,TERM *,TERM *,double *);
+void get_n_most_likely_path_rerank(int , int , int,TERM *);
+
 #endif /* VITERBI_H */
 
 

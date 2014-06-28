@@ -23,8 +23,10 @@ OBJS = graph.$(O)             \
        viterbi.$(O)           \
        hindsight.$(O)         \
        flags.$(O)             \
+       feature.$(O)           \
+       crfviterbi.$(O)        \
        util.$(O)              \
-       linear_eq.$(O)       \
+       linear_eq.$(O)         \
        lbfgs.$(O)             \
        infix.$(O)
 
@@ -48,6 +50,7 @@ UP_H   = up.h
 EM_H   = em.h
 VT_H   = vt.h
 MCMC_H = mcmc.h
+CRF_H  = crf_grd.h
 
 ##----------------------------------------------------------------------
 

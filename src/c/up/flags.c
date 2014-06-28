@@ -34,7 +34,16 @@ double  std_ratio             = 0.1;
 int     verb_em               = 0;
 int     verb_graph            = 0;
 int     warn                  = 0;
-
+/*for D-PRISM*/
+double  annealing_weight      = 1.0;
+int     crf_learning_rate     = 0;
+double  crf_epsilon           = 1.0;
+double  crf_golden_b          = 1.0;
+int     crf_init_method       = 3;
+int     crf_learn_mode        = 0;
+double  crf_ls_rho            = 0.5;
+double  crf_ls_c1             = 0.5;
+double  crf_penalty           = 0.0;
 /*
  * This variable does not correspond to any prism flags, and hence is
  * not initialized by reset_prism_flags/0.
@@ -145,6 +154,51 @@ int pc_set_warn_1(void) {
 
 int pc_set_debug_level_1(void) {
 	debug_level = bpx_get_integer(bpx_get_call_arg(1,1));
+	return BP_TRUE;
+}
+
+int pc_set_annealing_weight_1(void) {
+	annealing_weight = bpx_get_float(bpx_get_call_arg(1,1));
+	return BP_TRUE;
+}
+
+int pc_set_crf_learning_rate_1(void) {
+	crf_learning_rate = bpx_get_integer(bpx_get_call_arg(1,1));
+	return BP_TRUE;
+}
+
+int pc_set_crf_epsilon_1(void) {
+	crf_epsilon = bpx_get_float(bpx_get_call_arg(1,1));
+	return BP_TRUE;
+}
+
+int pc_set_crf_golden_b_1(void) {
+	crf_golden_b = bpx_get_float(bpx_get_call_arg(1,1));
+	return BP_TRUE;
+}
+
+int pc_set_crf_init_method_1(void) {
+	crf_init_method = bpx_get_integer(bpx_get_call_arg(1,1));
+	return BP_TRUE;
+}
+
+int pc_set_crf_learn_mode_1(void) {
+	crf_learn_mode = bpx_get_integer(bpx_get_call_arg(1,1));
+	return BP_TRUE;
+}
+
+int pc_set_crf_ls_rho_1(void) {
+	crf_ls_rho = bpx_get_float(bpx_get_call_arg(1,1));
+	return BP_TRUE;
+}
+
+int pc_set_crf_ls_c1_1(void) {
+	crf_ls_c1 = bpx_get_float(bpx_get_call_arg(1,1));
+	return BP_TRUE;
+}
+
+int pc_set_crf_penalty_1(void) {
+	crf_penalty = bpx_get_float(bpx_get_call_arg(1,1));
 	return BP_TRUE;
 }
 

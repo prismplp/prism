@@ -866,3 +866,117 @@ int pc_import_switch_stats_2(void) {
 	    bpx_unify(bpx_get_call_arg(1,2), bpx_build_integer(stats[0])) &&
 	    bpx_unify(bpx_get_call_arg(2,2), bpx_build_integer(stats[1]));
 }
+
+
+/*--[CRF sort]----------------------------------------------------------------------*/
+
+int sort_one_crf_egraph(int root_id, int root_index, int count, int pid) {
+	roots[root_index] = (ROOT)MALLOC(sizeof(struct ObservedFactNode));
+	roots[root_index]->id = root_id;
+	roots[root_index]->count = count;
+	roots[root_index]->pid = pid;
+
+	if (expl_graph[root_id]->visited == 1) {
+		/*
+		 * This top-goal is also a sub-goal of another top-goal.  This
+		 * should occur only when INIT_VISITED_FLAGS is suppressed
+		 * (i.e. we have more than one observed goal in learning).
+		 */
+		if (suppress_init_flags) return BP_TRUE;
+	}
+
+	if (expl_graph[root_id]->visited != 0) RET_INTERNAL_ERR;
+
+	RET_ON_ERR(topological_sort(root_id));
+
+	expand_sorted_egraph(index_to_sort + 1);
+	sorted_expl_graph[index_to_sort] = expl_graph[root_id];
+
+	index_to_sort++;
+	sorted_egraph_size = index_to_sort;
+
+	/* initialize flags after use */
+	if (!suppress_init_flags) INIT_VISITED_FLAGS;
+
+	return BP_TRUE;
+}
+
+int sort_crf_egraphs(TERM p_fact_list) { /* assumed to be dereferenced in advance */
+	TERM pair;
+	int root_index = 0, goal_id, count, parent_id;
+
+	sorted_egraph_size = 0;
+	suppress_init_flags = 1;
+
+	while (bpx_is_list(p_fact_list)) {
+		pair = bpx_get_car(p_fact_list);
+		p_fact_list = bpx_get_cdr(p_fact_list);
+
+		goal_id = bpx_get_integer(bpx_get_arg(1,pair));
+		count   = bpx_get_integer(bpx_get_arg(2,pair));
+		parent_id = bpx_get_integer(bpx_get_arg(3,pair));
+
+		if (sort_one_crf_egraph(goal_id,root_index,count,parent_id) == BP_ERROR) {
+			INIT_VISITED_FLAGS;
+			return BP_ERROR;
+		}
+		root_index++;
+	}
+
+	suppress_init_flags = 0;
+
+	INIT_VISITED_FLAGS;
+	return BP_TRUE;
+}
+
+int pc_import_occ_crf_switches_3(void) {
+	TERM p_sw_list,p_sw_list0,p_sw_list1;
+	TERM p_sw_ins_list0,p_sw_ins_list1,sw,sw_ins;
+	TERM p_num_sw, p_num_sw_ins;
+	int i;
+	int num_sw_ins;
+	void release_occ_switches();
+	void release_num_sw_vals();
+
+	p_sw_list    = bpx_get_call_arg(1,3);
+	p_num_sw     = bpx_get_call_arg(2,3);
+	p_num_sw_ins = bpx_get_call_arg(3,3);
+
+	p_sw_list0 = bpx_build_nil();
+	num_sw_ins = 0;
+	for (i = 0; i < occ_switch_tab_size; i++) {
+		SW_INS_PTR  ptr;
+
+		sw = bpx_build_structure("sw",2);
+		bpx_unify(bpx_get_arg(1,sw), bpx_build_integer(i));
+
+		p_sw_ins_list0 = bpx_build_nil();
+		ptr = occ_switches[i];
+		while (ptr != NULL) {
+			num_sw_ins++;
+
+			sw_ins = bpx_build_structure("sw_ins",4);
+			bpx_unify(bpx_get_arg(1,sw_ins),bpx_build_integer(ptr->id));
+			bpx_unify(bpx_get_arg(2,sw_ins),bpx_build_float(ptr->inside));
+			bpx_unify(bpx_get_arg(3,sw_ins),bpx_build_float(ptr->smooth));
+			bpx_unify(bpx_get_arg(4,sw_ins),bpx_build_float(ptr->total_expect));
+
+			p_sw_ins_list1 = bpx_build_list();
+			bpx_unify(bpx_get_car(p_sw_ins_list1),sw_ins);
+			bpx_unify(bpx_get_cdr(p_sw_ins_list1),p_sw_ins_list0);
+			p_sw_ins_list0 = p_sw_ins_list1;
+
+			ptr = ptr->next;
+		}
+
+		bpx_unify(bpx_get_arg(2,sw),p_sw_ins_list0);
+
+		p_sw_list1 = bpx_build_list();
+		bpx_unify(bpx_get_car(p_sw_list1),sw);
+		bpx_unify(bpx_get_cdr(p_sw_list1),p_sw_list0);
+		p_sw_list0 = p_sw_list1;
+	}
+}
+
+/*----------------------------------------------------------------------------------*/
+

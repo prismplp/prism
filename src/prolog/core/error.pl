@@ -861,6 +861,7 @@ $pp_require_fixed_size_hyperparameters(X,MsgID,Source) :-
 
 $pp_test_fixed_size_hyperparameters(X) :-
     ground(X),
+    get_prism_flag(crf_enable,F),F=on->$pp_test_numbers(X);
     $pp_test_non_negative_numbers(X).
 
 $pp_error_fixed_size_hyperparameters(X,Error) :-

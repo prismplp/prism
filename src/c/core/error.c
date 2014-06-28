@@ -27,6 +27,9 @@ TERM ierr_invalid_free_energy;
 TERM ierr_function_not_implemented;
 TERM ierr_unmatched_branches;
 
+TERM err_crf_failure;
+TERM err_line_search;
+
 /*--------------------------------------------------------------------*/
 
 TERM build_runtime_error(const char *s) {
@@ -72,6 +75,9 @@ void register_prism_errors(void) {
 	ierr_invalid_free_energy       = build_internal_error("invalid_free_energy");
 	ierr_function_not_implemented  = build_internal_error("function_not_implemented");
 	ierr_unmatched_branches        = build_internal_error("unmatched_branches");
+
+	err_crf_failure                = build_runtime_error("crf_failure_goal");
+	err_line_search                = build_runtime_error("line_search_alpha");
 }
 
 /*--------------------------------------------------------------------*/

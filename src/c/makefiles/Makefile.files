@@ -35,8 +35,10 @@ UP_OBJS   = up$(S)graph.$(O)            \
             up$(S)viterbi.$(O)          \
             up$(S)hindsight.$(O)        \
             up$(S)flags.$(O)            \
+            up$(S)feature.$(O)          \
+            up$(S)crfviterbi.$(O)       \
             up$(S)util.$(O)             \
-            up$(S)linear_eq.$(O)           \
+            up$(S)linear_eq.$(O)        \
             up$(S)lbfgs.$(O)            \
             up$(S)infix.$(O)           
 

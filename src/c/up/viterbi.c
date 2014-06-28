@@ -527,11 +527,11 @@ static int visit_most_likely_path(EG_NODE_PTR eg_ptr,
 	return curr_vindex;
 }
 
-static void get_most_likely_path(int goal_id,
-                                 TERM *p_goal_path_ptr,
-                                 TERM *p_subpath_goal_ptr,
-                                 TERM *p_subpath_sw_ptr,
-                                 double *viterbi_prob_ptr) {
+void get_most_likely_path(int goal_id,
+                          TERM *p_goal_path_ptr,
+                          TERM *p_subpath_goal_ptr,
+                          TERM *p_subpath_sw_ptr,
+                          double *viterbi_prob_ptr) {
 	TERM p_goal_path;
 	TERM p_subpath_goal, p_subpath_sw;
 	TERM p_tmp, p_tmp_g, p_tmp_g0, p_tmp_g1, p_tmp_sw, p_tmp_sw0, p_tmp_sw1;
@@ -797,8 +797,8 @@ static void get_nth_most_likely_path(int j, int n, int goal_id, TERM *p_tmp_list
 	FREE(n_viterbi_egraphs);
 }
 
-static void get_n_most_likely_path(int n, int goal_id,
-                                   TERM *p_n_viterbi_list_ptr) {
+void get_n_most_likely_path(int n, int goal_id,
+                            TERM *p_n_viterbi_list_ptr) {
 	TERM p_n_viterbi_list, p_tmp_list;
 	int j;
 
@@ -888,8 +888,8 @@ static int compare_viterbi_rank(const void *a, const void *b) {
 	return 0;
 }
 
-static void get_n_most_likely_path_rerank(int n, int l, int goal_id,
-        TERM *p_n_viterbi_list_ptr) {
+void get_n_most_likely_path_rerank(int n, int l, int goal_id,
+                                   TERM *p_n_viterbi_list_ptr) {
 	TERM p_goal_path;
 	TERM p_subpath_goal, p_subpath_sw;
 	TERM p_tmp, p_tmp_g, p_tmp_g0, p_tmp_g1, p_tmp_sw, p_tmp_sw0, p_tmp_sw1;
@@ -1127,4 +1127,222 @@ int pc_compute_n_viterbi_rerank_4(void) {
 	return bpx_unify(bpx_get_call_arg(4,4),p_n_viterbi_list);
 }
 
+/*for D-PRISM*/
+void compute_n_crf_max(int n) {
+	int i,k,j,m;
+	EG_NODE_PTR eg_ptr;
+	EG_PATH_PTR path_ptr;
+	V_LIST_PTR queue_ptr;
+	V_LIST_PTR top_n_ptr,next_top_n_ptr,new_top_n_ptr,old_top_n_last;
+	V_ENT_PTR v_ent;
+	V_ENT_PTR v_ent_next;
+	double p;
+	int inserted;
+	int old_mth_index,new_mth_index;
+	EG_NODE_PTR mth_child;
+
+	for (i = 0; i < sorted_egraph_size; i++) {
+		eg_ptr = sorted_expl_graph[i];
+		eg_ptr->inside = -1.0;
+		eg_ptr->outside = -1.0;
+
+		if (eg_ptr->path_ptr != NULL) {
+			eg_ptr->top_n = (V_ENT_PTR *)MALLOC(sizeof(V_ENT_PTR) * n);
+			for (j = 0; j < n; j++)
+				eg_ptr->top_n[j] = NULL;
+		} else {
+			eg_ptr->top_n = NULL;
+		}
+		eg_ptr->top_n_len = 0;
+	}
+
+	for (i = 0; i < sorted_egraph_size; i++) {
+		eg_ptr = sorted_expl_graph[i];
+
+		queue_len = 0;
+		queue_first = queue_last = NULL;
+
+		path_ptr = eg_ptr->path_ptr;
+
+		if (path_ptr == NULL) continue;
+
+		/* Constructing the initial queue: */
+		while (path_ptr != NULL) {
+
+			/* Create an entry which is the most probable for the path */
+			v_ent = (V_ENT_PTR)MALLOC(sizeof(struct ViterbiEntry));
+			v_ent->goal_id = eg_ptr->id;
+			v_ent->path_ptr = path_ptr;
+			v_ent->children_len = path_ptr->children_len;
+			v_ent->top_n_index = (int *)MALLOC(sizeof(int) * path_ptr->children_len);
+
+			for (k = 0; k < path_ptr->children_len; k++) {
+				v_ent->top_n_index[k] = 0;
+			}
+			p = 0.0;
+			for (k = 0; k < path_ptr->children_len; k++) {
+				if (path_ptr->children[k]->top_n != NULL)
+					p += path_ptr->children[k]->top_n[0]->max;
+			}
+			for (k = 0; k < path_ptr->sws_len; k++) {
+				p += path_ptr->sws[k]->inside * path_ptr->sws[k]->inside_h;
+			}
+			v_ent->max = p;
+
+			/* Enqueue the entry */
+			queue_ptr = (V_LIST_PTR)MALLOC(sizeof(struct ViterbiList));
+			queue_ptr->entry = v_ent;
+			queue_ptr->prev = NULL;  /* Never use for the queue */
+			queue_ptr->next = NULL;
+			if (queue_first == NULL) {
+				queue_first = queue_last = queue_ptr;
+				queue_len = 1;
+			} else {
+				queue_last->next = queue_ptr;
+				queue_last = queue_ptr;
+				queue_len++;
+			}
+
+			path_ptr = path_ptr->next;
+		}
+
+		/* Create the header of top-N list */
+		top_n_first = (V_LIST_PTR)MALLOC(sizeof(struct ViterbiList));
+		top_n_first->entry = NULL;  /* null entry */
+		top_n_first->prev = NULL;
+		top_n_first->next = NULL;
+		top_n_last = top_n_first;
+		top_n_len = 0;
+
+		while (queue_len > 0) {
+			/* Dequeue */
+			v_ent = queue_first->entry;
+			queue_ptr = queue_first;
+			queue_first = queue_ptr->next;
+			FREE(queue_ptr);
+			queue_len--;
+
+			/** Add the element to the top-N list **/
+			top_n_ptr = top_n_first;
+			next_top_n_ptr = top_n_first->next;
+			inserted = 0;
+			while (next_top_n_ptr != NULL) { /* compare the current entry with the ones in the top-N list */
+				if (v_ent->max > next_top_n_ptr->entry->max) {
+					new_top_n_ptr = (V_LIST_PTR)MALLOC(sizeof(struct ViterbiList));
+
+					new_top_n_ptr->entry = v_ent;
+					new_top_n_ptr->prev = top_n_ptr;
+					new_top_n_ptr->next = next_top_n_ptr;
+
+					next_top_n_ptr->prev = new_top_n_ptr;
+					top_n_ptr->next = new_top_n_ptr;
+					top_n_len++;
+					inserted = 1;
+					break;
+				}
+				top_n_ptr = next_top_n_ptr;
+				next_top_n_ptr = next_top_n_ptr->next;
+			}
+
+			if (top_n_len < n) {
+				if (!inserted) {
+					new_top_n_ptr = (V_LIST_PTR)MALLOC(sizeof(struct ViterbiList));
+					new_top_n_ptr->entry = v_ent;
+					new_top_n_ptr->prev = top_n_ptr;
+					new_top_n_ptr->next = NULL;
+
+					top_n_ptr->next = new_top_n_ptr;
+					top_n_last = new_top_n_ptr;
+					top_n_len++;
+					inserted = 1;
+				}
+			} else if (top_n_len == n) {
+				if (!inserted) {
+					/* Erase the current entry */
+					FREE(v_ent->top_n_index);
+					FREE(v_ent);
+				}
+			} else { /* top_n_len > n */
+				if (!inserted) {
+					/* Erase the current entry */
+					FREE(v_ent->top_n_index);
+					FREE(v_ent);
+				} else {
+					/* Erase the last entry */
+					old_top_n_last = top_n_last;
+					top_n_last = top_n_last->prev;
+					top_n_last->next = NULL;
+					FREE(old_top_n_last->entry->top_n_index);
+					FREE(old_top_n_last->entry);
+					FREE(old_top_n_last);
+					top_n_len--;
+				}
+			}
+
+			/* If the current entry is not added to the top-N list, there is no
+			 * need to pursue the entries that have lower probabilities than
+			 * the current entry's probability.
+			 */
+			if (!inserted) continue;
+
+			/* Otherwise, propose the futher entries based on the current entry */
+			for (m = 0; m < v_ent->children_len; m++) {
+
+				old_mth_index = v_ent->top_n_index[m];
+				new_mth_index = v_ent->top_n_index[m] + 1;
+				mth_child = v_ent->path_ptr->children[m];
+
+				if (new_mth_index >= mth_child->top_n_len)
+					continue;
+
+				v_ent_next = (V_ENT_PTR)MALLOC(sizeof(struct ViterbiEntry));
+				v_ent_next->goal_id = v_ent->goal_id;
+				v_ent_next->path_ptr = v_ent->path_ptr;
+				v_ent_next->children_len = v_ent->children_len;
+				v_ent_next->top_n_index = (int *)MALLOC(sizeof(int) *
+				                                        v_ent_next->children_len);
+
+				for (k = 0; k < v_ent_next->children_len; k++) {
+					v_ent_next->top_n_index[k] =
+					    (k == m) ?
+					    (v_ent->top_n_index[k] + 1) : v_ent->top_n_index[k];
+				}
+
+				v_ent_next->max =
+				    v_ent->max
+				    - mth_child->top_n[old_mth_index]->max
+				    + mth_child->top_n[new_mth_index]->max;
+
+				/* Enqueue the derived entries */
+				queue_ptr = (V_LIST_PTR)MALLOC(sizeof(struct ViterbiList));
+				queue_ptr->entry = v_ent_next;
+				queue_ptr->prev = NULL;  /* Never use for the queue */
+				queue_ptr->next = NULL;
+				if (queue_first == NULL) {
+					queue_first = queue_last = queue_ptr;
+					queue_len = 1;
+				} else {
+					queue_last->next = queue_ptr;
+					queue_last = queue_ptr;
+					queue_len++;
+				}
+			}
+		}
+
+		j = 0;
+		top_n_ptr = top_n_first->next;
+		while (top_n_ptr != NULL) {
+			if (eg_ptr->top_n != NULL)
+				eg_ptr->top_n[j] = top_n_ptr->entry;  /* shallow copy */
+			j++;
+			top_n_ptr = top_n_ptr->next;
+		}
+		eg_ptr->top_n_len = j;
+
+		clean_queue();
+		clean_top_n();
+	}
+}
+
 /*------------------------------------------------------------------------*/
+

@@ -55,6 +55,9 @@ extern TERM ierr_invalid_free_energy;
 extern TERM ierr_function_not_implemented;
 extern TERM ierr_unmatched_branches;
 
+extern TERM err_crf_failure;/*[D-PRISM]*/
+extern TERM err_line_search;/*[D-PRISM]*/
+
 /*--------------------------------------------------------------------*/
 
 TERM build_runtime_error(const char *);

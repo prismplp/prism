@@ -94,6 +94,16 @@ $pp_prism_flag(viterbi_mode,enum([params,hparams,ml,vb]),ml,$none).
 $pp_prism_flag(warn,bool,off,$pc_set_warn).
 $pp_prism_flag(write_call_events,special($pp_check_write_call_events),all,$none).
 $pp_prism_flag(error_on_invalid_distribution,bool,on,$none).
+$pp_prism_flag(crf_enable,bool,on,$none).
+$pp_prism_flag(crf_annealing_weight,float(1,+inf),1.0,$pc_set_annealing_weight).
+$pp_prism_flag(crf_learning_rate,enum([none,annealing,backtrack,golden]),backtrack,$pc_set_crf_learning_rate).
+$pp_prism_flag(crf_golden_b,float(@0,+inf),1.0,$pc_set_crf_golden_b).
+$pp_prism_flag(crf_epsilon,float(0,+inf),1.0,$pc_set_crf_epsilon).
+$pp_prism_flag(crf_init,enum([none,noisy_u,random,zero]),zero,$pc_set_crf_init_method).
+$pp_prism_flag(crf_learn_mode,enum([fg,lbfgs]),fg,$pc_set_crf_learn_mode).
+$pp_prism_flag(crf_ls_rho,float(@0,@1),0.5,$pc_set_crf_ls_rho).
+$pp_prism_flag(crf_ls_c1,float(@0,@1),0.5,$pc_set_crf_ls_c1).
+$pp_prism_flag(crf_penalty,float(-inf,+inf),0.0,$pc_set_crf_penalty).
 
 % first flag is enabled by default
 $pp_prism_flag_exclusive([default_sw_d,default_sw_a]).
