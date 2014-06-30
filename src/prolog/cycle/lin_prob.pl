@@ -1,17 +1,17 @@
-prprobg(Goal):-
+$prprobg(Goal):-
     (get_prism_flag(log_scale,on)->Text='Log-probability';Text='Probability'),
     prprobg(Goal,L),
     foreach(S in L,[G,P],
     ([P,G]=S,format("~w of ~w is: ~15f~n",[Text,G,P]))).
 
-prprobg(Goal,Probs):-
+$prprobg(Goal,Probs):-
     vars_set(Goal,Vars),
     probf(Goal,N),
     N=[node(_,Z)|_],
     foreach(S in Z,ac(Ps,[]),[P,G|Vars],
     (S=path([G],[]),Goal=G->prprob(G,P),Ps^1=[[P,G]|Ps^0];true)),
 	sort(>,Ps,Probs).
-probg(Goal,Probs):-
+$probg(Goal,Probs):-
     vars_set(Goal,Vars),
     probf(Goal,N),
     N=[node(_,Z)|_],
@@ -20,8 +20,8 @@ probg(Goal,Probs):-
 	sort(>,Ps,Probs).
 
 
-cyc_prob(Goal) :-
-  cyc_prob(Goal,P),
+lin_prob(Goal) :-
+  lin_prob(Goal,P),
   (get_prism_flag(log_scale,on)->Text='Log-probability';Text='Probability'),
   format("~w of ~w is: ~15f~n",[Text,Goal,P]).
 
@@ -33,7 +33,7 @@ find_scc(Goal,Components,CompT) :-
   % Finding SCC
   $pp_find_scc(HGraph,Components,CompT).
 
-cyc_prob(Goal,Prob) :-
+lin_prob(Goal,Prob) :-
   % Testing goal
   probefi(Goal,ExpGraph),
   % Transforming graph
@@ -46,14 +46,14 @@ cyc_prob(Goal,Prob) :-
 
 
 
-cyc_probfi(Goal):-
-  cyc_probfi(Goal,Expls),print_graph(Expls,[lr('<=>')]).
-cyc_probefi(Goal):-
-  cyc_probefi(Goal,Expls),print_graph(Expls,[lr('<=>')]).
+lin_probfi(Goal):-
+  lin_probfi(Goal,Expls),print_graph(Expls,[lr('<=>')]).
+lin_probefi(Goal):-
+  lin_probefi(Goal,Expls),print_graph(Expls,[lr('<=>')]).
 
-cyc_probfi(Goal,Expls) :-
+lin_probfi(Goal,Expls) :-
   $pp_cyc_probfi(Goal,_,1,Expls).
-cyc_probefi(Goal,Expls) :-
+lin_probefi(Goal,Expls) :-
   $pp_cyc_probfi(Goal,_,0,Expls).
 
 $pp_cyc_replace_prob(Id,Mapping,P):-
@@ -108,7 +108,7 @@ $pp_cyc_probfi(Goal,OrgExpls,Decode,NewExpls2) :-
   $pp_garbage_collect.
 
 
-cyc_learn(Goals) :-
+$cyc_learn(Goals) :-
 $pp_cyc_learn_core(ml,Goals).
 
 $pp_cyc_learn_core(Mode,Goals) :-

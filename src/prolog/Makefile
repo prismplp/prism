@@ -50,8 +50,8 @@ PL_BP    = bp/eval.pl
 PL_FOC   = foc/fo.pl            \
            foc/fo_prismn.pl
 
-PL_CYCLE = cycle/cyc_prob.pl      \
-           cycle/infix.pl       \
+PL_CYCLE = cycle/lin_prob.pl    \
+           cycle/nonlin_prob.pl      \
            cycle/trans_graph.pl \
            cycle/find_scc.pl    \
            cycle/solve_graph.pl
