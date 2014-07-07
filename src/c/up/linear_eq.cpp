@@ -24,14 +24,8 @@ int pc_solve_linear_system_4(void) {
 	// transform to c types
 	int n = bpx_get_integer(pr_n);
 	MatrixXd A = MatrixXd(n,n);
-	FullPivLU< MatrixXd > lu(A);
 	VectorXd b = VectorXd(n);
 	VectorXd x;
-	x=lu.solve(b);
-	std::cerr << "Solve Ax=b:" << std::endl;
-	printf("*****\n");
-	std::cerr << "Check solution by Ax-b: " << std::endl
-		<< A*x-b << std::endl << std::endl;
 	int i, j;
 	for(i = 0; i < n; i++) {
 		b(i) = bpx_get_float(bpx_get_car(pr_b));
@@ -41,6 +35,9 @@ int pc_solve_linear_system_4(void) {
 			pr_A = bpx_get_cdr(pr_A);
 		}
 	}
+	FullPivLU< MatrixXd > lu(A);
+	x=lu.solve(b);
+
 	// check for correct conversion
 	if(exception) {
 		return BP_FALSE;
