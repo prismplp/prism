@@ -1,8 +1,8 @@
 %% file = nonlin.psm
 %--------------------------------------
 % [Usage]
-% $ inprism
-% ?- prism(nonlin),probf(x(0)),in_prob(x(1))
+% $ prism
+% ?- prism(nonlin),probf(x(0)),nonlin_prob(x(1))
 % 
 % [Equations]
 % unit circle : 1    = x[1]*x[1] + x[0]*x[0]

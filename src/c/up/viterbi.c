@@ -52,8 +52,10 @@ void compute_max(void) {
 		for (i = 0; i < sorted_egraph_size; i++) {
 			eg_ptr = sorted_expl_graph[i];
 			path_ptr = eg_ptr->path_ptr;
-			for (k = 0; k < path_ptr->children_len; k++) {
-				path_ptr->children[k]->max=-HUGE_PROB;
+			if (path_ptr != NULL) {
+				for (k = 0; k < path_ptr->children_len; k++) {
+					path_ptr->children[k]->max=-HUGE_PROB;
+				}
 			}
 		}
 		for (i = 0; i < sorted_egraph_size; i++) {
@@ -61,7 +63,7 @@ void compute_max(void) {
 			eg_ptr = sorted_expl_graph[i];
 			path_ptr = eg_ptr->path_ptr;
 
-			/* path_ptr should not be NULL; but it happens */
+			/* path_ptr is NULL when it is a fact*/
 			if (path_ptr == NULL) {
 				max_p = 0.0;      /* log-scale */
 				max_path = NULL;
@@ -106,23 +108,22 @@ void compute_max(void) {
 		for (i = 0; i < sorted_egraph_size; i++) {
 			eg_ptr = sorted_expl_graph[i];
 			path_ptr = eg_ptr->path_ptr;
-			for (k = 0; k < path_ptr->children_len; k++) {
-				path_ptr->children[k]->max=0.0;
+			if (path_ptr != NULL) {
+				for (k = 0; k < path_ptr->children_len; k++) {
+					path_ptr->children[k]->max=0.0;
+				}
 			}
 		}
 		for (i = 0; i < sorted_egraph_size; i++) {
 			max_p = 0.0;
+			max_path = NULL;
 			eg_ptr = sorted_expl_graph[i];
 			path_ptr = eg_ptr->path_ptr;
-
-			/* path_ptr should not be NULL; but it happens */
+			/* path_ptr is NULL when it is a fact*/
 			if (path_ptr == NULL) {
 				max_p = 1.0;
 				max_path = NULL;
 			}
-			max_path = NULL;
-			max_p=0.0;
-
 			while (path_ptr != NULL) {
 				this_path_max = 1.0;
 				/* for cycle */
@@ -134,6 +135,7 @@ void compute_max(void) {
 					}
 				}
 				if(cycle) {
+					
 					path_ptr->max = 0;
 					path_ptr = path_ptr->next;
 					continue;
@@ -153,9 +155,6 @@ void compute_max(void) {
 				}
 
 				path_ptr = path_ptr->next;
-			}
-			if(max_path==NULL) {
-				quit("Internal error: max_path\n");
 			}
 			sorted_expl_graph[i]->max = max_p;
 			sorted_expl_graph[i]->max_path = max_path;
