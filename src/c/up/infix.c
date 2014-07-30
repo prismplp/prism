@@ -15,26 +15,50 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 
+// need to declare this function before
+double bpx_get_float(TERM t);
 double getCPUTime() {
 	struct rusage RU;
 	getrusage(RUSAGE_SELF, &RU);
 	return RU.ru_utime.tv_sec + (double)RU.ru_utime.tv_usec*1e-6;
 }
+/*
+mapping from IDs to indexes for explanation graph pointers
+ex. relationship between IDs and indexes
+//	eg_ptr=sorted_expl_graph[index];
+//	mapping[eg_ptr->id]=index;
+*/
 static int* mapping;
+/*
+mapping from IDs to indexes for msws
+ex. relationship between IDs and indexes
+//	ptr = occ_switches[index];
+//	while (ptr != NULL) {
+//		sw_mapping[ptr->id]=index;
+//		ptr = ptr->next;
+//	}
+*/
 static int* sw_mapping;
-// need to declare this function before
-double bpx_get_float(TERM t);
+/*
+additional informaion to sorted_expl_graph
+*/
 typedef struct {
 	int visited;
 	int index;
 	int lowlink;
 	int in_stack;
 } SCC_Node;
+/*
+Stack for the Tarjan algorithm (finding SCCs)
+*/
 typedef struct SCC_StackEl {
 	int index;
 	struct SCC_StackEl* next;
 } SCC_Stack;
-
+/*
+	el  : array of indexes that corresponded to indexes of sorted_expl_graph
+	size: size of el
+*/
 typedef struct {
 	int* el;
 	int size;
@@ -47,6 +71,20 @@ static int scc_num;
 static SCC* sccs;
 static int nl_debug_level;
 
+/*
+This function compute equations in a given SCC(whose ID is (int)scc) by given values((double*) x)
+and store it to (double*) o.
+ex.
+given explanation graph
+//	 a
+//	  <=> b & b
+//	    v c & c
+converted to following equations
+//	a=b^2+c^2
+this function compute
+//	-a+b^2+c^2
+and store it to (double*) o
+*/
 void compute_scc_eq(double* x,double* o,int scc) {
 	int i;
 	EG_NODE_PTR eg_ptr;
@@ -80,6 +118,7 @@ void compute_scc_eq(double* x,double* o,int scc) {
 		o[i]=sum;
 	}
 }
+
 void progress_broyden(double* x,double* sk,int dim) {
 	int i;
 	printf("x=>> ");
@@ -92,6 +131,12 @@ void progress_broyden(double* x,double* sk,int dim) {
 	}
 	printf("\n");
 }
+
+/*
+This function solves equations corresponded to a target SCC by the Broyden's method.
+scc: target scc_id
+compute_scc_eq: function pointer to compute equations
+*/
 void solve(int scc,void(*compute_scc_eq)(double* x,double* o,int scc)) {
 	int dim =sccs[scc].size;
 	int loopCount;
@@ -193,7 +238,9 @@ void solve(int scc,void(*compute_scc_eq)(double* x,double* o,int scc)) {
 	}
 }
 
-
+/*
+Auxiliary function for recusive call in the Tarjan algorithm
+*/
 void get_scc_tarjan_start(int i,int index) {
 	nodes[i].visited=1;
 	nodes[i].index=index;
@@ -257,6 +304,11 @@ void get_scc_tarjan_start(int i,int index) {
 		scc_num++;
 	}
 }
+
+/*
+This function computes the reachability from i to j by DFS on the explanation graph
+0 <= i,j <= sorted_egraph_size
+*/
 int is_reachable(int i,int j) {
 	EG_NODE_PTR eg_ptr;
 	EG_PATH_PTR path_ptr;
@@ -382,7 +434,9 @@ void print_sccs() {
 	}
 	return;
 }
-
+/*
+This function finds SCCs by the Tarjan algorithms and store SCCs to (SCC *) sccs.
+*/
 void get_scc_tarjan() {
 	int i;
 	nodes=calloc(sizeof(SCC_Node),sorted_egraph_size);
@@ -408,7 +462,7 @@ void get_scc_tarjan() {
 			break;
 		}
 	}
-	//check
+	//check SCCs
 	if(nl_debug_level>0) {
 		printf("check SCCs\n");
 		if(stack!=NULL) {
