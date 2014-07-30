@@ -976,6 +976,15 @@ int pc_import_occ_crf_switches_3(void) {
 		bpx_unify(bpx_get_cdr(p_sw_list1),p_sw_list0);
 		p_sw_list0 = p_sw_list1;
 	}
+
+	release_occ_switches();
+	release_num_sw_vals();
+
+	return
+	    bpx_unify(p_sw_list,    p_sw_list0) &&
+	    bpx_unify(p_num_sw,     bpx_build_integer(occ_switch_tab_size)) &&
+	    bpx_unify(p_num_sw_ins, bpx_build_integer(num_sw_ins));
+
 }
 
 /*----------------------------------------------------------------------------------*/
