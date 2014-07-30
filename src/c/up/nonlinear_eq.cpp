@@ -790,7 +790,7 @@ int pc_nonlinear_eq_2(void) {
 	free(sccs);
 	free(mapping);
 	double prob=sorted_expl_graph[sorted_egraph_size-1]->inside;
-	if(1) {
+	if(nl_debug_level>=1) {
 		printf("CPU time (scc,solution,all)\n");
 		printf("# %f,%f,%f\n",scc_time-start_time,solution_time-scc_time,solution_time - start_time);
 	}
