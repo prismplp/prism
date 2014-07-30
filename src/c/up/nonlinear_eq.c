@@ -12,36 +12,59 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+
+#ifndef _MSC_VER
 #include <sys/time.h>
 #include <sys/resource.h>
-
-// need to declare this function before
-double bpx_get_float(TERM t);
 double getCPUTime() {
 	struct rusage RU;
 	getrusage(RUSAGE_SELF, &RU);
 	return RU.ru_utime.tv_sec + (double)RU.ru_utime.tv_usec*1e-6;
 }
+#else
+double getCPUTime(){
+	FILETIME creationTime;
+	FILETIME exitTime;
+	FILETIME kernelTime;
+	FILETIME userTime;
+	{
+		GetProcessTimes(GetCurrentProcess(), 
+				&creationTime, 
+				&exitTime, 
+				&kernelTime, 
+				&userTime);
+	}
+	{
+		SYSTEMTIME userSystemTime;
+		if ( FileTimeToSystemTime( &userTime, &userSystemTime ) != -1 )
+			return (double)userSystemTime.wHour * 3600.0 +
+				(double)userSystemTime.wMinute * 60.0 +
+				(double)userSystemTime.wSecond +
+				(double)userSystemTime.wMilliseconds / 1000.0;
+	}
+	return 0;
+}
+#endif
 /*
-mapping from IDs to indexes for explanation graph pointers
-ex. relationship between IDs and indexes
+   mapping from IDs to indexes for explanation graph pointers
+   ex. relationship between IDs and indexes
 //	eg_ptr=sorted_expl_graph[index];
 //	mapping[eg_ptr->id]=index;
-*/
+ */
 static int* mapping;
 /*
-mapping from IDs to indexes for msws
-ex. relationship between IDs and indexes
+   mapping from IDs to indexes for msws
+   ex. relationship between IDs and indexes
 //	ptr = occ_switches[index];
 //	while (ptr != NULL) {
 //		sw_mapping[ptr->id]=index;
 //		ptr = ptr->next;
 //	}
-*/
+ */
 static int* sw_mapping;
 /*
-additional informaion to sorted_expl_graph
-*/
+   additional informaion to sorted_expl_graph
+ */
 typedef struct {
 	int visited;
 	int index;
@@ -49,16 +72,16 @@ typedef struct {
 	int in_stack;
 } SCC_Node;
 /*
-Stack for the Tarjan algorithm (finding SCCs)
-*/
+   Stack for the Tarjan algorithm (finding SCCs)
+ */
 typedef struct SCC_StackEl {
 	int index;
 	struct SCC_StackEl* next;
 } SCC_Stack;
 /*
-	el  : array of indexes that corresponded to indexes of sorted_expl_graph
-	size: size of el
-*/
+el  : array of indexes that corresponded to indexes of sorted_expl_graph
+size: size of el
+ */
 typedef struct {
 	int* el;
 	int size;
@@ -72,10 +95,10 @@ static SCC* sccs;
 static int nl_debug_level;
 
 /*
-This function compute equations in a given SCC(whose ID is (int)scc) by given values((double*) x)
-and store it to (double*) o.
-ex.
-given explanation graph
+   This function compute equations in a given SCC(whose ID is (int)scc) by given values((double*) x)
+   and store it to (double*) o.
+   ex.
+   given explanation graph
 //	 a
 //	  <=> b & b
 //	    v c & c
@@ -84,7 +107,7 @@ converted to following equations
 this function compute
 //	-a+b^2+c^2
 and store it to (double*) o
-*/
+ */
 void compute_scc_eq(double* x,double* o,int scc) {
 	int i;
 	EG_NODE_PTR eg_ptr;
@@ -133,10 +156,10 @@ void progress_broyden(double* x,double* sk,int dim) {
 }
 
 /*
-This function solves equations corresponded to a target SCC by the Broyden's method.
+   This function solves equations corresponded to a target SCC by the Broyden's method.
 scc: target scc_id
 compute_scc_eq: function pointer to compute equations
-*/
+ */
 void solve(int scc,void(*compute_scc_eq)(double* x,double* o,int scc)) {
 	int dim =sccs[scc].size;
 	int loopCount;
@@ -239,8 +262,8 @@ void solve(int scc,void(*compute_scc_eq)(double* x,double* o,int scc)) {
 }
 
 /*
-Auxiliary function for recusive call in the Tarjan algorithm
-*/
+   Auxiliary function for recusive call in the Tarjan algorithm
+ */
 void get_scc_tarjan_start(int i,int index) {
 	nodes[i].visited=1;
 	nodes[i].index=index;
@@ -306,9 +329,9 @@ void get_scc_tarjan_start(int i,int index) {
 }
 
 /*
-This function computes the reachability from i to j by DFS on the explanation graph
-0 <= i,j <= sorted_egraph_size
-*/
+   This function computes the reachability from i to j by DFS on the explanation graph
+   0 <= i,j <= sorted_egraph_size
+ */
 int is_reachable(int i,int j) {
 	EG_NODE_PTR eg_ptr;
 	EG_PATH_PTR path_ptr;
@@ -435,8 +458,8 @@ void print_sccs() {
 	return;
 }
 /*
-This function finds SCCs by the Tarjan algorithms and store SCCs to (SCC *) sccs.
-*/
+   This function finds SCCs by the Tarjan algorithms and store SCCs to (SCC *) sccs.
+ */
 void get_scc_tarjan() {
 	int i;
 	nodes=calloc(sizeof(SCC_Node),sorted_egraph_size);
@@ -764,7 +787,7 @@ int pc_nonlinear_eq_2(void) {
 		printf("# %f,%f,%f\n",scc_time-start_time,solution_time-scc_time,solution_time - start_time);
 	}
 	return bpx_unify(bpx_get_call_arg(2,2),
-	                 bpx_build_float(prob));
+			bpx_build_float(prob));
 }
 
 int run_cyc_em() {
@@ -804,12 +827,12 @@ int run_cyc_em() {
 
 				if (!isfinite(lambda)) {
 					emit_internal_error("invalid log likelihood or log post: %s (at iteration #%d)",
-					                    isnan(lambda) ? "NaN" : "infinity", iterate);
+							isnan(lambda) ? "NaN" : "infinity", iterate);
 					RET_ERR(ierr_invalid_likelihood);
 				}
 				if (old_valid && old_lambda - lambda > prism_epsilon) {
 					emit_error("log likelihood or log post decreased [old: %.9f, new: %.9f] (at iteration #%d)",
-					           old_lambda, lambda, iterate);
+							old_lambda, lambda, iterate);
 					RET_ERR(err_invalid_likelihood);
 				}
 
@@ -966,12 +989,12 @@ void update_sw(const double* x,const int n) {
 
 }
 static lbfgsfloatval_t evaluate(
-    void *instance,
-    const lbfgsfloatval_t *x,
-    lbfgsfloatval_t *g,
-    const int n,
-    const lbfgsfloatval_t step
-) {
+		void *instance,
+		const lbfgsfloatval_t *x,
+		lbfgsfloatval_t *g,
+		const int n,
+		const lbfgsfloatval_t step
+		) {
 	int i;
 	lbfgsfloatval_t fx = 0.0;
 	update_sw(x,n);
@@ -1015,17 +1038,17 @@ static lbfgsfloatval_t evaluate(
 }
 
 static int progress(
-    void *instance,
-    const lbfgsfloatval_t *x,
-    const lbfgsfloatval_t *g,
-    const lbfgsfloatval_t fx,
-    const lbfgsfloatval_t xnorm,
-    const lbfgsfloatval_t gnorm,
-    const lbfgsfloatval_t step,
-    int n,
-    int k,
-    int ls
-) {
+		void *instance,
+		const lbfgsfloatval_t *x,
+		const lbfgsfloatval_t *g,
+		const lbfgsfloatval_t fx,
+		const lbfgsfloatval_t xnorm,
+		const lbfgsfloatval_t gnorm,
+		const lbfgsfloatval_t step,
+		int n,
+		int k,
+		int ls
+		) {
 	printf("Iteration %d:\n", k);
 	printf("  fx = %f, x[0] = %f, x[1] = %f\n", fx, x[0], x[1]);
 	printf("  xnorm = %f, gnorm = %f, step = %f\n", xnorm, gnorm, step);
@@ -1107,39 +1130,39 @@ int pc_cyc_em_6(void) {
 	//
 	lbfgs_sw_space=calloc(sizeof(double),occ_switch_tab_size);
 	/*
-	for (k = 0; k < occ_switch_size; k++) {
-		SW_INS_PTR ptr = switch_instances[occ_sw_id[k]];
-		printf("diff_eq %d\n",ptr->id);
-		for (i = 0; i < sorted_egraph_size; i++) {
-			eg_ptr = sorted_expl_graph[i];
-			equations[i]=get_equation(eg_ptr,sw_mapping[ptr->id],ptr->id);
-			print_equation(equations[i]);
-		}
-		int j,scc;
-		for(scc=0;scc<scc_num;scc++){
-			double* x=calloc(sizeof(double),sccs[scc].size);
-			solve_o(scc,compute_scc_equations,x);
-			for(j=0;j<sccs[scc].size;j++){
-				int w=sccs[scc].el[j];
-				grad[w]=x[j];
-			}
-			free(x);
-		}
-		for (j = 0; j < sorted_egraph_size; j++) {
-			printf("g[%d]=%f\n",j,grad[j]);
-		}
-		double grad_l=0;
-		printf("g L:");
-		for (i = 0; i < num_roots; i++) {
-			int w = mapping[roots[i]->id];
-			grad_l+=grad[w]/sorted_expl_graph[w]->inside;
-			printf("g[%d]",w,grad[j]);
-		}
-		printf("\n");
-		for (i = 0; i < sorted_egraph_size; i++) {
-			free_equations(equations[i]);
-		}
-		}*/
+	   for (k = 0; k < occ_switch_size; k++) {
+	   SW_INS_PTR ptr = switch_instances[occ_sw_id[k]];
+	   printf("diff_eq %d\n",ptr->id);
+	   for (i = 0; i < sorted_egraph_size; i++) {
+	   eg_ptr = sorted_expl_graph[i];
+	   equations[i]=get_equation(eg_ptr,sw_mapping[ptr->id],ptr->id);
+	   print_equation(equations[i]);
+	   }
+	   int j,scc;
+	   for(scc=0;scc<scc_num;scc++){
+	   double* x=calloc(sizeof(double),sccs[scc].size);
+	   solve_o(scc,compute_scc_equations,x);
+	   for(j=0;j<sccs[scc].size;j++){
+	   int w=sccs[scc].el[j];
+	   grad[w]=x[j];
+	   }
+	   free(x);
+	   }
+	   for (j = 0; j < sorted_egraph_size; j++) {
+	   printf("g[%d]=%f\n",j,grad[j]);
+	   }
+	   double grad_l=0;
+	   printf("g L:");
+	   for (i = 0; i < num_roots; i++) {
+	   int w = mapping[roots[i]->id];
+	   grad_l+=grad[w]/sorted_expl_graph[w]->inside;
+	   printf("g[%d]",w,grad[j]);
+	   }
+	   printf("\n");
+	   for (i = 0; i < sorted_egraph_size; i++) {
+	   free_equations(equations[i]);
+	   }
+	   }*/
 	{
 		lbfgsfloatval_t fx;
 		lbfgsfloatval_t *x = lbfgs_malloc(occ_switch_size);
@@ -1184,12 +1207,12 @@ int pc_cyc_em_6(void) {
 		printf("# %f,%f,%f\n",scc_time-start_time,solution_time-scc_time,solution_time - start_time);
 	}
 	return
-	    bpx_unify(bpx_get_call_arg(1,6), bpx_build_integer(1)) &&
-	    bpx_unify(bpx_get_call_arg(2,6), bpx_build_float  (0)) &&
-	    bpx_unify(bpx_get_call_arg(3,6), bpx_build_float  (0)) &&
-	    bpx_unify(bpx_get_call_arg(4,6), bpx_build_float  (0)) &&
-	    bpx_unify(bpx_get_call_arg(5,6), bpx_build_float  (0)) &&
-	    bpx_unify(bpx_get_call_arg(6,6), bpx_build_integer(0)) ;
+		bpx_unify(bpx_get_call_arg(1,6), bpx_build_integer(1)) &&
+		bpx_unify(bpx_get_call_arg(2,6), bpx_build_float  (0)) &&
+		bpx_unify(bpx_get_call_arg(3,6), bpx_build_float  (0)) &&
+		bpx_unify(bpx_get_call_arg(4,6), bpx_build_float  (0)) &&
+		bpx_unify(bpx_get_call_arg(5,6), bpx_build_float  (0)) &&
+		bpx_unify(bpx_get_call_arg(6,6), bpx_build_integer(0)) ;
 }
 
 
