@@ -9,16 +9,16 @@
 %% hindsight(G,SubG) :- print hindsight probs of SubG given G
 %%
 
-crfhindsight(G) :- crfhindsight(G,_).
+crf_hindsight(G) :- crf_hindsight(G,_).
 
-crfhindsight(G,SubG) :-
-    crfhindsight(G,SubG,HProbs),
+crf_hindsight(G,SubG) :-
+    crf_hindsight(G,SubG,HProbs),
     ( HProbs == [] -> $pp_raise_warning($msg(1404))
     ; format("hindsight probabilities:~n",[]),
       $pp_print_hindsight_probs(HProbs)
     ).
 
-crfhindsight(G,SubG,HProbs) :-
+crf_hindsight(G,SubG,HProbs) :-
     $pp_require_tabled_probabilistic_atom(G,$msg(0006),hindsight/3),
     ( nonvar(SubG) -> $pp_require_callable(SubG,$msg(1403),hindsight/3)
     ; true

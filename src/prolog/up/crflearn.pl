@@ -1,4 +1,4 @@
-crflearn(Gs):- call($pp_crflearn_core(Gs)).
+crf_learn(Gs):- call($pp_crflearn_core(Gs)).
 
 $pp_crflearn_check_goals(Goals) :-
     $pp_require_observed_data(Goals,$msg(1302),$pp_crflearn_core/1),

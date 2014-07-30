@@ -1,41 +1,41 @@
 %%%% CRF-Viterbi wrappers
 
-crfviterbi(G) :-
-    $pp_crfviterbi_wrapper(crfviterbi(G)).
-crfviterbi(G,P) :-
-    $pp_crfviterbi_wrapper(crfviterbi(G,P)).
-crfviterbif(G) :-
-    $pp_crfviterbi_wrapper(crfviterbif(G)).
-crfviterbif(G,P,V) :-
-    $pp_crfviterbi_wrapper(crfviterbif(G,P,V)).
-crfviterbit(G) :-
-    $pp_crfviterbi_wrapper(crfviterbit(G)).
-crfviterbit(G,P,T) :-
-    $pp_crfviterbi_wrapper(crfviterbit(G,P,T)).
-n_crfviterbi(N,G) :-
-    $pp_crfviterbi_wrapper(n_crfviterbi(N,G)).
-n_crfviterbi(N,G,P) :-
-    $pp_crfviterbi_wrapper(n_crfviterbi(N,G,P)).
-n_crfviterbif(N,G) :-
-    $pp_crfviterbi_wrapper(n_crfviterbif(N,G)).
-n_crfviterbif(N,G,V) :-
-    $pp_crfviterbi_wrapper(n_crfviterbif(N,G,V)).
-n_crfviterbit(N,G) :-
-    $pp_crfviterbi_wrapper(n_crfviterbit(N,G)).
-n_crfviterbit(N,G,T) :-
-    $pp_crfviterbi_wrapper(n_crfviterbit(N,G,T)).
-crfviterbig(G) :-
-    $pp_crfviterbi_wrapper(crfviterbig(G)).
-crfviterbig(G,P) :-
-    $pp_crfviterbi_wrapper(crfviterbig(G,P)).
-crfviterbig(G,P,V) :-
-    $pp_crfviterbi_wrapper(crfviterbig(G,P,V)).
-n_crfviterbig(N,G) :-
-    $pp_crfviterbi_wrapper(n_crfviterbig(N,G)).
-n_crfviterbig(N,G,P) :-
-    $pp_crfviterbi_wrapper(n_crfviterbig(N,G,P)).
-n_crfviterbig(N,G,P,V) :-
-    $pp_crfviterbi_wrapper(n_crfviterbig(N,G,P,V)).
+crf_viterbi(G) :-
+    $pp_crfviterbi_wrapper(crf_viterbi(G)).
+crf_viterbi(G,P) :-
+    $pp_crfviterbi_wrapper(crf_viterbi(G,P)).
+crf_viterbif(G) :-
+    $pp_crfviterbi_wrapper(crf_viterbif(G)).
+crf_viterbif(G,P,V) :-
+    $pp_crfviterbi_wrapper(crf_viterbif(G,P,V)).
+crf_viterbit(G) :-
+    $pp_crfviterbi_wrapper(crf_viterbit(G)).
+crf_viterbit(G,P,T) :-
+    $pp_crfviterbi_wrapper(crf_viterbit(G,P,T)).
+n_crf_viterbi(N,G) :-
+    $pp_crfviterbi_wrapper(n_crf_viterbi(N,G)).
+n_crf_viterbi(N,G,P) :-
+    $pp_crfviterbi_wrapper(n_crf_viterbi(N,G,P)).
+n_crf_viterbif(N,G) :-
+    $pp_crfviterbi_wrapper(n_crf_viterbif(N,G)).
+n_crf_viterbif(N,G,V) :-
+    $pp_crfviterbi_wrapper(n_crf_viterbif(N,G,V)).
+n_crf_viterbit(N,G) :-
+    $pp_crfviterbi_wrapper(n_crf_viterbit(N,G)).
+n_crf_viterbit(N,G,T) :-
+    $pp_crfviterbi_wrapper(n_crf_viterbit(N,G,T)).
+crf_viterbig(G) :-
+    $pp_crfviterbi_wrapper(crf_viterbig(G)).
+crf_viterbig(G,P) :-
+    $pp_crfviterbi_wrapper(crf_viterbig(G,P)).
+crf_viterbig(G,P,V) :-
+    $pp_crfviterbi_wrapper(crf_viterbig(G,P,V)).
+n_crf_viterbig(N,G) :-
+    $pp_crfviterbi_wrapper(n_crf_viterbig(N,G)).
+n_crf_viterbig(N,G,P) :-
+    $pp_crfviterbi_wrapper(n_crf_viterbig(N,G,P)).
+n_crf_viterbig(N,G,P,V) :-
+    $pp_crfviterbi_wrapper(n_crf_viterbig(N,G,P,V)).
 
 $pp_crfviterbi_wrapper(Pred0) :-
     Suffix = '_p',
@@ -61,22 +61,22 @@ $pp_crfviterbi_wrapper(Pred0) :-
 
 % viterbi family:
 
-crfviterbi_p(Goal) :-
-    crfviterbif_p(Goal,Pmax,_),
+crf_viterbi_p(Goal) :-
+    crf_viterbif_p(Goal,Pmax,_),
     $pp_print_crfviterbi_prob(Pmax).
 
-crfviterbi_p(Goal,Pmax) :-
-    crfviterbif_p(Goal,Pmax,_).
+crf_viterbi_p(Goal,Pmax) :-
+    crf_viterbif_p(Goal,Pmax,_).
 
 % viterbif family:
 
-crfviterbif_p(Goal) :-
-    crfviterbif_p(Goal,Pmax,VNodeL),
+crf_viterbif_p(Goal) :-
+    crf_viterbif_p(Goal,Pmax,VNodeL),
     format("~n",[]),
     print_graph(VNodeL,[lr('<=')]),
     $pp_print_crfviterbi_prob(Pmax).
 
-crfviterbif_p(Goal,Pmax,VNodeL) :-
+crf_viterbif_p(Goal,Pmax,VNodeL) :-
     $pp_require_tabled_probabilistic_atom(Goal,$msg(0006),viterbif_p/3),
     ( Goal = msw(I,_) ->
         $pp_require_ground(I,$msg(0101),viterbif_p/3),
@@ -96,30 +96,30 @@ $pp_crfviterbif_p(Goal,Pmax,VNodeL) :-
 
 % viterbit family:
 
-crfviterbit_p(Goal) :-
-    crfviterbit_p(Goal,Pmax,VTreeL),
+crf_viterbit_p(Goal) :-
+    crf_viterbit_p(Goal,Pmax,VTreeL),
     format("~n",[]),
     print_tree(VTreeL),
     $pp_print_crfviterbi_prob(Pmax).
 
-crfviterbit_p(Goal,Pmax,VTreeL) :-
+crf_viterbit_p(Goal,Pmax,VTreeL) :-
     $pp_require_tabled_probabilistic_atom(Goal,$msg(0006),viterbit_p/3),
     $pp_crfviterbif_p(Goal,Pmax,VNodeL),
     viterbi_tree(VNodeL,VTreeL).
 
 % viterbig family:
 
-crfviterbig_p(Goal) :-
-    ( ground(Goal) -> crfviterbi_p(Goal)
-    ; crfviterbig_p(Goal,_,_)
+crf_viterbig_p(Goal) :-
+    ( ground(Goal) -> crf_viterbi_p(Goal)
+    ; crf_viterbig_p(Goal,_,_)
     ).
 
-crfviterbig_p(Goal,Pmax) :-
-    ( ground(Goal) -> crfviterbi_p(Goal,Pmax)
-    ; crfviterbig_p(Goal,Pmax,_)
+crf_viterbig_p(Goal,Pmax) :-
+    ( ground(Goal) -> crf_viterbi_p(Goal,Pmax)
+    ; crf_viterbig_p(Goal,Pmax,_)
     ).
 
-crfviterbig_p(Goal,Pmax,VNodeL) :-
+crf_viterbig_p(Goal,Pmax,VNodeL) :-
     $pp_require_tabled_probabilistic_atom(Goal,$msg(0006),viterbig_p/3),
     ( Goal = msw(I,_) ->
         $pp_require_ground(I,$msg(0101),viterbif_p/3),
@@ -237,25 +237,25 @@ $pp_compute_crfviterbi_p(Goal,Pmax,VNodeL) :-
 
 % n_viterbi family
 
-n_crfviterbi_p(N,Goal) :-
-    n_crfviterbif_p(N,Goal,VPathL),
+n_crf_viterbi_p(N,Goal) :-
+    n_crf_viterbif_p(N,Goal,VPathL),
     ( member(v_expl(J,Pmax,_),VPathL),
       $pp_print_n_crfviterbi(J,Pmax),
       fail
     ; true
     ).
 
-n_crfviterbi_p(N,Goal,Ps) :-
-    n_crfviterbif_p(N,Goal,VPathL),!,
+n_crf_viterbi_p(N,Goal,Ps) :-
+    n_crf_viterbif_p(N,Goal,VPathL),!,
     findall(Pmax,member(v_expl(_,Pmax,_),VPathL),Ps).
 
 % n_viterbif family
 
-n_crfviterbif_p(N,Goal) :-
-    n_crfviterbif_p(N,Goal,VPathL),!,
+n_crf_viterbif_p(N,Goal) :-
+    n_crf_viterbif_p(N,Goal,VPathL),!,
     $pp_print_n_crfviterbif(VPathL).
 
-n_crfviterbif_p(N,Goal,VPathL) :-
+n_crf_viterbif_p(N,Goal,VPathL) :-
     $pp_require_positive_integer(N,$msg(1400),n_viterbif_p/3),
     $pp_require_tabled_probabilistic_atom(Goal,$msg(0006),n_viterbif_p/3),
     $pp_n_crfviterbif_p(N,Goal,VPathL).
@@ -271,12 +271,12 @@ $pp_n_crfviterbif_p(N,Goal,VPathL) :-
 
 % n_viterbit family
 
-n_crfviterbit_p(N,Goal) :-
-    n_crfviterbif_p(N,Goal,VPathL),!,
+n_crf_viterbit_p(N,Goal) :-
+    n_crf_viterbif_p(N,Goal,VPathL),!,
     $pp_print_n_crfviterbit(VPathL).
 
-n_crfviterbit_p(N,Goal,VPathL) :-
-    n_crfviterbif_p(N,Goal,VPathL0),!,
+n_crf_viterbit_p(N,Goal,VPathL) :-
+    n_crf_viterbif_p(N,Goal,VPathL0),!,
     $pp_build_n_viterbit(VPathL0,VPathL).
 
 %%%% 
@@ -288,17 +288,17 @@ n_crfviterbit_p(N,Goal,VPathL) :-
 %%%%      probability of VNodeL.
 %%%%
 
-n_crfviterbig_p(N,Goal) :-
-    ( ground(Goal) -> n_crfviterbi_p(N,Goal)
-    ; n_crfviterbig_p(N,Goal,_,_)
+n_crf_viterbig_p(N,Goal) :-
+    ( ground(Goal) -> n_crf_viterbi_p(N,Goal)
+    ; n_crf_viterbig_p(N,Goal,_,_)
     ).
 
-n_crfviterbig_p(N,Goal,Pmax) :-
-    ( ground(Goal) -> n_crfviterbi_p(N,Goal,Ps),!,member(Pmax,Ps)
-    ; n_crfviterbig_p(N,Goal,Pmax,_)
+n_crf_viterbig_p(N,Goal,Pmax) :-
+    ( ground(Goal) -> n_crf_viterbi_p(N,Goal,Ps),!,member(Pmax,Ps)
+    ; n_crf_viterbig_p(N,Goal,Pmax,_)
     ).
 
-n_crfviterbig_p(N,Goal,Pmax,VNodeL) :-
+n_crf_viterbig_p(N,Goal,Pmax,VNodeL) :-
     $pp_require_positive_integer(N,$msg(1400),n_viterbi_p/3),
     $pp_require_tabled_probabilistic_atom(Goal,$msg(0006),n_viterbi_p/3),
     $pp_n_crfviterbig_p(N,Goal,Pmax,VNodeL).
