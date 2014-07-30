@@ -1,5 +1,8 @@
 #define CXX_COMPILE 
+
+#ifdef _MSC_VER
 #include <windows.h>
+#endif
 extern "C" {
 #include "up/up.h"
 #include "up/flags.h"
@@ -557,7 +560,6 @@ void print_eq() {
 
 void print_eq2() {
 	int i,k;
-	SW_INS_PTR ptr;
 	printf("sw_size:%d\n",occ_switch_tab_size);
 	printf("sw_ins_size:%d\n",sw_ins_tab_size);
 	EG_NODE_PTR eg_ptr;
@@ -797,6 +799,7 @@ int pc_nonlinear_eq_2(void) {
 }
 
 int run_cyc_em() {
+/*
 	int	 r, iterate, old_valid, converged, saved = 0;
 	double  likelihood, log_prior;
 	double  lambda, old_lambda = 0.0;
@@ -873,7 +876,7 @@ int run_cyc_em() {
 
 	//em_ptr->bic = compute_bic(em_ptr->likelihood);
 	//em_ptr->cs  = em_ptr->smooth ? compute_cs(em_ptr->likelihood) : 0.0;
-
+*/
 	return BP_TRUE;
 }
 
@@ -1064,9 +1067,8 @@ static int progress(
 
 extern "C"
 int pc_cyc_em_6(void) {
-	int i,k;
+	int i;
 	EG_NODE_PTR eg_ptr;
-	EG_PATH_PTR path_ptr;
 
 	nodes=NULL;
 	stack=NULL;
@@ -1207,7 +1209,7 @@ int pc_cyc_em_6(void) {
 	free(mapping);
 	free(sw_mapping);
 	free(grad);
-	double prob=sorted_expl_graph[sorted_egraph_size-1]->inside;
+	//double prob=sorted_expl_graph[sorted_egraph_size-1]->inside;
 	if(1) {
 		printf("CPU time (scc,solution,all)\n");
 		printf("# %f,%f,%f\n",scc_time-start_time,solution_time-scc_time,solution_time - start_time);
