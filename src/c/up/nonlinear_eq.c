@@ -699,7 +699,7 @@ Equations* get_equation(EG_NODE_PTR eg_ptr,int sw_id,int sw_ins_id) {
 }
 
 
-int pc_infix_2(void) {
+int pc_nonlinear_eq_2(void) {
 	int i;
 	EG_NODE_PTR eg_ptr;
 

@@ -26,7 +26,7 @@ OBJS = graph.$(O)             \
        util.$(O)              \
        linear_eq_lapack.$(O)  \
        lbfgs.$(O)             \
-       infix.$(O)
+       nonlinear_eq.$(O)
 
 
 ##----------------------------------------------------------------------
@@ -75,7 +75,7 @@ flags.$(O)        : $(BPX_H) $(ERR_H) $(UP_H) flags.h
 util.$(O)         : $(BPX_H) $(ERR_H) $(UP_H) util.h
 error.$(O)        : $(BPX_H) $(ERR_H) $(UP_H)
 linear_eq_lapack.$(O): $(BPX_H) $(ERR_H) $(UP_H) linear_eq.h
-infix.$(O)        : $(BPX_H) $(ERR_H) $(UP_H) infix.h
+nonlinear_eq.$(O) : $(BPX_H) $(ERR_H) $(UP_H) nonlinear_eq.h
 lbfgs.$(O)        :
 
 

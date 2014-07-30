@@ -36,9 +36,9 @@ UP_OBJS   = up$(S)graph.$(O)            \
             up$(S)hindsight.$(O)        \
             up$(S)flags.$(O)            \
             up$(S)util.$(O)             \
-            up$(S)linear_eq_lapack.$(O)           \
+            up$(S)linear_eq_lapack.$(O) \
             up$(S)lbfgs.$(O)            \
-            up$(S)infix.$(O)           
+            up$(S)nonlinear_eq.$(O)     
 
 MP_OBJS   = mp$(S)mp_core.$(O)          \
             mp$(S)mp_em_aux.$(O)        \

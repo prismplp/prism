@@ -16,7 +16,7 @@ nonlin_prob_m(Mode,Goal) :-
   format("Probability is ~w\n",P).
 nonlin_prob_m(Mode,Goal,P) :-
   probefi(Goal,_),
-  $pc_infix(Mode,P).
+  $pc_nonlinear_eq(Mode,P).
 
 
 
