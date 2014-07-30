@@ -158,7 +158,7 @@ int compute_feature_scaling_none(void) {
 				path_ptr = path_ptr->next;
 			}
 		}
-		if (isinf(sum)) {
+		if (!isfinite(sum)) {
 			emit_error("overflow CRF-inside");
 			RET_ERR(err_overflow);
 		}

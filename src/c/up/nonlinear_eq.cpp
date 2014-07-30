@@ -1,3 +1,6 @@
+#define CXX_COMPILE 
+#include <windows.h>
+extern "C" {
 #include "up/up.h"
 #include "up/flags.h"
 #include "bprolog.h"
@@ -8,20 +11,23 @@
 #include "up/em.h"
 #include "up/em_aux.h"
 #include "up/em_aux_ml.h"
-#
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-
+}
 #ifndef _MSC_VER
+extern "C" {
 #include <sys/time.h>
 #include <sys/resource.h>
+}
 double getCPUTime() {
 	struct rusage RU;
 	getrusage(RUSAGE_SELF, &RU);
 	return RU.ru_utime.tv_sec + (double)RU.ru_utime.tv_usec*1e-6;
 }
 #else
+
 double getCPUTime(){
 	FILETIME creationTime;
 	FILETIME exitTime;
@@ -165,15 +171,15 @@ void solve(int scc,void(*compute_scc_eq)(double* x,double* o,int scc)) {
 	int loopCount;
 	int maxloop=100;
 	int restart=20;
-	double** s=calloc(sizeof(double*),restart+1);
+	double** s=(double**)calloc(sizeof(double*),restart+1);
 	double epsilon=1.0e-10;
 	double epsilonX=1.0e-10;
 	int i;
 	for(i=0; i<restart+1; i++) {
-		s[i]=calloc(sizeof(double),dim);
+		s[i]=(double*)calloc(sizeof(double),dim);
 	}
-	double* z=calloc(sizeof(double),dim);
-	double* x=calloc(sizeof(double),dim);
+	double* z=(double*)calloc(sizeof(double),dim);
+	double* x=(double*)calloc(sizeof(double),dim);
 	double* s0=s[0];
 	for(i=0; i<dim; i++) {
 		x[i]=rand()/(double)RAND_MAX;
@@ -270,7 +276,7 @@ void get_scc_tarjan_start(int i,int index) {
 	nodes[i].lowlink=index;
 	nodes[i].in_stack=1;
 	index++;
-	SCC_Stack* el=malloc(sizeof(SCC_Stack));
+	SCC_Stack* el=(SCC_Stack*)malloc(sizeof(SCC_Stack));
 	if(stack==NULL) {
 		el->next=NULL;
 		stack=el;
@@ -312,7 +318,7 @@ void get_scc_tarjan_start(int i,int index) {
 			cnt++;
 		} while(w!=i);
 		sccs[scc_num].size=cnt;
-		sccs[scc_num].el=calloc(sizeof(int),cnt);
+		sccs[scc_num].el=(int*)calloc(sizeof(int),cnt);
 		cnt=0;
 		do {
 			w=stack->index;
@@ -462,8 +468,8 @@ void print_sccs() {
  */
 void get_scc_tarjan() {
 	int i;
-	nodes=calloc(sizeof(SCC_Node),sorted_egraph_size);
-	sccs=calloc(sizeof(SCC),sorted_egraph_size);
+	nodes=(SCC_Node*)calloc(sizeof(SCC_Node),sorted_egraph_size);
+	sccs=(SCC*)calloc(sizeof(SCC),sorted_egraph_size);
 	get_scc_tarjan_start(0,0);
 	while(1) {
 		int next_i=0;
@@ -651,7 +657,7 @@ void compute_scc_equations(double* x,double* o,int scc) {
 
 
 Equations* get_equation(EG_NODE_PTR eg_ptr,int sw_id,int sw_ins_id) {
-	Equations *eq=calloc(sizeof(Equations),1);
+	Equations *eq=(Equations*)calloc(sizeof(Equations),1);
 	EqTerm *t_itr=NULL;
 	int k,l;
 	EG_PATH_PTR path_ptr;
@@ -695,7 +701,7 @@ Equations* get_equation(EG_NODE_PTR eg_ptr,int sw_id,int sw_ins_id) {
 
 		if(path_ptr->children_len>0) {
 			for (k = 0; k < path_ptr->children_len; k++) {
-				EqTerm *t=calloc(sizeof(EqTerm),1);
+				EqTerm *t=(EqTerm*)calloc(sizeof(EqTerm),1);
 				double coef=1.0;
 				for (l = 0; l < path_ptr->children_len; l++) {
 					if(k!=l) {
@@ -721,7 +727,7 @@ Equations* get_equation(EG_NODE_PTR eg_ptr,int sw_id,int sw_ins_id) {
 	return eq;
 }
 
-
+extern "C"
 int pc_nonlinear_eq_2(void) {
 	int i;
 	EG_NODE_PTR eg_ptr;
@@ -742,7 +748,7 @@ int pc_nonlinear_eq_2(void) {
 			max_id=eg_ptr->id;
 		}
 	}
-	mapping=calloc(sizeof(int),max_id+1);
+	mapping=(int*)calloc(sizeof(int),max_id+1);
 	for (i = 0; i < sorted_egraph_size; i++) {
 		eg_ptr = sorted_expl_graph[i];
 		mapping[eg_ptr->id]=i;
@@ -876,14 +882,14 @@ void solve_o(int scc,void(*compute_scc_eq)(double* x,double* o,int scc),double* 
 	int loopCount;
 	int maxloop=100;
 	int restart=20;
-	double** s=calloc(sizeof(double*),restart+1);
+	double** s=(double**)calloc(sizeof(double*),restart+1);
 	double epsilon=1.0e-10;
 	double epsilonX=1.0e-10;
 	int i;
 	for(i=0; i<restart+1; i++) {
-		s[i]=calloc(sizeof(double),dim);
+		s[i]=(double*)calloc(sizeof(double),dim);
 	}
-	double* z=calloc(sizeof(double),dim);
+	double* z=(double*)calloc(sizeof(double),dim);
 	double* s0=s[0];
 	for(i=0; i<dim; i++) {
 		x[i]=rand()/(double)RAND_MAX;
@@ -1015,7 +1021,7 @@ static lbfgsfloatval_t evaluate(
 		}
 		int j,scc;
 		for(scc=0; scc<scc_num; scc++) {
-			double* x=calloc(sizeof(double),sccs[scc].size);
+			double* x=(double*)calloc(sizeof(double),sccs[scc].size);
 			solve_o(scc,compute_scc_equations,x);
 			for(j=0; j<sccs[scc].size; j++) {
 				int w=sccs[scc].el[j];
@@ -1056,7 +1062,7 @@ static int progress(
 	return 0;
 }
 
-
+extern "C"
 int pc_cyc_em_6(void) {
 	int i,k;
 	EG_NODE_PTR eg_ptr;
@@ -1079,12 +1085,12 @@ int pc_cyc_em_6(void) {
 			max_id=eg_ptr->id;
 		}
 	}
-	mapping=calloc(sizeof(int),max_id+1);
+	mapping=(int*)calloc(sizeof(int),max_id+1);
 	for (i = 0; i < sorted_egraph_size; i++) {
 		eg_ptr = sorted_expl_graph[i];
 		mapping[eg_ptr->id]=i;
 	}
-	sw_mapping=calloc(sizeof(int),sw_ins_tab_size);
+	sw_mapping=(int*)calloc(sizeof(int),sw_ins_tab_size);
 	for (i = 0; i < occ_switch_tab_size; i++) {
 		SW_INS_PTR ptr;
 		ptr = occ_switches[i];
@@ -1094,7 +1100,7 @@ int pc_cyc_em_6(void) {
 			ptr = ptr->next;
 		}
 	}
-	grad=calloc(sizeof(double),sorted_egraph_size);
+	grad=(double*)calloc(sizeof(double),sorted_egraph_size);
 	//
 	//print_eq
 	print_eq2();
@@ -1115,8 +1121,8 @@ int pc_cyc_em_6(void) {
 		}
 	}
 	double solution_time=getCPUTime();
-	equations=calloc(sizeof(Equations*),sorted_egraph_size);
-	occ_sw_id=calloc(sizeof(int),occ_switch_size);
+	equations=(Equations**)calloc(sizeof(Equations*),sorted_egraph_size);
+	occ_sw_id=(int*)calloc(sizeof(int),occ_switch_size);
 	int j=0;
 	for (i = 0; i < occ_switch_tab_size; i++) {
 		SW_INS_PTR ptr = occ_switches[i];
@@ -1128,7 +1134,7 @@ int pc_cyc_em_6(void) {
 	}
 
 	//
-	lbfgs_sw_space=calloc(sizeof(double),occ_switch_tab_size);
+	lbfgs_sw_space=(double*)calloc(sizeof(double),occ_switch_tab_size);
 	/*
 	   for (k = 0; k < occ_switch_size; k++) {
 	   SW_INS_PTR ptr = switch_instances[occ_sw_id[k]];
@@ -1165,7 +1171,7 @@ int pc_cyc_em_6(void) {
 	   }*/
 	{
 		lbfgsfloatval_t fx;
-		lbfgsfloatval_t *x = lbfgs_malloc(occ_switch_size);
+		lbfgsfloatval_t *x = (lbfgsfloatval_t*)lbfgs_malloc(occ_switch_size);
 		lbfgs_parameter_t param;
 		if (x == NULL) {
 			printf("ERROR: Failed to allocate a memory block for variables.\n");
