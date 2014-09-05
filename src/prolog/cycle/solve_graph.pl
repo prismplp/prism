@@ -20,7 +20,7 @@ $pp_solve_component(G,CompNodes,CompTable,ProbTable) :-
   foreach(I in 1..Length,
     ( foreach(J in 1..Length, [IJ],
       ( IJ is (I - 1) * Length + J,
-        ( I == J -> bigarray_put(A,IJ,1)
+        ( I == J -> bigarray_put(A,IJ,-1)
         ; bigarray_put(A,IJ,0)
         )
       )),
@@ -38,13 +38,13 @@ $pp_solve_component(G,CompNodes,CompTable,ProbTable) :-
     bigarray_get(B,1,BVal),
     ( AVal =:= 0.0 -> % singular system, not solvable
       $pp_raise_evaluation_error($msg(0200),['system not solvable'],non_solvable,$pp_solve_component/4)
-    ; ($pp_in_log_scale -> ($pp_scaling_param(Scale),Prob is BVal / AVal);Prob is BVal/AVal),
+    ; ($pp_in_log_scale -> ($pp_scaling_param(Scale),Prob is -1* BVal / AVal);Prob is -1*BVal/AVal),
       bigarray_put(X,1,Prob)
     )
   ; % Transform to list and call c interface for solving
     bigarray_to_list(A,AList),
     bigarray_to_list(B,BList),
-    ( $pc_solve_linear_system(Length, AList, BList, XList) ->
+    ( $pc_solve_linear_system(Length, AList, BList, XList,0) ->
       list_to_bigarray(XList, X)
     ; $pp_raise_evaluation_error($msg(0200),['system not solvable'],non_solvable,$pp_solve_component/4)
     )
@@ -92,8 +92,8 @@ $pp_update_linear_system(G,Node,CompTable,ProbTable,A,B,Length) :-
           Index is (CompSubId - 1) * Length + DependantId,
           bigarray_get(A,Index,TmpProb),
           ($pp_in_log_scale->
-                  ($pp_scaling_param(Scale),SumProb is (TmpProb - exp(ProdProb)))
-            ;(SumProb is TmpProb - ProdProb)),
+                  ($pp_scaling_param(Scale),SumProb is (TmpProb + exp(ProdProb)))
+            ;(SumProb is TmpProb + ProdProb)),
           bigarray_put(A,Index,SumProb)
         ; % Non-linear relation, can not solve it
           $pp_raise_evaluation_error($msg(1402),['non-linear dependence'],non_linear_dependence,$pp_update_lin_system/7)

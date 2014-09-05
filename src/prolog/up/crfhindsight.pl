@@ -14,7 +14,7 @@ crf_hindsight(G) :- crf_hindsight(G,_).
 crf_hindsight(G,SubG) :-
     crf_hindsight(G,SubG,HProbs),
     ( HProbs == [] -> $pp_raise_warning($msg(1404))
-    ; format("hindsight probabilities:~n",[]),
+    ; format("hindsight weights:~n",[]),
       $pp_print_hindsight_probs(HProbs)
     ).
 

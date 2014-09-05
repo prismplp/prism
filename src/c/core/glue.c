@@ -159,7 +159,7 @@ void bp4p_register_preds(void) {
 	REGISTER_CPRED(sleep,1);
 
 	/* up/prefix.c */
-	REGISTER_CPRED(solve_linear_system,4);
+	REGISTER_CPRED(solve_linear_system,5);
 	/* up/infix.c */
 	REGISTER_CPRED(nonlinear_eq,2);
 	REGISTER_CPRED(cyc_em,6);

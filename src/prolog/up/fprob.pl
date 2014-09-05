@@ -1,9 +1,10 @@
-fprob(Goal) :-
+%
+crf_prob(Goal) :-
     fprob(Goal,P),
-    ( $pp_in_log_scale -> Text = 'Log-probability' ; Text = 'Probability' ),
+    ( $pp_in_log_scale -> Text = 'Log-weight' ; Text = 'Weight' ),
     format("~w of ~w is: ~15f~n",[Text,Goal,P]).
 
-fprob(Goal,Prob) :-
+crf_prob(Goal,Prob) :-
     $pp_require_tabled_probabilistic_atom(Goal,$msg(0006),prob/2),
     $pp_fprob(Goal,Prob).
 
@@ -35,9 +36,9 @@ $pp_fprob(Goal,Prob) :-
     InfTime is T1 - T0,
     $pp_assert_prob_stats1(InfTime),!.
 
-log_fprob(Goal) :-
-    log_fprob(Goal,P),format("Log-probability of ~w is: ~15f~n",[Goal,P]).
-log_fprob(Goal,P) :-
+log_crf_prob(Goal) :-
+    log_fprob(Goal,P),format("Log-weight of ~w is: ~15f~n",[Goal,P]).
+log_crf_prob(Goal,P) :-
     $pp_fprob(Goal,P0),( $pp_in_log_scale -> P = P0 ; P is log(P0) ).
 
 $pp_fprob_core(Goal,Prob) :-
@@ -90,55 +91,55 @@ $pp_compute_inside_feature(Goal,Prob) :-
     $pc_prism_goal_id_get(Goal,Gid),
     $pc_compute_feature(Gid,Prob),!.
 
-fprobf(Goal) :-
+crf_probf(Goal) :-
     $pp_fprobf(Goal,Expls,1,0), \+ \+ print_graph(Expls,[lr('<=>')]).
-fprobfi(Goal) :-
+crf_probfi(Goal) :-
     $pp_fprobf(Goal,Expls,1,1), \+ \+ print_graph(Expls,[lr('<=>')]).
-fprobfo(Goal) :-
+crf_probfo(Goal) :-
     $pp_fprobf(Goal,Expls,1,2), \+ \+ print_graph(Expls,[lr('<=>')]).
-fprobfio(Goal) :-
+crf_probfio(Goal) :-
     $pp_fprobf(Goal,Expls,1,4), \+ \+ print_graph(Expls,[lr('<=>')]).
 
-fprobf(Goal,Expls) :-
+crf_probf(Goal,Expls) :-
     $pp_fprobf(Goal,Expls,1,0).
-fprobfi(Goal,Expls) :-
+crf_probfi(Goal,Expls) :-
     $pp_fprobf(Goal,Expls,1,1).
-fprobfo(Goal,Expls) :-
+crf_probfo(Goal,Expls) :-
     $pp_fprobf(Goal,Expls,1,2).
-fprobfio(Goal,Expls) :-
+crf_probfio(Goal,Expls) :-
     $pp_fprobf(Goal,Expls,1,4).
 
-fprobef(Goal) :-
+crf_probef(Goal) :-
     $pp_fprobf(Goal,Expls,0,0), \+ \+ print_graph(Expls,[lr('<=>')]).
-fprobefi(Goal) :-
+crf_probefi(Goal) :-
     $pp_fprobf(Goal,Expls,0,1), \+ \+ print_graph(Expls,[lr('<=>')]).
-fprobefo(Goal) :-
+crf_probefo(Goal) :-
     $pp_fprobf(Goal,Expls,0,2), \+ \+ print_graph(Expls,[lr('<=>')]).
-fprobefio(Goal) :-
+crf_probefio(Goal) :-
     $pp_fprobf(Goal,Expls,0,4), \+ \+ print_graph(Expls,[lr('<=>')]).
 
-fprobef(Goal,Expls) :-
+crf_probef(Goal,Expls) :-
     $pp_fprobf(Goal,Expls,0,0).
-fprobefi(Goal,Expls) :-
+crf_probefi(Goal,Expls) :-
     $pp_fprobf(Goal,Expls,0,1).
-fprobefo(Goal,Expls) :-
+crf_probefo(Goal,Expls) :-
     $pp_fprobf(Goal,Expls,0,2).
-fprobefio(Goal,Expls) :-
+crf_probefio(Goal,Expls) :-
     $pp_fprobf(Goal,Expls,0,4).
 
-fprobef(Goal,Expls,GoalHashTab,SwHashTab) :-
+crf_probef(Goal,Expls,GoalHashTab,SwHashTab) :-
     $pp_fprobf(Goal,Expls,0,0),
     $pp_get_subgoal_hashtable(GoalHashTab),
     $pp_get_switch_hashtable(SwHashTab).
-fprobefi(Goal,Expls,GoalHashTab,SwHashTab) :-
+crf_probefi(Goal,Expls,GoalHashTab,SwHashTab) :-
     $pp_fprobf(Goal,Expls,0,1),
     $pp_get_subgoal_hashtable(GoalHashTab),
     $pp_get_switch_hashtable(SwHashTab).
-fprobefo(Goal,Expls,GoalHashTab,SwHashTab) :-
+crf_probefo(Goal,Expls,GoalHashTab,SwHashTab) :-
     $pp_fprobf(Goal,Expls,0,2),
     $pp_get_subgoal_hashtable(GoalHashTab),
     $pp_get_switch_hashtable(SwHashTab).
-fprobefio(Goal,Expls,GoalHashTab,SwHashTab) :-
+crf_probefio(Goal,Expls,GoalHashTab,SwHashTab) :-
     $pp_fprobf(Goal,Expls,0,4),
     $pp_get_subgoal_hashtable(GoalHashTab),
     $pp_get_switch_hashtable(SwHashTab).

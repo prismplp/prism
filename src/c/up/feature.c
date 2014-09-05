@@ -994,7 +994,7 @@ static int run_grd(CRF_ENG_PTR crf_ptr) {
 	}
 
 	for (r = 0; r < num_restart; r++) {
-		SHOW_PROGRESS_HEAD("#em-iters", r);
+		SHOW_PROGRESS_HEAD("#crf-iters", r);
 
 		initialize_crf_count();
 		initialize_lambdas();

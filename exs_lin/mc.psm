@@ -27,10 +27,13 @@ prism_main:-lin_prob(reach(s0,s1)).
 
 values(t(s0),[s0,s1,s2],[0.5,0.3,0.2]).
 values(t(s1),[s1,s3,s4],[0.4,0.1,0.5]).
+values(t(s2),[s2],[1.0]).
+values(t(s3),[s3],[1.0]).
+values(t(s4),[s4],[1.0]).
 
-trans(S,T):-values(t(S),OS),member(T,OS),msw(t(S),T).
+tr(S,T):-values(t(S),OS),member(T,OS),msw(t(S),T).
 reach(S,S).
-reach(S,T):-(not S=T),trans(S,U),reach(U,T).
+reach(S,T):- \+ S==T ,tr(S,U),reach(U,T).
 
 %------------------------------------
 

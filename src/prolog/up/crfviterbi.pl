@@ -144,7 +144,7 @@ $pp_crfviterbig_p(Goal,Pmax,VNodeL) :-
 %% Common routine:
 
 $pp_print_crfviterbi_prob(Pmax) :-
-    format("~nCRF-Viterbi_P = ~15f~n",[Pmax]).
+    format("~nCRF-Viterbi weight = ~15f~n",[Pmax]).
 
 $pp_crfviterbi_core(Goal,Pmax,VNodeL) :-
     Goal = msw(I,V),!,
@@ -325,13 +325,13 @@ $pp_n_crfviterbig_p(N,Goal,Pmax,VNodeL) :-
 %% Common routines:
 
 $pp_print_n_crfviterbi(J,Pmax) :-
-      format("#~w: CRF-Viterbi_P = ~15f~n",[J,Pmax]).
+      format("#~w: CRF-Viterbi weight = ~15f~n",[J,Pmax]).
 
 $pp_print_n_crfviterbif([]).
 $pp_print_n_crfviterbif([v_expl(J,Pmax,VNodeL)|VPathL]) :-
     format("~n#~w~n",[J]),
     print_graph(VNodeL,[lr('<=')]),
-    format("~nCRF-Viterbi_P = ~15f~n",[Pmax]),!,
+    format("~nCRF-Viterbi weight = ~15f~n",[Pmax]),!,
     $pp_print_n_crfviterbif(VPathL).
 
 $pp_print_n_crfviterbit([]).
