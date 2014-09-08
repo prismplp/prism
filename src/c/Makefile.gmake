@@ -3,7 +3,32 @@
 ROOT = .
 
 include $(ROOT)/makefiles/Makefile.opts.gmake
+
+ifeq ($(MATRIX),lapack)
+include $(ROOT)/makefiles/Makefile_lapack.files
+else
 include $(ROOT)/makefiles/Makefile.files
+endif
+
+ifeq ($(PLATFORM),linux64)
+ifeq ($(MATRIX),lapack)
+## this order is important
+LAPACK_OBJS = lapack$(S)liblapacke.$(A)    \
+            lapack$(S)liblapack.$(A)   \
+            lapack$(S)libtmglib.$(A)    \
+            lapack$(S)librefblas.$(A)      
+endif
+endif
+ifeq ($(PLATFORM),linux32)
+ifeq ($(MATRIX),lapack)
+LAPACK_OBJS = lapack32$(S)liblapacke.$(A)    \
+            lapack32$(S)liblapack.$(A)   \
+            lapack32$(S)libtmglib.$(A)    \
+            lapack32$(S)librefblas.$(A)      
+endif
+endif
+
+
 
 ##----------------------------------------------------------------------
 
@@ -38,7 +63,7 @@ mp:
 	fi
 
 $(TARGET): $(SUBDIRS) $(BP4P_A)
-	$(CC) $(TARGETFLAG) $(TARGET) $(OBJS) $(BP4P_A) $(LDFLAGS)
+	$(LD) $(TARGETFLAG) $(TARGET) $(OBJS) $(BP4P_A) $(LDFLAGS)
 
 ##----------------------------------------------------------------------
 
