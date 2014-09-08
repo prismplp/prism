@@ -37,6 +37,7 @@ fi
 source=`basename $1 .pl`
 target=`basename $1 .pl`.out
 
+echo "$BINARY -p $PAREA -s $STACK -b $TRAIL -t $TABLE $BINDIR/bp.out -g 'set_prolog_flag(redefine_builtin,on),set_prolog_flag(stratified_warning,off),compile($source),halt'"
 exec $BINARY -p $PAREA -s $STACK -b $TRAIL -t $TABLE $BINDIR/bp.out -g "set_prolog_flag(redefine_builtin,on),set_prolog_flag(stratified_warning,off),compile($source),halt"
 
 ## For profiling, use below instead of above
