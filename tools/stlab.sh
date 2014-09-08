@@ -4,16 +4,16 @@
 ##  Configuration                                                         ##
 ############################################################################
 
-##  locations of the SVN repositories
-SYSTEM_REPOS_URI=file:///home/main/pub/prism/repos/prism2
-MANUAL_REPOS_URI=file:///home/main/pub/prism/repos/manual
-DISTRIB_REPOS_URI=file:///home/main/pub/prism/repos/distrib
+##  locations of the GIT repositories
+SYSTEM_REPOS_URI=/home/broom/kojima/inprism2
+MANUAL_REPOS_URI=/home/broom/kojima/inprism2
+DISTRIB_REPOS_URI=/home/broom/kojima/inprism2
 
 ##  host for building the 32-bit version(s)
-COMPILE_HOST_32=elm
+COMPILE_HOST_32=willow
 
 ##  host for building the 64-bit version(s)
-COMPILE_HOST_64=jasmine
+COMPILE_HOST_64=anemone
 
 ##  host for building the MacOSX version(s)
 COMPILE_HOST_D9=cyclamen
@@ -64,7 +64,8 @@ CompilePrism() {
     fi
 
     rm -f build.cmd build.sh
-    svn export ${SYSTEM_REPOS_URI}/${1-"trunk"} prism
+	mkdir -p prism 2>/dev/null
+    git --git-dir=${SYSTEM_REPOS_URI}/.git archive --format=tar HEAD  | tar -C ./prism -xf -
 
     cat - <<'EOF1' > build.cmd
 @echo off
@@ -95,8 +96,8 @@ EOF2
 
     ssh $COMPILE_HOST_32  sh $PWD/build.sh linux32  up
     ssh $COMPILE_HOST_64  sh $PWD/build.sh linux64  up
-    ssh $COMPILE_HOST_D9  sh $PWD/build.sh darwin9  up
-    ssh $COMPILE_HOST_D10 sh $PWD/build.sh darwin10 up
+    #ssh $COMPILE_HOST_D9  sh $PWD/build.sh darwin9  up
+    #ssh $COMPILE_HOST_D10 sh $PWD/build.sh darwin10 up
     ssh $COMPILE_HOST_32  sh $PWD/build.sh linux32  mp
     ssh $COMPILE_HOST_64  sh $PWD/build.sh linux64  mp
 
@@ -107,9 +108,10 @@ EOF2
     mv prism/bin/prism_up_linux64.bin   prism/bin/`GetBinName`.64
     mv prism/bin/prism_mp_linux32.bin   prism/bin/`GetBinName`mp.32
     mv prism/bin/prism_mp_linux64.bin   prism/bin/`GetBinName`mp.64
-    mv prism/bin/prism_up_darwin9.bin   prism/bin/`GetBinName`.darwin9
-    mv prism/bin/prism_up_darwin10.bin  prism/bin/`GetBinName`.darwin10
-    mv prism/src/prolog/Makefile.nofoc prism/src/prolog/Makefile
+    #mv prism/bin/prism_up_darwin9.bin   prism/bin/`GetBinName`.darwin9
+    #mv prism/bin/prism_up_darwin10.bin  prism/bin/`GetBinName`.darwin10
+    #mv prism/src/prolog/Makefile.nofoc prism/src/prolog/Makefile
+    mv prism/src/prolog/Makefile prism/src/prolog/Makefile
     rm -rf prism/src/c/bp4prism/patch
 
     tar cfvz prism.tar.gz prism
@@ -169,13 +171,17 @@ InstallPrism() {
 ############################################################################
 
 PackagePrism() {
+    sfxs=".exe .32 mp.32 .64 mp.64"
+    platforms="win linux"
+    #packages= .exe .32 mp.32 .64 mp.64 .darwin9 .darwin10
+    #platforms="win linux macx"
     set -e
 
     if [ ! -d $DISTRIB_ROOT ]; then
         Error "config error -- \`$DISTRIB_ROOT' is not a valid directory."
     fi
 
-    for sfx in .exe .32 mp.32 .64 mp.64 .darwin9 .darwin10 ; do
+    for sfx in $sfxs ; do
         binary=prism/bin/`GetBinName`${sfx}
         if [ ! -f $binary ]; then
             Error "\`$binary' is not found. (build not complete?)"
@@ -202,9 +208,9 @@ PackagePrism() {
     rm -rf ${tmpdir}/manual
     rm -rf prism/doc/manual
 
-    for platform in win linux macx ; do
+    for platform in $platforms ; do
         #cp -pr ${tmpdir}/distrib ${tmpdir}/prism
-
+        echo "Platform = " ${platform}
         cp -pr prism ${tmpdir}/prism
         rm -rf ${tmpdir}/prism/bin
         rm -rf ${tmpdir}/prism/tools
