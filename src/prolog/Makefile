@@ -6,7 +6,7 @@ COMPILER    = Compile.sh
 TARGETS     = prism.out mpprism.out batch.out foc.out
 INSTALLDIR  = ../../bin
 
-VERSION     = 2.2.pre-release
+VERSION     = 2.2a
 
 PL_CORE  = core/message.pl      \
            core/error.pl        \
