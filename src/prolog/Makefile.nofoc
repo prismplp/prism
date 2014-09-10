@@ -3,7 +3,7 @@
 ##----------------------------------------------------------------------
 
 COMPILER    = Compile.sh
-TARGETS     = prism.out mpprism.out batch.out foc.out
+TARGETS     = prism.out mpprism.out batch.out
 INSTALLDIR  = ../../bin
 
 VERSION     = 2.2a1
@@ -47,8 +47,6 @@ PL_MP    = mp/mp_main.pl        \
            mp/mp_learn.pl
 
 PL_BP    = bp/eval.pl
-PL_FOC   = foc/fo.pl            \
-           foc/fo_prismn.pl
 
 PL_CYCLE = cycle/lin_prob.pl    \
            cycle/nonlin_prob.pl      \
@@ -69,7 +67,7 @@ install: $(TARGETS)
 	cp $(TARGETS) $(INSTALLDIR)
 
 clean:
-	rm -f $(TARGETS) prism.pl mpprism.pl batch.pl foc.pl
+	rm -f $(TARGETS) prism.pl mpprism.pl batch.pl
 
 prism.pl: $(PL_UP_ALL)
 	cat $^ > $@
@@ -78,9 +76,6 @@ mpprism.pl: $(PL_MP_ALL)
 	cat $^ > $@
 
 batch.pl: $(PL_BAT_ALL)
-	cat $^ > $@
-
-foc.pl: $(PL_FOC_ALL)
 	cat $^ > $@
 
 %.out: %.pl $(COMPILER)

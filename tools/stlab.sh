@@ -111,7 +111,7 @@ EOF2
     #mv prism/bin/prism_up_darwin9.bin   prism/bin/`GetBinName`.darwin9
     #mv prism/bin/prism_up_darwin10.bin  prism/bin/`GetBinName`.darwin10
     #mv prism/src/prolog/Makefile.nofoc prism/src/prolog/Makefile
-    mv prism/src/prolog/Makefile prism/src/prolog/Makefile
+    mv prism/src/prolog/Makefile.nofoc prism/src/prolog/Makefile
     rm -rf prism/src/c/bp4prism/patch
 
     tar cfvz prism.tar.gz prism

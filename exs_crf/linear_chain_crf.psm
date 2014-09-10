@@ -1,0 +1,93 @@
+%%%%
+%%%%  Linear-chain CRF --- linear_chain_crf.psm
+%%%%      
+%%%%  Copyright (C) 2014,
+%%%%    Sato Laboratory, Dept. of Computer Science,
+%%%%    Tokyo Institute of Technology
+
+
+%% This is an example of generative CRFs explained in Chapter 7
+%% in the manual. Here a linear-chain CRF is defined from an HMM
+%% illustrated below with probabilities replaced by weights. 
+%% The only feature used is a default one, i.e., number
+%% of occurrences of msw(i,v) in an explanation.
+%%
+%% 
+%%  [state diagram:]  (2 states and 2 output symbols)
+%%
+%%         +--------+                +--------+
+%%         |        |                |        |
+%%         |     +------+        +------+     |
+%%         |     |      |------->|      |     |
+%%         +---->|  s0  |        |  s1  |<----+
+%%               |      |<-------|      |
+%%               +------+        +------+
+%%
+%%    - In each state, possible output symbols are `a' and `b'.
+
+%%-------------------------------------
+%%  Quick start : sample session
+
+%% ?- prism(linear_chain_crf), set_prism_flag(crf_enable,on).
+        % Load this program to define a linear-chain CRF, paired with
+        % the above HMM, hmm0/2 as a generative-discriminative pair, and
+        % make built-in predicates for (generative) CRFs applicable
+
+%% ?- set_prism_flag(crf_penalty,1.0),set_prism_flag(crf_learn_mode,lbfgs).
+        % Set the penalty term in the model and choose a learning mode 
+        % (the other is the steepest descent algorithm)
+
+%% ?- reset_params,get_samples(50,hmm0(Xs,[_,_,_,_,_]),_Gs),crf_learn(_Gs).
+        % After resetting probabilities of hmm0/2, draw a sample _Gs of
+        % size 50 from the HMM and learn weights as a linear-chain CRF
+        % _Gs is a list of ground hmm0/2 atoms
+%% ?- show_sw.
+        % See weights (exponents) associated with msws
+
+%% ?- crf_prob(hmm0([a,b,b]),W).
+        % Compute the weight of hmm0([a,b,b])
+%% ?- crf_viterbi(hmm0([a,b,b])).
+        % Compute the weight of most likely explanation for hmm0([a,b,b])
+
+%% ?- crf_viterbig(hmm0([a,b,b],Y)). 
+        % Compute most likely sequence of hidden states for [a,b,b] 
+%% ?- crf_viterbig(hmm0([X,b,Y])).
+        % Compute most likely values of [X,Y] for hmm0([X,b,Y]).
+
+
+%%-------------------------------------
+%%  Declarations:
+
+values(init,[s0,s1]).
+values(tr(_),[s0,s1]).
+values(out(_),[a,b]).
+
+:- set_prism_flag(log_scale,on).
+
+reset_params:-
+  set_prism_flag(default_sw,uniform),set_sw_all,
+  set_prism_flag(default_sw_d,uniform),set_sw_all_d.
+
+%%------------------------------------
+%%  Modeling part:
+
+hmm0([X0|Xs],[Y0|Ys]):-  % for complete data, Xs of output symbols 
+   msw(init,Y0),         % and Ys of the corresponding hidden states
+   msw(out(Y0),X0),
+   hmm1(Y0,Xs,Ys).
+hmm1(_,[],[]).
+hmm1(Y0,[X|Xs],[Y|Ys]):-
+   msw(tr(Y0),Y),
+   msw(out(Y),X),
+   hmm1(Y,Xs,Ys).
+
+hmm0([X|Xs]):-           % for incomplete data, a sequence of
+   msw(init,Y0),         % output symbols
+   msw(out(Y0),X),
+   hmm1(Y0,Xs).
+hmm1(_,[]).
+hmm1(Y0,[X|Xs]):-
+   msw(tr(Y0),Y1),
+   msw(out(Y1),X),
+   hmm1(Y1,Xs).
+
