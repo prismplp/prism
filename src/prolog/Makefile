@@ -54,7 +54,8 @@ PL_CYCLE = cycle/lin_prob.pl    \
            cycle/nonlin_prob.pl      \
            cycle/trans_graph.pl \
            cycle/find_scc.pl    \
-           cycle/solve_graph.pl
+           cycle/solve_graph.pl \
+           cycle/cyc_viterbi.pl
 
 PL_UP_ALL   = $(PL_CORE) $(PL_UP) $(PL_TRANS) $(PL_BP) $(PL_CYCLE)
 PL_MP_ALL   = $(PL_MP)

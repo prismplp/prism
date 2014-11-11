@@ -19,6 +19,8 @@ $probg(Goal,Probs):-
     (S=path([G],[]),Goal=G->prob(G,P),Ps^1=[[P,G]|Ps^0];true)),
 	sort(>,Ps,Probs).
 
+solve_linear_system(A,B,X) :-solve_linear_system(A,B,X,0).
+solve_linear_system(A,B,X,D) :-length(B,L),$pc_solve_linear_system(L, A, B, X,D).
 
 lin_prob(Goal) :-
   lin_prob(Goal,P),

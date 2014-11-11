@@ -14,6 +14,9 @@ extern "C" {
 #include "up/em.h"
 #include "up/em_aux.h"
 #include "up/em_aux_ml.h"
+#include "up/viterbi.h"
+#include "up/graph_aux.h"
+
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -797,6 +800,151 @@ int pc_nonlinear_eq_2(void) {
 	return bpx_unify(bpx_get_call_arg(2,2),
 			bpx_build_float(prob));
 }
+
+double compute_nonlinear_viterbi(int nl_debug_level) {
+	int i;
+	EG_NODE_PTR eg_ptr;
+	EG_PATH_PTR path_ptr;
+
+	nodes=NULL;
+	stack=NULL;
+	scc_num=0;
+	sccs=NULL;
+	mapping=NULL;
+
+	int max_id=0;
+	double start_time=getCPUTime();
+
+	for (i = 0; i < sorted_egraph_size; i++) {
+		eg_ptr = sorted_expl_graph[i];
+		if(max_id<eg_ptr->id) {
+			max_id=eg_ptr->id;
+		}
+	}
+	mapping=(int*)calloc(sizeof(int),max_id+1);
+	for (i = 0; i < sorted_egraph_size; i++) {
+		eg_ptr = sorted_expl_graph[i];
+		mapping[eg_ptr->id]=i;
+	}
+
+	//print_eq
+	if(nl_debug_level>=3) {
+		print_eq();
+	}
+	//find scc
+	get_scc_tarjan();
+	if(nl_debug_level>=3) {
+		print_sccs();
+	}
+	double scc_time=getCPUTime();
+	//solution
+	if(nl_debug_level>=2) {
+		printf("non-linear viterbi: \n");
+	}
+	{//init
+		for (i = 0; i < sorted_egraph_size; i++) {
+			eg_ptr = sorted_expl_graph[i];
+			path_ptr = eg_ptr->path_ptr;
+			while(path_ptr != NULL) {
+				int k;
+				for (k = 0; k < path_ptr->children_len; k++) {
+					path_ptr->children[k]->max=0.0;
+				}
+				path_ptr=path_ptr->next;
+			}
+		}
+	}
+	for(i=0; i<scc_num; i++) {
+		int n=sccs[i].size;
+		int j;
+		int cnt;
+		int bf_loop;
+		bf_loop=n>1?n-1:1;
+		for(cnt=0; cnt<bf_loop; cnt++) {
+			if(nl_debug_level>=3) {
+				printf("--%d--\n",cnt);
+			}
+			for(j=0; j<n; j++) {
+				int w=sccs[i].el[j];
+				eg_ptr = sorted_expl_graph[w];
+				path_ptr = eg_ptr->path_ptr;
+				double max_p = 0.0;
+				EG_PATH_PTR max_path = NULL;
+				if(path_ptr == NULL) {
+					max_p=1.0;
+				}else if(sorted_expl_graph[w]->max_path!=NULL){
+					max_p=sorted_expl_graph[w]->max;
+					max_path=sorted_expl_graph[w]->max_path;
+				}
+				while(path_ptr != NULL) {
+					int k;
+					double this_path_max=1.0;
+					for (k = 0; k < path_ptr->children_len; k++) {
+						this_path_max *= path_ptr->children[k]->max;
+					}
+					for (k = 0; k < path_ptr->sws_len; k++) {
+						this_path_max *= path_ptr->sws[k]->inside;
+					}
+					if (this_path_max > max_p) {
+						max_p = this_path_max;
+						max_path = path_ptr;
+					}
+					path_ptr->max = this_path_max;
+					path_ptr=path_ptr->next;
+				}
+				sorted_expl_graph[w]->max = max_p;
+				sorted_expl_graph[w]->max_path = max_path;
+				if(nl_debug_level>=3) {
+					printf("%d:%f\n",w,sorted_expl_graph[w]->max);
+				}
+			}
+		}
+	}
+	double solution_time=getCPUTime();
+	//free data
+	free(nodes);
+	for(i=0; i<scc_num; i++) {
+		free(sccs[i].el);
+	}
+	free(sccs);
+	free(mapping);
+	double prob=sorted_expl_graph[sorted_egraph_size-1]->max;
+	if(nl_debug_level>=1) {
+		printf("CPU time (scc,solution,all)\n");
+		printf("# %f,%f,%f\n",scc_time-start_time,solution_time-scc_time,solution_time - start_time);
+	}
+	return prob;
+}
+extern "C"
+int pc_compute_nonlinear_viterbi_6(void) {
+	TERM p_goal_path,p_subpath_goal,p_subpath_sw;
+	int goal_id;
+	double viterbi_prob;
+
+	nl_debug_level = bpx_get_integer(bpx_get_call_arg(1,6));
+	goal_id = bpx_get_integer(bpx_get_call_arg(2,6));
+
+	initialize_egraph_index();
+	alloc_sorted_egraph(1);
+	/* INIT_MIN_MAX_NODE_NOS; */
+	RET_ON_ERR(sort_one_egraph(goal_id,0,1));
+	if (verb_graph) print_egraph(0,PRINT_NEUTRAL);
+
+	compute_nonlinear_viterbi(nl_debug_level);
+
+	if (debug_level) print_egraph(1,PRINT_VITERBI);
+
+	get_most_likely_path(goal_id,&p_goal_path,&p_subpath_goal,
+	                     &p_subpath_sw,&viterbi_prob);
+
+	return
+	    bpx_unify(bpx_get_call_arg(3,6), p_goal_path)    &&
+	    bpx_unify(bpx_get_call_arg(4,6), p_subpath_goal) &&
+	    bpx_unify(bpx_get_call_arg(5,6), p_subpath_sw)   &&
+	    bpx_unify(bpx_get_call_arg(6,6), bpx_build_float(viterbi_prob));
+}
+
+
 
 int run_cyc_em() {
 /*
