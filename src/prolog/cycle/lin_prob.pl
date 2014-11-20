@@ -110,10 +110,10 @@ $pp_cyc_probfi(Goal,OrgExpls,Decode,NewExpls2) :-
   $pp_garbage_collect.
 
 
-$cyc_learn(Goals) :-
-$pp_cyc_learn_core(ml,Goals).
+lin_learn(Goals) :-
+$pp_lin_learn_core(ml,Goals).
 
-$pp_cyc_learn_core(Mode,Goals) :-
+$pp_lin_learn_core(Mode,Goals) :-
     $pp_learn_check_goals(Goals),
     $pp_learn_message(MsgS,MsgE,MsgT,MsgM),
     $pc_set_em_message(MsgE),
@@ -132,12 +132,10 @@ $pp_cyc_learn_core(Mode,Goals) :-
     flush_output,
     $pp_export_sw_info,
     $pp_format_if(MsgM,"done~n"),
-    format("~w\n",[GoalCountPairs,GidCountPairs,0,Len,0,NGoals,-1,FailRootIndex]),
+	%format("dd~w\n",[GoalCountPairs,GidCountPairs,0,Len,0,NGoals,-1,FailRootIndex]),
     $pp_observed_facts(GoalCountPairs,GidCountPairs,
                        0,Len,0,NGoals,-1,FailRootIndex),
-    format("a"),
     $pc_prism_prepare(GidCountPairs,Len,NGoals,FailRootIndex),
-    format("b"),
     cputime(StartEM),
     %%%$pp_em(Mode,Output),
     $pp_cyc_em(Mode,Output),
@@ -154,8 +152,6 @@ $pp_cyc_learn_core(Mode,Goals) :-
     $pp_print_learn_end_message(MsgM,Mode),!.
 
 $pp_cyc_em(ml,Output) :-
-    format("c"),
     $pc_cyc_em(Iterate,LogPost,LogLike,BIC,CS,ModeSmooth),
-    format("d"),
     Output = [Iterate,LogPost,LogLike,BIC,CS,ModeSmooth].
 

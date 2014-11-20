@@ -20,3 +20,23 @@ nonlin_prob_m(Mode,Goal,P) :-
 
 
 
+lin2_prob_check(Goal) :-
+  lin2_prob_m(1,Goal,P),
+  format("Probability is ~w\n",P).
+lin2_prob_check(Goal,P) :-
+  lin2_prob_m(1,Goal,P).
+
+lin2_prob(Goal) :-
+  lin2_prob_m(0,Goal,P),
+  format("Probability is ~w\n",P).
+lin2_prob(Goal,P) :-
+  lin2_prob_m(0,Goal,P).
+
+lin2_prob_m(Mode,Goal) :-
+  lin2_prob_m(Mode,Goal,P),
+  format("Probability is ~w\n",P).
+lin2_prob_m(Mode,Goal,P) :-
+  probefi(Goal,_),
+  $pc_linear_eq(Mode,P).
+
+

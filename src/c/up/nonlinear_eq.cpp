@@ -21,6 +21,7 @@ extern "C" {
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include "nonlinear_eq.h"
 }
 #ifndef _MSC_VER
 extern "C" {
@@ -73,33 +74,7 @@ static int* mapping;
 //		ptr = ptr->next;
 //	}
  */
-static int* sw_mapping;
-/*
-   additional informaion to sorted_expl_graph
- */
-typedef struct {
-	int visited;
-	int index;
-	int lowlink;
-	int in_stack;
-} SCC_Node;
-/*
-   Stack for the Tarjan algorithm (finding SCCs)
- */
-typedef struct SCC_StackEl {
-	int index;
-	struct SCC_StackEl* next;
-} SCC_Stack;
-/*
-el  : array of indexes that corresponded to indexes of sorted_expl_graph
-size: size of el
- */
-typedef struct {
-	int* el;
-	int size;
-	int order;
-} SCC;
-
+//static int* sw_mapping;
 static SCC_Node* nodes;
 static SCC_Stack* stack;
 static int scc_num;
@@ -118,9 +93,9 @@ converted to following equations
 //	a=b^2+c^2
 this function compute
 //	-a+b^2+c^2
-and store it to (double*) o
+and store it to (double*) out
  */
-void compute_scc_eq(double* x,double* o,int scc) {
+void compute_scc_eq(double* x,double* out,int scc) {
 	int i;
 	EG_NODE_PTR eg_ptr;
 	for(i=0; i<sccs[scc].size; i++) {
@@ -150,9 +125,77 @@ void compute_scc_eq(double* x,double* o,int scc) {
 				path_ptr = path_ptr->next;
 			}
 		}
-		o[i]=sum;
+		out[i]=sum;
 	}
 }
+
+/*
+This function computes the inside probability within scc ignoring cycles.
+scc: target scc_id
+ */
+void compute_inside_scc(int scc) {
+	int i;
+	EG_NODE_PTR eg_ptr;
+	for(i=0; i<sccs[scc].size; i++) {
+		int w=sccs[scc].el[i];
+		EG_PATH_PTR path_ptr;
+		eg_ptr = sorted_expl_graph[w];
+		path_ptr = eg_ptr->path_ptr;
+		double sum=0;
+		if(path_ptr == NULL) {
+			sum=1;
+		} else {
+			while (path_ptr != NULL) {
+				int k;
+				double prob=1;
+				for (k = 0; k < path_ptr->children_len; k++) {
+					prob*=path_ptr->children[k]->inside;
+				}
+				for (k = 0; k < path_ptr->sws_len; k++) {
+					prob*=path_ptr->sws[k]->inside;
+				}
+				path_ptr->inside=prob;
+				sum+=prob;
+				path_ptr = path_ptr->next;
+			}
+		}
+		eg_ptr->inside=sum;
+	}
+}
+
+/*
+scc: target scc_id
+id: sorted_expl_graph id
+retrun: true if scc includes id 
+*/
+//TODO: binary search
+int is_scc_element(int scc,int id){
+	int i;
+	for(i=0; i<sccs[scc].size; i++) {
+		if(sccs[scc].el[i]==id){
+			return 1;
+		}
+	}
+	return 0;
+}
+
+/*
+scc: target scc_id
+index: sorted_expl_graph id
+retrun: scc index (-1=not found)
+ */
+//TODO: binary search
+int get_scc_element_index(int scc,int id){
+	int i;
+	for(i=0; i<sccs[scc].size; i++) {
+		if(sccs[scc].el[i]==id){
+			return i;
+		}
+	}
+	return -1;
+}
+
+
 
 void progress_broyden(double* x,double* sk,int dim) {
 	int i;
@@ -561,177 +604,34 @@ void print_eq() {
 	}
 }
 
-void print_eq2() {
-	int i,k;
-	printf("sw_size:%d\n",occ_switch_tab_size);
-	printf("sw_ins_size:%d\n",sw_ins_tab_size);
+void set_scc_order() {
+	int scc,i;
 	EG_NODE_PTR eg_ptr;
-	EG_PATH_PTR path_ptr;
-	printf("graph_size:%d\n",sorted_egraph_size);
-	printf("equations\n");
-	for (i = 0; i < sorted_egraph_size; i++) {
-		eg_ptr = sorted_expl_graph[i];
-		path_ptr = eg_ptr->path_ptr;
-		printf("# x[%d] : ",i);
-		while (path_ptr != NULL) {
-			int first_s=1;
-			for (k = 0; k < path_ptr->sws_len; k++) {
-				if(first_s) {
-					first_s=0;
-				} else {
-					printf("*");
-				}
-				printf("%3.3f",path_ptr->sws[k]->inside);
-				printf("(t[%d])",path_ptr->sws[k]->id);
-			}
-			for (k = 0; k < path_ptr->children_len; k++) {
-				if(first_s) {
-					first_s=0;
-				} else {
-					printf("*");
-				}
-				printf("x[%d]",mapping[path_ptr->children[k]->id]);
-			}
-			if(first_s) {
-				printf("1");
-				first_s=0;
-			}
-			path_ptr = path_ptr->next;
-			if(path_ptr!=NULL) {
-				printf("+");
-			}
-		}
-		printf("\n");
-	}
-}
-
-typedef struct _EqTerm {
-	int id;
-	double coef;
-	struct _EqTerm* next;
-} EqTerm;
-
-typedef struct _Equations {
-	double c;
-	EqTerm* term;
-	struct _Equations* next;
-} Equations;
-static Equations** equations;
-static double* grad;
-static int* occ_sw_id;
-void free_equations(Equations* eq) {
-	EqTerm* t=eq->term;
-	while(t!=NULL) {
-		EqTerm* temp=t->next;
-		free(t);
-		t=temp;
-	}
-	free(eq);
-}
-void print_equation(Equations* eq) {
-	EqTerm* t=eq->term;
-	while(t!=NULL) {
-		printf("%3.3fx[%d]",t->coef,t->id);
-		printf("+");
-		t=t->next;
-	}
-	printf("%3.3f",eq->c);
-	printf("\n");
-}
-void compute_scc_equations(double* x,double* o,int scc) {
-	int i;
-	Equations* eq_ptr;
-	for(i=0; i<sccs[scc].size; i++) {
-		int w=sccs[scc].el[i];
-		eq_ptr = equations[w];
-		grad[w]=x[i];
-	}
-	for(i=0; i<sccs[scc].size; i++) {
-		int w=sccs[scc].el[i];
-		eq_ptr = equations[w];
-		EqTerm* term_ptr = eq_ptr->term;
-		double sum=eq_ptr->c-grad[w];
-		while (term_ptr != NULL) {
-			sum+=term_ptr->coef*grad[mapping[term_ptr->id]];
-			term_ptr = term_ptr->next;
-		}
-		o[i]=sum;
-	}
-}
-
-
-
-Equations* get_equation(EG_NODE_PTR eg_ptr,int sw_id,int sw_ins_id) {
-	Equations *eq=(Equations*)calloc(sizeof(Equations),1);
-	EqTerm *t_itr=NULL;
-	int k,l;
-	EG_PATH_PTR path_ptr;
-	path_ptr = eg_ptr->path_ptr;
-	double sum=0;
-	while (path_ptr != NULL) {
-		double coef_sum=0.0;
-		double x=1.0;
-		// (c)'x
-		// x
-		for (k = 0; k < path_ptr->children_len; k++) {
-			x*=path_ptr->children[k]->inside;
-		}
-		for (k = 0; k < path_ptr->sws_len; k++) {
-			char enable=0;//0:disable,1:direct variable,2:indirect variable
-			int id=path_ptr->sws[k]->id;
-			SW_INS_PTR sw_ptr = switch_instances[sw_ins_id];
-			if(id==sw_ins_id) {
-				enable=1;
-			} else if(sw_mapping[id]==sw_id) {
-				enable=2;
-			}
-			if(enable>0) {
-				double coef=1.0;
-				//k
-				if(enable==1) {
-					coef*=-(1-path_ptr->sws[k]->inside);
-				} else if(enable==2) {
-					coef*=(sw_ptr->inside);
-				}
-				//l
-				for (l = 0; l < path_ptr->sws_len; l++) {
-					coef*=path_ptr->sws[l]->inside;
-				}
-				coef_sum+=coef*x;
-			}
-			sum+=coef_sum;
-		}
-		// c(x)'
-
-
-		if(path_ptr->children_len>0) {
-			for (k = 0; k < path_ptr->children_len; k++) {
-				EqTerm *t=(EqTerm*)calloc(sizeof(EqTerm),1);
-				double coef=1.0;
-				for (l = 0; l < path_ptr->children_len; l++) {
-					if(k!=l) {
-						coef*=path_ptr->children[k]->inside;
+	for(scc=0; scc<scc_num; scc++) {
+		for(i=0; i<sccs[scc].size; i++) {
+			int w=sccs[scc].el[i];
+			int max_order=0;
+			EG_PATH_PTR path_ptr;
+			eg_ptr = sorted_expl_graph[w];
+			path_ptr = eg_ptr->path_ptr;
+			while (path_ptr != NULL) {
+				int order=0;
+				int k;
+				for (k = 0; k < path_ptr->children_len; k++) {
+					int index=mapping[path_ptr->children[k]->id];
+					if(is_scc_element(scc,index)){
+						order+=1;
 					}
 				}
-				{
-					t->id=mapping[path_ptr->children[k]->id];
+				if(order>max_order){
+					max_order=order;
 				}
-				t->coef=coef;
-				if(t_itr!=NULL) {
-					t_itr->next=t;
-				} else {
-					eq->term=t;
-				}
-				t_itr=t;
+				path_ptr = path_ptr->next;
 			}
+			sccs[scc].order=max_order;
 		}
-		//
-		path_ptr=path_ptr->next;
 	}
-	eq->c=sum;
-	return eq;
 }
-
 extern "C"
 int pc_nonlinear_eq_2(void) {
 	int i;
@@ -758,7 +658,6 @@ int pc_nonlinear_eq_2(void) {
 		eg_ptr = sorted_expl_graph[i];
 		mapping[eg_ptr->id]=i;
 	}
-
 	//print_eq
 	if(nl_debug_level>=3) {
 		print_eq();
@@ -800,7 +699,135 @@ int pc_nonlinear_eq_2(void) {
 	return bpx_unify(bpx_get_call_arg(2,2),
 			bpx_build_float(prob));
 }
+/*
+   typedef struct _EqTerm {
+   int id;
+   double coef;
+   struct _EqTerm* next;
+   } EqTerm;
 
+   typedef struct _Equations {
+   double c;
+   EqTerm* term;
+   struct _Equations* next;
+   } Equations;
+   static Equations** equations;
+   static double* grad;
+   static int* occ_sw_id;
+   void free_equations(Equations* eq) {
+   EqTerm* t=eq->term;
+   while(t!=NULL) {
+   EqTerm* temp=t->next;
+   free(t);
+   t=temp;
+   }
+   free(eq);
+   }
+   void print_equations(Equations* eq) {
+   EqTerm* t=eq->term;
+   while(t!=NULL) {
+   printf("%3.3fx[%d]",t->coef,t->id);
+   printf("+");
+   t=t->next;
+   }
+   printf("%3.3f",eq->c);
+   printf("\n");
+   }
+   void compute_scc_equations(double* x,double* o,int scc) {
+   int i;
+   Equations* eq_ptr;
+   for(i=0; i<sccs[scc].size; i++) {
+   int w=sccs[scc].el[i];
+   eq_ptr = equations[w];
+   grad[w]=x[i];
+   }
+   for(i=0; i<sccs[scc].size; i++) {
+   int w=sccs[scc].el[i];
+   eq_ptr = equations[w];
+   EqTerm* term_ptr = eq_ptr->term;
+   double sum=eq_ptr->c-grad[w];
+   while (term_ptr != NULL) {
+   sum+=term_ptr->coef*grad[mapping[term_ptr->id]];
+   term_ptr = term_ptr->next;
+   }
+   o[i]=sum;
+   }
+   }
+
+
+
+   Equations* get_equation(EG_NODE_PTR eg_ptr,int sw_id,int sw_ins_id) {
+   Equations *eq=(Equations*)calloc(sizeof(Equations),1);
+   EqTerm *t_itr=NULL;
+   int k,l;
+   EG_PATH_PTR path_ptr;
+   path_ptr = eg_ptr->path_ptr;
+   double sum=0;
+   while (path_ptr != NULL) {
+   double coef_sum=0.0;
+   double x=1.0;
+// (c)'x
+// x
+for (k = 0; k < path_ptr->children_len; k++) {
+x*=path_ptr->children[k]->inside;
+}
+for (k = 0; k < path_ptr->sws_len; k++) {
+	char enable=0;//0:disable,1:direct variable,2:indirect variable
+	int id=path_ptr->sws[k]->id;
+	SW_INS_PTR sw_ptr = switch_instances[sw_ins_id];
+	if(id==sw_ins_id) {
+		enable=1;
+	} else if(sw_mapping[id]==sw_id) {
+		enable=2;
+	}
+	if(enable>0) {
+		double coef=1.0;
+		//k
+		if(enable==1) {
+			coef*=-(1-path_ptr->sws[k]->inside);
+		} else if(enable==2) {
+			coef*=(sw_ptr->inside);
+		}
+		//l
+		for (l = 0; l < path_ptr->sws_len; l++) {
+			coef*=path_ptr->sws[l]->inside;
+		}
+		coef_sum+=coef*x;
+	}
+	sum+=coef_sum;
+}
+// c(x)'
+
+
+if(path_ptr->children_len>0) {
+	for (k = 0; k < path_ptr->children_len; k++) {
+		EqTerm *t=(EqTerm*)calloc(sizeof(EqTerm),1);
+		double coef=1.0;
+		for (l = 0; l < path_ptr->children_len; l++) {
+			if(k!=l) {
+				coef*=path_ptr->children[k]->inside;
+			}
+		}
+		{
+			t->id=mapping[path_ptr->children[k]->id];
+		}
+		t->coef=coef;
+		if(t_itr!=NULL) {
+			t_itr->next=t;
+		} else {
+			eq->term=t;
+		}
+		t_itr=t;
+	}
+}
+//
+path_ptr=path_ptr->next;
+}
+eq->c=sum;
+return eq;
+}
+
+*/
 double compute_nonlinear_viterbi(int nl_debug_level) {
 	int i;
 	EG_NODE_PTR eg_ptr;
@@ -937,6 +964,7 @@ double compute_nonlinear_viterbi(int nl_debug_level) {
 	}
 	return prob;
 }
+
 extern "C"
 int pc_compute_nonlinear_viterbi_6(void) {
 	TERM p_goal_path,p_subpath_goal,p_subpath_sw;
@@ -957,286 +985,107 @@ int pc_compute_nonlinear_viterbi_6(void) {
 	if (debug_level) print_egraph(1,PRINT_VITERBI);
 
 	get_most_likely_path(goal_id,&p_goal_path,&p_subpath_goal,
-	                     &p_subpath_sw,&viterbi_prob);
+			&p_subpath_sw,&viterbi_prob);
 
 	return
-	    bpx_unify(bpx_get_call_arg(3,6), p_goal_path)    &&
-	    bpx_unify(bpx_get_call_arg(4,6), p_subpath_goal) &&
-	    bpx_unify(bpx_get_call_arg(5,6), p_subpath_sw)   &&
-	    bpx_unify(bpx_get_call_arg(6,6), bpx_build_float(viterbi_prob));
+		bpx_unify(bpx_get_call_arg(3,6), p_goal_path)    &&
+		bpx_unify(bpx_get_call_arg(4,6), p_subpath_goal) &&
+		bpx_unify(bpx_get_call_arg(5,6), p_subpath_sw)   &&
+		bpx_unify(bpx_get_call_arg(6,6), bpx_build_float(viterbi_prob));
 }
 
 
+#include "eigen/Core"
+#include "eigen/LU"
+#include <iostream>
 
-int run_cyc_em() {
-/*
-	int	 r, iterate, old_valid, converged, saved = 0;
-	double  likelihood, log_prior;
-	double  lambda, old_lambda = 0.0;
-
-	//config_em(em_ptr);
-
-	for (r = 0; r < num_restart; r++) {
-		SHOW_PROGRESS_HEAD("#cyc-em-iters", r);
-		initialize_params();
-		iterate = 0;
-		while (1) {
-			old_valid = 0;
-			while (1) {
-				if (CTRLC_PRESSED) {
-					SHOW_PROGRESS_INTR();
-					RET_ERR(err_ctrl_c_pressed);
-				}
-
-				//RET_ON_ERR(em_ptr->compute_inside());
-				//RET_ON_ERR(em_ptr->examine_inside());
-
-				//likelihood = em_ptr->compute_likelihood();
-				//log_prior  = em_ptr->smooth ? em_ptr->compute_log_prior() : 0.0;
-				lambda = likelihood + log_prior;
-
-				if (verb_em) {
-					//if (em_ptr->smooth) {
-					prism_printf("iteration #%d:\tlog_likelihood=%.9f\tlog_prior=%.9f\tlog_post=%.9f\n", iterate, likelihood, log_prior, lambda);
-					//}
-					//else {
-					prism_printf("iteration #%d:\tlog_likelihood=%.9f\n", iterate, likelihood);
-					//}
-				}
-
-				if (!isfinite(lambda)) {
-					emit_internal_error("invalid log likelihood or log post: %s (at iteration #%d)",
-							isnan(lambda) ? "NaN" : "infinity", iterate);
-					RET_ERR(ierr_invalid_likelihood);
-				}
-				if (old_valid && old_lambda - lambda > prism_epsilon) {
-					emit_error("log likelihood or log post decreased [old: %.9f, new: %.9f] (at iteration #%d)",
-							old_lambda, lambda, iterate);
-					RET_ERR(err_invalid_likelihood);
-				}
-
-				converged = (old_valid && lambda - old_lambda <= prism_epsilon);
-				if (converged || REACHED_MAX_ITERATE(iterate)) {
-					break;
-				}
-
-				old_lambda = lambda;
-				old_valid  = 1;
-
-				//RET_ON_ERR(em_ptr->compute_expectation());
-
-				SHOW_PROGRESS(iterate);
-				//RET_ON_ERR(em_ptr->update_params());
-				iterate++;
-			}
-		}
-
-		SHOW_PROGRESS_TAIL(converged, iterate, lambda);
-
-		saved = (r < num_restart - 1);
-		if (saved) {
-			save_params();
-		}
-
-	}
-
-	if (saved) {
-		restore_params();
-	}
-
-	//em_ptr->bic = compute_bic(em_ptr->likelihood);
-	//em_ptr->cs  = em_ptr->smooth ? compute_cs(em_ptr->likelihood) : 0.0;
-*/
-	return BP_TRUE;
-}
-
-void solve_o(int scc,void(*compute_scc_eq)(double* x,double* o,int scc),double* x) {
-	int dim =sccs[scc].size;
-	int loopCount;
-	int maxloop=100;
-	int restart=20;
-	double** s=(double**)calloc(sizeof(double*),restart+1);
-	double epsilon=1.0e-10;
-	double epsilonX=1.0e-10;
+using namespace Eigen;
+void get_scc_matrix(MatrixXd& out_a,VectorXd& out_b,int scc) {
 	int i;
-	for(i=0; i<restart+1; i++) {
-		s[i]=(double*)calloc(sizeof(double),dim);
-	}
-	double* z=(double*)calloc(sizeof(double),dim);
-	double* s0=s[0];
-	for(i=0; i<dim; i++) {
-		x[i]=rand()/(double)RAND_MAX;
-	}
-	compute_scc_eq(x,s0,scc);
-	int s_cnt=0;
-	int convergenceCount;
-	for(loopCount=0; maxloop<0||loopCount<maxloop; loopCount++) {
-		if(restart>0 && ((loopCount+1)%restart==0)) {
-			//clear working area
-			s_cnt=0;
-			compute_scc_eq(x,s0,scc);
-		}
-		double* sk=s[s_cnt];
-		convergenceCount=0;
-		//progress_broyden(x,sk,dim);
-		for(i=0; i<dim; i++) {
-			x[i]+=sk[i];
-			if((fabs(x[i])<epsilonX&&fabs(sk[i])<epsilon)||fabs(sk[i]/x[i])<epsilon) {
-				convergenceCount++;
-			}
-		}
-		if(convergenceCount==dim) {
-			break;
-		}
-		compute_scc_eq(x,z,scc);
+	EG_NODE_PTR eg_ptr;
+	int n=sccs[scc].size;
+	for(i=0; i<n; i++) {
+		out_b[i]=0;
 		int j;
-		for(j=1; j<=s_cnt; j++) {
-			double denom=0;
-			double num=0;
-			for(i=0; i<dim; i++) {
-				num+=z[i]*s[j-1][i];
-				denom+=s[j-1][i]*s[j-1][i];
-			}
-			for(i=0; i<dim; i++) {
-				if(denom!=0) {
-					z[i]+=s[j][i]*num/denom;
-				}
+		for(j=0; j<n; j++) {
+			if(i==j){
+				out_a(i,j)=-1.0;
+			}else{
+				out_a(i,j)=0;
 			}
 		}
-		//
-		double c=0;
-		{
-			double denom=0;
-			double num=0;
-			for(i=0; i<dim; i++) {
-				num+=z[i]*sk[i];
-				denom+=sk[i]*sk[i];
-			}
-			if(denom!=0) {
-				c=num/denom;
-			} else {
-				c=0;
-				emit_error("Broyden's method error : underflow");
-			}
-		}
-		double* sk1=s[s_cnt+1];
-		for(i=0; i<dim; i++) {
-			if(1.0-c!=0) {
-				sk1[i]=z[i]/(1.0-c);
-			} else {
-				printf("[%d,%f]",i,z[i]);
-				emit_error("Broyden's method error : C is one");
-			}
-		}
-		s_cnt++;
 	}
-	for(i=0; i<restart+1; i++) {
-		free(s[i]);
-	}
-	free(s);
-	free(z);
-
-	if(nl_debug_level>=2) {
-		printf("convergence :%d/%d\n",convergenceCount,dim);
-		if(maxloop<0) {
-			printf("loop :%d/inf\n",loopCount);
+	for(i=0; i<sccs[scc].size; i++) {
+		int w=sccs[scc].el[i];
+		EG_PATH_PTR path_ptr;
+		eg_ptr = sorted_expl_graph[w];
+		path_ptr = eg_ptr->path_ptr;
+		if(path_ptr == NULL) {
+			//error
 		} else {
-			printf("loop :%d/%d\n",loopCount,maxloop);
-		}
-	}
-}
-
-#include <stdio.h>
-#include <lbfgs.h>
-static int occ_switch_size=0;
-static double* lbfgs_sw_space;
-void update_sw(const double* x,const int n) {
-	int i;
-	for (i = 0; i < occ_switch_tab_size; i++) {
-		lbfgs_sw_space[i]=0;
-	}
-	for (i = 0; i < n; i++) {
-		SW_INS_PTR ptr = switch_instances[occ_sw_id[i]];
-		int w=sw_mapping[ptr->id];
-		lbfgs_sw_space[w]+=exp(-x[i]);
-	}
-	for (i = 0; i < n; i++) {
-		SW_INS_PTR ptr = switch_instances[occ_sw_id[i]];
-		int w=sw_mapping[ptr->id];
-		ptr->inside=exp(-x[i])/lbfgs_sw_space[w];
-	}
-
-}
-static lbfgsfloatval_t evaluate(
-		void *instance,
-		const lbfgsfloatval_t *x,
-		lbfgsfloatval_t *g,
-		const int n,
-		const lbfgsfloatval_t step
-		) {
-	int i;
-	lbfgsfloatval_t fx = 0.0;
-	update_sw(x,n);
-	for(i=0; i<scc_num; i++) {
-		solve(i,compute_scc_eq);
-	}
-	for (i = 0; i < num_roots; i++) {
-		int w = mapping[roots[i]->id];
-		//printf("%f,",sorted_expl_graph[w]->inside);
-		fx+=log(sorted_expl_graph[w]->inside);
-	}
-	//printf("\n");
-	int k;
-	for (k = 0; k < n; k++) {
-		SW_INS_PTR ptr = switch_instances[occ_sw_id[k]];
-		for (i = 0; i < sorted_egraph_size; i++) {
-			equations[i]=get_equation(sorted_expl_graph[i],sw_mapping[ptr->id],ptr->id);
-		}
-		int j,scc;
-		for(scc=0; scc<scc_num; scc++) {
-			double* x=(double*)calloc(sizeof(double),sccs[scc].size);
-			solve_o(scc,compute_scc_equations,x);
-			for(j=0; j<sccs[scc].size; j++) {
-				int w=sccs[scc].el[j];
-				grad[w]=x[j];
+			while (path_ptr != NULL) {
+				int k,j=-1;
+				double prob=1;
+				for (k = 0; k < path_ptr->children_len; k++) {
+					int index=mapping[path_ptr->children[k]->id];
+					if(is_scc_element(scc,index)){
+						j=get_scc_element_index(scc,index);
+					}else{
+						prob*=path_ptr->children[k]->inside;
+					}
+				}
+				for (k = 0; k < path_ptr->sws_len; k++) {
+					prob*=path_ptr->sws[k]->inside;
+				}
+				if(j==-1){
+					out_b(i)=-prob;
+				}else if(i==j){
+					out_a(i,j)=prob-1.0;
+				}else{
+					out_a(i,j)=prob;
+				}
+				path_ptr = path_ptr->next;
 			}
-			free(x);
 		}
-		double grad_l=0;
-		for (i = 0; i < num_roots; i++) {
-			int w = mapping[roots[i]->id];
-			grad_l+=grad[w]/sorted_expl_graph[w]->inside;
-		}
-		for (i = 0; i < sorted_egraph_size; i++) {
-			free_equations(equations[i]);
-		}
-		g[k]=grad_l;
 	}
-	//
-	return fx;
 }
 
-static int progress(
-		void *instance,
-		const lbfgsfloatval_t *x,
-		const lbfgsfloatval_t *g,
-		const lbfgsfloatval_t fx,
-		const lbfgsfloatval_t xnorm,
-		const lbfgsfloatval_t gnorm,
-		const lbfgsfloatval_t step,
-		int n,
-		int k,
-		int ls
-		) {
-	printf("Iteration %d:\n", k);
-	printf("  fx = %f, x[0] = %f, x[1] = %f\n", fx, x[0], x[1]);
-	printf("  xnorm = %f, gnorm = %f, step = %f\n", xnorm, gnorm, step);
-	printf("\n");
-	return 0;
+
+void solve_linear_scc(int scc){
+	int n=sccs[scc].size;
+	MatrixXd A = MatrixXd(n,n);
+	VectorXd b = VectorXd(n);
+	VectorXd x;
+	get_scc_matrix(A,b,scc);
+	int i, j;
+	if(nl_debug_level>0){
+		printf("# linear equation Ax=b\n");
+		for(i = 0; i < n; i++) {
+			for(j = 0; j < n; j++) {
+				printf("%2.3f ",A(j,i));
+			}
+			printf("  %2.3f \n",b(i));
+		}
+	}
+	FullPivLU< MatrixXd > lu(A);
+	x=lu.solve(b);//Ax = b
+
+	if(nl_debug_level>0){
+		printf("# linear equation solve\n");
+		for(i = 0; i < n; i++) {
+			printf("  %2.3f \n",x(i));
+		}
+	}
+	for(i=0; i<sccs[scc].size; i++) {
+		EG_NODE_PTR eg_ptr;
+		int w=sccs[scc].el[i];
+		eg_ptr = sorted_expl_graph[w];
+		eg_ptr->inside=x[i];
+	}
 }
 
 extern "C"
-int pc_cyc_em_6(void) {
+int pc_linear_eq_2(void) {
 	int i;
 	EG_NODE_PTR eg_ptr;
 
@@ -1245,10 +1094,9 @@ int pc_cyc_em_6(void) {
 	scc_num=0;
 	sccs=NULL;
 	mapping=NULL;
-	sw_mapping=NULL;
 
 	int max_id=0;
-	nl_debug_level = 0;
+	nl_debug_level = bpx_get_integer(bpx_get_call_arg(1,2));
 	double start_time=getCPUTime();
 
 	for (i = 0; i < sorted_egraph_size; i++) {
@@ -1262,114 +1110,37 @@ int pc_cyc_em_6(void) {
 		eg_ptr = sorted_expl_graph[i];
 		mapping[eg_ptr->id]=i;
 	}
-	sw_mapping=(int*)calloc(sizeof(int),sw_ins_tab_size);
-	for (i = 0; i < occ_switch_tab_size; i++) {
-		SW_INS_PTR ptr;
-		ptr = occ_switches[i];
-		while (ptr != NULL) {
-			occ_switch_size++;
-			sw_mapping[ptr->id]=i;
-			ptr = ptr->next;
-		}
-	}
-	grad=(double*)calloc(sizeof(double),sorted_egraph_size);
-	//
 	//print_eq
-	print_eq2();
+	if(nl_debug_level>=3) {
+		print_eq();
+	}
 	//find scc
 	get_scc_tarjan();
-	print_sccs();
+	set_scc_order();
+	if(nl_debug_level>=3) {
+		print_sccs();
+	}
 	double scc_time=getCPUTime();
-	//ret_on_err(check_smooth(&em_eng.smooth));
-	//ret_on_err(run_cyc_em());
 	//solution
+	if(nl_debug_level>=2) {
+		printf("linear solver: LU decomposition\n");
+	}
 	for(i=0; i<scc_num; i++) {
-		solve(i,compute_scc_eq);
-		int n=sccs[i].size;
-		int j;
-		for(j=0; j<n; j++) {
-			int w=sccs[i].el[j];
-			printf("%d:%f\n",w,sorted_expl_graph[w]->inside);
+		if(sccs[i].size==1&&sccs[i].order==0){
+			compute_inside_scc(i);
+		}else{
+			solve_linear_scc(i);
+		}
+		if(nl_debug_level>=2) {
+			int n=sccs[i].size;
+			int j;
+			for(j=0; j<n; j++) {
+				int w=sccs[i].el[j];
+				printf("%d:%f\n",w,sorted_expl_graph[w]->inside);
+			}
 		}
 	}
 	double solution_time=getCPUTime();
-	equations=(Equations**)calloc(sizeof(Equations*),sorted_egraph_size);
-	occ_sw_id=(int*)calloc(sizeof(int),occ_switch_size);
-	int j=0;
-	for (i = 0; i < occ_switch_tab_size; i++) {
-		SW_INS_PTR ptr = occ_switches[i];
-		while (ptr != NULL) {
-			occ_sw_id[j]=ptr->id;
-			j++;
-			ptr = ptr->next;
-		}
-	}
-
-	//
-	lbfgs_sw_space=(double*)calloc(sizeof(double),occ_switch_tab_size);
-	/*
-	   for (k = 0; k < occ_switch_size; k++) {
-	   SW_INS_PTR ptr = switch_instances[occ_sw_id[k]];
-	   printf("diff_eq %d\n",ptr->id);
-	   for (i = 0; i < sorted_egraph_size; i++) {
-	   eg_ptr = sorted_expl_graph[i];
-	   equations[i]=get_equation(eg_ptr,sw_mapping[ptr->id],ptr->id);
-	   print_equation(equations[i]);
-	   }
-	   int j,scc;
-	   for(scc=0;scc<scc_num;scc++){
-	   double* x=calloc(sizeof(double),sccs[scc].size);
-	   solve_o(scc,compute_scc_equations,x);
-	   for(j=0;j<sccs[scc].size;j++){
-	   int w=sccs[scc].el[j];
-	   grad[w]=x[j];
-	   }
-	   free(x);
-	   }
-	   for (j = 0; j < sorted_egraph_size; j++) {
-	   printf("g[%d]=%f\n",j,grad[j]);
-	   }
-	   double grad_l=0;
-	   printf("g L:");
-	   for (i = 0; i < num_roots; i++) {
-	   int w = mapping[roots[i]->id];
-	   grad_l+=grad[w]/sorted_expl_graph[w]->inside;
-	   printf("g[%d]",w,grad[j]);
-	   }
-	   printf("\n");
-	   for (i = 0; i < sorted_egraph_size; i++) {
-	   free_equations(equations[i]);
-	   }
-	   }*/
-	{
-		lbfgsfloatval_t fx;
-		lbfgsfloatval_t *x = (lbfgsfloatval_t*)lbfgs_malloc(occ_switch_size);
-		lbfgs_parameter_t param;
-		if (x == NULL) {
-			printf("ERROR: Failed to allocate a memory block for variables.\n");
-			return BP_FALSE;
-		}
-		for (i = 0; i < occ_switch_size; i ++) {
-			x[i]=0;
-		}
-		/* Initialize the parameters for the L-BFGS optimization. */
-		lbfgs_parameter_init(&param);
-		/*param.linesearch = LBFGS_LINESEARCH_BACKTRACKING;*/
-		//
-		int ret = lbfgs(occ_switch_size, x, &fx, evaluate, progress, NULL, &param);
-		printf("L-BFGS optimization terminated with status code = %d\n", ret);
-		printf("  fx = %f,", fx);
-		for(i=0; i<occ_switch_size; i++) {
-			printf("x[%d] = %f,",i,x[i]);
-		}
-		printf("\n");
-		update_sw(x,occ_switch_size);
-		lbfgs_free(x);
-	}
-	free(lbfgs_sw_space);
-	//
-	free(equations);
-	free(occ_sw_id);
 	//free data
 	free(nodes);
 	for(i=0; i<scc_num; i++) {
@@ -1377,13 +1148,105 @@ int pc_cyc_em_6(void) {
 	}
 	free(sccs);
 	free(mapping);
-	free(sw_mapping);
-	free(grad);
-	//double prob=sorted_expl_graph[sorted_egraph_size-1]->inside;
-	if(1) {
+	double prob=sorted_expl_graph[sorted_egraph_size-1]->inside;
+	if(nl_debug_level>=1) {
 		printf("CPU time (scc,solution,all)\n");
 		printf("# %f,%f,%f\n",scc_time-start_time,solution_time-scc_time,solution_time - start_time);
 	}
+	return bpx_unify(bpx_get_call_arg(2,2),
+			bpx_build_float(prob));
+
+}
+
+
+int run_cyc_em() {
+	/*
+	   int	 r, iterate, old_valid, converged, saved = 0;
+	   double  likelihood, log_prior;
+	   double  lambda, old_lambda = 0.0;
+
+	//config_em(em_ptr);
+
+	for (r = 0; r < num_restart; r++) {
+	SHOW_PROGRESS_HEAD("#cyc-em-iters", r);
+	initialize_params();
+	iterate = 0;
+	while (1) {
+	old_valid = 0;
+	while (1) {
+	if (CTRLC_PRESSED) {
+	SHOW_PROGRESS_INTR();
+	RET_ERR(err_ctrl_c_pressed);
+	}
+
+	//RET_ON_ERR(em_ptr->compute_inside());
+	//RET_ON_ERR(em_ptr->examine_inside());
+
+	//likelihood = em_ptr->compute_likelihood();
+	//log_prior  = em_ptr->smooth ? em_ptr->compute_log_prior() : 0.0;
+	lambda = likelihood + log_prior;
+
+	if (verb_em) {
+	//if (em_ptr->smooth) {
+	prism_printf("iteration #%d:\tlog_likelihood=%.9f\tlog_prior=%.9f\tlog_post=%.9f\n", iterate, likelihood, log_prior, lambda);
+	//}
+	//else {
+	prism_printf("iteration #%d:\tlog_likelihood=%.9f\n", iterate, likelihood);
+	//}
+	}
+
+	if (!isfinite(lambda)) {
+	emit_internal_error("invalid log likelihood or log post: %s (at iteration #%d)",
+	isnan(lambda) ? "NaN" : "infinity", iterate);
+	RET_ERR(ierr_invalid_likelihood);
+	}
+	if (old_valid && old_lambda - lambda > prism_epsilon) {
+	emit_error("log likelihood or log post decreased [old: %.9f, new: %.9f] (at iteration #%d)",
+	old_lambda, lambda, iterate);
+	RET_ERR(err_invalid_likelihood);
+	}
+
+	converged = (old_valid && lambda - old_lambda <= prism_epsilon);
+	if (converged || REACHED_MAX_ITERATE(iterate)) {
+	break;
+	}
+
+	old_lambda = lambda;
+	old_valid  = 1;
+
+	//RET_ON_ERR(em_ptr->compute_expectation());
+
+	SHOW_PROGRESS(iterate);
+	//RET_ON_ERR(em_ptr->update_params());
+	iterate++;
+	}
+	}
+
+	SHOW_PROGRESS_TAIL(converged, iterate, lambda);
+
+	saved = (r < num_restart - 1);
+	if (saved) {
+	save_params();
+	}
+
+	}
+
+	if (saved) {
+		restore_params();
+	}
+
+	//em_ptr->bic = compute_bic(em_ptr->likelihood);
+	//em_ptr->cs  = em_ptr->smooth ? compute_cs(em_ptr->likelihood) : 0.0;
+	*/
+		return BP_TRUE;
+}
+
+
+extern "C"
+int pc_cyc_em_6(void) {
+	printf("--- start cyc_em\n");
+	run_cyc_em();
+	printf("--- end cyc_em\n");
 	return
 		bpx_unify(bpx_get_call_arg(1,6), bpx_build_integer(1)) &&
 		bpx_unify(bpx_get_call_arg(2,6), bpx_build_float  (0)) &&
@@ -1392,5 +1255,6 @@ int pc_cyc_em_6(void) {
 		bpx_unify(bpx_get_call_arg(5,6), bpx_build_float  (0)) &&
 		bpx_unify(bpx_get_call_arg(6,6), bpx_build_integer(0)) ;
 }
+
 
 
