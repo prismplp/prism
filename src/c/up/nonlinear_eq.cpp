@@ -844,11 +844,16 @@ double compute_nonlinear_viterbi(int nl_debug_level) {
 	{//init
 		for (i = 0; i < sorted_egraph_size; i++) {
 			eg_ptr = sorted_expl_graph[i];
+			eg_ptr->max_path=NULL;
 			path_ptr = eg_ptr->path_ptr;
 			while(path_ptr != NULL) {
 				int k;
 				for (k = 0; k < path_ptr->children_len; k++) {
-					path_ptr->children[k]->max=0.0;
+					if (log_scale) {
+						path_ptr->children[k]->max=-HUGE_PROB;
+					}else{
+						path_ptr->children[k]->max=0.0;
+					}
 				}
 				path_ptr=path_ptr->next;
 			}
@@ -861,31 +866,48 @@ double compute_nonlinear_viterbi(int nl_debug_level) {
 		int bf_loop;
 		bf_loop=n>1?n-1:1;
 		for(cnt=0; cnt<bf_loop; cnt++) {
-			if(nl_debug_level>=3) {
-				printf("--%d--\n",cnt);
-			}
 			for(j=0; j<n; j++) {
 				int w=sccs[i].el[j];
 				eg_ptr = sorted_expl_graph[w];
 				path_ptr = eg_ptr->path_ptr;
-				double max_p = 0.0;
+				double max_p;
 				EG_PATH_PTR max_path = NULL;
+				//initialize max_p
+				max_p= 0.0;
 				if(path_ptr == NULL) {
-					max_p=1.0;
+					if (log_scale) {
+						max_p=0.0;
+					}else{
+						max_p=1.0;
+					}
 				}else if(sorted_expl_graph[w]->max_path!=NULL){
 					max_p=sorted_expl_graph[w]->max;
 					max_path=sorted_expl_graph[w]->max_path;
 				}
 				while(path_ptr != NULL) {
 					int k;
-					double this_path_max=1.0;
-					for (k = 0; k < path_ptr->children_len; k++) {
-						this_path_max *= path_ptr->children[k]->max;
+					double this_path_max;
+					if (log_scale) {
+						this_path_max=0.0;
+					}else{
+						this_path_max=1.0;
 					}
-					for (k = 0; k < path_ptr->sws_len; k++) {
-						this_path_max *= path_ptr->sws[k]->inside;
+					if (log_scale) {
+						for (k = 0; k < path_ptr->children_len; k++) {
+							this_path_max += path_ptr->children[k]->max;
+						}
+						for (k = 0; k < path_ptr->sws_len; k++) {
+							this_path_max += log(path_ptr->sws[k]->inside);
+						}
+					}else{
+						for (k = 0; k < path_ptr->children_len; k++) {
+							this_path_max *= path_ptr->children[k]->max;
+						}
+						for (k = 0; k < path_ptr->sws_len; k++) {
+							this_path_max *= path_ptr->sws[k]->inside;
+						}
 					}
-					if (this_path_max > max_p) {
+					if (max_path==NULL || this_path_max > max_p) {
 						max_p = this_path_max;
 						max_path = path_ptr;
 					}

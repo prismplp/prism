@@ -60,6 +60,7 @@ void compute_max(void) {
 		}
 		for (i = 0; i < sorted_egraph_size; i++) {
 			max_p = 1.0;          /* any positive value is possible */
+			max_path = NULL;
 			eg_ptr = sorted_expl_graph[i];
 			path_ptr = eg_ptr->path_ptr;
 
@@ -73,6 +74,7 @@ void compute_max(void) {
 			while (path_ptr != NULL) {
 				this_path_max = 0.0;
 				/*initialize for cycle */
+				/*
 				cycle=0;
 				for (k = 0; k < path_ptr->children_len; k++) {
 					if(eg_ptr->id<=path_ptr->children[k]->id) {
@@ -84,7 +86,7 @@ void compute_max(void) {
 					path_ptr = path_ptr->next;
 					continue;
 				}
-
+				*/
 				for (k = 0; k < path_ptr->children_len; k++) {
 					this_path_max += path_ptr->children[k]->max;
 				}
@@ -93,7 +95,7 @@ void compute_max(void) {
 				}
 				path_ptr->max = this_path_max;
 
-				if (max_p > 0 || max_p <= this_path_max) {
+				if (max_path==NULL || max_p <= this_path_max) {
 					max_p = this_path_max;
 					max_path = path_ptr;
 				}
@@ -127,6 +129,7 @@ void compute_max(void) {
 			while (path_ptr != NULL) {
 				this_path_max = 1.0;
 				/* for cycle */
+				
 				cycle=0;
 				for (k = 0; k < path_ptr->children_len; k++) {
 					if(eg_ptr->id<=path_ptr->children[k]->id) {
@@ -135,12 +138,11 @@ void compute_max(void) {
 					}
 				}
 				if(cycle) {
-					
 					path_ptr->max = 0;
 					path_ptr = path_ptr->next;
 					continue;
 				}
-
+				
 				for (k = 0; k < path_ptr->children_len; k++) {
 					this_path_max *= path_ptr->children[k]->max;
 				}
@@ -149,7 +151,7 @@ void compute_max(void) {
 				}
 				path_ptr->max = this_path_max;
 
-				if (this_path_max > max_p) {
+				if (max_path==NULL || this_path_max > max_p) {
 					max_p = this_path_max;
 					max_path = path_ptr;
 				}
