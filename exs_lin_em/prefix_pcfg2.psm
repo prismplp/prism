@@ -1,0 +1,59 @@
+%% file = prefix_pcfg.psm
+%--------------------------------------
+% [Usage]
+% $ prism
+% ?- prism(prefix_pcfg),lin_prob(prefix_pcfg([a,a]))
+% 
+% [Explanation graph]
+%
+% prefix_pcfg([a,a])
+%   <=> prefix_pcfg([s],[a,a]- [])
+% prefix_pcfg([s],[a,a]- [])
+%   <=> prefix_pcfg([s,s],[a,a]- []) & msw(s,[s,s])
+% prefix_pcfg([s,s],[a,a]- [])
+%   <=> prefix_pcfg([a],[a,a]-[a]) & prefix_pcfg([s],[a]- []) & msw(s,[a])
+%     v prefix_pcfg([s,s],[a,a]- []) & msw(s,[s,s])
+% prefix_pcfg([s],[a]- [])
+%   <=> prefix_pcfg([s,s],[a]- []) & msw(s,[s,s])
+%     v prefix_pcfg([a],[a]- []) & msw(s,[a])
+% prefix_pcfg([s,s],[a]- [])
+%   <=> prefix_pcfg([a],[a]- []) & msw(s,[a])
+%     v prefix_pcfg([s,s],[a]- []) & msw(s,[s,s])
+% prefix_pcfg([a],[a]- [])
+% prefix_pcfg([a],[a,a]-[a])
+%   <=> prefix_pcfg([],[a]-[a])
+% prefix_pcfg([],[a]-[a])
+%
+% [Equations]
+% x[0] = 0.400*x[1]
+% x[1] = 0.400*x[1]+0.300*x[2]
+% x[2] = 0.400*x[3]+0.300
+% x[3] = 0.400*x[3]+0.300
+%
+% [Solutions]
+% x[0]=0.1
+% ( x[1]=0.25 )
+% ( x[2]=0.5  )
+% ( x[3]=0.5  )
+%
+%%--------------------------------------
+
+prism_main:-lin_prob(prefix_pcfg([a,a])).
+:- set_prism_flag(error_on_cycle,off).
+
+start_symbol(s).
+values(s,[[a,s],[t],[a]]).
+values(t,[[b]]).
+prefix_pcfg(L):-            % L is a ground list
+   start_symbol(S),
+   prefix_pcfg([S],L-[]).
+
+prefix_pcfg([A|R],L0-L2):-  % L0 ground, L2 variable when called
+    ( get_values(A,_)
+    -> msw(A,RHS),           % rule A->RHS selected
+        prefix_pcfg(RHS,L0-L1)
+        ;  L0=[A|L1] ),
+          ( L1=[] -> L2=[]         % prefix is derived
+           ; prefix_pcfg(R,L1-L2) ).
+prefix_pcfg([],L1-L1).
+
