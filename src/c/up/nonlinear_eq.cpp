@@ -133,7 +133,7 @@ void compute_scc_eq(double* x,double* out,int scc) {
 This function computes the inside probability within scc ignoring cycles.
 scc: target scc_id
  */
-void compute_inside_scc(int scc) {
+void update_inside_scc(int scc) {
 	int i;
 	EG_NODE_PTR eg_ptr;
 	for(i=0; i<sccs[scc].size; i++) {
@@ -563,7 +563,7 @@ void get_scc_tarjan() {
 		}
 	}
 }
-void print_eq() {
+void print_eq(){
 	int i,k;
 	EG_NODE_PTR eg_ptr;
 	EG_PATH_PTR path_ptr;
@@ -581,7 +581,7 @@ void print_eq() {
 				} else {
 					printf("*");
 				}
-				printf("%3.3f",path_ptr->sws[k]->inside);
+				printf("%3.3f(%d)",path_ptr->sws[k]->inside,path_ptr->sws[k]->id);
 			}
 			for (k = 0; k < path_ptr->children_len; k++) {
 				if(first_s) {
@@ -603,6 +603,47 @@ void print_eq() {
 		printf("\n");
 	}
 }
+void print_eq_outside(){
+	int i,k;
+	EG_NODE_PTR eg_ptr;
+	EG_PATH_PTR path_ptr;
+	printf("graph_size:%d\n",sorted_egraph_size);
+	printf("equations\n");
+	for (i = 0; i < sorted_egraph_size; i++) {
+		eg_ptr = sorted_expl_graph[i];
+		path_ptr = eg_ptr->path_ptr;
+		printf("# (%3.3f)x[%d] : ",eg_ptr->outside,i);
+		while (path_ptr != NULL) {
+			int first_s=1;
+			for (k = 0; k < path_ptr->sws_len; k++) {
+				if(first_s) {
+					first_s=0;
+				} else {
+					printf("*");
+				}
+				printf("%3.3f(%d)",path_ptr->sws[k]->total_expect,path_ptr->sws[k]->id);
+			}
+			for (k = 0; k < path_ptr->children_len; k++) {
+				if(first_s) {
+					first_s=0;
+				} else {
+					printf("*");
+				}
+				printf("x[%d]",mapping[path_ptr->children[k]->id]);
+			}
+			if(first_s) {
+				printf("1");
+				first_s=0;
+			}
+			path_ptr = path_ptr->next;
+			if(path_ptr!=NULL) {
+				printf("+");
+			}
+		}
+		printf("\n");
+	}
+}
+
 
 void set_scc_order() {
 	int scc,i;
@@ -998,9 +1039,11 @@ int pc_compute_nonlinear_viterbi_6(void) {
 #include "eigen/Core"
 #include "eigen/LU"
 #include <iostream>
+#include <set>
+#include <cmath>
 
 using namespace Eigen;
-void get_scc_matrix(MatrixXd& out_a,VectorXd& out_b,int scc) {
+void get_scc_matrix_inside(MatrixXd& out_a,VectorXd& out_b,int scc) {
 	int i;
 	EG_NODE_PTR eg_ptr;
 	int n=sccs[scc].size;
@@ -1049,6 +1092,252 @@ void get_scc_matrix(MatrixXd& out_a,VectorXd& out_b,int scc) {
 		}
 	}
 }
+void get_scc_matrix_outside(MatrixXd& out_a,VectorXd& out_b,int scc,int target_node_index) {
+	int i;
+	EG_NODE_PTR eg_ptr;
+	int n=sccs[scc].size;
+	for(i=0; i<n; i++) {
+		out_b[i]=0;
+		int j;
+		for(j=0; j<n; j++) {
+			if(i==j){
+				out_a(i,j)=-1.0;
+			}else{
+				out_a(i,j)=0;
+			}
+		}
+	}
+	for(i=0; i<sccs[scc].size; i++) {
+		int w=sccs[scc].el[i];
+		EG_PATH_PTR path_ptr;
+		eg_ptr = sorted_expl_graph[w];
+		path_ptr = eg_ptr->path_ptr;
+		if(path_ptr == NULL) {
+			//error
+		} else {
+			while (path_ptr != NULL) {
+				int k,j=-1;
+				double prob=1;
+				bool contain_target=false;
+				for (k = 0; k < path_ptr->children_len; k++) {
+					int index=mapping[path_ptr->children[k]->id];
+					if(is_scc_element(scc,index)){//A
+						j=get_scc_element_index(scc,index);
+					}else{//b
+						if(index!=target_node_index){
+							prob*=path_ptr->children[k]->inside;
+						}else{
+							contain_target=true;
+						}
+					}
+				}
+				for (k = 0; k < path_ptr->sws_len; k++) {
+					prob*=path_ptr->sws[k]->inside;
+				}
+				if(j==-1){
+					if(contain_target){
+						out_b(i)=-prob;
+					}else{
+						out_b(i)=0;
+					}
+				}else if(i==j){
+					out_a(i,j)=prob-1.0;
+				}else{
+					out_a(i,j)=prob;
+				}
+				path_ptr = path_ptr->next;
+			}
+		}
+	}
+}
+void get_scc_matrix_outside_sws(MatrixXd& out_m,MatrixXd& out_m_prime,VectorXd& out_y,VectorXd& out_y_prime,int scc,int target_sw_id) {
+	int i;
+	EG_NODE_PTR eg_ptr;
+	int n=sccs[scc].size;
+	for(i=0; i<n; i++) {
+		out_y(i)=0;
+		out_y_prime(i)=0;
+		for(int j=0; j<n; j++) {
+			out_m(i,j)=0;
+			out_m_prime(i,j)=0;
+		}
+	}
+	for(i=0; i<sccs[scc].size; i++) {
+		int w=sccs[scc].el[i];
+		EG_PATH_PTR path_ptr;
+		eg_ptr = sorted_expl_graph[w];
+		path_ptr = eg_ptr->path_ptr;
+		if(path_ptr == NULL) {
+			//error
+		} else {
+			while (path_ptr != NULL) {
+				int k,j=-1;
+				double prob=1;
+				for (k = 0; k < path_ptr->children_len; k++) {
+					int index=mapping[path_ptr->children[k]->id];
+					if(is_scc_element(scc,index)){//A
+						j=get_scc_element_index(scc,index);
+					}else{//b
+						prob*=path_ptr->children[k]->inside;
+					}
+				}
+				//
+				int target_count=0;
+				double target_prob;
+				if(j==-1){//Y or Y'
+					for (k = 0; k < path_ptr->sws_len; k++) {
+						prob*=path_ptr->sws[k]->inside;
+						if(path_ptr->sws[k]->id!=target_sw_id){
+							target_count++;
+							target_prob=path_ptr->sws[k]->inside;
+						}
+					}
+					out_y(i)=prob;
+					if(target_count>0){
+						prob/=target_prob;
+						prob*=target_count;
+						out_y_prime(i)=prob;
+					}
+				}else{//M or M'
+					for (k = 0; k < path_ptr->sws_len; k++) {
+						prob*=path_ptr->sws[k]->inside;
+						if(path_ptr->sws[k]->id!=target_sw_id){
+							target_count++;
+							target_prob=path_ptr->sws[k]->inside;
+						}
+					}
+					out_m(i,j)=prob;
+					if(target_count>0){
+						prob/=target_prob;
+						prob*=target_count;
+						out_m_prime(i,j)=prob;
+					}
+				}
+				path_ptr = path_ptr->next;
+			}
+		}
+	}
+}
+
+
+
+std::set<int> get_scc_children_node(int scc) {
+	EG_NODE_PTR eg_ptr;
+	std::set<int> result;
+	int n=sccs[scc].size;
+	for(int i=0; i<sccs[scc].size; i++) {
+		int w=sccs[scc].el[i];
+		EG_PATH_PTR path_ptr;
+		eg_ptr = sorted_expl_graph[w];
+		path_ptr = eg_ptr->path_ptr;
+		if(path_ptr == NULL) {
+			//error
+		} else {
+			while (path_ptr != NULL) {
+				for (int k = 0; k < path_ptr->children_len; k++) {
+					int index=mapping[path_ptr->children[k]->id];
+					if(!is_scc_element(scc,index)){
+						result.insert(index);
+					}
+				}
+				path_ptr = path_ptr->next;
+			}
+		}
+	}
+	return result;
+}
+
+
+std::set<int> get_scc_containing_sws(int scc) {
+	EG_NODE_PTR eg_ptr;
+	std::set<int> result;
+	int n=sccs[scc].size;
+	for(int i=0; i<sccs[scc].size; i++) {
+		int w=sccs[scc].el[i];
+		EG_PATH_PTR path_ptr;
+		eg_ptr = sorted_expl_graph[w];
+		path_ptr = eg_ptr->path_ptr;
+		if(path_ptr == NULL) {
+			//error
+		} else {
+			while (path_ptr != NULL) {
+				bool matrix_contain=false;
+				for (int k = 0; k < path_ptr->children_len; k++) {
+					int index=mapping[path_ptr->children[k]->id];
+					if(is_scc_element(scc,index)){
+						matrix_contain=true;
+					}
+				}
+				if(matrix_contain){
+					for (int k = 0; k < path_ptr->sws_len; k++) {
+						result.insert(path_ptr->sws[k]->id);
+					}
+				}
+				path_ptr = path_ptr->next;
+			}
+		}
+	}
+	return result;
+}
+
+std::set<int> get_scc_children_sws(int scc) {
+	EG_NODE_PTR eg_ptr;
+	std::set<int> result;
+	int n=sccs[scc].size;
+	for(int i=0; i<sccs[scc].size; i++) {
+		int w=sccs[scc].el[i];
+		EG_PATH_PTR path_ptr;
+		eg_ptr = sorted_expl_graph[w];
+		path_ptr = eg_ptr->path_ptr;
+		if(path_ptr == NULL) {
+			//error
+		} else {
+			while (path_ptr != NULL) {
+				bool matrix_contain=false;
+				for (int k = 0; k < path_ptr->children_len; k++) {
+					int index=mapping[path_ptr->children[k]->id];
+					if(is_scc_element(scc,index)){
+						matrix_contain=true;
+					}
+				}
+				if(!matrix_contain){
+					for (int k = 0; k < path_ptr->sws_len; k++) {
+						result.insert(path_ptr->sws[k]->id);
+					}
+				}
+				path_ptr = path_ptr->next;
+			}
+		}
+	}
+	return result;
+}
+
+std::set<struct SwitchInstance *> get_scc_sws(int scc) {
+	EG_NODE_PTR eg_ptr;
+	std::set<struct SwitchInstance *> result;
+	int n=sccs[scc].size;
+	for(int i=0; i<sccs[scc].size; i++) {
+		int w=sccs[scc].el[i];
+		EG_PATH_PTR path_ptr;
+		eg_ptr = sorted_expl_graph[w];
+		path_ptr = eg_ptr->path_ptr;
+		if(path_ptr == NULL) {
+			//error
+		} else {
+			while (path_ptr != NULL) {
+				for (int k = 0; k < path_ptr->sws_len; k++) {
+					result.insert(path_ptr->sws[k]);
+				}
+				path_ptr = path_ptr->next;
+			}
+		}
+	}
+	return result;
+}
+
+
+
+
 
 
 void solve_linear_scc(int scc){
@@ -1056,7 +1345,7 @@ void solve_linear_scc(int scc){
 	MatrixXd A = MatrixXd(n,n);
 	VectorXd b = VectorXd(n);
 	VectorXd x;
-	get_scc_matrix(A,b,scc);
+	get_scc_matrix_inside(A,b,scc);
 	int i, j;
 	if(nl_debug_level>0){
 		printf("# linear equation Ax=b\n");
@@ -1083,6 +1372,104 @@ void solve_linear_scc(int scc){
 		eg_ptr->inside=x[i];
 	}
 }
+
+void solve_linear_scc_outside_sw(int scc){
+	int n=sccs[scc].size;
+	MatrixXd M = MatrixXd(n,n);
+	MatrixXd Mp = MatrixXd(n,n);
+	VectorXd Y = VectorXd(n);
+	VectorXd Yp = VectorXd(n);
+	VectorXd x = VectorXd(n);
+	// for computation
+	VectorXd b = VectorXd(n);
+	VectorXd xp;
+	for(int i=0;i<sccs[scc].size;i++){
+		int w=sccs[scc].el[i];
+		x(i)=sorted_expl_graph[w]->inside;
+	}
+	std::set<struct SwitchInstance *> scc_sws=get_scc_sws(scc);
+	for(std::set<struct SwitchInstance *>::iterator itr=scc_sws.begin(); itr!=scc_sws.end(); itr++) {
+		get_scc_matrix_outside_sws(M,Mp,Y,Yp,scc,(*itr)->id);
+		for(int i=0; i<n; i++) {
+			M(i,i)-=1.0;
+		}
+		b=-(Mp*x+Yp);
+		if(nl_debug_level>0){
+			printf("# solve linear scc sw:%d\n",(*itr)->id);
+			printf("# linear equation b=-(Mp*x+Yp)\n");
+            for(int i = 0; i < n; i++) {
+				for(int j = 0; j < n; j++) {
+					printf("%2.3f ",Mp(i,j));
+				}
+				printf("  %2.3f ",x(i));
+				printf("+  %2.3f \n",Yp(i));
+			}
+
+			printf("# linear equation Ax=b\n");
+			for(int i = 0; i < n; i++) {
+				for(int j = 0; j < n; j++) {
+					printf("%2.3f ",M(i,j));
+				}
+				printf("  %2.3f \n",b(i));
+			}
+		}
+		FullPivLU< MatrixXd > lu(M);
+		xp=lu.solve(b);//Ax = b
+		if(nl_debug_level>0){
+			printf("# linear equation solve\n");
+			for(int i = 0; i < n; i++) {
+				printf("  %2.3f \n",xp(i));
+			}
+		}
+		for(int i=0;i<n;i++){
+			EG_NODE_PTR eg_ptr=sorted_expl_graph[sccs[scc].el[i]];
+			double outside=eg_ptr->outside*xp[i];
+			if(nl_debug_level>0){
+				printf("outside(%3.3f)= outside x[%d](%3.3f)*Xp (%3.3f)\n",outside,sccs[scc].el[i],eg_ptr->outside,xp[i]);
+				printf("%3.3f => %3.3f\n",(*itr)->total_expect,(*itr)->total_expect+outside*(*itr)->inside);
+			}
+			(*itr)->total_expect+=outside*(*itr)->inside;
+		}
+	}
+
+}
+void solve_linear_scc_outside_node(int scc){//,int target_node_index){
+	int n=sccs[scc].size;
+	MatrixXd A = MatrixXd(n,n);
+	VectorXd b = VectorXd(n);
+	VectorXd x;
+	std::set<int> children=get_scc_children_node(scc);
+	for(std::set<int>::iterator itr=children.begin(); itr!=children.end(); itr++) {
+		EG_NODE_PTR target_eg_ptr = sorted_expl_graph[*itr];
+		get_scc_matrix_outside(A,b,scc,*itr);
+		if(nl_debug_level>0){
+			printf("# linear equation Ax=b : outside(%d)\n",*itr);
+			for(int i = 0; i < n; i++) {
+				for(int j = 0; j < n; j++) {
+					printf("%2.3f ",A(j,i));
+				}
+				printf("  %2.3f \n",b(i));
+			}
+		}
+		FullPivLU< MatrixXd > lu(A);
+		x=lu.solve(b);//Ax = b
+		if(nl_debug_level>0){
+			printf("# linear equation solve\n");
+			for(int i = 0; i < n; i++) {
+				printf("  %2.3f \n",x(i));
+			}
+			printf("# store out side\n");
+		}
+		for(int i=0;i<n;i++){
+			EG_NODE_PTR eg_ptr=sorted_expl_graph[sccs[scc].el[i]];
+			if(nl_debug_level>0){
+				printf("outside x[%d](%3.3f)* X[%d] =>%3.3f\n",sccs[scc].el[i],eg_ptr->outside,i,eg_ptr->outside*x[i]);
+			}
+			target_eg_ptr->outside+=eg_ptr->outside*x[i];
+		}
+	}
+}
+
 
 extern "C"
 int pc_linear_eq_2(void) {
@@ -1127,7 +1514,7 @@ int pc_linear_eq_2(void) {
 	}
 	for(i=0; i<scc_num; i++) {
 		if(sccs[i].size==1&&sccs[i].order==0){
-			compute_inside_scc(i);
+			update_inside_scc(i);
 		}else{
 			solve_linear_scc(i);
 		}
@@ -1157,88 +1544,237 @@ int pc_linear_eq_2(void) {
 			bpx_build_float(prob));
 
 }
+void compute_inside_linear_cycle(){
+	printf("### compute inside\n");
+	for(int i=0; i<scc_num; i++) {
+		if(sccs[i].size==1&&sccs[i].order==0){
+			update_inside_scc(i);
+		}else{
+			solve_linear_scc(i);
+		}
+		if(nl_debug_level>=2) {
+			int n=sccs[i].size;
+			int j;
+			for(j=0; j<n; j++) {
+				int w=sccs[i].el[j];
+				printf("%d:%f\n",w,sorted_expl_graph[w]->inside);
+			}
+		}
+	}
+	printf("### end inside\n");
+}
+void compute_expectation_linear_cycle(){
+	int i,k;
+	EG_PATH_PTR path_ptr;
+	EG_NODE_PTR eg_ptr,node_ptr;
+	SW_INS_PTR sw_ptr;
+	double q;
 
+	for (i = 0; i < sw_ins_tab_size; i++) {
+		switch_instances[i]->total_expect = 0.0;
+	}
+
+	for (i = 0; i < sorted_egraph_size; i++) {
+		sorted_expl_graph[i]->outside = 0.0;
+	}
+
+	for (i = 0; i < num_roots; i++) {
+		eg_ptr = expl_graph[roots[i]->id];
+		if (i == failure_root_index) {
+			eg_ptr->outside = num_goals / (1.0 - inside_failure);
+		} else {
+			eg_ptr->outside = roots[i]->count / eg_ptr->inside;
+		}
+	}
+	for(i=scc_num-1; i>=0; i--) {
+		int n=sccs[i].size;
+		if(sccs[i].size==1&&sccs[i].order==0){
+			printf("### compute expectation\n");
+			int w=sccs[i].el[0];
+			eg_ptr = sorted_expl_graph[w];
+			path_ptr = eg_ptr->path_ptr;
+			while (path_ptr != NULL) {
+				q = eg_ptr->outside * path_ptr->inside;
+				if (q > 0.0) {
+					for (k = 0; k < path_ptr->children_len; k++) {
+						node_ptr = path_ptr->children[k];
+						node_ptr->outside += q / node_ptr->inside;
+					}
+					for (k = 0; k < path_ptr->sws_len; k++) {
+						sw_ptr = path_ptr->sws[k];
+						sw_ptr->total_expect += q;
+					}
+				}
+				path_ptr = path_ptr->next;
+			}
+			printf("### end expectation\n");
+		}else{
+			//solve_linear_scc(i);
+			printf("### compute expectation node (linear)\n");
+			//std::set<int> children=get_scc_children_node(i);
+			//for(std::set<int>::iterator itr=children.begin();itr!=children.end();itr++){
+			solve_linear_scc_outside_node(i);//(*itr));
+			//}
+			printf("### compute expectation sws (linear)\n");
+			solve_linear_scc_outside_sw(i);
+			printf("### end expectation (linear)\n");
+		}
+	}
+	printf("### print (linear)\n");
+	print_eq_outside();
+	printf("### end print (linear)\n");
+}
 
 int run_cyc_em() {
-	/*
-	   int	 r, iterate, old_valid, converged, saved = 0;
-	   double  likelihood, log_prior;
-	   double  lambda, old_lambda = 0.0;
+
+	int	 r, iterate, old_valid, converged, saved = 0;
+	double  likelihood, log_prior;
+	double  lambda, old_lambda = 0.0;
 
 	//config_em(em_ptr);
+	int i;
+	EG_NODE_PTR eg_ptr;
 
+	nodes=NULL;
+	stack=NULL;
+	scc_num=0;
+	sccs=NULL;
+	mapping=NULL;
+
+	int max_id=0;
+	nl_debug_level = 0;
+	double start_time=getCPUTime();
+	nl_debug_level=4;
+
+	for (i = 0; i < sorted_egraph_size; i++) {
+		eg_ptr = sorted_expl_graph[i];
+		if(max_id<eg_ptr->id) {
+			max_id=eg_ptr->id;
+		}
+	}
+	mapping=(int*)calloc(sizeof(int),max_id+1);
+	for (i = 0; i < sorted_egraph_size; i++) {
+		eg_ptr = sorted_expl_graph[i];
+		mapping[eg_ptr->id]=i;
+	}
+	//print_eq
+	if(nl_debug_level>=3) {
+		print_eq();
+	}
+	//find scc
+	get_scc_tarjan();
+	set_scc_order();
+	if(nl_debug_level>=3) {
+		print_sccs();
+	}
+	double scc_time=getCPUTime();
+	//start EM
+	nl_debug_level=1;
+	double itemp = 1.0;
 	for (r = 0; r < num_restart; r++) {
-	SHOW_PROGRESS_HEAD("#cyc-em-iters", r);
-	initialize_params();
-	iterate = 0;
-	while (1) {
-	old_valid = 0;
-	while (1) {
-	if (CTRLC_PRESSED) {
-	SHOW_PROGRESS_INTR();
-	RET_ERR(err_ctrl_c_pressed);
+		SHOW_PROGRESS_HEAD("#cyc-em-iters", r);
+		//initialize_params();
+		iterate = 0;
+		while (1) {
+			old_valid = 0;
+			while (1) {
+				if (CTRLC_PRESSED) {
+					SHOW_PROGRESS_INTR();
+					RET_ERR(err_ctrl_c_pressed);
+				}
+
+				
+				//RET_ON_ERR(em_ptr->compute_inside());
+				compute_inside_linear_cycle();
+				//RET_ON_ERR(em_ptr->examine_inside());
+				//examine_inside_linear_cycle();
+				//likelihood = em_ptr->compute_likelihood();
+				likelihood=compute_likelihood_scaling_none();
+				//log_prior  = em_ptr->smooth ? em_ptr->compute_log_prior() : 0.0;
+				lambda = likelihood + log_prior;
+				{
+				//if (verb_em) {
+					//if (em_ptr->smooth) {
+					//prism_printf("iteration #%d:\tlog_likelihood=%.9f\tlog_prior=%.9f\tlog_post=%.9f\n", iterate, likelihood, log_prior, lambda);
+					//}
+					//else {
+					prism_printf("iteration #%d:\tlog_likelihood=%.9f\n", iterate, likelihood);
+					print_eq();
+					//}
+				}
+
+				if (!std::isfinite(lambda)) {
+					emit_internal_error("invalid log likelihood or log post: %s (at iteration #%d)",
+							isnan(lambda) ? "NaN" : "infinity", iterate);
+					RET_ERR(ierr_invalid_likelihood);
+				}
+				if (old_valid && old_lambda - lambda > prism_epsilon) {
+					emit_error("log likelihood or log post decreased [old: %.9f, new: %.9f] (at iteration #%d)",
+							old_lambda, lambda, iterate);
+					RET_ERR(err_invalid_likelihood);
+				}
+
+				converged = (old_valid && lambda - old_lambda <= prism_epsilon);
+				if (converged || REACHED_MAX_ITERATE(iterate)) {
+					break;
+				}
+
+				old_lambda = lambda;
+				old_valid  = 1;
+
+				//RET_ON_ERR(em_ptr->compute_expectation());
+				compute_expectation_linear_cycle();
+
+				SHOW_PROGRESS(iterate);
+				//RET_ON_ERR(em_ptr->update_params());
+				update_params();
+				iterate++;
+			}
+
+			/* [21 Aug 2007, by yuizumi]
+			 * Note that 1.0 can be represented exactly in IEEE 754.
+			 */
+			if (itemp == 1.0) {
+				break;
+			}
+			itemp *= itemp_rate;
+			if (itemp >= 1.0) {
+				itemp = 1.0;
+			}
+	
+		}
+
+		SHOW_PROGRESS_TAIL(converged, iterate, lambda);
+
+		saved = (r < num_restart - 1);
+		if (saved) {
+			save_params();
+		}
+
 	}
-
-	//RET_ON_ERR(em_ptr->compute_inside());
-	//RET_ON_ERR(em_ptr->examine_inside());
-
-	//likelihood = em_ptr->compute_likelihood();
-	//log_prior  = em_ptr->smooth ? em_ptr->compute_log_prior() : 0.0;
-	lambda = likelihood + log_prior;
-
-	if (verb_em) {
-	//if (em_ptr->smooth) {
-	prism_printf("iteration #%d:\tlog_likelihood=%.9f\tlog_prior=%.9f\tlog_post=%.9f\n", iterate, likelihood, log_prior, lambda);
-	//}
-	//else {
-	prism_printf("iteration #%d:\tlog_likelihood=%.9f\n", iterate, likelihood);
-	//}
-	}
-
-	if (!isfinite(lambda)) {
-	emit_internal_error("invalid log likelihood or log post: %s (at iteration #%d)",
-	isnan(lambda) ? "NaN" : "infinity", iterate);
-	RET_ERR(ierr_invalid_likelihood);
-	}
-	if (old_valid && old_lambda - lambda > prism_epsilon) {
-	emit_error("log likelihood or log post decreased [old: %.9f, new: %.9f] (at iteration #%d)",
-	old_lambda, lambda, iterate);
-	RET_ERR(err_invalid_likelihood);
-	}
-
-	converged = (old_valid && lambda - old_lambda <= prism_epsilon);
-	if (converged || REACHED_MAX_ITERATE(iterate)) {
-	break;
-	}
-
-	old_lambda = lambda;
-	old_valid  = 1;
-
-	//RET_ON_ERR(em_ptr->compute_expectation());
-
-	SHOW_PROGRESS(iterate);
-	//RET_ON_ERR(em_ptr->update_params());
-	iterate++;
-	}
-	}
-
-	SHOW_PROGRESS_TAIL(converged, iterate, lambda);
-
-	saved = (r < num_restart - 1);
-	if (saved) {
-	save_params();
-	}
-
-	}
-
 	if (saved) {
 		restore_params();
 	}
+	//END EM
+
+	double solution_time=getCPUTime();
+	//free data
+	free(nodes);
+	for(i=0; i<scc_num; i++) {
+		free(sccs[i].el);
+	}
+	free(sccs);
+	free(mapping);
+	double prob=sorted_expl_graph[sorted_egraph_size-1]->inside;
+	if(nl_debug_level>=1) {
+		printf("CPU time (scc,solution,all)\n");
+		printf("# %f,%f,%f\n",scc_time-start_time,solution_time-scc_time,solution_time - start_time);
+	}
+
 
 	//em_ptr->bic = compute_bic(em_ptr->likelihood);
 	//em_ptr->cs  = em_ptr->smooth ? compute_cs(em_ptr->likelihood) : 0.0;
-	*/
-		return BP_TRUE;
+	return BP_TRUE;
 }
 
 
