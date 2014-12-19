@@ -41,8 +41,8 @@
 %prism_main:-lin_prob(prefix_pcfg([a,a])).
 %prism_main:-lin_learn([prefix_pcfg([a,b]),prefix_pcfg([a,a,b])]).
 %prism_main:-probf(prefix_pcfg([a,b])),lin_learn([prefix_pcfg([a,b])]).
-prism_main:-probf(prefix_pcfg([a,a,b])),lin_learn([prefix_pcfg([a,a,b])]).
-%prism_main:-lin_learn([prefix_pcfg([a,b]),prefix_pcfg([a,a,b]),prefix_pcfg([a,b,a,b])]).
+%prism_main:-probf(prefix_pcfg([a,a,b])),lin_learn([prefix_pcfg([a,a,b])]).
+prism_main:-lin_learn([prefix_pcfg([a,b]),prefix_pcfg([a,a,b]),prefix_pcfg([a,b,a,b])]).
 :- set_prism_flag(error_on_cycle,off).
 
 start_symbol(s).

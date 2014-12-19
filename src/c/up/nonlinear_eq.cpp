@@ -1545,7 +1545,9 @@ int pc_linear_eq_2(void) {
 
 }
 void compute_inside_linear_cycle(){
+	if(nl_debug_level>=4) {
 	printf("### compute inside\n");
+	}
 	for(int i=0; i<scc_num; i++) {
 		if(sccs[i].size==1&&sccs[i].order==0){
 			update_inside_scc(i);
@@ -1561,7 +1563,9 @@ void compute_inside_linear_cycle(){
 			}
 		}
 	}
+	if(nl_debug_level>=4) {
 	printf("### end inside\n");
+	}
 }
 void compute_expectation_linear_cycle(){
 	int i,k;
@@ -1588,8 +1592,11 @@ void compute_expectation_linear_cycle(){
 	}
 	for(i=scc_num-1; i>=0; i--) {
 		int n=sccs[i].size;
+		/*
 		if(sccs[i].size==1&&sccs[i].order==0){
+			if(nl_debug_level>=4) {
 			printf("### compute expectation\n");
+			}
 			int w=sccs[i].el[0];
 			eg_ptr = sorted_expl_graph[w];
 			path_ptr = eg_ptr->path_ptr;
@@ -1607,22 +1614,34 @@ void compute_expectation_linear_cycle(){
 				}
 				path_ptr = path_ptr->next;
 			}
+			if(nl_debug_level>=4) {
 			printf("### end expectation\n");
+			}
 		}else{
-			//solve_linear_scc(i);
+		*/
+		{
+		//solve_linear_scc(i);
+			if(nl_debug_level>=4) {
 			printf("### compute expectation node (linear)\n");
+			}
 			//std::set<int> children=get_scc_children_node(i);
 			//for(std::set<int>::iterator itr=children.begin();itr!=children.end();itr++){
 			solve_linear_scc_outside_node(i);//(*itr));
 			//}
+			if(nl_debug_level>=4) {
 			printf("### compute expectation sws (linear)\n");
+			}
 			solve_linear_scc_outside_sw(i);
+			if(nl_debug_level>=4) {
 			printf("### end expectation (linear)\n");
+			}
 		}
 	}
+	if(nl_debug_level>=4) {
 	printf("### print (linear)\n");
 	print_eq_outside();
 	printf("### end print (linear)\n");
+	}
 }
 
 int run_cyc_em() {
@@ -1644,7 +1663,7 @@ int run_cyc_em() {
 	int max_id=0;
 	nl_debug_level = 0;
 	double start_time=getCPUTime();
-	nl_debug_level=4;
+	nl_debug_level=0;
 
 	for (i = 0; i < sorted_egraph_size; i++) {
 		eg_ptr = sorted_expl_graph[i];
@@ -1669,7 +1688,7 @@ int run_cyc_em() {
 	}
 	double scc_time=getCPUTime();
 	//start EM
-	nl_debug_level=1;
+	nl_debug_level=0;
 	double itemp = 1.0;
 	for (r = 0; r < num_restart; r++) {
 		SHOW_PROGRESS_HEAD("#cyc-em-iters", r);
@@ -1699,7 +1718,9 @@ int run_cyc_em() {
 					//}
 					//else {
 					prism_printf("iteration #%d:\tlog_likelihood=%.9f\n", iterate, likelihood);
+					if(nl_debug_level>=4) {
 					print_eq();
+					}
 					//}
 				}
 
