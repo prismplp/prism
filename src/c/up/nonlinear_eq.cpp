@@ -1081,12 +1081,11 @@ void get_scc_matrix_inside(MatrixXd& out_a,VectorXd& out_b,int scc) {
 					prob*=path_ptr->sws[k]->inside;
 				}
 				if(j==-1){
-					out_b(i)=-prob;
-				}else if(i==j){
-					out_a(i,j)=prob-1.0;
+					out_b(i)+=-prob;
 				}else{
-					out_a(i,j)=prob;
+					out_a(i,j)+=prob;
 				}
+
 				path_ptr = path_ptr->next;
 			}
 		}
@@ -1118,16 +1117,15 @@ void get_scc_matrix_outside(MatrixXd& out_a,VectorXd& out_b,int scc,int target_n
 			while (path_ptr != NULL) {
 				int k,j=-1;
 				double prob=1;
-				bool contain_target=false;
+				int contain_target=0;
 				for (k = 0; k < path_ptr->children_len; k++) {
 					int index=mapping[path_ptr->children[k]->id];
 					if(is_scc_element(scc,index)){//A
 						j=get_scc_element_index(scc,index);
 					}else{//b
-						if(index!=target_node_index){
-							prob*=path_ptr->children[k]->inside;
-						}else{
-							contain_target=true;
+						prob*=path_ptr->children[k]->inside;
+						if(index==target_node_index){
+							contain_target++;
 						}
 					}
 				}
@@ -1135,15 +1133,11 @@ void get_scc_matrix_outside(MatrixXd& out_a,VectorXd& out_b,int scc,int target_n
 					prob*=path_ptr->sws[k]->inside;
 				}
 				if(j==-1){
-					if(contain_target){
-						out_b(i)=-prob;
-					}else{
-						out_b(i)=0;
+					if(contain_target>0){
+						out_b(i)+=-contain_target*(prob/sorted_expl_graph[target_node_index]->inside);
 					}
-				}else if(i==j){
-					out_a(i,j)=prob-1.0;
 				}else{
-					out_a(i,j)=prob;
+					out_a(i,j)+=prob;
 				}
 				path_ptr = path_ptr->next;
 			}
@@ -1187,30 +1181,30 @@ void get_scc_matrix_outside_sws(MatrixXd& out_m,MatrixXd& out_m_prime,VectorXd& 
 				if(j==-1){//Y or Y'
 					for (k = 0; k < path_ptr->sws_len; k++) {
 						prob*=path_ptr->sws[k]->inside;
-						if(path_ptr->sws[k]->id!=target_sw_id){
+						if(path_ptr->sws[k]->id==target_sw_id){
 							target_count++;
 							target_prob=path_ptr->sws[k]->inside;
 						}
 					}
-					out_y(i)=prob;
+					out_y(i)+=prob;
 					if(target_count>0){
 						prob/=target_prob;
 						prob*=target_count;
-						out_y_prime(i)=prob;
+						out_y_prime(i)+=prob;
 					}
 				}else{//M or M'
 					for (k = 0; k < path_ptr->sws_len; k++) {
 						prob*=path_ptr->sws[k]->inside;
-						if(path_ptr->sws[k]->id!=target_sw_id){
+						if(path_ptr->sws[k]->id==target_sw_id){
 							target_count++;
 							target_prob=path_ptr->sws[k]->inside;
 						}
 					}
-					out_m(i,j)=prob;
+					out_m(i,j)+=prob;
 					if(target_count>0){
 						prob/=target_prob;
 						prob*=target_count;
-						out_m_prime(i,j)=prob;
+						out_m_prime(i,j)+=prob;
 					}
 				}
 				path_ptr = path_ptr->next;
@@ -1663,7 +1657,6 @@ int run_cyc_em() {
 	int max_id=0;
 	nl_debug_level = 0;
 	double start_time=getCPUTime();
-	nl_debug_level=0;
 
 	for (i = 0; i < sorted_egraph_size; i++) {
 		eg_ptr = sorted_expl_graph[i];
@@ -1688,7 +1681,6 @@ int run_cyc_em() {
 	}
 	double scc_time=getCPUTime();
 	//start EM
-	nl_debug_level=0;
 	double itemp = 1.0;
 	for (r = 0; r < num_restart; r++) {
 		SHOW_PROGRESS_HEAD("#cyc-em-iters", r);

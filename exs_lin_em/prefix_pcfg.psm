@@ -42,12 +42,16 @@
 %prism_main:-lin_learn([prefix_pcfg([a,b]),prefix_pcfg([a,a,b])]).
 %prism_main:-probf(prefix_pcfg([a,b])),lin_learn([prefix_pcfg([a,b])]).
 %prism_main:-probf(prefix_pcfg([a,a,b])),lin_learn([prefix_pcfg([a,a,b])]).
-prism_main:-lin_learn([prefix_pcfg([a,b]),prefix_pcfg([a,a,b]),prefix_pcfg([a,b,a,b])]).
+prism_main([AN]):-parse_atom(AN,N),get_samples(N,pcfg(_),S),maplist(X,Y,(X=pcfg(L),Y=prefix_pcfg(L)),S,Gs),format("~w",Gs),lin_learn(Gs).
+%prism_main:-lin_learn([prefix_pcfg([a,b]),prefix_pcfg([a,a,b]),prefix_pcfg([a,b,a,b])]).
+%prism_main:-lin_learn([pcfg([a,b,b,a]),pcfg([a,b,a]),pcfg([a,b,a,b,a])]).
+%prism_main:-learn([pcfg([a,b,b,a]),pcfg([a,b,a]),pcfg([a,b,a,b,a])]).
 :- set_prism_flag(error_on_cycle,off).
+:- p_not_table proj/2. % This declaration is introduced just for
 
 start_symbol(s).
-values(s,[[t,s],[a]]).
-values(t,[[s,t],[b]]).
+values(s,[[t,s],[a]],[0.4,0.6]).
+values(t,[[s,t],[b]],[0.4,0.6]).
 prefix_pcfg(L):-            % L is a ground list
    start_symbol(S),
    prefix_pcfg([S],L-[]).
@@ -60,4 +64,15 @@ prefix_pcfg([A|R],L0-L2):-  % L0 ground, L2 variable when called
           ( L1=[] -> L2=[]         % prefix is derived
            ; prefix_pcfg(R,L1-L2) ).
 prefix_pcfg([],L1-L1).
+
+pcfg(L):- start_symbol(S),pcfg(S,L-[]).
+pcfg(LHS,L0-L1):-
+  ( get_values(LHS,_) -> msw(LHS,RHS),proj(RHS,L0-L1)
+  ; L0 = [LHS|L1]
+  ).
+
+proj([],L-L).
+proj([X|Xs],L0-L1):-
+  pcfg(X,L0-L2),proj(Xs,L2-L1).
+
 
