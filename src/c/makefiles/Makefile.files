@@ -40,7 +40,9 @@ UP_OBJS   = up$(S)graph.$(O)            \
             up$(S)util.$(O)             \
             up$(S)linear_eq.$(O)        \
             up$(S)lbfgs.$(O)            \
-            up$(S)nonlinear_eq.$(O)     
+            up$(S)nonlinear_eq.$(O)     \
+            up$(S)cyc_vt_preds.$(O)     \
+            up$(S)cyc_vt_ml.$(O)      
 
 MP_OBJS   = mp$(S)mp_core.$(O)          \
             mp$(S)mp_em_aux.$(O)        \

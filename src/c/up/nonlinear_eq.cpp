@@ -1638,10 +1638,9 @@ void compute_expectation_linear_cycle(){
 	}
 }
 
-int run_cyc_em() {
-
+int run_cyc_em(struct EM_Engine* em_ptr) {
 	int	 r, iterate, old_valid, converged, saved = 0;
-	double  likelihood, log_prior;
+	double  likelihood, log_prior=0;
 	double  lambda, old_lambda = 0.0;
 
 	//config_em(em_ptr);
@@ -1759,11 +1758,16 @@ int run_cyc_em() {
 
 		SHOW_PROGRESS_TAIL(converged, iterate, lambda);
 
-		saved = (r < num_restart - 1);
-		if (saved) {
-			save_params();
-		}
+		if (r == 0 || lambda > em_ptr->lambda) {
+			em_ptr->lambda     = lambda;
+			em_ptr->likelihood = likelihood;
+			em_ptr->iterate    = iterate;
 
+			saved = (r < num_restart - 1);
+			if (saved) {
+				save_params();
+			}
+		}
 	}
 	if (saved) {
 		restore_params();
@@ -1778,32 +1782,30 @@ int run_cyc_em() {
 	}
 	free(sccs);
 	free(mapping);
-	double prob=sorted_expl_graph[sorted_egraph_size-1]->inside;
 	if(nl_debug_level>=1) {
 		printf("CPU time (scc,solution,all)\n");
 		printf("# %f,%f,%f\n",scc_time-start_time,solution_time-scc_time,solution_time - start_time);
 	}
 
-
-	//em_ptr->bic = compute_bic(em_ptr->likelihood);
-	//em_ptr->cs  = em_ptr->smooth ? compute_cs(em_ptr->likelihood) : 0.0;
+	em_ptr->bic = compute_bic(em_ptr->likelihood);
+	em_ptr->cs  = em_ptr->smooth ? compute_cs(em_ptr->likelihood) : 0.0;
 	return BP_TRUE;
 }
 
 
 extern "C"
 int pc_cyc_em_6(void) {
+	struct EM_Engine em_eng;
+
 	printf("--- start cyc_em\n");
-	run_cyc_em();
+	run_cyc_em(&em_eng);
 	printf("--- end cyc_em\n");
 	return
-		bpx_unify(bpx_get_call_arg(1,6), bpx_build_integer(1)) &&
-		bpx_unify(bpx_get_call_arg(2,6), bpx_build_float  (0)) &&
-		bpx_unify(bpx_get_call_arg(3,6), bpx_build_float  (0)) &&
-		bpx_unify(bpx_get_call_arg(4,6), bpx_build_float  (0)) &&
-		bpx_unify(bpx_get_call_arg(5,6), bpx_build_float  (0)) &&
-		bpx_unify(bpx_get_call_arg(6,6), bpx_build_integer(0)) ;
+	    bpx_unify(bpx_get_call_arg(1,6), bpx_build_integer(em_eng.iterate   )) &&
+	    bpx_unify(bpx_get_call_arg(2,6), bpx_build_float  (em_eng.lambda    )) &&
+	    bpx_unify(bpx_get_call_arg(3,6), bpx_build_float  (em_eng.likelihood)) &&
+	    bpx_unify(bpx_get_call_arg(4,6), bpx_build_float  (em_eng.bic       )) &&
+	    bpx_unify(bpx_get_call_arg(5,6), bpx_build_float  (em_eng.cs        )) &&
+	    bpx_unify(bpx_get_call_arg(6,6), bpx_build_integer(em_eng.smooth    )) ;
 }
-
-
 

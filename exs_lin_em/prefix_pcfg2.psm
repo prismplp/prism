@@ -42,8 +42,8 @@
 %prism_main:-lin_learn([prefix_pcfg([a,b]),prefix_pcfg([a,a,b])]).
 %prism_main:-probf(prefix_pcfg([a,b])),lin_learn([prefix_pcfg([a,b])]).
 %prism_main:-probf(prefix_pcfg([a,a,b])),lin_learn([prefix_pcfg([a,a,b])]).
-%prism_main:-lin_learn([prefix_pcfg([a,b]),prefix_pcfg([a,a,b]),prefix_pcfg([a,b,a,b])]).
-prism_main:-lin_learn([pcfg([a,b,b,a]),pcfg([a,b,a]),pcfg([a,b,a,b,a])]).
+prism_main:-cyc_vlearn_p([prefix_pcfg([a,b]),prefix_pcfg([a,a,b]),prefix_pcfg([a,b,a,b])]).
+%prism_main:-lin_learn([pcfg([a,b,b,a]),pcfg([a,b,a]),pcfg([a,b,a,b,a])]).
 %prism_main:-learn([pcfg([a,b,b,a]),pcfg([a,b,a]),pcfg([a,b,a,b,a])]).
 :- set_prism_flag(error_on_cycle,off).
 :- p_not_table proj/2. % This declaration is introduced just for

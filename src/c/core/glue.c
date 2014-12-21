@@ -160,11 +160,13 @@ void bp4p_register_preds(void) {
 
 	/* up/prefix.c */
 	REGISTER_CPRED(solve_linear_system,5);
-	/* up/infix.c */
+	/* up/nonlinear_eq.cpp */
 	REGISTER_CPRED(nonlinear_eq,2);
 	REGISTER_CPRED(linear_eq,2);
 	REGISTER_CPRED(compute_nonlinear_viterbi,6);
 	REGISTER_CPRED(cyc_em,6);
+	/* up/cyc_vt_preds.c */
+	REGISTER_CPRED(prism_cyc_vt,4);
 
 	/* up/feature.c */
 	REGISTER_CPRED(compute_feature,2);
