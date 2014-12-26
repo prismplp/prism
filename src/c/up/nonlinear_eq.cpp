@@ -1700,19 +1700,18 @@ int run_cyc_em(struct EM_Engine* em_ptr) {
 				//examine_inside_linear_cycle();
 				//likelihood = em_ptr->compute_likelihood();
 				likelihood=compute_likelihood_scaling_none();
-				//log_prior  = em_ptr->smooth ? em_ptr->compute_log_prior() : 0.0;
+				log_prior  = em_ptr->smooth ? em_ptr->compute_log_prior() : 0.0;
 				lambda = likelihood + log_prior;
 				{
 				//if (verb_em) {
-					//if (em_ptr->smooth) {
-					//prism_printf("iteration #%d:\tlog_likelihood=%.9f\tlog_prior=%.9f\tlog_post=%.9f\n", iterate, likelihood, log_prior, lambda);
-					//}
-					//else {
-					prism_printf("iteration #%d:\tlog_likelihood=%.9f\n", iterate, likelihood);
+					if (em_ptr->smooth) {
+					prism_printf("iteration #%d:\tlog_likelihood=%.9f\tlog_prior=%.9f\tlog_post=%.9f\n", iterate, likelihood, log_prior, lambda);
+					}else {
+						prism_printf("iteration #%d:\tlog_likelihood=%.9f\n", iterate, likelihood);
 					if(nl_debug_level>=4) {
 					print_eq();
 					}
-					//}
+					}
 				}
 
 				if (!std::isfinite(lambda)) {
@@ -1738,8 +1737,8 @@ int run_cyc_em(struct EM_Engine* em_ptr) {
 				compute_expectation_linear_cycle();
 
 				SHOW_PROGRESS(iterate);
-				//RET_ON_ERR(em_ptr->update_params());
-				update_params();
+				RET_ON_ERR(em_ptr->update_params());
+				//update_params();
 				iterate++;
 			}
 
@@ -1792,11 +1791,31 @@ int run_cyc_em(struct EM_Engine* em_ptr) {
 	return BP_TRUE;
 }
 
+void config_cyc_em(EM_ENG_PTR em_ptr) {
+	if (log_scale) {
+		em_ptr->compute_inside      = daem ? compute_daem_inside_scaling_log_exp : compute_inside_scaling_log_exp;
+		em_ptr->examine_inside      = examine_inside_scaling_log_exp;
+		em_ptr->compute_expectation = compute_expectation_scaling_log_exp;
+		em_ptr->compute_likelihood  = compute_likelihood_scaling_log_exp;
+		em_ptr->compute_log_prior   = daem ? compute_daem_log_prior : compute_log_prior;
+		em_ptr->update_params       = em_ptr->smooth ? update_params_smooth : update_params;
+	} else {
+		em_ptr->compute_inside      = daem ? compute_daem_inside_scaling_none : compute_inside_scaling_none;
+		em_ptr->examine_inside      = examine_inside_scaling_none;
+		em_ptr->compute_expectation = compute_expectation_scaling_none;
+		em_ptr->compute_likelihood  = compute_likelihood_scaling_none;
+		em_ptr->compute_log_prior   = daem ? compute_daem_log_prior : compute_log_prior;
+		em_ptr->update_params       = em_ptr->smooth ? update_params_smooth : update_params;
+	}
+}
+
 
 extern "C"
 int pc_cyc_em_6(void) {
 	struct EM_Engine em_eng;
 
+	RET_ON_ERR(check_smooth(&em_eng.smooth));
+	config_cyc_em(&em_eng);
 	printf("--- start cyc_em\n");
 	run_cyc_em(&em_eng);
 	printf("--- end cyc_em\n");
