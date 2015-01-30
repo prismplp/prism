@@ -512,6 +512,27 @@ void print_sccs() {
 	}
 	return;
 }
+void print_sccs_statistics() {
+	EG_NODE_PTR eg_ptr;
+	EG_PATH_PTR path_ptr;
+	int i;
+	int max_n=0;
+	int max_o=0;
+	for(i=0; i<scc_num; i++) {
+		int n=sccs[i].size;
+		int o=sccs[i].order;
+		if(n>max_n){
+			max_n=n;
+		}
+		if(o>max_o){
+			max_o=o;
+		}
+	}
+	printf("max SCC size : %d\n",max_n);
+	printf("max order : %d\n",max_o);
+	return;
+}
+
 /*
    This function finds SCCs by the Tarjan algorithms and store SCCs to (SCC *) sccs.
  */
@@ -699,7 +720,7 @@ int pc_nonlinear_eq_2(void) {
 		eg_ptr = sorted_expl_graph[i];
 		mapping[eg_ptr->id]=i;
 	}
-	//print_eq
+	//pri0nt_eq
 	if(nl_debug_level>=3) {
 		print_eq();
 	}
@@ -1540,7 +1561,7 @@ int pc_linear_eq_2(void) {
 }
 void compute_inside_linear_cycle(){
 	if(nl_debug_level>=4) {
-	printf("### compute inside\n");
+		printf("### compute inside\n");
 	}
 	for(int i=0; i<scc_num; i++) {
 		if(sccs[i].size==1&&sccs[i].order==0){
@@ -1558,7 +1579,7 @@ void compute_inside_linear_cycle(){
 		}
 	}
 	if(nl_debug_level>=4) {
-	printf("### end inside\n");
+		printf("### end inside\n");
 	}
 }
 void compute_expectation_linear_cycle(){
@@ -1586,55 +1607,28 @@ void compute_expectation_linear_cycle(){
 	}
 	for(i=scc_num-1; i>=0; i--) {
 		int n=sccs[i].size;
-		/*
-		if(sccs[i].size==1&&sccs[i].order==0){
-			if(nl_debug_level>=4) {
-			printf("### compute expectation\n");
-			}
-			int w=sccs[i].el[0];
-			eg_ptr = sorted_expl_graph[w];
-			path_ptr = eg_ptr->path_ptr;
-			while (path_ptr != NULL) {
-				q = eg_ptr->outside * path_ptr->inside;
-				if (q > 0.0) {
-					for (k = 0; k < path_ptr->children_len; k++) {
-						node_ptr = path_ptr->children[k];
-						node_ptr->outside += q / node_ptr->inside;
-					}
-					for (k = 0; k < path_ptr->sws_len; k++) {
-						sw_ptr = path_ptr->sws[k];
-						sw_ptr->total_expect += q;
-					}
-				}
-				path_ptr = path_ptr->next;
-			}
-			if(nl_debug_level>=4) {
-			printf("### end expectation\n");
-			}
-		}else{
-		*/
 		{
 		//solve_linear_scc(i);
 			if(nl_debug_level>=4) {
-			printf("### compute expectation node (linear)\n");
+				printf("### compute expectation node (linear)\n");
 			}
 			//std::set<int> children=get_scc_children_node(i);
 			//for(std::set<int>::iterator itr=children.begin();itr!=children.end();itr++){
 			solve_linear_scc_outside_node(i);//(*itr));
 			//}
 			if(nl_debug_level>=4) {
-			printf("### compute expectation sws (linear)\n");
+				printf("### compute expectation sws (linear)\n");
 			}
 			solve_linear_scc_outside_sw(i);
 			if(nl_debug_level>=4) {
-			printf("### end expectation (linear)\n");
+				printf("### end expectation (linear)\n");
 			}
 		}
 	}
 	if(nl_debug_level>=4) {
-	printf("### print (linear)\n");
-	print_eq_outside();
-	printf("### end print (linear)\n");
+		printf("### print (linear)\n");
+		print_eq_outside();
+		printf("### end print (linear)\n");
 	}
 }
 
@@ -1654,7 +1648,6 @@ int run_cyc_em(struct EM_Engine* em_ptr) {
 	mapping=NULL;
 
 	int max_id=0;
-	nl_debug_level = 0;
 	double start_time=getCPUTime();
 
 	for (i = 0; i < sorted_egraph_size; i++) {
@@ -1811,20 +1804,22 @@ void config_cyc_em(EM_ENG_PTR em_ptr) {
 
 
 extern "C"
-int pc_cyc_em_6(void) {
+int pc_cyc_em_7(void) {
 	struct EM_Engine em_eng;
 
 	RET_ON_ERR(check_smooth(&em_eng.smooth));
 	config_cyc_em(&em_eng);
 	printf("--- start cyc_em\n");
+	nl_debug_level = bpx_get_integer(bpx_get_call_arg(7,7));
 	run_cyc_em(&em_eng);
 	printf("--- end cyc_em\n");
+	print_sccs_statistics();
 	return
-	    bpx_unify(bpx_get_call_arg(1,6), bpx_build_integer(em_eng.iterate   )) &&
-	    bpx_unify(bpx_get_call_arg(2,6), bpx_build_float  (em_eng.lambda    )) &&
-	    bpx_unify(bpx_get_call_arg(3,6), bpx_build_float  (em_eng.likelihood)) &&
-	    bpx_unify(bpx_get_call_arg(4,6), bpx_build_float  (em_eng.bic       )) &&
-	    bpx_unify(bpx_get_call_arg(5,6), bpx_build_float  (em_eng.cs        )) &&
-	    bpx_unify(bpx_get_call_arg(6,6), bpx_build_integer(em_eng.smooth    )) ;
+	    bpx_unify(bpx_get_call_arg(1,7), bpx_build_integer(em_eng.iterate   )) &&
+	    bpx_unify(bpx_get_call_arg(2,7), bpx_build_float  (em_eng.lambda    )) &&
+	    bpx_unify(bpx_get_call_arg(3,7), bpx_build_float  (em_eng.likelihood)) &&
+	    bpx_unify(bpx_get_call_arg(4,7), bpx_build_float  (em_eng.bic       )) &&
+	    bpx_unify(bpx_get_call_arg(5,7), bpx_build_float  (em_eng.cs        )) &&
+	    bpx_unify(bpx_get_call_arg(6,7), bpx_build_integer(em_eng.smooth    )) ;
 }
 

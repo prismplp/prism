@@ -43,7 +43,7 @@ $pp_cyc_vlearn_core(Mode,Goals) :-
                        0,Len,0,NGoals,-1,FailRootIndex),
     $pc_prism_prepare(GidCountPairs,Len,NGoals,FailRootIndex),
     cputime(StartVT),
-    $pp_vt(Mode,Output),
+    $pp_cyc_vt(Mode,Output),
     cputime(EndVT),
     $pc_import_occ_switches(NewSws,NSwitches,NSwVals),
     $pp_decode_update_switches(Mode,NewSws),
@@ -68,14 +68,14 @@ $pp_cyc_vlearn_check_goals1([G0|Gs]) :-
     $pp_require_tabled_probabilistic_atom(G,$msg(1303),$pp_cyc_vlearn_core/1),!,
     $pp_learn_check_goals1(Gs).
 
-$pp_vt(ml,Output) :-
-    $pc_prism_vt(Iterate,LogPost,LogLike,ModeSmooth),
+$pp_cyc_vt(ml,Output) :-
+    $pc_prism_cyc_vt(Iterate,LogPost,LogLike,ModeSmooth),
     Output = [Iterate,LogPost,LogLike,ModeSmooth].
-$pp_vt(vb,Output) :-
-    $pc_prism_vbvt(IterateVB,FreeEnergy),
+$pp_cyc_vt(vb,Output) :-
+    $pc_prism_cyc_vbvt(IterateVB,FreeEnergy),
     Output = [IterateVB,FreeEnergy].
-$pp_vt(both,Output) :-
-    $pc_prism_both_vt(IterateVB,FreeEnergy),
+$pp_cyc_vt(both,Output) :-
+    $pc_prism_cyc_both_vt(IterateVB,FreeEnergy),
     Output = [IterateVB,FreeEnergy].
 
 $pp_assert_cyc_vlearn_stats(Mode,Output,NSwitches,NSwVals,TableSpace,

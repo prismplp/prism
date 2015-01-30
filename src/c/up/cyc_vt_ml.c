@@ -10,6 +10,12 @@
 #include "up/nonlinear_eq.h"
 
 
+#include "bprolog.h"
+#include "core/random.h"
+#include "core/gamma.h"
+#include "up/graph.h"
+
+
 int run_cyc_vt(VT_ENG_PTR vt_ptr) {
 	int     r, iterate, old_valid, converged, saved = 0;
 	double  likelihood, log_prior;
@@ -18,9 +24,10 @@ int run_cyc_vt(VT_ENG_PTR vt_ptr) {
 	config_vt(vt_ptr);
 
 	for (r = 0; r < num_restart; r++) {
-		SHOW_PROGRESS_HEAD("#vt-iters", r);
+		//SHOW_PROGRESS_HEAD("#vt-iters", r);
 
 		initialize_params();
+		printf("#init end");
 		itemp = 1.0;
 		iterate = 0;
 
@@ -28,7 +35,7 @@ int run_cyc_vt(VT_ENG_PTR vt_ptr) {
 
 		while (1) {
 			/*compute_max();*/
-			compute_nonlinear_viterbi(0);
+			compute_nonlinear_viterbi(5);
 			count_occ_sws();
 
 			RET_ON_ERR(examine_likelihood());

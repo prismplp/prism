@@ -111,9 +111,12 @@ $pp_cyc_probfi(Goal,OrgExpls,Decode,NewExpls2) :-
 
 
 lin_learn(Goals) :-
-$pp_lin_learn_core(ml,Goals).
+$pp_lin_learn_core(ml,Goals,0).
 
-$pp_lin_learn_core(Mode,Goals) :-
+lin_learn_m(Goals,Debug) :-
+$pp_lin_learn_core(ml,Goals,Debug).
+
+$pp_lin_learn_core(Mode,Goals,Debug) :-
     $pp_learn_check_goals(Goals),
     $pp_learn_message(MsgS,MsgE,MsgT,MsgM),
     $pc_set_em_message(MsgE),
@@ -138,7 +141,7 @@ $pp_lin_learn_core(Mode,Goals) :-
     $pc_prism_prepare(GidCountPairs,Len,NGoals,FailRootIndex),
     cputime(StartEM),
     %%%$pp_em(Mode,Output),
-    $pp_cyc_em(Mode,Output),
+    $pp_cyc_em(Mode,Output,Debug),
     %%%
     cputime(EndEM),
     $pc_import_occ_switches(NewSws,NSwitches,NSwVals),
@@ -151,7 +154,7 @@ $pp_lin_learn_core(Mode,Goals) :-
     $pp_print_learn_stats_message(MsgT),
     $pp_print_learn_end_message(MsgM,Mode),!.
 
-$pp_cyc_em(ml,Output) :-
-    $pc_cyc_em(Iterate,LogPost,LogLike,BIC,CS,ModeSmooth),
+$pp_cyc_em(ml,Output,Debug) :-
+    $pc_cyc_em(Iterate,LogPost,LogLike,BIC,CS,ModeSmooth,Debug),
     Output = [Iterate,LogPost,LogLike,BIC,CS,ModeSmooth].
 

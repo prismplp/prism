@@ -39,7 +39,7 @@
 %%--------------------------------------
 :-set_prism_flag(default_sw_d,2).
 %prism_main:-lin_prob(prefix_pcfg([a,a])).
-prism_main([]):-lin_learn([prefix_pcfg([a,a]),prefix_pcfg([a,a,a])]),show_sw.
+prism_main([]):-lin_learn_m([prefix_pcfg([a,a]),prefix_pcfg([a,a,a])],5),show_sw.
 %prism_main:-probf(prefix_pcfg([a,b])),lin_learn([prefix_pcfg([a,b])]).
 %prism_main:-probf(prefix_pcfg([a,a,b])),lin_learn([prefix_pcfg([a,a,b])]).
 prism_main([AN]):-prism_main(em,AN).
