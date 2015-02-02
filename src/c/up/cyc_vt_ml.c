@@ -27,7 +27,6 @@ int run_cyc_vt(VT_ENG_PTR vt_ptr) {
 		//SHOW_PROGRESS_HEAD("#vt-iters", r);
 
 		initialize_params();
-		printf("#init end");
 		itemp = 1.0;
 		iterate = 0;
 
@@ -35,7 +34,7 @@ int run_cyc_vt(VT_ENG_PTR vt_ptr) {
 
 		while (1) {
 			/*compute_max();*/
-			compute_nonlinear_viterbi(5);
+			compute_nonlinear_viterbi(0);
 			count_occ_sws();
 
 			RET_ON_ERR(examine_likelihood());
