@@ -42,7 +42,6 @@ static V_RANK_PTR     viterbi_rank = NULL;
 /* Viterbi works on only one explanation graph */
 void compute_max(void) {
 	int i,k;
-	int cycle;
 	double max_p,this_path_max;
 	EG_PATH_PTR max_path = NULL;
 	EG_NODE_PTR eg_ptr;
@@ -73,20 +72,6 @@ void compute_max(void) {
 			/* [Note] we perform probability computations in log-scale */
 			while (path_ptr != NULL) {
 				this_path_max = 0.0;
-				/*initialize for cycle */
-				/*
-				cycle=0;
-				for (k = 0; k < path_ptr->children_len; k++) {
-					if(eg_ptr->id<=path_ptr->children[k]->id) {
-						cycle=1;
-						break;
-					}
-				}
-				if(cycle) {
-					path_ptr = path_ptr->next;
-					continue;
-				}
-				*/
 				for (k = 0; k < path_ptr->children_len; k++) {
 					this_path_max += path_ptr->children[k]->max;
 				}
@@ -94,12 +79,10 @@ void compute_max(void) {
 					this_path_max += log(path_ptr->sws[k]->inside);
 				}
 				path_ptr->max = this_path_max;
-
 				if (max_path==NULL || max_p <= this_path_max) {
 					max_p = this_path_max;
 					max_path = path_ptr;
 				}
-
 				path_ptr = path_ptr->next;
 			}
 
@@ -128,21 +111,6 @@ void compute_max(void) {
 			}
 			while (path_ptr != NULL) {
 				this_path_max = 1.0;
-				/* for cycle */
-				
-				cycle=0;
-				for (k = 0; k < path_ptr->children_len; k++) {
-					if(eg_ptr->id<=path_ptr->children[k]->id) {
-						cycle=1;
-						break;
-					}
-				}
-				if(cycle) {
-					path_ptr->max = 0;
-					path_ptr = path_ptr->next;
-					continue;
-				}
-				
 				for (k = 0; k < path_ptr->children_len; k++) {
 					this_path_max *= path_ptr->children[k]->max;
 				}
@@ -155,7 +123,6 @@ void compute_max(void) {
 					max_p = this_path_max;
 					max_path = path_ptr;
 				}
-
 				path_ptr = path_ptr->next;
 			}
 			sorted_expl_graph[i]->max = max_p;

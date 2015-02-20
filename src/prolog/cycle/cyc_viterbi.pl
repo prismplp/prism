@@ -46,7 +46,6 @@ $pp_cyc_viterbi_wrapper(Pred0) :-
     Pred0 =.. [Name0|Args],
     atom_concat(Name0,Suffix,Name1),
     Pred1 =.. [Name1|Args],!,
-	format("~w",Pred1),
     call(Pred1).  % do not add cut here (n_cyc_viterbig is non-deterministic)
 
 % introduced just for backward compatibility
@@ -74,9 +73,7 @@ $pp_conv_cyc_viterbi_mode(Mode0,Mode) :-
 % cyc_viterbi family:
 
 cyc_viterbi_p(Goal) :-
-	format("aaaa"),
     cyc_viterbif_p(Goal,Pmax,_),
-	format("aaaa"),
     $pp_print_cyc_viterbi_prob(Pmax).
 
 cyc_viterbi_p(Goal,Pmax) :-
@@ -237,7 +234,7 @@ $pp_cyc_viterbi_core(Goal,Pmax,VNodeL) :-
 $pp_compute_cyc_viterbi_p(Goal,Pmax,VNodeL) :-
     $pp_export_sw_info,
     $pc_prism_goal_id_get(Goal,Gid),
-    $pc_compute_nonlinear_viterbi(10,Gid,EGs,EGPaths,ESwPaths,Pmax),
+    $pc_compute_nonlinear_viterbi(0,Gid,EGs,EGPaths,ESwPaths,Pmax),
     $pp_decode_cyc_viterbi_path(EGs,EGPaths,ESwPaths,VNodeL),!.
 
 $pp_decode_cyc_viterbi_path([],[],[],[]) :- !.

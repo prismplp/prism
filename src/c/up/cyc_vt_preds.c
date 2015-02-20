@@ -24,7 +24,6 @@ NORET myquit(BPLONG, char *);
 int pc_prism_cyc_vt_4(void) {
 	struct VT_Engine vt_eng;
 
-	printf("---cyc_vt start");
 	RET_ON_ERR(check_smooth(&vt_eng.smooth));
 	RET_ON_ERR(run_cyc_vt(&vt_eng));
 

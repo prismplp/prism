@@ -24,7 +24,7 @@ int run_cyc_vt(VT_ENG_PTR vt_ptr) {
 	config_vt(vt_ptr);
 
 	for (r = 0; r < num_restart; r++) {
-		//SHOW_PROGRESS_HEAD("#vt-iters", r);
+		SHOW_PROGRESS_HEAD("#vt-iters", r);
 
 		initialize_params();
 		itemp = 1.0;
