@@ -43,9 +43,14 @@ $pp_viterbi_wrapper(Pred0) :-
     ( Mode == ml -> Suffix = '_p'
     ; Mode == vb -> Suffix = '_h'
     ),!,
+    get_prism_flag(error_on_cycle,NonCycle),
+    ( NonCycle == on -> Prefix = ''
+    ; NonCycle == off -> Prefix = 'cyc_'
+    ),!,
     Pred0 =.. [Name0|Args],
     atom_concat(Name0,Suffix,Name1),
-    Pred1 =.. [Name1|Args],!,
+    atom_concat(Prefix,Name1,Name2),
+    Pred1 =.. [Name2|Args],!,
     call(Pred1).  % do not add cut here (n_viterbig is non-deterministic)
 
 % introduced just for backward compatibility
