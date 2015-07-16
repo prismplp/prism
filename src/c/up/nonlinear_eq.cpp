@@ -720,7 +720,7 @@ int pc_nonlinear_eq_2(void) {
 		eg_ptr = sorted_expl_graph[i];
 		mapping[eg_ptr->id]=i;
 	}
-	//pri0nt_eq
+	//print_eq
 	if(nl_debug_level>=3) {
 		print_eq();
 	}
@@ -953,8 +953,10 @@ double compute_nonlinear_viterbi(int nl_debug_level) {
 		int j;
 		int cnt;
 		int bf_loop;
+		bool changed=true;
 		bf_loop=n>1?n-1:1;
-		for(cnt=0; cnt<bf_loop; cnt++) {
+		for(cnt=0; cnt<bf_loop && changed; cnt++) {
+			changed=false;
 			for(j=0; j<n; j++) {
 				int w=sccs[i].el[j];
 				eg_ptr = sorted_expl_graph[w];
@@ -999,6 +1001,7 @@ double compute_nonlinear_viterbi(int nl_debug_level) {
 					if (max_path==NULL || this_path_max > max_p) {
 						max_p = this_path_max;
 						max_path = path_ptr;
+						changed=true;
 					}
 					path_ptr->max = this_path_max;
 					path_ptr=path_ptr->next;
@@ -1766,6 +1769,9 @@ int run_cyc_em(struct EM_Engine* em_ptr) {
 	}
 	//END EM
 
+	if(nl_debug_level>=1) {
+		print_sccs_statistics();
+	}
 	double solution_time=getCPUTime();
 	//free data
 	free(nodes);
@@ -1809,11 +1815,10 @@ int pc_cyc_em_7(void) {
 
 	RET_ON_ERR(check_smooth(&em_eng.smooth));
 	config_cyc_em(&em_eng);
-	printf("--- start cyc_em\n");
+	//printf("--- start cyc_em\n");
 	nl_debug_level = bpx_get_integer(bpx_get_call_arg(7,7));
 	run_cyc_em(&em_eng);
-	printf("--- end cyc_em\n");
-	print_sccs_statistics();
+	//printf("--- end cyc_em\n");
 	return
 	    bpx_unify(bpx_get_call_arg(1,7), bpx_build_integer(em_eng.iterate   )) &&
 	    bpx_unify(bpx_get_call_arg(2,7), bpx_build_float  (em_eng.lambda    )) &&

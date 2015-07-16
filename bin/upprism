@@ -32,5 +32,5 @@ if [ ! -x "$BINARY" ]; then
     exit 1
 fi
 
-#echo $BINARY -p $PAREA -s $STACK -b $TRAIL -t $TABLE $BINDIR/bp.out $BINDIR/prism.out $BINDIR/foc.out $BINDIR/batch.out ${1+"$@"}
+echo $BINARY -p $PAREA -s $STACK -b $TRAIL -t $TABLE $BINDIR/bp.out $BINDIR/prism.out $BINDIR/foc.out $BINDIR/batch.out ${1+"$@"}
 exec $BINARY -p $PAREA -s $STACK -b $TRAIL -t $TABLE $BINDIR/bp.out $BINDIR/prism.out $BINDIR/foc.out $BINDIR/batch.out ${1+"$@"}
