@@ -28,6 +28,7 @@ OBJS = graph.$(O)             \
        util.$(O)              \
        linear_eq.$(O)         \
        lbfgs.$(O)             \
+       scc.$(O)             \
        nonlinear_eq.$(O)      \
        cyc_vt_preds.$(O)      \
        cyc_vt_ml.$(O)      
