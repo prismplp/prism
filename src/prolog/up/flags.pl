@@ -100,7 +100,7 @@ $pp_prism_flag(crf_learning_rate,enum([none,annealing,backtrack,golden]),backtra
 $pp_prism_flag(crf_golden_b,float(@0,+inf),1.0,$pc_set_crf_golden_b).
 $pp_prism_flag(crf_epsilon,float(0,+inf),1.0,$pc_set_crf_epsilon).
 $pp_prism_flag(crf_init,enum([none,noisy_u,random,zero]),zero,$pc_set_crf_init_method).
-$pp_prism_flag(crf_learn_mode,enum([fg,lbfgs]),fg,$pc_set_crf_learn_mode).
+$pp_prism_flag(crf_learn_mode,enum([fg,lbfgs]),lbfgs,$pc_set_crf_learn_mode).
 $pp_prism_flag(crf_ls_rho,float(@0,@1),0.5,$pc_set_crf_ls_rho).
 $pp_prism_flag(crf_ls_c1,float(@0,@1),0.5,$pc_set_crf_ls_c1).
 $pp_prism_flag(crf_penalty,float(-inf,+inf),0.0,$pc_set_crf_penalty).
