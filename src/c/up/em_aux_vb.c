@@ -66,7 +66,9 @@ void initialize_hyperparams(void) {
 				ptr->inside_h =
 				    (ptr->smooth + 1.0 < EPS) ? EPS : ptr->smooth + 1.0;
 				ptr->inside_h *= (1.0 + fabs(r));
-				ptr->smooth = ptr->inside_h - 1.0;
+				// Thank you for Samer Abdallah's bug report
+				//ptr->smooth = ptr->inside_h - 1.0;
+				ptr->smooth_prolog = ptr->inside_h - 1.0;
 				ptr->total_expect = 0.0;
 				ptr = ptr->next;
 			}
