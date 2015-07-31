@@ -36,7 +36,6 @@ typedef struct {
 extern int* scc_mapping;
 extern int scc_num;
 extern SCC* sccs;
-extern int scc_debug_level;
 
 double getCPUTime();
 void init_scc();

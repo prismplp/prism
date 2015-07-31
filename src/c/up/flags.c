@@ -44,6 +44,8 @@ int     crf_learn_mode        = 0;
 double  crf_ls_rho            = 0.5;
 double  crf_ls_c1             = 0.5;
 double  crf_penalty           = 0.0;
+/*for cyclic*/
+int     scc_debug_level        = 0;
 /*
  * This variable does not correspond to any prism flags, and hence is
  * not initialized by reset_prism_flags/0.
@@ -202,4 +204,8 @@ int pc_set_crf_penalty_1(void) {
 	return BP_TRUE;
 }
 
+int pc_set_scc_debug_level_1(void) {
+	scc_debug_level = bpx_get_integer(bpx_get_call_arg(1,1));
+	return BP_TRUE;
+}
 /*------------------------------------------------------------------------*/

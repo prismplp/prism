@@ -65,7 +65,7 @@ int pc_compute_nonlinear_viterbi_6(void) {
 	int goal_id;
 	double viterbi_prob;
 
-	scc_debug_level = bpx_get_integer(bpx_get_call_arg(1,6));
+	//scc_debug_level = bpx_get_integer(bpx_get_call_arg(1,6));
 	goal_id = bpx_get_integer(bpx_get_call_arg(2,6));
 
 	initialize_egraph_index();
@@ -279,7 +279,7 @@ int pc_cyc_em_7(void) {
 	struct EM_Engine em_eng;
 	RET_ON_ERR(check_smooth(&em_eng.smooth));
 	config_cyc_em(&em_eng);
-	scc_debug_level = bpx_get_integer(bpx_get_call_arg(7,7));
+	//scc_debug_level = bpx_get_integer(bpx_get_call_arg(7,7));
 	run_cyc_em(&em_eng);
 	return
 	    bpx_unify(bpx_get_call_arg(1,7), bpx_build_integer(em_eng.iterate   )) &&

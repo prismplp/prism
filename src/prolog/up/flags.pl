@@ -104,6 +104,7 @@ $pp_prism_flag(crf_learn_mode,enum([fg,lbfgs]),lbfgs,$pc_set_crf_learn_mode).
 $pp_prism_flag(crf_ls_rho,float(@0,@1),0.5,$pc_set_crf_ls_rho).
 $pp_prism_flag(crf_ls_c1,float(@0,@1),0.5,$pc_set_crf_ls_c1).
 $pp_prism_flag(crf_penalty,float(-inf,+inf),0.0,$pc_set_crf_penalty).
+$pp_prism_flag(scc_debug_level,integer(0,+inf),0,$pc_set_scc_debug_level).
 
 % first flag is enabled by default
 $pp_prism_flag_exclusive([default_sw_d,default_sw_a]).

@@ -81,7 +81,6 @@ static SCC_Stack* stack;
 int* scc_mapping;
 int scc_num;
 SCC* sccs;
-int scc_debug_level;
 
 /*
    This function compute equations in a given SCC(whose ID is (int)scc) by given values((double*) x)
@@ -568,7 +567,7 @@ void get_scc_tarjan() {
 		}
 	}
 	//check SCCs
-	if(scc_debug_level>0) {
+	if(scc_debug_level>1) {
 		printf("check SCCs\n");
 		if(stack!=NULL) {
 			emit_error("Tarjan's algorithm error:remaining stack");
@@ -875,9 +874,6 @@ double compute_nonlinear_viterbi(int scc_debug_level) {
 	int i;
 	EG_NODE_PTR eg_ptr;
 	EG_PATH_PTR path_ptr;
-	double start_time=getCPUTime();
-    init_scc();
-	double scc_time=getCPUTime();
 	//solution
 	if(scc_debug_level>=2) {
 		printf("non-linear viterbi: \n");
@@ -955,7 +951,7 @@ double compute_nonlinear_viterbi(int scc_debug_level) {
 						max_path = path_ptr;
 						changed=true;
 					}
-					path_ptr->max = this_path_max;
+					//path_ptr->max = this_path_max;
 					path_ptr=path_ptr->next;
 				}
 				sorted_expl_graph[w]->max = max_p;
@@ -966,14 +962,7 @@ double compute_nonlinear_viterbi(int scc_debug_level) {
 			}
 		}
 	}
-	double solution_time=getCPUTime();
-	//free data
-	free_scc();
 	double prob=sorted_expl_graph[sorted_egraph_size-1]->max;
-	if(scc_debug_level>=1) {
-		printf("CPU time (scc,solution,all)\n");
-		printf("# %f,%f,%f\n",scc_time-start_time,solution_time-scc_time,solution_time - start_time);
-	}
 	return prob;
 }
 
@@ -1274,7 +1263,7 @@ void solve_linear_scc(int scc){
 	VectorXd x;
 	get_scc_matrix_inside(A,b,scc);
 	int i, j;
-	if(scc_debug_level>0){
+	if(scc_debug_level>1){
 		printf("# linear equation Ax=b\n");
 		for(i = 0; i < n; i++) {
 			for(j = 0; j < n; j++) {
@@ -1286,7 +1275,7 @@ void solve_linear_scc(int scc){
 	FullPivLU< MatrixXd > lu(A);
 	x=lu.solve(b);//Ax = b
 
-	if(scc_debug_level>0){
+	if(scc_debug_level>1){
 		printf("# linear equation solve\n");
 		for(i = 0; i < n; i++) {
 			printf("  %2.3f \n",x(i));
@@ -1321,7 +1310,7 @@ void solve_linear_scc_outside_sw(int scc){
 			M(i,i)-=1.0;
 		}
 		b=-(Mp*x+Yp);
-		if(scc_debug_level>0){
+		if(scc_debug_level>1){
 			printf("# solve linear scc sw:%d\n",(*itr)->id);
 			printf("# linear equation b=-(Mp*x+Yp)\n");
             for(int i = 0; i < n; i++) {
@@ -1342,7 +1331,7 @@ void solve_linear_scc_outside_sw(int scc){
 		}
 		FullPivLU< MatrixXd > lu(M);
 		xp=lu.solve(b);//Ax = b
-		if(scc_debug_level>0){
+		if(scc_debug_level>1){
 			printf("# linear equation solve\n");
 			for(int i = 0; i < n; i++) {
 				printf("  %2.3f \n",xp(i));
@@ -1351,7 +1340,7 @@ void solve_linear_scc_outside_sw(int scc){
 		for(int i=0;i<n;i++){
 			EG_NODE_PTR eg_ptr=sorted_expl_graph[sccs[scc].el[i]];
 			double outside=eg_ptr->outside*xp[i];
-			if(scc_debug_level>0){
+			if(scc_debug_level>1){
 				printf("outside(%3.3f)= outside x[%d](%3.3f)*Xp (%3.3f)\n",outside,sccs[scc].el[i],eg_ptr->outside,xp[i]);
 				printf("%3.3f => %3.3f\n",(*itr)->total_expect,(*itr)->total_expect+outside*(*itr)->inside);
 			}
@@ -1369,7 +1358,7 @@ void solve_linear_scc_outside_node(int scc){//,int target_node_index){
 	for(std::set<int>::iterator itr=children.begin(); itr!=children.end(); itr++) {
 		EG_NODE_PTR target_eg_ptr = sorted_expl_graph[*itr];
 		get_scc_matrix_outside(A,b,scc,*itr);
-		if(scc_debug_level>0){
+		if(scc_debug_level>1){
 			printf("# linear equation Ax=b : outside(%d)\n",*itr);
 			for(int i = 0; i < n; i++) {
 				for(int j = 0; j < n; j++) {
@@ -1380,7 +1369,7 @@ void solve_linear_scc_outside_node(int scc){//,int target_node_index){
 		}
 		FullPivLU< MatrixXd > lu(A);
 		x=lu.solve(b);//Ax = b
-		if(scc_debug_level>0){
+		if(scc_debug_level>1){
 			printf("# linear equation solve\n");
 			for(int i = 0; i < n; i++) {
 				printf("  %2.3f \n",x(i));
@@ -1389,7 +1378,7 @@ void solve_linear_scc_outside_node(int scc){//,int target_node_index){
 		}
 		for(int i=0;i<n;i++){
 			EG_NODE_PTR eg_ptr=sorted_expl_graph[sccs[scc].el[i]];
-			if(scc_debug_level>0){
+			if(scc_debug_level>1){
 				printf("outside x[%d](%3.3f)* X[%d] =>%3.3f\n",sccs[scc].el[i],eg_ptr->outside,i,eg_ptr->outside*x[i]);
 			}
 			target_eg_ptr->outside+=eg_ptr->outside*x[i];

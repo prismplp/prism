@@ -165,6 +165,7 @@ void bp4p_register_preds(void) {
 	REGISTER_CPRED(linear_eq,2);
 	REGISTER_CPRED(compute_nonlinear_viterbi,6);
 	REGISTER_CPRED(cyc_em,7);
+	REGISTER_CPRED(set_scc_debug_level,1);
 	/* up/cyc_vt_preds.c */
 	REGISTER_CPRED(prism_cyc_vt,4);
 

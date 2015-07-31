@@ -1,9 +1,12 @@
+#define CXX_COMPILE 
+extern "C" {
 #include "bprolog.h"
 #include "up/up.h"
 #include "up/em_aux.h"
 #include "up/em_aux_ml.h"
 #include "up/vt.h"
 #include "up/vt_aux_ml.h"
+#include "up/vt_ml.h"
 #include "up/flags.h"
 #include "up/util.h"
 #include "up/viterbi.h"
@@ -14,8 +17,10 @@
 #include "core/random.h"
 #include "core/gamma.h"
 #include "up/graph.h"
+#include "up/scc.h"
+}
 
-
+extern "C"
 int run_cyc_vt(VT_ENG_PTR vt_ptr) {
 	int     r, iterate, old_valid, converged, saved = 0;
 	double  likelihood, log_prior;
@@ -23,6 +28,10 @@ int run_cyc_vt(VT_ENG_PTR vt_ptr) {
 
 	config_vt(vt_ptr);
 
+	double start_time=getCPUTime();
+    init_scc();
+	double scc_time=getCPUTime();
+	
 	for (r = 0; r < num_restart; r++) {
 		SHOW_PROGRESS_HEAD("#vt-iters", r);
 
@@ -85,9 +94,17 @@ int run_cyc_vt(VT_ENG_PTR vt_ptr) {
 		}
 	}
 
+
+	double solution_time=getCPUTime();
+	//free data
+	free_scc();
 	if (saved) {
 		restore_params();
 	}
 
+	if(scc_debug_level>=1) {
+		printf("CPU time (scc,solution,all)\n");
+		printf("# %f,%f,%f\n",scc_time-start_time,solution_time-scc_time,solution_time - start_time);
+	}
 	return BP_TRUE;
 }

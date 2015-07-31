@@ -33,6 +33,7 @@ int pc_set_crf_learn_mode_1(void);
 int pc_set_crf_ls_rho_1(void);
 int pc_set_crf_ls_c1_1(void);
 int pc_set_crf_penalty_1(void);
+int pc_set_scc_debug_level_1(void);
 
 /*========================================================================*/
 
@@ -66,5 +67,6 @@ extern int     crf_learn_mode;
 extern double  crf_ls_rho;
 extern double  crf_ls_c1;
 extern double  crf_penalty;
+extern int     scc_debug_level;
 
 #endif /* FLAGS_H */
