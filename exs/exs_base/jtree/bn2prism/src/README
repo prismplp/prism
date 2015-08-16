@@ -1,4 +1,4 @@
-**** README (bn2prism: src) ****
+==================== README (bn2prism: src) =======================
 
 This directory contains Java codes of a translator from BNs to junction-tree
 Prism programs.  For the details of each Java classes, please consult

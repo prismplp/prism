@@ -1,40 +1,81 @@
-%% file = mc.psm
-%--------------------------------------
-% [Usage]
-% $ prism
-% ?- prism(mc),lin_prob(reach(s0,s1))
-% 
-% [Explanation graph]
-% reach(s0,s1)
-%   <=> trans(s0,s1) & reach(s1,s1)
-%     v trans(s0,s0) & reach(s0,s1)
-% reach(s1,s1)
-% trans(s0,s1)
-%   <=> msw(t(s0),s1)
-% trans(s0,s0)
-%   <=> msw(t(s0),s0)
-%
-% [Equations]
-% x[0]=0.5*x[0]+0.3
-%
-% [Solutions]
-% x[0]=0.6
-%
-%%--------------------------------------
+%%%%
+%%%%  Markov chain with cyclic state transitions --- mc.psm
+%%%%
+%%%%  Copyright (C) 2014-2015
+%%%%    Sato Laboratory, Dept. of Computer Science,
+%%%%    Tokyo Institute of Technology
+%%%%
 
-prism_main:-lin_prob(reach(s0,s1)).
+%% This program describes a discrete time Markov chain that illustrates
+%% how to perform probabilistic inference with cyclic explanation graphs.
+%% The Markov chain we are considering is as follows.
+%%
+%%   s0 -> s0 (0.5) | s1 (0.3) | s2 (0.2)
+%%   s1 -> s1 (0.4) | s3 (0.1) | s4 (0.5)
+%%   s2 -> s2 (1.0)
+%%   s3 -> s3 (1.0)
+%%   s4 -> s4 (1.0)
+%% 
+%% For example, we move from s1 to s1 (self-loop) with prob. 0.4, to s3
+%% with prob. 0.1, and to s4 with prob. 0.5.  Due to some self-loops, this
+%% Markov chain yields a cyclic explanation graph when it is encoded by
+%% PRISM in a straightforward manner like this program.
+%%
+%% Here let us compute the transition probability from s0 to s1:
+%%
+%% 1. First, load this program:
+%%
+%%      ?- prism(mc)
+%% 
+%% 2. Then, to see what happens later, let us consider a cyclic explanation
+%%    graph for a goal reach(s0,s1), which shows all possible transitions
+%%    from s0 to s1:
+%% 
+%%      ?- probf(reach(s0,s1))
+%%
+%%      reach(s0,s1)
+%%        <=> trans(s0,s1) & reach(s1,s1)
+%%          v trans(s0,s0) & reach(s0,s1)
+%%      reach(s1,s1)
+%%      trans(s0,s1)
+%%        <=> msw(t(s0),s1)
+%%      trans(s0,s0)
+%%        <=> msw(t(s0),s0)
+%%
+%%    From above, we can consider a linear equation x = 0.5 * x + 0.3,
+%%    where x indicates the transition probability from s0 to s1.
+%%    Obviously, the solution of this equation is x = 0.6.
+%%
+%% 3. The above inference can be performed just by asking:
+%%
+%%      ?- lin_prob(reach(s0,s1))
+%%      Probability of reach(s0,s1) is: 0.600000000000000
+%%
+%% 4. On the other hand, prob/1, an ordinary predicate to compute the goal
+%%    probability, yields a wrong result due to the cyclicity of the
+%%    underlying explanation graph shown above:
+%%
+%%      ?- prob(reach(s0,s1))
+%%      Probability of reach(s0,s1) is: 0.800000000000000
+
+% To obtain cyclic explanations, currently we need to turn off
+% the error_on_cycle flag:
 :- set_prism_flag(error_on_cycle,off).
 
+% Top goal specification for batch execution by the upprism command:
+prism_main :- lin_prob(reach(s0,s1)).
+
+% Possible destinations for each state with probabilities are
+% specified by a declaration of the corresponding random switch:
 values(t(s0),[s0,s1,s2],[0.5,0.3,0.2]).
 values(t(s1),[s1,s3,s4],[0.4,0.1,0.5]).
 values(t(s2),[s2],[1.0]).
 values(t(s3),[s3],[1.0]).
 values(t(s4),[s4],[1.0]).
 
-tr(S,T):-values(t(S),OS),member(T,OS),msw(t(S),T).
+% Each transition is probabilistically determined:
+tr(S,T) :- get_values(t(S),OS),member(T,OS),msw(t(S),T).
+
+% Reachability between two states:
 reach(S,S).
-reach(S,T):- \+ S==T ,tr(S,U),reach(U,T).
-
-%------------------------------------
-
-
+reach(S,T) :- \+S==T,tr(S,U),reach(U,T).

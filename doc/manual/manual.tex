@@ -20,7 +20,7 @@
 \DeclareMathAlphabet{\mathtt}{OT1}{pcr}{m}{n}
 \SetMathAlphabet{\mathtt}{bold}{OT1}{pcr}{b}{n}
 
-\hypersetup{pdftitle={PRISM User's Manual (Version 2.2 pre-release)}}
+\hypersetup{pdftitle={PRISM User's Manual (Version 2.2)}}
 \hypersetup{pdfauthor={Taisuke Sato, Neng-Fa Zhou, Yoshitaka Kameya, Yusuke Izumi, Keiichi Kubota and Ryosuke Kojima}}
 \hypersetup{pdfborder={0 0 0}}
 \hypersetup{pdfpagelabels=true}
@@ -118,17 +118,17 @@
 \begin{center}
 \par\vspace*{3cm}\par
 {\Huge\bf PRISM User's Manual}\par\vspace*{0.5cm}\par
-{\Large (Version 2.2 pre-release)}\par\vspace*{12cm}\par
+{\Large (Version 2.2)}\par\vspace*{12cm}\par
 
-{\normalsize Taisuke Sato*, Neng-Fa Zhou\dag, Yoshitaka Kameya\ddag, Yusuke Izumi*, Keiichi Kubota* and Ryosuke Kojima*}
+{\normalsize Taisuke Sato, Neng-Fa Zhou, Yoshitaka Kameya, Yusuke Izumi, Keiichi Kubota and Ryosuke Kojima}
 
-{\normalsize * Tokyo Institute of Technology} \\
-{\normalsize \dag CUNY Brooklyn College} \\
-{\normalsize \ddag Meijo University}
+%{\normalsize * Tokyo Institute of Technology} \\
+%{\normalsize \dag CUNY Brooklyn College} \\
+%{\normalsize \ddag Meijo University}
 
 \par\vspace*{2cm}\par
 
-{\footnotesize Copyright \copyright~2014 T. Sato, N.-F. Zhou, Y. Kameya, Y. Izumi, K. Kubota and R. Kojima}
+{\footnotesize Copyright \copyright~2015 T. Sato, N.-F. Zhou, Y. Kameya, Y. Izumi, K. Kubota and R. Kojima}
 \end{center}
 \thispagestyle{empty}
 \setcounter{page}{0}%% quick hack for hyperref
@@ -218,11 +218,29 @@ The development team would like to thank all users of this software,
 and greatly appreciate those who gave valuable questions, comments and
 suggestions.
 
-This software gratefully uses several free software packages,
-including public-domain modules used in B-Prolog, Mersenne Twister
-(\url{http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/emt.html})
-and SPECFUN (\url{http://www.netlib.org/specfun/}, we implement C version
-of the digamma and the log-gamma functions based on the code of SPECFUN).
+This software gratefully uses several free software packages, including:
+%
+\begin{itemize}
+\setlength{\parskip}{0pt}
+\setlength{\itemsep}{2pt}
+\item
+  Public-domain modules used in B-Prolog,
+\item
+  Mersenne Twister
+  (\url{http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/emt.html}),
+\item
+  SPECFUN (\url{http://www.netlib.org/specfun/}),\footnote{
+    We implemented C version of the digamma and the log-gamma functions
+    based on the code of SPECFUN.
+  }
+\item
+  LAPACK (\url{http://www.netlib.org/lapack/}),
+\item
+  Eigen (\url{http://eigen.tuxfamily.org/}), and
+\item
+  libLBFGS
+  (\url{http://www.chokkan.org/software/liblbfgs/}).
+\end{itemize}
 
 The project was started as an ICOT Free Software Project,
 and has been supported in part by the ``Discovery Science'' project,
@@ -296,7 +314,7 @@ apply to versions 2.2.$x$.
 
 \begin{itemize}
 \item
-  The descriptions on the flags related to MCMC sampling
+  The descriptions on the flags related to generative conditional random fields
   ({\tt crf\_enable}, {\tt crf\_golden\_b}, {\tt crf\_init},
   {\tt crf\_learn\_mode}, {\tt crf\_learn\_rate},
   {\tt crf\_ls\_c1}, {\tt crf\_ls\_rho} and {\tt crf\_penalty})
@@ -310,6 +328,9 @@ apply to versions 2.2.$x$.
 \item
   \secref{sec:example:crf} was added to present a program example for
   a linear-chain CRFs as an example of generative CRFs.
+\item
+  \secref{sec:example:cyc} was added to present a couple of program examples that
+  illustrate probabilistic inferences based on cyclic explanation graphs.
 \end{itemize}
 
 \clearpage
@@ -10108,7 +10129,7 @@ discriminative modeling in PRISM and make {\em conditional  random field\/}s
 \conindex{CRF|see{conditional random fields}}
 (CRFs) available which generally show excellent  classification and prediction
 performance  compared  to generative  models.   Our  approach  is based  on  a
-generalization of {\em generative-discriminative pair\/}
+generalization of {\em generative-discriminative pair}~\cite{Sutton12}
 such as naive Bayes classification\conindex{naive Bayes classifier}
 and logistic regression\conindex{logistic regression} to PRISM programs
 and  CRFs   by  generalizing probabilities of random switches ({\tt msw} atoms)
@@ -10270,9 +10291,7 @@ difficult to decide and, ideally, we need to test both of them.
 Conditional  random fields  (CRFs) \cite{Lafferty01}  are a  generalization of
 logistic regression and quite popular for modeling sequence data.  CRFs define
 a conditional  distribution $p(\vy \mid  \vx)$ over the output  sequence $\vy$
-given an input sequence $\vx$  which takes  the  following form:\footnote{
-  Bold italic letters are (values of) random  vectors.
-}
+given an input sequence $\vx$  which takes  the  following form:
 %
 \begin{eqnarray}
 p(\vy \mid \vx) 
@@ -10335,7 +10354,7 @@ is  a CRF such that the input $\vx  = x_1,\ldots,x_N$ is a
 vector of attributes and the output is a scalar $y$ denoting a class. Logistic
 regression given  as Eq.~\ref{eq:logreg} can be straightforwardly  rewritten to
 Eq.~\ref{eq:crflogreg} using a unit function  ${\bf 1}_{\{y'=y\}} = 1$ if $y'=y$
-else $=0$.
+and ${\bf 1}_{\{y'=y\}} = 0$ otherwise.
 
 Another   useful    class   is    {\em   linear-chain   CRF\/}s    that   form
 generative-discriminative  pairs   with  HMMs.   They   define  a  conditional
@@ -10485,10 +10504,13 @@ realizes the desired function $f(x,y)$.
 \item
 Parameters of generative CRFs  are learned discriminatively from complete data
 by      maximizing     the     regularized      conditional     log-likelihood
-(Eq.~\ref{eq:regcondlikelihood}).   We can  use  any library  for this  numerical
-optimization but currently L-BFGS \cite{Liu89}\conindex{L-BFGS algorithm}
-and the steepest descent algorithm\conindex{steepest descent method}
-are available in PRISM.
+(Eq.~\ref{eq:regcondlikelihood}).   We can use any numerical optimization but
+currently L-BFGS \cite{Liu89}\conindex{L-BFGS algorithm} and
+the steepest descent algorithm\conindex{steepest descent method}
+are available in PRISM.\footnote{
+	PRISM gratefully uses Naoki Okazaki's library for L-BFGS optimization
+    (\url{http://www.chokkan.org/software/liblbfgs/}).
+}
 
 \item
 Viterbi inference for generatively  defined CRFs is straightforward.  The most
@@ -10584,7 +10606,8 @@ weights so  that {\tt bn(As,C)}  defines an unnormalized  distribution $q({\tt
 unnormalized  marginalized distribution $q({\tt As})=\sum_{\tt  C}q({\tt As},{\tt  C})$
 in Eq.~\ref{eq:crf-def}.   In the  current example,  as the  program is  so simple,
 adding  the clause {\tt  bn(As)~:- bn(As,\_)} for  the one-place  predicate
-{\tt bn(As)} is enough.
+{\tt bn(As)} is enough.  As a more complicated case, \secref{sec:example:crf} shows
+a PRISM program encoding a linear-chain CRF.
 
 \begin{figure}[t]
 %\rule{\textwidth}{0.25mm}\\ [-1em]
@@ -10670,21 +10693,22 @@ prints out three explanations in the order of higher weight of goal {\tt G}.
 \conindex{cyclic explanation graph}
 \conindex{explanation graph!cyclic ---|see{cyclic explanation graph}}
 provide interesting  and useful computation
-for probabilistic models  containing cyclic structure such as  loops in Markov
+for probabilistic models  containing cyclic structures such as  loops in Markov
 chains  and  some   types  of  infinite  recursion  in   PCFGs.   For  example
 reachability  probabilities in  discrete time  Markov chains  are  computed by
 cyclic explanation graphs and applied to probabilistic model checking.
 They also enable us to compute prefix and infix probabilities in probabilistic
 context free grammars (PCFGs) which are  applicable to
-plan recognition. PRISM's  probability computation on
+plan recognition. PRISM's  probability computation over
 cyclic explanation graphs  unifies these examples and computes  an infinite sum
 of probabilities by solving a set of linear or nonlinear equations.
 In the following, we first give an overview of cyclic explanation graphs
 in the programming system (\secref{sec:cycle:background}) and then describe
 the basic usage of built-in utilities related to cyclic explanation graphs
-(\secref{sec:cycle:usage}).  Additionally we illustrate how to perform probability
-computation using cyclic explanation graphs (\secref{sec:cycle:lin}
-and \secref{sec:cycle:nonlin}).
+(\secref{sec:cycle:built-in}). 
+In \secref{sec:example:lin} and \secref{sec:example:nonlin}, 
+we Additionally illustrate how to perform probability
+computation using cyclic explanation graphs.
 
 \section{Background}
 \label{sec:cycle:background}
@@ -10778,8 +10802,8 @@ Here the sub-explanation graph  for  {\tt  infix\_pcfg(0,0,[s,s])} has
 which belong to the same SCC as {\tt infix\_\lb pcfg(0,0,[s])}.
 
 
-\section{Basic usage}
-\label{sec:cycle:usage}
+\section{Built-in utilities}
+\label{sec:cycle:built-in}
 
 The programming system provides special built-in predicates  to perform probability
 computation for  tabled probabilistic goals  which generate linear  or nonlinear
@@ -10856,307 +10880,9 @@ applied  to  acyclic   explanation  graphs.   Similarly  {\tt  nonlin\_prob/1}
 subsumes  {\tt   lin\_prob/1}  in   functionality  but  the   former  computes
 probabilities  by  solving  a   set  of  nonlinear  (multivariate  polynomial)
 equations using  a general iterative method,  and hence should  be avoided for
-acyclic  or  linear  cyclic   explanation  graphs  for  which  more  efficient
+acyclic  or  linear  cyclic   explanation  graphs  for which  a more efficient
 computation is possible.
 
-
-\section{Examples of linear cyclic explanation graph}
-\label{sec:cycle:lin}
-
-Cyclic  explanation graphs  enable us  to deal  with useful  models  of cyclic
-probabilistic  relations.  For  example, a  reachability relation  in discrete
-time Markov chains\conindex{discrete time Markov chains}
-and infinite recursion associated with the computation of
-prefix probability\conindex{prefix probability} in PCFGs yield
-cyclic explanation graphs~\cite{Sato13}.
-%  It is possible to compute their probabilities easily by the PRISM system.
-
-\begin{figure}[t]
-  \begin{center}
-    \includegraphics[width=0.5\hsize]{fig/DTMC01.eps}
-    \caption{an example of discrete time Markov chains}
-    \label{fig:dtmc}
-  \end{center}
-\end{figure}
-
-To  have a  close look  at cyclic  explanation graphs,  we introduce  a sample
-program that  describes the  reachability relation on  a discrete  time Markov
-chain shown in Figure~\ref{fig:dtmc}, where a state transition is made
-by a probabilistic choice of next state by {\tt msw/2}:
-%
-\flagindex{error\_on\_cycle}
-\begin{quote}
-\begin{small}
-\begin{verbatim}
-:- set_prism_flag(error_on_cycle,off).
-
-values(t(s0),[s0,s1,s2],[0.5,0.3,0.2]).
-values(t(s1),[s1,s3,s4],[0.4,0.1,0.5]).
-values(t(s2),[s2],[1.0]).
-values(t(s3),[s3],[1.0]).
-values(t(s4),[s4],[1.0]).
-
-tr(S,T):-values(t(S),OS),member(T,OS),msw(t(S),T).
-reach(S,S).
-reach(S,T):- \+ S==T ,tr(S,U),reach(U,T).
-\end{verbatim}
-\end{small}
-\end{quote}
-%
-Since   this   Markov   chain   has   a  self-loop   at   each   state,   {\tt
-probf(reach(s0,s3))} returns a cyclic explanation graph as follows:
-%
-\predindex{probf/1}
-\begin{quote}
-\begin{small}
-\begin{verbatim}
-?- probf(reach(s0,s3)).
-reach(s0,s3)
-   <=> tr(s0,s1) & reach(s1,s3)
-     v tr(s0,s0) & reach(s0,s3)
-reach(s1,s3)
-   <=> tr(s1,s3) & reach(s3,s3)
-     v tr(s1,s1) & reach(s1,s3)
-reach(s3,s3)
-tr(s1,s3)
-   <=> msw(t(s1),s3)
-tr(s1,s1)
-   <=> msw(t(s1),s1)
-tr(s0,s1)
-   <=> msw(t(s0),s1)
-tr(s0,s0)
-   <=> msw(t(s0),s0)
-\end{verbatim}
-\end{small}
-\end{quote}
-%
-In this graph, {\tt reach(s0,s3)}  simultaneously occurs in the left and right
-hand sides of  the first sub-explanation graph and forms  a self-loop.  So the
-graph is a linear cyclic explanation  graph and we use special predicates {\tt
-  lin\_prob/1} and {\tt lin\_probfi/2} to compute the reachability probability
-from {\tt s0} to {\tt s3} and obtain $0.1$ as follows:
-%
-\predindex{lin\_prob/1}
-\predindex{lin\_probfi/2}
-\begin{quote}
-\begin{small}
-\begin{verbatim}
-?- lin_prob(reach(s0,s3)).
-Probability of reach(s0,s3) is: 0.100000000000000
-
-?- lin_probfi(reach(s0,s3)).
-reach(s0,s3) [0.1]
-   <=> tr(s0,s1) [0.3] & reach(s1,s3) [0.166667]  {0.05}
-     v tr(s0,s0) [0.5] & reach(s0,s3) [0.1]  {0.05}
-reach(s1,s3) [0.166667]
-   <=> tr(s1,s3) [0.1] & reach(s3,s3) [1]  {0.1}
-     v tr(s1,s1) [0.4] & reach(s1,s3) [0.166667]  {0.0666667}
-reach(s3,s3) [1]
-tr(s1,s3) [0.1]
-   <=> msw(t(s1),s3) [0.1]  {0.1}
-tr(s1,s1) [0.4]
-   <=> msw(t(s1),s1) [0.4]  {0.4}
-tr(s0,s1) [0.3]
-   <=> msw(t(s0),s1) [0.3]  {0.3}
-tr(s0,s0) [0.5]
-   <=> msw(t(s0),s0) [0.5]  {0.5}
-\end{verbatim}
-\end{small}
-\end{quote}
-
-As another example of  probability computation using linear cyclic explanation
-graphs, let us consider prefix probability computation in PCFGs.  A prefix $u$
-is an initial substring of a sentence and the  prefix  probability\conindex{prefix probability}
-$P_{\rm prefix}(u)$  of  $u$  is  defined  as  the sum  of  probabilities  of sentences
-containing $u$,  i.e.\ $P_{\rm prefix}(u)  = \sum_v P(uv)$  where $v$ is  a string
-such  that  $uv$ is  a  sentence.  So  $P_{\rm  prefix}(u)$  (usually) becomes  an
-infinite sum.  This sum however can  be computed by solving a system of linear
-equations  derived  from a  linear  cyclic  explanation  graph. The  graph  is
-generated by a prefix parser program shown below:
-%
-\flagindex{error\_on\_cycle}
-\begin{quote}
-\begin{small}
-\begin{verbatim}
-:- set_prism_flag(error_on_cycle,off).
-values(s,[[s,s],[a],[b]],[0.4,0.3,0.3]).
-
-prefix_pcfg(L):- prefix_pcfg([s],L,[]).   % L is a prefix
-prefix_pcfg([A|R],L0,L2):-                % L0 is ground when called
-    ( get_values(A,_) -> msw(A,RHS),      % if A is a nonterminal
-        prefix_pcfg(RHS,L0,L1)            % select rule A->RHS
-    ; L0=[A|L1] ),                        % else consume A in L0
-    ( L1=[] -> L2=[]                      % (pseudo) success
-    ; prefix_pcfg(R,L1,L2) ).             % recursion
-prefix_pcfg([],L1,L1).                    % termination
-\end{verbatim}
-\end{small}
-\end{quote}
-%
-This parser is a slight generalization of usual top-down PCFG
-parser\footnote{
-  % 
-  The program is specialized for a PCFG containing CFG rules {\tt s -> ss}(0.4),
-  {\tt  s -> a}(0.3)  and {\tt  s ->  b}(0.3) where  numbers in  parentheses are
-  application probabilities of rules.
-  % 
-}
-where  the only difference  is the insertion  of one line code  commented as
-``{\tt (pseudo) success}.''
-
-Now think of a prefix {\tt [a,b]} in this PCFG, represented by a top-goal {\tt
-  prefix\_pcfg([a,b])}.  By  {\tt probf/1} we obtain an  explanation graph for
-the goal as follows:
-\begin{quote}
-\begin{small}
-\begin{verbatim}
-?- probf(prefix_pcfg([a,b]))
-prefix_pcfg([a,b])
-   <=> prefix_pcfg([s],[a,b]-[])
-prefix_pcfg([s],[a,b]-[])
-   <=> prefix_pcfg([s,s],[a,b]-[]) & msw(s,[s,s])
-prefix_pcfg([s,s],[a,b]-[])
-   <=> prefix_pcfg([a],[a,b]-[b]) & prefix_pcfg([s],[b]-[]) & msw(s,[a])
-     v prefix_pcfg([s,s],[a,b]-[]) & msw(s,[s,s])
-prefix_pcfg([s],[b]-[])
-   <=> prefix_pcfg([s,s],[b]-[]) & msw(s,[s,s])
-     v prefix_pcfg([b],[b]-[]) & msw(s,[b])
-prefix_pcfg([s,s],[b]-[])
-   <=> prefix_pcfg([b],[b]-[]) & msw(s,[b])
-     v prefix_pcfg([s,s],[b]-[]) & msw(s,[s,s])
-prefix_pcfg([b],[b]-[])
-prefix_pcfg([a],[a,b]-[b])
-   <=> prefix_pcfg([],[b]-[b])
-prefix_pcfg([],[b]-[b])
-\end{verbatim}
-\end{small}
-\end{quote}
-%
-Since this explanation graph  has self-loops of {\tt prefix\_pcfg([s,s],[a,b]-[])} and  {\tt prefix\_pcfg(\lb [s,s],[b]-[])} and are  linear, we  apply {\tt
-  lin\_prob/1} to compute the prefix probability of {\tt [a,b]} as follows:
-%
-\predindex{lin\_prob/1}
-\begin{quote}
-\begin{verbatim}
-?- lin_prob(prefix_pcfg([a,b]))
-Probability of prefix_pcfg([a,b]) is: 0.100000000000000
-\end{verbatim}
-\end{quote}
-%
-Although  these  are small  examples  and  the  explanation graphs  have  only
-self-loops,  {\tt  lin\_prob/1,2} can  deal  with  much  larger linear  cyclic
-explanation graphs containing tens of thousands of nodes and long cycles.
-
-
-\section{Example of nonlinear cyclic explanation graphs}
-\label{sec:cycle:nonlin}
-
-{\it Nonlinear  cyclic explanation  graph\/}s enable the  user to  perform yet
-another  challenging   probability  computation  such   as infix  probability
-computation in PCFGs~\cite{Nederhof11}.\conindex{infix probability}
-As previously explained, a nonlinear cyclic explanation graph is
-an explanation graph containing a sub-explanation
-graph  such that  two or  more  goals occurring  together in  some right  hand
-disjunct and their caller on the left hand side belong to the same SCC like:
-%
-\begin{quote}
-\begin{verbatim}
-pred(a)<=> pred(a) & pred(a) & ...
-     v....
-\end{verbatim}
-\end{quote}
-%
-PRISM supports {\tt nonlin\_prob({\it G})}  to compute the probability of {\it
-  G} that generates a nonlinear  cyclic explanation graph.  To exemplify them,
-we introduce a  program that computes infix probabilities  in PCFGs.  An infix
-$u$  is a  substring  that  occur in  the  middle of  a  sentence.  The  infix
-probability\conindex{infix probability}
-$P_{\rm infix}(u)$ of infix $u$  is accordingly defined as the sum of
-probabilities  of sentences  containing  $u$, i.e.\  $P_{\rm  infix}(u) =  \sum_{w,v}
-P(wuv)$ where $v$ and $w$ are strings such that $wuv$ is a sentence.
-
-The  following   program  encodes  an  infix  parser   for  infix  probability
-computation by the Nederhof  and Satta's algorithm \cite{Nederhof11}.  Roughly
-this program constructs  a finite automaton {\tt FA} for  the input infix {\tt
-  L} and takes the intersection of  {\tt FA} and a given PCFG while preserving
-probabilistic structure of the PCFG.
-%
-\flagindex{error\_on\_cycle}
-\begin{quote}
-\begin{small}
-\begin{verbatim}
-:- set_prism_flag(error_on_cycle,off).
-values(s,[[s,s],[a],[b]],[0.4,0.3,0.3]).
-
-infix_pcfg(L):-                     % L : input infix
-    build_FA(L),                    % FA asserted in the memory
-    last_state(L,End),              % End is last_state of FA
-    start_symbol(C),
-    infix_pcfg(0,End,[C]).          % FA transits from state 0 to End
-
-infix_pcfg(S0,S2,[A|R]):-
-    ( get_values(A,_) ->            % A : nonterminal
-        msw(A,RHS),                 % use A -> RHS to expand A
-        infix_pcfg(S0,S1,RHS)
-    ; tr(S0,A,S1) ),                % state transition by A from S0 to S1
-    infix_pcfg(S1,S2,R).
-infix_pcfg(S,S,[]).
-\end{verbatim}
-\end{small}
-\end{quote}
-%
-By running a command {\tt ?-probf(infix\_pcfg([a,b]))}, we obtain an explanation
-graph for {\tt infix\_\lb pcfg([a,b])} as follows:
-\begin{quote}
-\begin{small}
-\begin{verbatim}
-infix_pcfg([a,b])
-   <=> infix_pcfg(0,2,[s])
-infix_pcfg(0,2,[s])
-   <=> infix_pcfg(0,2,[s,s]) & infix_pcfg(2,2,[]) & msw(s,[s,s])
-...
-infix_pcfg(0,0,[s,s])
-   <=> infix_pcfg(0,0,[b]) & infix_pcfg(0,0,[s]) & msw(s,[b])
-     v infix_pcfg(0,0,[s,s]) & infix_pcfg(0,0,[s]) & msw(s,[s,s])
-infix_pcfg(0,0,[s])
-   <=> infix_pcfg(0,0,[b]) & infix_pcfg(0,0,[]) & msw(s,[b])
-     v infix_pcfg(0,0,[s,s]) & infix_pcfg(0,0,[]) & msw(s,[s,s])
-infix_pcfg(0,0,[b])
-   <=> infix_pcfg(0,0,[])
-infix_pcfg(0,0,[])
-\end{verbatim}
-\end{small}
-\end{quote}
-%
-This is  a nonlinear cyclic explanation  graph.  To spot  the non-linearity of
-this graph, we remove {\tt infix\_pcfg(\lb 0,0,[])} and {\tt infix\_pcfg(0,0,[b])}
-from the graph and show part of the simplified graph below:
-\begin{quote}
-\begin{small}
-\begin{verbatim}
-infix_pcfg(0,0,[s,s])
-   <=> infix_pcfg(0,0,[s]) & msw(s,[b])
-     v infix_pcfg(0,0,[s,s]) & infix_pcfg(0,0,[s]) & msw(s,[s,s])
-infix_pcfg(0,0,[s])
-   <=> msw(s,[b])
-     v infix_pcfg(0,0,[s,s]) & msw(s,[s,s])
-\end{verbatim}
-\end{small}
-\end{quote}
-%
-As can  be seen,  {\tt infix\_pcfg(0,0,[s])} and  {\tt infix\_pcfg(0,0,[s,s])}
-are mutually  recursive and  hence belong  to the same  SCC.  Also  they occur
-together in  the second disjunct of  the first sub-explanation  graph for {\tt
-  infix\_pcfg(0,0,[s,s])}.  So  this is a nonlinear  cyclic explanation graph.
-Then, {\tt nonlin\_prob(infix\_\lb pcfg([a,b]))} computes the infix probability of
-{\tt [a,b]} as follows:
-\predindex{nonlin\_prob/1}
-\begin{quote}
-\begin{verbatim}
-?- nonlin_prob(infix_pcfg([a,b]))        
-Probability is 0.235363
-\end{verbatim}
-\end{quote}
 
 
 \chapter{Parallel EM learning*}
@@ -13809,7 +13535,7 @@ Switch tr(s1): unfixed_p: s1 (p: 0.677016948) s0 (p: 0.322983052)
 
 \exindex{dieting professor program|)}
 
-\section{Linear-chain CRFs}
+\section{Linear-chain CRFs*}
 \label{sec:example:crf}
 
 \exindex{linear-chain CRF program|(}
@@ -14125,6 +13851,310 @@ Zs = [[a,a],[a,b],[b,a]]
 % ?- n_crf_viterbit(3,hmm0([a,b,b]),Ts).
 
 \exindex{linear-chain CRF program|)}
+
+\section{Linear cyclic explanation graph*}
+\label{sec:example:lin}
+
+Cyclic  explanation graphs (Chapter~\ref{chap:cycle})
+enable us  to deal  with useful  models  of cyclic
+probabilistic  relations.  For  example, a  reachability relation  in discrete
+time Markov chains\conindex{discrete time Markov chains}
+and infinite recursion associated with the computation of
+prefix probability\conindex{prefix probability} in PCFGs yield
+cyclic explanation graphs~\cite{Sato13}.
+%  It is possible to compute their probabilities easily by the PRISM system.
+
+\begin{figure}[t]
+  \begin{center}
+    \includegraphics[width=0.4\hsize]{fig/DTMC01.eps}
+    \caption{An example of discrete time Markov chains}
+    \label{fig:dtmc}
+  \end{center}
+\end{figure}
+
+To  have a  close look  at cyclic  explanation graphs,  we introduce  a sample
+program that  describes the  reachability relation on  a discrete  time Markov
+chain shown in Figure~\ref{fig:dtmc}, where a state transition is made
+by a probabilistic choice of next state by {\tt msw/2}:
+%
+\flagindex{error\_on\_cycle}
+\begin{quote}
+\begin{small}
+\begin{verbatim}
+:- set_prism_flag(error_on_cycle,off).
+
+values(t(s0),[s0,s1,s2],[0.5,0.3,0.2]).
+values(t(s1),[s1,s3,s4],[0.4,0.1,0.5]).
+values(t(s2),[s2],[1.0]).
+values(t(s3),[s3],[1.0]).
+values(t(s4),[s4],[1.0]).
+
+tr(S,T) :- get_values(t(S),OS),member(T,OS),msw(t(S),T).
+reach(S,S).
+reach(S,T) :- \+S==T,tr(S,U),reach(U,T).
+\end{verbatim}
+\end{small}
+\end{quote}
+%
+Since   this   Markov   chain   has   a  self-loop   at   each   state,   {\tt
+probf(reach(s0,s3))} returns a cyclic explanation graph as follows:
+%
+\predindex{probf/1}
+\begin{quote}
+\begin{small}
+\begin{verbatim}
+?- probf(reach(s0,s3)).
+reach(s0,s3)
+   <=> tr(s0,s1) & reach(s1,s3)
+     v tr(s0,s0) & reach(s0,s3)
+reach(s1,s3)
+   <=> tr(s1,s3) & reach(s3,s3)
+     v tr(s1,s1) & reach(s1,s3)
+reach(s3,s3)
+tr(s1,s3)
+   <=> msw(t(s1),s3)
+tr(s1,s1)
+   <=> msw(t(s1),s1)
+tr(s0,s1)
+   <=> msw(t(s0),s1)
+tr(s0,s0)
+   <=> msw(t(s0),s0)
+\end{verbatim}
+\end{small}
+\end{quote}
+%
+In this graph, {\tt reach(s0,s3)}  simultaneously occurs in the left and right
+hand sides of  the first sub-explanation graph and forms  a self-loop.  So the
+graph is a linear cyclic explanation  graph and we use special predicates {\tt
+  lin\_prob/1} and {\tt lin\_probfi/2} to compute the reachability probability
+from {\tt s0} to {\tt s3} and obtain $0.1$ as follows:
+%
+\predindex{lin\_prob/1}
+\predindex{lin\_probfi/2}
+\begin{quote}
+\begin{small}
+\begin{verbatim}
+?- lin_prob(reach(s0,s3)).
+Probability of reach(s0,s3) is: 0.100000000000000
+
+?- lin_probfi(reach(s0,s3)).
+reach(s0,s3) [0.1]
+   <=> tr(s0,s1) [0.3] & reach(s1,s3) [0.166667]  {0.05}
+     v tr(s0,s0) [0.5] & reach(s0,s3) [0.1]  {0.05}
+reach(s1,s3) [0.166667]
+   <=> tr(s1,s3) [0.1] & reach(s3,s3) [1]  {0.1}
+     v tr(s1,s1) [0.4] & reach(s1,s3) [0.166667]  {0.0666667}
+reach(s3,s3) [1]
+tr(s1,s3) [0.1]
+   <=> msw(t(s1),s3) [0.1]  {0.1}
+tr(s1,s1) [0.4]
+   <=> msw(t(s1),s1) [0.4]  {0.4}
+tr(s0,s1) [0.3]
+   <=> msw(t(s0),s1) [0.3]  {0.3}
+tr(s0,s0) [0.5]
+   <=> msw(t(s0),s0) [0.5]  {0.5}
+\end{verbatim}
+\end{small}
+\end{quote}
+
+As another example of  probability computation using linear cyclic explanation
+graphs, let us consider prefix probability computation in PCFGs.  A prefix $u$
+is an initial substring of a sentence and the  prefix  probability\conindex{prefix probability}
+$P_{\rm prefix}(u)$  of  $u$  is  defined  as  the sum  of  probabilities  of sentences
+containing $u$,  i.e.\ $P_{\rm prefix}(u)  = \sum_v P(uv)$  where $v$ is  a string
+such  that  $uv$ is  a  sentence.  So  $P_{\rm  prefix}(u)$  (usually) becomes  an
+infinite sum.  This sum however can  be computed by solving a system of linear
+equations  derived  from a  linear  cyclic  explanation  graph. The  graph  is
+generated by a prefix parser program shown below:
+%
+\flagindex{error\_on\_cycle}
+\begin{quote}
+\begin{small}
+\begin{verbatim}
+:- set_prism_flag(error_on_cycle,off).
+values(s,[[s,s],[a],[b]],[0.4,0.3,0.3]).
+
+prefix_pcfg(L) :- prefix_pcfg([s],L,[]).  % L is a prefix
+prefix_pcfg([A|R],L0,L2):-                % L0 is ground when called
+    ( get_values(A,_)                     % if A is a nonterminal
+      -> msw(A,RHS),                      % then select rule A->RHS
+         prefix_pcfg(RHS,L0,L1) 
+    ; L0=[A|L1]                           % else consume A in L0
+    ),
+    ( L1=[] -> L2=[]                      % (pseudo) success
+    ; prefix_pcfg(R,L1,L2)                % recursion
+    ).
+prefix_pcfg([],L1,L1).                    % termination
+\end{verbatim}
+\end{small}
+\end{quote}
+%
+This parser is a slight generalization of usual top-down PCFG
+parser\footnote{
+  % 
+  The program is specialized for a PCFG containing CFG rules {\tt s -> ss}(0.4),
+  {\tt  s -> a}(0.3)  and {\tt  s ->  b}(0.3) where  numbers in  parentheses are
+  application probabilities of rules.
+  % 
+}
+where  the only difference  is the insertion  of one line code  commented as
+``{\tt (pseudo) success}.''
+
+Now think of a prefix {\tt [a,b]} in this PCFG, represented by a top-goal {\tt
+  prefix\_pcfg([a,b])}.  By  {\tt probf/1} we obtain an  explanation graph for
+the goal as follows:
+\begin{quote}
+\begin{small}
+\begin{verbatim}
+?- probf(prefix_pcfg([a,b]))
+prefix_pcfg([a,b])
+   <=> prefix_pcfg([s],[a,b]-[])
+prefix_pcfg([s],[a,b]-[])
+   <=> prefix_pcfg([s,s],[a,b]-[]) & msw(s,[s,s])
+prefix_pcfg([s,s],[a,b]-[])
+   <=> prefix_pcfg([a],[a,b]-[b]) & prefix_pcfg([s],[b]-[]) & msw(s,[a])
+     v prefix_pcfg([s,s],[a,b]-[]) & msw(s,[s,s])
+prefix_pcfg([s],[b]-[])
+   <=> prefix_pcfg([s,s],[b]-[]) & msw(s,[s,s])
+     v prefix_pcfg([b],[b]-[]) & msw(s,[b])
+prefix_pcfg([s,s],[b]-[])
+   <=> prefix_pcfg([b],[b]-[]) & msw(s,[b])
+     v prefix_pcfg([s,s],[b]-[]) & msw(s,[s,s])
+prefix_pcfg([b],[b]-[])
+prefix_pcfg([a],[a,b]-[b])
+   <=> prefix_pcfg([],[b]-[b])
+prefix_pcfg([],[b]-[b])
+\end{verbatim}
+\end{small}
+\end{quote}
+%
+Since this explanation graph  has self-loops of {\tt prefix\_pcfg([s,s],[a,b]-[])} and  {\tt prefix\_pcfg(\lb [s,s],[b]-[])} and are  linear, we  apply {\tt
+  lin\_prob/1} to compute the prefix probability of {\tt [a,b]} as follows:
+%
+\predindex{lin\_prob/1}
+\begin{quote}
+\begin{verbatim}
+?- lin_prob(prefix_pcfg([a,b]))
+Probability of prefix_pcfg([a,b]) is: 0.100000000000000
+\end{verbatim}
+\end{quote}
+%
+Although  these  are small  examples  and  the  explanation graphs  have  only
+self-loops,  {\tt  lin\_prob/1,2} can  deal  with  much  larger linear  cyclic
+explanation graphs containing tens of thousands of nodes and long cycles.
+
+
+\section{Nonlinear cyclic explanation graphs*}
+\label{sec:example:nonlin}
+
+Nonlinear  cyclic explanation  graphs (Chapter~\ref{chap:cycle})
+enable the  user to  perform yet
+another  challenging   probability  computation  such   as infix  probability
+computation in PCFGs~\cite{Nederhof11}.\conindex{infix probability}
+As previously explained, a nonlinear cyclic explanation graph is
+an explanation graph containing a sub-explanation
+graph  such that  two or  more  goals occurring  together in  some right  hand
+disjunct and their caller on the left hand side belong to the same SCC like:
+%
+\begin{quote}
+\begin{verbatim}
+pred(a)<=> pred(a) & pred(a) & ...
+     v....
+\end{verbatim}
+\end{quote}
+%
+PRISM supports {\tt nonlin\_prob({\it G})}  to compute the probability of {\it
+  G} that generates a nonlinear  cyclic explanation graph.  To exemplify them,
+we introduce a  program that computes infix probabilities  in PCFGs.  An infix
+$u$  is a  substring  that  occur in  the  middle of  a  sentence.  The  infix
+probability\conindex{infix probability}
+$P_{\rm infix}(u)$ of infix $u$  is accordingly defined as the sum of
+probabilities  of sentences  containing  $u$, i.e.\  $P_{\rm  infix}(u) =  \sum_{w,v}
+P(wuv)$ where $v$ and $w$ are strings such that $wuv$ is a sentence.
+
+The  following   program  encodes  an  infix  parser   for  infix  probability
+computation by the Nederhof  and Satta's algorithm \cite{Nederhof11}.  Roughly
+this program constructs  a finite automaton (FA) for  the input infix {\tt
+  L} and takes the intersection of FA and a given PCFG while preserving
+probabilistic structure of the PCFG.
+%
+\flagindex{error\_on\_cycle}
+\begin{quote}
+\begin{small}
+\begin{verbatim}
+:- set_prism_flag(error_on_cycle,off).
+values(s,[[s,s],[a],[b]],[0.4,0.3,0.3]).
+
+infix_pcfg(L):-                     % L : input infix
+    build_FA(L),                    % FA asserted in the memory
+    last_state(L,End),              % End is last_state of FA
+    start_symbol(C),
+    infix_pcfg(0,End,[C]).          % FA transits from state 0 to End
+
+infix_pcfg(S0,S2,[A|R]):-
+    ( get_values(A,_) ->            % A : nonterminal
+        msw(A,RHS),                 % use A -> RHS to expand A
+        infix_pcfg(S0,S1,RHS)
+    ; tr(S0,A,S1) ),                % state transition by A from S0 to S1
+    infix_pcfg(S1,S2,R).
+infix_pcfg(S,S,[]).
+\end{verbatim}
+\end{small}
+\end{quote}
+%
+By running a command {\tt ?- probf(infix\_pcfg([a,b]))}, we obtain an explanation
+graph for {\tt infix\_\lb pcfg([a,b])} as follows:
+\begin{quote}
+\begin{small}
+\begin{verbatim}
+infix_pcfg([a,b])
+   <=> infix_pcfg(0,2,[s])
+infix_pcfg(0,2,[s])
+   <=> infix_pcfg(0,2,[s,s]) & infix_pcfg(2,2,[]) & msw(s,[s,s])
+...
+infix_pcfg(0,0,[s,s])
+   <=> infix_pcfg(0,0,[b]) & infix_pcfg(0,0,[s]) & msw(s,[b])
+     v infix_pcfg(0,0,[s,s]) & infix_pcfg(0,0,[s]) & msw(s,[s,s])
+infix_pcfg(0,0,[s])
+   <=> infix_pcfg(0,0,[b]) & infix_pcfg(0,0,[]) & msw(s,[b])
+     v infix_pcfg(0,0,[s,s]) & infix_pcfg(0,0,[]) & msw(s,[s,s])
+infix_pcfg(0,0,[b])
+   <=> infix_pcfg(0,0,[])
+infix_pcfg(0,0,[])
+\end{verbatim}
+\end{small}
+\end{quote}
+%
+This is  a nonlinear cyclic explanation  graph.  To spot  the non-linearity of
+this graph, we remove {\tt infix\_pcfg(\lb 0,0,[])} and {\tt infix\_pcfg(0,0,[b])}
+from the graph and show part of the simplified graph below:
+\begin{quote}
+\begin{small}
+\begin{verbatim}
+infix_pcfg(0,0,[s,s])
+   <=> infix_pcfg(0,0,[s]) & msw(s,[b])
+     v infix_pcfg(0,0,[s,s]) & infix_pcfg(0,0,[s]) & msw(s,[s,s])
+infix_pcfg(0,0,[s])
+   <=> msw(s,[b])
+     v infix_pcfg(0,0,[s,s]) & msw(s,[s,s])
+\end{verbatim}
+\end{small}
+\end{quote}
+%
+As can  be seen,  {\tt infix\_pcfg(0,0,[s])} and  {\tt infix\_pcfg(0,0,[s,s])}
+are mutually  recursive and  hence belong  to the same  SCC.  Also  they occur
+together in  the second disjunct of  the first sub-explanation  graph for {\tt
+  infix\_pcfg(0,0,[s,s])}.  So  this is a nonlinear  cyclic explanation graph.
+Then, {\tt nonlin\_prob(infix\_\lb pcfg([a,b]))} computes the infix probability of
+{\tt [a,b]} as follows:
+\predindex{nonlin\_prob/1}
+\begin{quote}
+\begin{verbatim}
+?- nonlin_prob(infix_pcfg([a,b]))        
+Probability is 0.235363
+\end{verbatim}
+\end{quote}
+
 
 \appendix
 

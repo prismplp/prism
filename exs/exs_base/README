@@ -1,4 +1,4 @@
-========================== README (exs) ==========================
+========================== README (base) ==========================
 
 Files/Directories:
   README          ... this file
@@ -26,7 +26,7 @@ How to use:
 Comment:
   The above programs contain no negation. When a program contains
   negation, you have to compile away negation by FOC (first order
-  compiler).  For PRISM programs with negation, see ../exs_fail.
+  compiler).  For PRISM programs with negation, see ../fail.
 
 References:
 

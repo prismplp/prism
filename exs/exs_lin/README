@@ -1,0 +1,33 @@
+========================== README (cyc) ===========================
+
+Files/Directories:
+  README          ... this file
+  mc.psm          ... Markov chain program with cyclic state transitions
+  prefix_pcfg.psm ... PCFG program for prefix probability computation
+  rule.pl         ... grammatical rules to be included in prefix_pcfg.psm
+
+How to use:
+  All programs are self-contained, hopefully.  Try first a sample
+  session in each program to get familiar with a model.
+
+Comment:
+  The above programs illustrate how to perform prefix probability
+  computation in PRISM.
+
+References:
+
+(PRISM)
+  Parameter Learning of Logic Programs for Symbolic-statistical Modeling,
+  Sato, T. and Kameya, Y.,
+  Journal of Artificial Intelligence Research 15, pp.391-454, 2001.
+
+  New advances in logic-based probabilistic modeling by PRISM,
+  Sato, T. and Kameya, Y.,
+  Probabilistic Inductive Logic Programming, LNCS 4911, Springer,
+  pp.118-155, 2008.
+
+(Prefix probability computation)
+  Sato, T. and Meyer, P.,
+  Infinite probability computation by cyclic explanation graphs,
+  Theory and Practice of Logic Programming, Vol.14, No.6,
+  pp.909-937, 2014.

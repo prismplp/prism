@@ -1,4 +1,4 @@
-**** README (bn2prism: includes) ****
+=============== README (bn2prism: includes) =================
 
 This directory contains Prism programs to be included in the
 translated join-tree Prism programs.  Copy the files here to

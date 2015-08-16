@@ -1,59 +1,102 @@
-%% file = prefix_pcfg.psm
-%--------------------------------------
-% [Usage]
-% $ prism
-% ?- prism(prefix_pcfg),lin_prob(prefix_pcfg([a,a]))
-% 
-% [Explanation graph]
-%
-% prefix_pcfg([a,a])
-%   <=> prefix_pcfg([s],[a,a]- [])
-% prefix_pcfg([s],[a,a]- [])
-%   <=> prefix_pcfg([s,s],[a,a]- []) & msw(s,[s,s])
-% prefix_pcfg([s,s],[a,a]- [])
-%   <=> prefix_pcfg([a],[a,a]-[a]) & prefix_pcfg([s],[a]- []) & msw(s,[a])
-%     v prefix_pcfg([s,s],[a,a]- []) & msw(s,[s,s])
-% prefix_pcfg([s],[a]- [])
-%   <=> prefix_pcfg([s,s],[a]- []) & msw(s,[s,s])
-%     v prefix_pcfg([a],[a]- []) & msw(s,[a])
-% prefix_pcfg([s,s],[a]- [])
-%   <=> prefix_pcfg([a],[a]- []) & msw(s,[a])
-%     v prefix_pcfg([s,s],[a]- []) & msw(s,[s,s])
-% prefix_pcfg([a],[a]- [])
-% prefix_pcfg([a],[a,a]-[a])
-%   <=> prefix_pcfg([],[a]-[a])
-% prefix_pcfg([],[a]-[a])
-%
-% [Equations]
-% x[0] = 0.400*x[1]
-% x[1] = 0.400*x[1]+0.300*x[2]
-% x[2] = 0.400*x[3]+0.300
-% x[3] = 0.400*x[3]+0.300
-%
-% [Solutions]
-% x[0]=0.1
-% ( x[1]=0.25 )
-% ( x[2]=0.5  )
-% ( x[3]=0.5  )
-%
-%%--------------------------------------
+%%%%
+%%%%  Prefix probability computation for a PCFG --- prefix_pcfg.psm
+%%%%
+%%%%  Copyright (C) 2014-2015
+%%%%    Sato Laboratory, Dept. of Computer Science,
+%%%%    Tokyo Institute of Technology
+%%%%
 
-prism_main:-lin_prob(prefix_pcfg([a,a])).
+%% This program describes a probabilistic context-free grammar for computing
+%% the (generative) probability of a given prefix substring.  Such prefix
+%% probability computation is made based on cyclic explanation graphs.  The
+%% exemplar PCFG is as follows:
+%%
+%%   s --> s s (prob. 0.4)
+%%   s --> a (0.3)
+%%   s --> b (0.3)
+%%
+%% The probability of a prefix substring u is defined as the sum of the
+%% probability of s = uv over possible v's.  Due to the grammar-independent
+%% modeling part of a PCFG in this file, we usually have a cyclic explanation
+%% graph when computing prefix probabilities.
+%%
+%% Here let us compute the prefix probability of a substring 'aa':
+%%
+%% 1. First, load this program:
+%%
+%%      ?- prism(prefix_pcfg)
+%% 
+%% 2. Then, to see what happens later, let us consider a cyclic explanation
+%%    graph for a goal reach(s0,s1), which shows all possible transitions
+%%    from s0 to s1:
+%% 
+%%      ?- probf(prefix_pcfg([a,a]))
+%%
+%%      prefix_pcfg([a,a])
+%%        <=> prefix_pcfg([s],[a,a]- [])
+%%      prefix_pcfg([s],[a,a]- [])
+%%        <=> prefix_pcfg([s,s],[a,a]- []) & msw(s,[s,s])
+%%      prefix_pcfg([s,s],[a,a]- [])
+%%        <=> prefix_pcfg([a],[a,a]-[a]) & prefix_pcfg([s],[a]- []) & msw(s,[a])
+%%          v prefix_pcfg([s,s],[a,a]- []) & msw(s,[s,s])
+%%      prefix_pcfg([s],[a]- [])
+%%        <=> prefix_pcfg([s,s],[a]- []) & msw(s,[s,s])
+%%          v prefix_pcfg([a],[a]- []) & msw(s,[a])
+%%      prefix_pcfg([s,s],[a]- [])
+%%        <=> prefix_pcfg([a],[a]- []) & msw(s,[a])
+%%          v prefix_pcfg([s,s],[a]- []) & msw(s,[s,s])
+%%      prefix_pcfg([a],[a]- [])
+%%      prefix_pcfg([a],[a,a]-[a])
+%%        <=> prefix_pcfg([],[a]-[a])
+%%      prefix_pcfg([],[a]-[a])
+%%
+%%    From above, we can consider a system of linear equations:
+%%
+%%      x[0] = 0.4 * x[1]
+%%      x[1] = 0.4 * x[1] + 0.3 * x[2]
+%%      x[2] = 0.4 * x[3] + 0.3
+%%      x[3] = 0.4 * x[3] + 0.3.
+%%
+%%    where each x[i] indicates the corresponding goal probability and in particular
+%%    x[0] is the probability of prefix_pcfg([a,a]) or the prefix probability of
+%%    substring 'aa' by our model specification.  It is not difficult to obtain the
+%%    solution as follows:
+%%
+%%      x[0] = 0.1
+%%      x[1] = 0.25
+%%      x[2] = 0.5
+%%      x[3] = 0.5.
+%%
+%%    From this we can say that the prefix probability of 'aa' is 0.1. 
+%%
+%% 3. The above inference can be performed just by asking:
+%%
+%%      ?- lin_prob(prefix_pcfg([a,a]))
+%%      Probability of prefix_pcfg([a,a]) is: 0.100000000000000
+
+% To obtain cyclic explanations, currently we need to turn off
+% the error_on_cycle flag:
 :- set_prism_flag(error_on_cycle,off).
 
-start_symbol(s).
-:-include('rule').
+% We define the grammar-dependent part of our PCFG in rule.pl and include it here:
+:- include('rule').
 
+% Top goal specification for batch execution by the upprism command:
+prism_main :- lin_prob(prefix_pcfg([a,a])).
+
+% Top goal of the grammar-independent part of a PCFG:
 prefix_pcfg(L):-            % L is a ground list
    start_symbol(S),
    prefix_pcfg([S],L-[]).
 
+% Recursive part called from prefix_pcfg/1:
 prefix_pcfg([A|R],L0-L2):-  % L0 ground, L2 variable when called
     ( nonterminal(A)
-    -> msw(A,RHS),           % rule A->RHS selected
-        prefix_pcfg(RHS,L0-L1)
-        ;  L0=[A|L1] ),
-          ( L1=[] -> L2=[]         % prefix is derived
-           ; prefix_pcfg(R,L1-L2) ).
+      -> msw(A,RHS),        % rule A->RHS selected
+         prefix_pcfg(RHS,L0-L1)
+    ;  L0=[A|L1]
+    ),
+    ( L1=[] -> L2=[]        % pseudo success: prefix is derived
+    ; prefix_pcfg(R,L1-L2)
+    ).
 prefix_pcfg([],L1-L1).
-
