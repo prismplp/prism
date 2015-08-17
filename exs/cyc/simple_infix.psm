@@ -1,9 +1,9 @@
 %% file = simple_infix.psm
 %--------------------------------------
 % [Usage]
-% $ inprism
-% ?- prism(simple_infix),in_prob(infix([a]))
-% Probability is 0.679449
+% $ prism
+% ?- prism(simple_infix),nonlin_prob(infix([a]))
+% Probability is 0.651388
 % 
 % [Explanation graph]
 %probf(infix([a]))                      
@@ -26,14 +26,13 @@
 %infix(s0,s0,b)
 %
 % [Equations]
-% x[1] : 0.2*x[3]*x[1]+0.2*x[1]*x[2]+0.5
-% x[2] : 0.2*x[2]*x[2]+0.3+0.5
-% x[3] : 0.2*x[3]*x[3]+0.3
+% x[1] : 0.4*x[3]*x[1]+0.4*x[1]*x[2]+0.3
+% x[2] : 0.4*x[2]*x[2]+0.3+0.3
+% x[3] : 0.4*x[3]*x[3]+0.3
 %
 % [Solutions]
-% x[1]>=0,x[2]>=0,x[3]>=0
-% x[1] -> 0.679449, x[2] -> 1, x[3] -> 0.320551
-% x[1] -> 3.67945, x[2] -> 4, x[3] -> 0.320551
+% 1>=x[1]>=0,1>=x[2]>=0,1>=x[3]>=0
+% x[1] -> 0.61583, x[2] -> 1, x[3] -> 0.697224
 %%--------------------------------------
 
 :- set_prism_flag(error_on_cycle,off).
