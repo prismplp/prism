@@ -13,18 +13,18 @@ endif
 ifeq ($(PLATFORM),linux64)
 ifeq ($(MATRIX),lapack)
 ## this order is important
-LAPACK_OBJS = lapack$(S)liblapacke.$(A)    \
-            lapack$(S)liblapack.$(A)   \
-            lapack$(S)libtmglib.$(A)    \
-            lapack$(S)librefblas.$(A)      
+LAPACK_OBJS = resource$(S)lapack$(S)liblapacke.$(A)    \
+            resource$(S)lapack$(S)liblapack.$(A)   \
+            resource$(S)lapack$(S)libtmglib.$(A)    \
+            resource$(S)lapack$(S)librefblas.$(A)      
 endif
 endif
 ifeq ($(PLATFORM),linux32)
 ifeq ($(MATRIX),lapack)
-LAPACK_OBJS = lapack32$(S)liblapacke.$(A)    \
-            lapack32$(S)liblapack.$(A)   \
-            lapack32$(S)libtmglib.$(A)    \
-            lapack32$(S)librefblas.$(A)      
+LAPACK_OBJS = resource$(S)lapack32$(S)liblapacke.$(A)    \
+            resource$(S)lapack32$(S)liblapack.$(A)   \
+            resource$(S)lapack32$(S)libtmglib.$(A)    \
+            resource$(S)lapack32$(S)librefblas.$(A)      
 endif
 endif
 

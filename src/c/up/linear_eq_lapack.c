@@ -8,13 +8,13 @@ int lapack_solve(void);
 // need to declare this function before
 double bpx_get_float(TERM t);
 
-int pc_solve_linear_system_4(void) {
+int pc_solve_linear_system_5(void) {
 	// get arguments
 	TERM pr_n, pr_A, pr_b, pr_x;
-	pr_n = bpx_get_call_arg(1,4); // first argument: vector size
-	pr_A = bpx_get_call_arg(2,4); // second argument: matrix A
-	pr_b = bpx_get_call_arg(3,4); // third argument: RHS vector b
-	pr_x = bpx_get_call_arg(4,4); // fourth argument: solution x
+	pr_n = bpx_get_call_arg(1,5); // first argument: vector size
+	pr_A = bpx_get_call_arg(2,5); // second argument: matrix A
+	pr_b = bpx_get_call_arg(3,5); // third argument: RHS vector b
+	pr_x = bpx_get_call_arg(4,5); // fourth argument: solution x
 
 	// transform to c types
 	int n = bpx_get_integer(pr_n);

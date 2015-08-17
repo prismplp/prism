@@ -25,11 +25,12 @@ LD          = gcc
 #CFLAGS     = -pg -Wall -I../bp4prism/include -I..
 
 ifeq ($(MATRIX),lapack)
-CFLAGS     = -g -DMALLOC_TRACE -fomit-frame-pointer -fno-strict-aliasing -Wall -I../bp4prism/include -I.. -I../lapack -I../up/liblbfgs-1.10/include
+CFLAGS     = -DMALLOC_TRACE -fomit-frame-pointer -fno-strict-aliasing -Wall -I../bp4prism/include -I.. -I../resource/lapack -I../resource
 LDFLAGS     = -lm -lpthread -lgfortran
+CXXFLAGS=$(CFLAGS)
+LD         = g++
 else
-CFLAGS     = -g -DMALLOC_TRACE -fomit-frame-pointer -fno-strict-aliasing -Wall -I../bp4prism/include -I.. -I../eigen -I../up/liblbfgs-1.10/include
-
+CFLAGS     = -DMALLOC_TRACE -fomit-frame-pointer -fno-strict-aliasing -Wall -I../bp4prism/include -I.. -I../resource
 LDFLAGS    = -lm -lpthread 
 CXXFLAGS=$(CFLAGS)
 LD         = g++

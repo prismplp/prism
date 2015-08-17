@@ -24,9 +24,15 @@ OBJS = graph.$(O)             \
        hindsight.$(O)         \
        flags.$(O)             \
        util.$(O)              \
+	   feature.$(O)           \
+	   crfviterbi.$(O)        \
        linear_eq_lapack.$(O)  \
        lbfgs.$(O)             \
-       nonlinear_eq.$(O)
+       nonlinear_eq.$(O)      \
+       scc.$(O)               \
+       cyc_vt_preds.$(O)      \
+       cyc_vt_ml.$(O)      
+
 
 
 ##----------------------------------------------------------------------

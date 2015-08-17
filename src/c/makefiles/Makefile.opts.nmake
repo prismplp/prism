@@ -26,10 +26,10 @@ A           = lib
 S           = \ #
 
 !IF "$(MATRIX)"=="lapack"
-CFLAGS      = /O2 /nologo /EHsc /I..\bp4prism\include /I.. /I..\lapack /I..\up\liblbfgs-1.10\include
+CFLAGS      = /O2 /nologo /EHsc /I..\bp4prism\include /I.. /I..\resource\lapack /I..\resource
 LDFLAGS     = /nologo
 !ELSE
-CFLAGS      = /O2 /nologo /EHsc /I..\bp4prism\include /I.. /I..\eigen /I..\up\liblbfgs-1.10\include
+CFLAGS      = /O2 /nologo /EHsc /I..\bp4prism\include /I.. /I..\resource
 CPPFLAGS=$(CFLAGS)
 LDFLAGS     = /nologo
 !ENDIF
