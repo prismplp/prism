@@ -1,0 +1,57 @@
+%% file = prefix_pcfg_learning.psm
+%--------------------------------------
+%%  Parameter learning of the PCFG from randomly sampled 100 prefixes with length less than 3
+%%
+%%  Lerning with the EM algorithm
+%%  ?- prism(prefix_pcfg_learning),learn_with_em(100,3). 
+%%  Lerning with the VT algorithm
+%%  ?- prism(prefix_pcfg_learning),learn_with_vt(100,3). 
+%% 
+%%--------------------------------------
+:-set_prism_flag(error_on_cycle,off).
+
+% Top goal specification for batch execution by the upprism command:
+prism_main([em]):-learn_with_em(100,3),show_sw.
+prism_main([vt]):-learn_with_vt(100,3),show_sw.
+
+
+learn_with_em(N,Len):-get_samples(N,pcfg(_),S),maplist(X,Y,(X=pcfg(L),generate_prefix(L,Pre,Len),Y=prefix_pcfg(Pre)),S,Gs),lin_learn(Gs).
+learn_with_vt(N,Len):-get_samples(N,pcfg(_),S),maplist(X,Y,(X=pcfg(L),generate_prefix(L,Pre,Len),Y=prefix_pcfg(Pre)),S,Gs),set_prism_flag(learn_mode,ml_vt),lin_learn(Gs).
+
+
+% generate Prefix with length less than N from Sentence
+generate_prefix(Sentence,Sentence,N):-length(Sentence,L),L<N.
+generate_prefix(Sentence,Prefix,N):-length(Prefix,N),append(Prefix,_,Sentence).
+
+% We define the grammar-dependent part of our PCFG in rule.pl and include it here:
+:- include('rule').
+
+%% prefix model
+
+prefix_pcfg(L):-            % L is a ground list
+   start_symbol(S),
+   prefix_pcfg([S],L-[]).
+
+prefix_pcfg([A|R],L0-L2):-  % L0 ground, L2 variable when called
+    ( get_values(A,_)
+    -> msw(A,RHS),           % rule A->RHS selected
+        prefix_pcfg(RHS,L0-L1)
+        ;  L0=[A|L1] ),
+          ( L1=[] -> L2=[]         % prefix is derived
+           ; prefix_pcfg(R,L1-L2) ).
+prefix_pcfg([],L1-L1).
+
+%%  PCFG program to get samples
+:- p_not_table proj/2. 
+
+pcfg(L):- start_symbol(S),pcfg(S,L-[]).
+pcfg(LHS,L0-L1):-
+  ( get_values(LHS,_) -> msw(LHS,RHS),proj(RHS,L0-L1)
+  ; L0 = [LHS|L1]
+  ).
+
+proj([],L-L).
+proj([X|Xs],L0-L1):-
+  pcfg(X,L0-L2),proj(Xs,L2-L1).
+
+

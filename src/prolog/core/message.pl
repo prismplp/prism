@@ -214,6 +214,7 @@ $pp_message($msg(9802),inter,"invalid internal representation").
 $pp_message($msg(9803),inter,"unmatched branches").
 $pp_message($msg(9804),inter,"unexpected failure").
 $pp_message($msg(9805),inter,"failure in hash-id registration -- {1}").
+$pp_message($msg(9806),inter,"not implemented yet -- {1}").
 
 % Fatal errors
 $pp_message($msg(9900),fatal,"assertion failure -- {1}").

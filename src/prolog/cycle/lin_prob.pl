@@ -109,12 +109,23 @@ $pp_cyc_probfi(Goal,OrgExpls,Decode,NewExpls2) :-
   %
   $pp_garbage_collect.
 
+cyc_learn(Goals) :-
+    get_prism_flag(learn_mode,Mode0),
+    $pp_conv_learn_mode(Mode0,Mode,VT),
+    ( VT = 0 -> ($pp_emit_message($msg(9806),['cyc_learn/1 when the learn_mode flag is not set as ml_vt']),fail)
+    ; VT = 1 -> $pp_cyc_vlearn_main(Mode,Goals)
+    ).
+
 
 lin_learn(Goals) :-
-$pp_lin_learn_core(ml,Goals,0).
+    get_prism_flag(learn_mode,Mode0),
+    $pp_conv_learn_mode(Mode0,Mode,VT),
+    ( VT = 0 -> $pp_lin_learn_main(Mode,Goals)
+    ; VT = 1 -> $pp_cyc_vlearn_main(Mode,Goals)
+    ).
 
-lin_learn_m(Goals,Debug) :-
-$pp_lin_learn_core(ml,Goals,Debug).
+%$pp_lin_learn_main(Mode,Goals) :- call($pp_lin_learn_core(Mode,Goals,0)).
+$pp_lin_learn_main(Mode,Goals) :- $pp_lin_learn_core(Mode,Goals,0).
 
 $pp_lin_learn_core(Mode,Goals,Debug) :-
     $pp_learn_check_goals(Goals),
