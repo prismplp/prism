@@ -329,8 +329,9 @@ apply to versions 2.2.$x$.
   \secref{sec:example:crf} was added to present a program example for
   a linear-chain CRFs as an example of generative CRFs.
 \item
-  \secref{sec:example:cyc} was added to present a couple of program examples that
-  illustrate probabilistic inferences based on cyclic explanation graphs.
+  \secref{sec:example:lin} and \secref{sec:example:nonlin} were added to present
+  a couple of program examples that illustrate probabilistic inferences based on
+  cyclic explanation graphs.
 \end{itemize}
 
 \clearpage
@@ -14095,7 +14096,8 @@ infix_pcfg(S0,S2,[A|R]):-
     ( get_values(A,_) ->            % A : nonterminal
         msw(A,RHS),                 % use A -> RHS to expand A
         infix_pcfg(S0,S1,RHS)
-    ; tr(S0,A,S1) ),                % state transition by A from S0 to S1
+    ; tr(S0,A,S1)                   % state transition by A from S0 to S1
+    ),
     infix_pcfg(S1,S2,R).
 infix_pcfg(S,S,[]).
 \end{verbatim}

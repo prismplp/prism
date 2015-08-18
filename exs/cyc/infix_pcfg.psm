@@ -1,0 +1,100 @@
+%%%%
+%%%%  Infix probability computation for a PCFG --- infix_pcfg.psm
+%%%%
+%%%%  Copyright (C) 2014-2015
+%%%%    Sato Laboratory, Dept. of Computer Science,
+%%%%    Tokyo Institute of Technology
+%%%%
+
+%% This program describes a probabilistic context-free grammar for computing
+%% the (generative) probability of a given infix substring.  Such infix 
+%% probability computation requires *nonlinear* cyclic explanation graphs,
+%% whereas prefix probability computation only requires a linear one.  We
+%% use the following exemplar PCFG again:
+%%
+%%   s --> s s (prob. 0.4)
+%%   s --> a (0.3)
+%%   s --> b (0.3)
+%%
+%% The probability of an infix substring u is defined as the sum of the
+%% probability of a sentense s = wuv over possible w's and v's.  The program
+%% in this files encodes Nederhof and Satta's algorithm.  We first build
+%% a deterministic finite automaton and mix it in our infix parsing.
+%% We then have a nonlinear cyclic explanation graph after parsing, and
+%% compute the infix probabilities using some linear algebra routines.
+%%
+%% Here let us compute the infix probability of a substring 'a':
+%%
+%% 1. First, load this program:
+%%
+%%      ?- prism(infix_pcfg)
+%% 
+%% 2. For illustration, let us consider a nonlinear cyclic explanation
+%%    graph for a goal infix_pcfg([a]), which shows all possible parse trees
+%%    that have 'a' as an infix:
+%% 
+%%      ?- probf(infix_pcfg([a]))                      
+%%
+%%      infix_pcfg([a])
+%%	      <=> infix_pcfg(s0,sf,s)
+%%      infix_pcfg(s0,sf,s)
+%%        <=> infix_pcfg(s0,sf,a) & msw(s,[a])
+%%          v infix_pcfg(s0,sf,s) & infix_pcfg(sf,sf,s) & msw(s,[s,s])
+%%	        v infix_pcfg(s0,s0,s) & infix_pcfg(s0,sf,s) & msw(s,[s,s])
+%%      infix_pcfg(s0,sf,a)
+%%      infix_pcfg(sf,sf,s)
+%%        <=> infix_pcfg(sf,sf,a) & msw(s,[a])
+%%          v infix_pcfg(sf,sf,b) & msw(s,[b])
+%%          v infix_pcfg(sf,sf,s) & infix_pcfg(sf,sf,s) & msw(s,[s,s])
+%%      infix_pcfg(sf,sf,a)
+%%      infix_pcfg(sf,sf,b)
+%%      infix_pcfg(s0,s0,s)
+%%        <=> infix_pcfg(s0,s0,b) & msw(s,[b])
+%%          v infix_pcfg(s0,s0,s) & infix_pcfg(s0,s0,s) & msw(s,[s,s])
+%%      infix_pcfg(s0,s0,b)
+%%
+%%    From above, we can consider a system of linear equations:
+%%
+%%      x[1] = 0.4 * x[3] * x[1] + 0.4 * x[1] * x[2] + 0.3
+%%      x[2] = 0.4 * x[2] * x[2] + 0.3 + 0.3
+%%      x[3] = 0.4 * x[3] * x[3] + 0.3
+%%
+%%    where each x[i] indicates the corresponding goal probability and in particular
+%%    x[1] is the probability of infix_pcfg([a]) or the infix probability of substring
+%%    'a' by our model specification.  Under the constraint 0 <= x[i] <= 1, a linear
+%%    algebra routines find the solution as follows:
+%%
+%%      x[1] = 0.61583
+%%      x[2] = 1
+%%      x[3] = 0.697224.
+%%
+%%    From this we can say that the infix probability of 'a' is 0.61583. 
+%%
+%% 3. The above inference can be performed just by asking:
+%%
+%%      ?- nonlin_prob(infix_pcfg([a]))
+%%      Probability is 0.651388
+
+:- p_not_table dummy/3.
+:- set_prism_flag(error_on_cycle,off).
+
+:- include('dfa.psm').
+:- include('rule.pl').
+
+infix_pcfg(L):-
+	make_dfa(L),
+	start_symbol(C),
+	dummy(s0,sf,[C]).
+
+dummy(S0,S2,[A|R]):-
+	infix_pcfg(S0,S1,A),
+    dummy(S1,S2,R).
+dummy(S,S,[]).
+
+infix_pcfg(S0,S1,A):-
+	( get_values(A,_)     % A is nonterminal
+      -> msw(A,RHS),
+		 dummy(S0,S1,RHS)
+	; tr(S0,A,S1)
+	).
+infix_pcfg(S,S,[]).

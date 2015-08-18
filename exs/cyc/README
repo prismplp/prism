@@ -4,7 +4,10 @@ Files/Directories:
   README          ... this file
   mc.psm          ... Markov chain program with cyclic state transitions
   prefix_pcfg.psm ... PCFG program for prefix probability computation
-  rule.pl         ... grammatical rules to be included in prefix_pcfg.psm
+  infix_pcfg.psm  ... PCFG program for infix probability computation
+  dfa.psm         ... deterministic finite-automaton generator to be
+                      included in infix_pcfg.psm
+  rule.pl         ... grammars to be included in {prefix,infix}_pcfg.psm
 
 How to use:
   All programs are self-contained, hopefully.  Try first a sample

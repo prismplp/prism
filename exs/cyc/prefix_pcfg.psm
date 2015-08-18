@@ -16,9 +16,9 @@
 %%   s --> b (0.3)
 %%
 %% The probability of a prefix substring u is defined as the sum of the
-%% probability of s = uv over possible v's.  Due to the grammar-independent
-%% modeling part of a PCFG in this file, we usually have a cyclic explanation
-%% graph when computing prefix probabilities.
+%% probability of a sentense s = uv over possible v's.  Due to the grammar-
+%% independent modeling part of a PCFG in this file, we usually have a cyclic
+%% explanation graph when computing prefix probabilities.
 %%
 %% Here let us compute the prefix probability of a substring 'aa':
 %%
@@ -27,8 +27,8 @@
 %%      ?- prism(prefix_pcfg)
 %% 
 %% 2. Then, to see what happens later, let us consider a cyclic explanation
-%%    graph for a goal reach(s0,s1), which shows all possible transitions
-%%    from s0 to s1:
+%%    graph for a goal prefix_pcfg([a,a]), which shows all possible parse trees
+%%    that have 'aa' as a prefix:
 %% 
 %%      ?- probf(prefix_pcfg([a,a]))
 %%

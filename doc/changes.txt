@@ -1,3 +1,6 @@
+2015-8-18 Ryosuke Kojima and Yoshitaka Kameya <ykameya@meijo-u.ac.jp>
+  * version 2.2
+
 2012-6-23 Keiichi Kubota and Yoshitaka Kameya <kameya@mi.cs.titech.ac.jp>
   * version 2.1
   * src/c/makefiles/Makefile.opts.gmake:
