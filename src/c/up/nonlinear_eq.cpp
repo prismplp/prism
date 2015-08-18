@@ -182,7 +182,7 @@ int run_cyc_em(struct EM_Engine* em_ptr) {
 
 				if (!std::isfinite(lambda)) {
 					emit_internal_error("invalid log likelihood or log post: %s (at iteration #%d)",
-							isnan(lambda) ? "NaN" : "infinity", iterate);
+							std::isnan(lambda) ? "NaN" : "infinity", iterate);
 					RET_ERR(ierr_invalid_likelihood);
 				}
 				if (old_valid && old_lambda - lambda > prism_epsilon) {

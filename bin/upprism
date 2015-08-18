@@ -19,8 +19,8 @@ case `uname -s` in
         BINARY=$BINDIR/prism_up_linux${PROC}.bin
         ;;
     Darwin)
-        DARWIN_MAJOR=`uname -r | cut -d. -f 1`
-        BINARY=$BINDIR/prism_up_darwin${DARWIN_MAJOR}.bin
+        #DARWIN_MAJOR=`uname -r | cut -d. -f 1`
+        BINARY=$BINDIR/prism_up_darwin.bin
         ;;
     CYGWIN*)
         BINARY=$BINDIR/prism_up_cygwin.exe
@@ -32,5 +32,5 @@ if [ ! -x "$BINARY" ]; then
     exit 1
 fi
 
-echo $BINARY -p $PAREA -s $STACK -b $TRAIL -t $TABLE $BINDIR/bp.out $BINDIR/prism.out $BINDIR/foc.out $BINDIR/batch.out ${1+"$@"}
+#echo $BINARY -p $PAREA -s $STACK -b $TRAIL -t $TABLE $BINDIR/bp.out $BINDIR/prism.out $BINDIR/foc.out $BINDIR/batch.out ${1+"$@"}
 exec $BINARY -p $PAREA -s $STACK -b $TRAIL -t $TABLE $BINDIR/bp.out $BINDIR/prism.out $BINDIR/foc.out $BINDIR/batch.out ${1+"$@"}

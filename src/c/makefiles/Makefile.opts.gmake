@@ -25,12 +25,12 @@ LD          = gcc
 #CFLAGS     = -pg -Wall -I../bp4prism/include -I..
 
 ifeq ($(MATRIX),lapack)
-CFLAGS     = -DMALLOC_TRACE -fomit-frame-pointer -fno-strict-aliasing -Wall -I../bp4prism/include -I.. -I../resource/lapack -I../resource -I../up
+CFLAGS     = -fomit-frame-pointer -fno-strict-aliasing -Wall -I../bp4prism/include -I.. -I../resource/lapack -I../resource -I../up
 LDFLAGS     = -lm -lpthread -lgfortran
 CXXFLAGS=$(CFLAGS)
 LD         = g++
 else
-CFLAGS     = -DMALLOC_TRACE -fomit-frame-pointer -fno-strict-aliasing -Wall -I../bp4prism/include -I.. -I../resource -I../up
+CFLAGS     = -fomit-frame-pointer -fno-strict-aliasing -Wall -I../bp4prism/include -I.. -I../resource -I../up
 LDFLAGS    = -lm -lpthread 
 CXXFLAGS=$(CFLAGS)
 LD         = g++
@@ -53,35 +53,22 @@ CFLAGS     += -DMPI
 endif
 
 ifeq ($(PLATFORM),linux32)
-CFLAGS     += -DLINUX -DPOSIX -Dunix -m32
+CFLAGS     += -DMALLOC_TRACE -DLINUX -DPOSIX -Dunix -m32
 LDFLAGS    += -m32
 endif
 
 ifeq ($(PLATFORM),linux64)
-CFLAGS     += -DLINUX -DPOSIX -Dunix -DM64BITS -m64
+CFLAGS     += -DMALLOC_TRACE -DLINUX -DPOSIX -Dunix -DM64BITS -m64
 LDFLAGS    += -m64
 endif
 
-ifeq ($(PLATFORM),darwin9)
-CFLAGS     += -DDARWIN
-CFLAGS     += -arch ppc -arch ppc64 -arch i386 -arch x86_64
-LDFLAGS    += -arch ppc -arch ppc64 -arch i386 -arch x86_64
-CFLAGS     += -mmacosx-version-min=10.4
-LDFLAGS    += -mmacosx-version-min=10.4
+ifeq ($(PLATFORM),darwin)
+ifndef ARCH
+ARCH=x86_64
 endif
-
-ifeq ($(PLATFORM),darwin10)
 CFLAGS     += -DDARWIN
-CFLAGS     += -arch i386 -arch x86_64
-LDFLAGS    += -arch i386 -arch x86_64
-CFLAGS     += -mmacosx-version-min=10.4
-LDFLAGS    += -mmacosx-version-min=10.4
-endif
-
-ifeq ($(PLATFORM),darwin11)
-CFLAGS     += -DDARWIN
-CFLAGS     += -arch i386 -arch x86_64
-LDFLAGS    += -arch i386 -arch x86_64
+CFLAGS     += -arch $(ARCH)
+LDFLAGS    += -arch $(ARCH)
 CFLAGS     += -mmacosx-version-min=10.4
 LDFLAGS    += -mmacosx-version-min=10.4
 endif

@@ -20,8 +20,8 @@ case `uname -s` in
         BINARY=$PRISM/prism_mp_linux${PROC}.bin
         ;;
     Darwin)
-        DARWIN_MAJOR=`uname -r | cut -d. -f 1`
-        BINARY=$PRISM/prism_mp_darwin${DARWIN_MAJOR}.bin
+        #DARWIN_MAJOR=`uname -r | cut -d. -f 1`
+        BINARY=$PRISM/prism_mp_darwin.bin
         ;;
     CYGWIN*)
         BINARY=$PRISM/prism_mp_cygwin.exe
