@@ -75,11 +75,19 @@
 %%      ?- nonlin_prob(infix_pcfg([a]))
 %%      Probability is 0.651388
 
+%%
+%% Declarations and other settings:
+%%
+
 :- p_not_table dummy/3.
 :- set_prism_flag(error_on_cycle,off).
 
 :- include('dfa.psm').
 :- include('rule.pl').
+
+%%
+%% Modeling part:
+%%
 
 infix_pcfg(L):-
 	make_dfa(L),

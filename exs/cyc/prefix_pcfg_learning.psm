@@ -1,32 +1,40 @@
-%% file = prefix_pcfg_learning.psm
+%%%%
+%%%%  Parameter learning of a PCFG from prefix substrings
+%%%%  --- prefix_pcfg_learn.psm
+%%%%
+%%%%  Copyright (C) 2014-2015
+%%%%    Sato Laboratory, Dept. of Computer Science,
+%%%%    Tokyo Institute of Technology
+%%%%
+
 %--------------------------------------
 %%  Parameter learning of the PCFG from randomly sampled 100 prefixes with length less than 3
 %%
 %%  Lerning with the EM algorithm
-%%  ?- prism(prefix_pcfg_learning),learn_with_em(100,3). 
+%%  ?- prism(prefix_pcfg_learn),learn_with_em(100,3). 
 %%  Lerning with the VT algorithm
-%%  ?- prism(prefix_pcfg_learning),learn_with_vt(100,3). 
+%%  ?- prism(prefix_pcfg_learn),learn_with_vt(100,3). 
 %% 
 %%--------------------------------------
-:-set_prism_flag(error_on_cycle,off).
 
-% Top goal specification for batch execution by the upprism command:
-prism_main([em]):-learn_with_em(100,3),show_sw.
-prism_main([vt]):-learn_with_vt(100,3),show_sw.
+%%
+%% Declarations and other settings:
+%%
 
-
-learn_with_em(N,Len):-get_samples(N,pcfg(_),S),maplist(X,Y,(X=pcfg(L),generate_prefix(L,Pre,Len),Y=prefix_pcfg(Pre)),S,Gs),lin_learn(Gs).
-learn_with_vt(N,Len):-get_samples(N,pcfg(_),S),maplist(X,Y,(X=pcfg(L),generate_prefix(L,Pre,Len),Y=prefix_pcfg(Pre)),S,Gs),set_prism_flag(learn_mode,ml_vt),lin_learn(Gs).
-
-
-% generate Prefix with length less than N from Sentence
-generate_prefix(Sentence,Sentence,N):-length(Sentence,L),L<N.
-generate_prefix(Sentence,Prefix,N):-length(Prefix,N),append(Prefix,_,Sentence).
+% To obtain cyclic explanations, currently we need to turn off
+% the error_on_cycle flag:
+:- set_prism_flag(error_on_cycle,off).
 
 % We define the grammar-dependent part of our PCFG in rule.pl and include it here:
 :- include('rule').
 
-%% prefix model
+%%
+%% Modeling part:
+%%   Here we take on two models depending on the purpose
+%%   -- one for prefix parsing and learning, another for sampling.
+%%
+
+%% For parsing and learning:
 
 prefix_pcfg(L):-            % L is a ground list
    start_symbol(S),
@@ -41,8 +49,7 @@ prefix_pcfg([A|R],L0-L2):-  % L0 ground, L2 variable when called
            ; prefix_pcfg(R,L1-L2) ).
 prefix_pcfg([],L1-L1).
 
-%%  PCFG program to get samples
-:- p_not_table proj/2. 
+%% For sampling: 
 
 pcfg(L):- start_symbol(S),pcfg(S,L-[]).
 pcfg(LHS,L0-L1):-
@@ -54,4 +61,32 @@ proj([],L-L).
 proj([X|Xs],L0-L1):-
   pcfg(X,L0-L2),proj(Xs,L2-L1).
 
+%%
+%% Utility part:
+%%
 
+% Top goal specification for batch execution by the upprism command:
+prism_main([em]) :- learn_with_em(100,3),show_sw.
+prism_main([vt]) :- learn_with_vt(100,3),show_sw.
+
+% Batch routine for EM learning
+learn_with_em(N,Len) :-
+    get_samples(N,pcfg(_),S),
+    maplist(X,Y,(X=pcfg(L),generate_prefix(L,Pre,Len),Y=prefix_pcfg(Pre)),S,Gs),
+    get_prism_flag(learn_mode,M),
+    set_prism_flag(learn_mode,ml),
+    lin_learn(Gs),
+    set_prism_flag(learn_mode,M).
+
+% Batch routine for Viterbi training
+learn_with_vt(N,Len) :-
+    get_samples(N,pcfg(_),S),
+    maplist(X,Y,(X=pcfg(L),generate_prefix(L,Pre,Len),Y=prefix_pcfg(Pre)),S,Gs),
+    get_prism_flag(learn_mode,M),
+    set_prism_flag(learn_mode,ml_vt),
+    lin_learn(Gs),
+    set_prism_flag(learn_mode,M).
+
+% Generate Prefix of length less than N from Sentence
+generate_prefix(Sentence,Sentence,N) :- length(Sentence,L),L < N.
+generate_prefix(Sentence,Prefix,N) :- length(Prefix,N),append(Prefix,_,Sentence).

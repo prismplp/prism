@@ -74,6 +74,10 @@
 %%      ?- lin_prob(prefix_pcfg([a,a]))
 %%      Probability of prefix_pcfg([a,a]) is: 0.100000000000000
 
+%%
+%% Declarations and other settings:
+%%
+
 % To obtain cyclic explanations, currently we need to turn off
 % the error_on_cycle flag:
 :- set_prism_flag(error_on_cycle,off).
@@ -81,8 +85,9 @@
 % We define the grammar-dependent part of our PCFG in rule.pl and include it here:
 :- include('rule').
 
-% Top goal specification for batch execution by the upprism command:
-prism_main :- lin_prob(prefix_pcfg([a,a])).
+%%
+%% Modeling part:
+%%
 
 % Top goal of the grammar-independent part of a PCFG:
 prefix_pcfg(L):-            % L is a ground list
@@ -100,3 +105,10 @@ prefix_pcfg([A|R],L0-L2):-  % L0 ground, L2 variable when called
     ; prefix_pcfg(R,L1-L2)
     ).
 prefix_pcfg([],L1-L1).
+
+%%
+%% Utility part:
+%%
+
+% Top goal specification for batch execution by the upprism command:
+prism_main :- lin_prob(prefix_pcfg([a,a])).

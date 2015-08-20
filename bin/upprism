@@ -19,7 +19,6 @@ case `uname -s` in
         BINARY=$BINDIR/prism_up_linux${PROC}.bin
         ;;
     Darwin)
-        #DARWIN_MAJOR=`uname -r | cut -d. -f 1`
         BINARY=$BINDIR/prism_up_darwin.bin
         ;;
     CYGWIN*)

@@ -1,5 +1,55 @@
-2015-8-18 Ryosuke Kojima and Yoshitaka Kameya <ykameya@meijo-u.ac.jp>
+2015-9-4 Ryosuke Kojima and Yoshitaka Kameya <ykameya@meijo-u.ac.jp>
   * version 2.2
+  * files under src/resource,
+    src/c/makefiles/Makefile_lapack.files,
+    src/c/up/Makefile_lapack.files:
+    - modified for adding linear-algebra packages (Eigen and LAPACK)
+      for probabilistic inference using cyclic explanation graphs
+  * src/c/up/lbfgs.c,
+    src/c/up/arithmetic_ansi.h,
+    src/c/up/arithmetic_sse_double.h,
+    src/c/up/arithmetic_sse_float.h
+    - source files from libLBFGS added for generative CRF and
+      handling cyclic explanation graphs
+  * src/c/Makefile.gmake,
+    src/c/makefiles/Makefile.opts.gmake,
+    src/c/up/Makefile.gmake,
+    src/c/Makefile
+    - deleted the part related to 32bit Linux, which is no longer
+      the target platform
+  * src/c/up/crf_grd.h,
+    src/c/up/crfviterbi.c,
+    src/c/up/crfviterbi.h,
+    src/c/up/feature.c,
+    src/c/up/feature.h,
+    src/prolog/up/crfhindsight.pl,
+    src/prolog/up/crflearn.pl,
+    src/prolog/up/crfviterbi.pl,
+    src/prolog/up/feature.pl,
+    src/prolog/up/fprob.pl
+    - added for built-ins related to generative CRF 
+  * src/c/up/linear_eq.cpp,
+    src/c/up/linear_eq.h,
+    src/c/up/linear_eq_lapack.c,
+    src/c/up/nonlinear_eq.cpp,
+    src/c/up/nonlinear_eq.h,
+    src/c/up/scc.cpp,
+    src/c/up/scc.h,
+    src/c/up/cyc_vt_ml.cpp,
+    src/c/up/cyc_vt_ml.h,
+    src/c/up/cyc_vt_preds.c,
+    src/c/up/cyc_vt_preds.h,
+    src/prolog/cycle/cyc_viterbi.pl,
+    src/prolog/cycle/cyc_vlearn.pl,
+    src/prolog/cycle/find_scc.pl,
+    src/prolog/cycle/lin_prob.pl,
+    src/prolog/cycle/nonlin_prob.pl,
+    src/prolog/cycle/solve_graph.pl,
+    src/prolog/cycle/trans_graph.pl
+    - added for built-ins related to cyclic explanation graphs
+  * updated all related documentations (doc/changes.txt and READMEs)
+  * renamed directories exs_*** to exs/***
+  * added program examples under exs/{crf,cyc}
 
 2012-6-23 Keiichi Kubota and Yoshitaka Kameya <kameya@mi.cs.titech.ac.jp>
   * version 2.1
