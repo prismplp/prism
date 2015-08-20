@@ -10866,6 +10866,11 @@ following.
   behaves   like   {\tt
   lin\_probfi({\it G},{\it  Expl})} but returns an  encoded explanation graph.
   The return format is the same as {\tt probefi({\it G},{\it Expl})}.
+\item {\tt lin\_learn({\it Gs})}\predindex{lin\_learn/1}
+  learns parameters from goals {\it Gs}.  Currently maximum likelihood estimation
+  using EM learning and Viterbi training is possible. The learning framework
+  is switched by the {\tt learn\_mode} flag (\secref{sec:built-in:flags:list}) as
+  done in the acyclic case. 
 \item {\tt nonlin\_prob({\it G})}\predindex{nonlin\_prob/1}
   displays the probability of {\it G} that has
   a nonlinear cyclic explanation graph.
@@ -10873,7 +10878,7 @@ following.
   returns as {\it  P} the probability
   of {\it G} that has a nonlinear cyclic explanation graph.
 \end{itemize}
-
+%
 Note  that  {\tt  lin\_prob/1}  is backward compatible  to  {\tt  prob/1}\predindex{prob/1}
 and applicable to acyclic  explanation graphs as well.  However  since it computes
 probabilities by iteratively solving a system of linear equations from one SCC
@@ -10883,8 +10888,11 @@ subsumes  {\tt   lin\_prob/1}  in   functionality  but  the   former  computes
 probabilities  by  solving  a   set  of  nonlinear  (multivariate  polynomial)
 equations using  a general iterative method,  and hence should  be avoided for
 acyclic  or  linear  cyclic   explanation  graphs  for which  a more efficient
-computation is possible.
-
+computation is possible.  Furthermore, it is remarkable that {\tt lin\_learn/1}
+enables us to conduct parameter learning even from linear cyclic explanation graphs.
+\secref{sec:example:lin} and \secref{sec:example:nonlin} illustrate how to use
+these built-in predicates using an example on probabilistic context-free
+grammars.
 
 
 \chapter{Parallel EM learning*}
@@ -14045,6 +14053,59 @@ Although  these  are small  examples  and  the  explanation graphs  have  only
 self-loops,  {\tt  lin\_prob/1,2} can  deal  with  much  larger linear  cyclic
 explanation graphs containing tens of thousands of nodes and long cycles.
 
+Furthermore, using {\tt lin\_learn/1},\predindex{lin\_learn/1} we can learn
+parameters from prefix substrings.  To show this, let us conduct an artificial
+experiment.  In the experiment, we first generate sentences using a PCFG with
+the parameters given by hand, and if necessary, trancate them into prefix
+substrings of a limited length.  Then we learn parameters of the same PCFG
+from such artificial prefix substrings.
+
+For this experiment, we need some settings.  First, to generate sample sentences,
+we define an ordinary PCFG program similar to the one shown in \secref{sec:example:pcfg}:
+%
+\begin{quote}
+\begin{verbatim}
+pcfg(L) :- pcfg(s,L-[]).
+pcfg(LHS,L0-L1) :-
+  ( get_values(LHS,_) -> msw(LHS,RHS),proj(RHS,L0-L1)
+  ; L0 = [LHS|L1]
+  ).
+
+proj([],L-L).
+proj([X|Xs],L0-L1) :-
+  pcfg(X,L0-L2),proj(Xs,L2-L1).
+\end{verbatim}
+\end{quote}
+where random switches are shared with {\tt prefix\_pcfg/1-2} above.
+Then, we add a couple of utility routines.  That is,
+{\tt trunc\_prefix(S,P,Len)} below is used to trancate a sentence {\tt S}
+into a prefix substring {\tt P} no longer than {\tt Len}:
+%
+\begin{quote}
+\begin{verbatim}
+trunc_prefix(S,S,Len) :- length(S,L),L < Len.
+trunc_prefix(S,P,Len) :- length(P,Len),append(P,_,S).
+\end{verbatim}
+\end{quote}
+%
+We also define {\tt learn\_prefix(N,Len)} which learns parameters
+from {\tt N} prefix substrings no longer than {\tt Len}:
+%
+\begin{quote}
+\begin{verbatim}
+learn_prefix(N,Len) :-
+  get_samples(N,pcfg(_),S),
+  maplist(X,Y,(X=pcfg(L),trunc_prefix(L,P,Len),Y=prefix_pcfg(P)),S,Gs),
+  lin_learn(Gs).
+\end{verbatim}
+\end{quote}
+%
+where {\tt get\_samples/1} generates {\tt N} sentences, {\tt maplist/4}
+converts them into {\tt N} prefix substrings, and finally {\tt lin\_learn/1}
+learns parameters from such prefix substrings.
+
+Based on the settings above, we can conduct EM learning as follows:
+% XXX 実行画面
 
 \section{Nonlinear cyclic explanation graphs*}
 \label{sec:example:nonlin}

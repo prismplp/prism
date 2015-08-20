@@ -36,29 +36,31 @@
 
 %% For parsing and learning:
 
-prefix_pcfg(L):-            % L is a ground list
+prefix_pcfg(L) :-           % L is a ground list
    start_symbol(S),
    prefix_pcfg([S],L-[]).
 
-prefix_pcfg([A|R],L0-L2):-  % L0 ground, L2 variable when called
+prefix_pcfg([A|R],L0-L2) :- % L0 ground, L2 variable when called
     ( get_values(A,_)
-    -> msw(A,RHS),           % rule A->RHS selected
-        prefix_pcfg(RHS,L0-L1)
-        ;  L0=[A|L1] ),
-          ( L1=[] -> L2=[]         % prefix is derived
-           ; prefix_pcfg(R,L1-L2) ).
+      -> msw(A,RHS),        % rule A->RHS selected
+         prefix_pcfg(RHS,L0-L1)
+    ;  L0=[A|L1]
+    ),
+    ( L1=[] -> L2=[]        % prefix is derived
+    ; prefix_pcfg(R,L1-L2)
+    ).
 prefix_pcfg([],L1-L1).
 
 %% For sampling: 
 
-pcfg(L):- start_symbol(S),pcfg(S,L-[]).
-pcfg(LHS,L0-L1):-
+pcfg(L) :- start_symbol(S),pcfg(S,L-[]).
+pcfg(LHS,L0-L1) :-
   ( get_values(LHS,_) -> msw(LHS,RHS),proj(RHS,L0-L1)
   ; L0 = [LHS|L1]
   ).
 
 proj([],L-L).
-proj([X|Xs],L0-L1):-
+proj([X|Xs],L0-L1) :-
   pcfg(X,L0-L2),proj(Xs,L2-L1).
 
 %%
@@ -72,7 +74,7 @@ prism_main([vt]) :- learn_with_vt(100,3),show_sw.
 % Batch routine for EM learning
 learn_with_em(N,Len) :-
     get_samples(N,pcfg(_),S),
-    maplist(X,Y,(X=pcfg(L),generate_prefix(L,Pre,Len),Y=prefix_pcfg(Pre)),S,Gs),
+    maplist(X,Y,(X=pcfg(L),trunc_prefix(L,P,Len),Y=prefix_pcfg(P)),S,Gs),
     get_prism_flag(learn_mode,M),
     set_prism_flag(learn_mode,ml),
     lin_learn(Gs),
@@ -81,12 +83,12 @@ learn_with_em(N,Len) :-
 % Batch routine for Viterbi training
 learn_with_vt(N,Len) :-
     get_samples(N,pcfg(_),S),
-    maplist(X,Y,(X=pcfg(L),generate_prefix(L,Pre,Len),Y=prefix_pcfg(Pre)),S,Gs),
+    maplist(X,Y,(X=pcfg(L),trunc_prefix(L,P,Len),Y=prefix_pcfg(P)),S,Gs),
     get_prism_flag(learn_mode,M),
     set_prism_flag(learn_mode,ml_vt),
     lin_learn(Gs),
     set_prism_flag(learn_mode,M).
 
-% Generate Prefix of length less than N from Sentence
-generate_prefix(Sentence,Sentence,N) :- length(Sentence,L),L < N.
-generate_prefix(Sentence,Prefix,N) :- length(Prefix,N),append(Prefix,_,Sentence).
+% Generate a prefix string P no longer than N from a sentence S
+trunc_prefix(S,S,N) :- length(S,L),L < N.
+trunc_prefix(S,P,N) :- length(P,N),append(P,_,S).
