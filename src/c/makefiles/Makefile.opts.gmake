@@ -1,7 +1,7 @@
 # -*- Makefile -*-
 
 ifndef PLATFORM
-PLATFORM = linux64
+PLATFORM = linux
 endif
 
 ifndef PROCTYPE
@@ -52,12 +52,7 @@ LD          = mpicxx
 CFLAGS     += -DMPI
 endif
 
-ifeq ($(PLATFORM),linux32)
-CFLAGS     += -DMALLOC_TRACE -DLINUX -DPOSIX -Dunix -m32
-LDFLAGS    += -m32
-endif
-
-ifeq ($(PLATFORM),linux64)
+ifeq ($(PLATFORM),linux)
 CFLAGS     += -DMALLOC_TRACE -DLINUX -DPOSIX -Dunix -DM64BITS -m64
 LDFLAGS    += -m64
 endif

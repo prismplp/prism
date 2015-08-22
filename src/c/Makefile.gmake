@@ -10,7 +10,7 @@ else
 include $(ROOT)/makefiles/Makefile.files
 endif
 
-ifeq ($(PLATFORM),linux64)
+ifeq ($(PLATFORM),linux)
 ifeq ($(MATRIX),lapack)
 ## this order is important
 LAPACK_OBJS = resource$(S)lapack$(S)liblapacke.$(A)    \
@@ -19,16 +19,6 @@ LAPACK_OBJS = resource$(S)lapack$(S)liblapacke.$(A)    \
             resource$(S)lapack$(S)librefblas.$(A)      
 endif
 endif
-ifeq ($(PLATFORM),linux32)
-ifeq ($(MATRIX),lapack)
-LAPACK_OBJS = resource$(S)lapack32$(S)liblapacke.$(A)    \
-            resource$(S)lapack32$(S)liblapack.$(A)   \
-            resource$(S)lapack32$(S)libtmglib.$(A)    \
-            resource$(S)lapack32$(S)librefblas.$(A)      
-endif
-endif
-
-
 
 ##----------------------------------------------------------------------
 

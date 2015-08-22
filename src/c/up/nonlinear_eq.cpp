@@ -149,7 +149,7 @@ int run_cyc_em(struct EM_Engine* em_ptr) {
 	double itemp = 1.0;
 	for (r = 0; r < num_restart; r++) {
 		SHOW_PROGRESS_HEAD("#cyc-em-iters", r);
-		//initialize_params();
+		initialize_params();
 		iterate = 0;
 		while (1) {
 			old_valid = 0;
@@ -168,15 +168,14 @@ int run_cyc_em(struct EM_Engine* em_ptr) {
 				likelihood=compute_likelihood_scaling_none();
 				log_prior  = em_ptr->smooth ? em_ptr->compute_log_prior() : 0.0;
 				lambda = likelihood + log_prior;
-				{
-				//if (verb_em) {
+				if (verb_em) {
 					if (em_ptr->smooth) {
-					prism_printf("iteration #%d:\tlog_likelihood=%.9f\tlog_prior=%.9f\tlog_post=%.9f\n", iterate, likelihood, log_prior, lambda);
+						prism_printf("iteration #%d:\tlog_likelihood=%.9f\tlog_prior=%.9f\tlog_post=%.9f\n", iterate, likelihood, log_prior, lambda);
 					}else {
 						prism_printf("iteration #%d:\tlog_likelihood=%.9f\n", iterate, likelihood);
-					if(scc_debug_level>=4) {
-					print_eq();
-					}
+						if(scc_debug_level>=4) {
+							print_eq();
+						}
 					}
 				}
 

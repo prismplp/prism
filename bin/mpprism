@@ -6,18 +6,9 @@ STACK=5000000	# Size of control stack and heap
 TRAIL=2000000	# Size of trail stack
 TABLE=10000000	# Size of table area
 
-case `uname -m` in
-    x86_64)
-        PROC=64
-        ;;
-    *)
-        PROC=32
-        ;;
-esac
-
 case `uname -s` in
     Linux)
-        BINARY=$PRISM/prism_mp_linux${PROC}.bin
+        BINARY=$PRISM/prism_mp_linux.bin
         ;;
     Darwin)
         BINARY=$PRISM/prism_mp_darwin.bin
