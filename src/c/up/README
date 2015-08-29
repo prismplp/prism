@@ -12,7 +12,7 @@ probabilistic infererences:
   em.h            ... common header file for EM learning
   graph.{c,h}     ... explanation graphs
   graph_aux.{c,h} ... auxiliary utilities for explanation graphs
-  em_preds.{c,h}  ... C interface (wrappers) for EM learning
+  em_preds.{c,h}  ... C interface for EM learning
   em_ml.{c,h}     ... main routine for ML/MAP-EM learning
   em_vb.{c,h}     ... main routine for VB-EM learning
   em_aux_ml.{c,h} ... substantial part of ML/MAP-EM learning
@@ -24,18 +24,18 @@ probabilistic infererences:
   util.{c,h}      ... misellaneous utilities
 
   mcmc.h             ... common header file for MCMC sampling
-  mcmc_preds.{c,h}   ... C interface (wrappers) for MCMC sampling
+  mcmc_preds.{c,h}   ... C interface for MCMC sampling
   mcmc_sample.{c,h}  ... basic MCMC sampling
   mcmc_eml.{c,h}     ... computation of estimated log marginal likelihood
   mcmc_exact.{c,h}   ... computation of exact log marginal likelihood
   mcmc_predict.{c,h} ... computation of the most probable explanation
   
-  vt.h            ... 
-  vt_aux_ml.{c,h} ... 
-  vt_aux_vb.{c,h} ... 
-  vt_ml.{c,h}     ... 
-  vt_preds.{c,h}  ... 
-  vt_vb.{c,h}     ... 
+  vt.h            ... common header file for Viterbi training
+  vt_preds.{c,h}  ... C interface for Viterbi training
+  vt_ml.{c,h}     ... main routine for Viterbi training
+  vt_vb.{c,h}     ... main routine for VB-VT
+  vt_aux_ml.{c,h} ... substantial part for Viterbi training
+  vt_aux_vb.{c,h} ... substantial part for VB-VT
 
   lbfgs.{c,h}             ... source code of libLBFGS
   arithmetic_ansi.h       ... ANSI C impl.of vector operations (from libLBFGS)
@@ -46,9 +46,9 @@ probabilistic infererences:
   crf_learn.{c,h}   ... weight learning of generative CRFs
   crf_viterbi.{c,h} ... viterbi computation on generative CRFs
   
-  cyc_vt_ml.{cpp,h}    ...
-  cyc_vt_preds.{c,h}   ... 
-  linear_eq.{cpp,h}    ... 
-  linear_eq_lapack.c   ... 
-  nonlinear_eq.{cpp,h} ... 
-  scc.{cpp,h}          ... 
+  linear_eq.{cpp,h}    ... main routine for solving simul linear eqs. 
+  linear_eq_lapack.c   ... main routine for solving simul linear eqs. (with LAPACK)
+  nonlinear_eq.{cpp,h} ... main routine for solving simul non-linear eqs  
+  cyc_vt_ml.{cpp,h}    ... main routine for VT on cyclic expl. graphs
+  cyc_vt_preds.{c,h}   ... C interface for VT on cyclic expl. graphs
+  scc.{cpp,h}          ... substantial part for inferences on cyclic expl. graphs 

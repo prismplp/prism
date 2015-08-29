@@ -73,22 +73,30 @@ prism_main([vt]) :- learn_with_vt(100,3),show_sw.
 
 % Batch routine for EM learning
 learn_with_em(N,Len) :-
+    set_prism_flag(restart,10),
     set_sw(s, [0.4, 0.3, 0.3]),
     get_samples(N,pcfg(_),S),
     maplist(X,Y,(X=pcfg(L),trunc_prefix(L,P,Len),Y=prefix_pcfg(P)),S,Gs),
     get_prism_flag(learn_mode,M),
     set_prism_flag(learn_mode,ml),
     lin_learn(Gs),
+    show_sw,
+    learn(S),  
+    show_sw,
     set_prism_flag(learn_mode,M).
 
 % Batch routine for Viterbi training
 learn_with_vt(N,Len) :-
+    set_prism_flag(restart,10),
     set_sw(s, [0.4, 0.3, 0.3]),
     get_samples(N,pcfg(_),S),
     maplist(X,Y,(X=pcfg(L),trunc_prefix(L,P,Len),Y=prefix_pcfg(P)),S,Gs),
     get_prism_flag(learn_mode,M),
     set_prism_flag(learn_mode,ml_vt),
     lin_learn(Gs),
+    show_sw,
+    learn(S),
+    show_sw,
     set_prism_flag(learn_mode,M).
 
 % Generate a prefix string P no longer than N from a sentence S

@@ -14000,15 +14000,11 @@ prefix_pcfg([],L1,L1).                    % termination
 \end{quote}
 %
 This parser is a slight generalization of usual top-down PCFG
-parser\footnote{
-  % 
-  The program is specialized for a PCFG containing CFG rules {\tt s -> ss}(0.4),
-  {\tt  s -> a}(0.3)  and {\tt  s ->  b}(0.3) where  numbers in  parentheses are
-  application probabilities of rules.
-  % 
-}
-where  the only difference  is the insertion  of one line code  commented as
+parser where  the only difference  is the insertion  of one line code  commented as
 ``{\tt (pseudo) success}.''
+By the declaration of a random switch {\tt s} with {\tt values/2},
+The underlying grammar is defined as \{s $\to$ {ss} (0.4), s $\to$ a (0.3), s $\to$ a (0.3)\} 
+where a number following each rule is an initial application probability.
 
 Now think of a prefix {\tt [a,b]} in this PCFG, represented by a top-goal {\tt
   prefix\_pcfg([a,b])}.  By  {\tt probf/1} we obtain an  explanation graph for
@@ -14076,7 +14072,7 @@ proj([X|Xs],L0-L1) :-
   pcfg(X,L0-L2),proj(Xs,L2-L1).
 \end{verbatim}
 \end{quote}
-where random switches are shared with {\tt prefix\_pcfg/1-2} above.
+Note here that random switch {\tt s} is shared with {\tt prefix\_pcfg/1-2} above.
 Then, we add a couple of utility routines.  That is,
 {\tt trunc\_prefix(S,P,Len)} below is used to trancate a sentence {\tt S}
 into a prefix substring {\tt P} no longer than {\tt Len}:
@@ -14091,21 +14087,81 @@ trunc_prefix(S,P,Len) :- length(P,Len),append(P,_,S).
 We also define {\tt learn\_prefix(N,Len)} which learns parameters
 from {\tt N} prefix substrings no longer than {\tt Len}:
 %
+\predindex{lin\_learn/1}
 \begin{quote}
 \begin{verbatim}
 learn_prefix(N,Len) :-
+  set_prism_flag(restart,10),
+  set_sw(s,[0.4,0.3,0.3]),
   get_samples(N,pcfg(_),S),
   maplist(X,Y,(X=pcfg(L),trunc_prefix(L,P,Len),Y=prefix_pcfg(P)),S,Gs),
-  lin_learn(Gs).
+  lin_learn(Gs),
+  show_sw,
+  learn(S),
+  show_sw.
 \end{verbatim}
 \end{quote}
 %
-where {\tt get\_samples/1} generates {\tt N} sentences, {\tt maplist/4}
-converts them into {\tt N} prefix substrings, and finally {\tt lin\_learn/1}
-learns parameters from such prefix substrings.
+where {\tt get\_samples/1} generates {\tt N} sentences by forward sampling,
+{\tt maplist/4} converts them into {\tt N} prefix substrings, and {\tt lin\_learn/1}
+learns parameters from such prefix substrings.  In addition, for comparison,
+{\tt learn/1} is called in an ordinary way with the originally generated sentences.
 
 Based on the settings above, we can conduct EM learning as follows:
-% XXX 実行画面
+%
+\begin{small}
+\begin{verbatim}
+| ?- prism(prefix_pcfg_learn).
+loading::prefix_pcfg_learn.psm.out
+
+yes
+| ?- learn_with_em(100,3).
+#goals: 0.(12)
+Exporting switch information to the EM routine ... done
+[0] #cyc-em-iters: 0.....(omitted).....1200........(1284) (Converged: -113.214812386)
+[1] #cyc-em-iters: 0.....(omitted).....1200........(1284) (Converged: -113.214797895)
+   :
+[9] #cyc-em-iters: 0.....(omitted).....1200........(1285) (Converged: -113.214816905)
+Statistics on learning:
+        Graph size: 156
+        Number of switches: 1
+        Number of switch instances: 3
+        Number of iterations: 1285
+        Final log likelihood: -113.214769365
+        Total learning time: 8.388 seconds
+        Explanation search time: 0.000 seconds
+        Total table space used: 42392 bytes
+Type show_sw to show the probability distributions.
+Switch s: unfixed_p: [s,s] (p: 0.997053923) [a] (p: 0.001819636) [b] (p: 0.001126441)
+#goals: 0..(25)
+Exporting switch information to the EM routine ... done
+[0] #em-iters: 0(2) (Converged: -392.151359107)
+[1] #em-iters: 0(2) (Converged: -392.151359107)
+   :
+[9] #em-iters: 0(2) (Converged: -392.151359107)
+Statistics on learning:
+        Graph size: 66563
+        Number of switches: 1
+        Number of switch instances: 3
+        Number of iterations: 2
+        Final log likelihood: -392.151359107
+        Total learning time: 0.120 seconds
+        Explanation search time: 0.080 seconds
+        Total table space used: 7265784 bytes
+Type show_sw to show the probability distributions.
+Switch s: unfixed_p: [s,s] (p: 0.409420290) [a] (p: 0.335144928) [b] (p: 0.255434783)
+
+yes
+\end{verbatim}
+\end{small}
+%
+\noindent
+We can see from this result that the parameter of rule `s $\to$ ss' learned
+from prefix substrings is rather different from the one learned from
+the whole sentences.  This is not surprising, because applying `s $\to$ ss'
+more will yield a longer sentence, and learning from prefix substrings
+assumes the existence of longer sentences behind such substrings.
+
 
 \section{Nonlinear cyclic explanation graphs*}
 \label{sec:example:nonlin}
