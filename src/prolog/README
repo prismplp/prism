@@ -12,6 +12,7 @@ done on Linux, Mac OS X or Cygwin and that GNU make is used.
   up/        ... probabilistic inferences
   mp/        ... parallel EM learning
   bp/        ... source file(s) from B-Prolog 
+  cyc/       ... inferences using cyclic explanation graphs 
 
 `up' and `mp' stands for uni-processor and multi-processor,
 respectively.  The source code of the First Order Compiler is

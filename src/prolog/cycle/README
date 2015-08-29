@@ -1,0 +1,13 @@
+================== README (src/prolog/cyclic) =====================
+
+This directory contains the Prolog source files for probabilistic
+inferences using cyclic explanation graphs,
+
+README         ... this file
+lin_prob.pl    ... EM learning on linear cyclic explanation graphs
+nonlin_prob.pl ... EM learning on nonlinear cyclic explanation graphs
+cyc_vlearn.pl  ... VT on linear cyclic explanation graphs 
+cyc_viterbi.pl ... Viterbi inference on linear cyclic explanation graphs
+trans_graph.pl ... converting explanation graphs to hypergraphs
+solve_graph.pl ... solving simultaneous equations
+find_scc.pl    ... finding SCCs (strongly connected components)

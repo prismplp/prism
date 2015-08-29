@@ -1,7 +1,7 @@
 ======================= README (src/c/up) ========================
 
-This directory contains C source files for the routines for
-probabilistic infererences:
+This directory contains C source files for the routines for probabilistic
+infererences:
 
   Makefile.gmake        ... Makefile for GNU make
   Makefile.nmake        ... Makefile for nmake (MSVC++) on Windows
@@ -46,9 +46,14 @@ probabilistic infererences:
   crf_learn.{c,h}   ... weight learning of generative CRFs
   crf_viterbi.{c,h} ... viterbi computation on generative CRFs
   
-  linear_eq.{cpp,h}    ... main routine for solving simul linear eqs. 
-  linear_eq_lapack.c   ... main routine for solving simul linear eqs. (with LAPACK)
+  linear_eq.{cpp,h}    ... main routine for solving simul linear eqs 
+  linear_eq_lapack.c   ... main routine for solving simul linear eqs (with LAPACK)
   nonlinear_eq.{cpp,h} ... main routine for solving simul non-linear eqs  
-  cyc_vt_ml.{cpp,h}    ... main routine for VT on cyclic expl. graphs
-  cyc_vt_preds.{c,h}   ... C interface for VT on cyclic expl. graphs
+  cyc_vt_ml.{cpp,h}    ... main routine for VT on cyclic expl graphs
+  cyc_vt_preds.{c,h}   ... C interface for VT on cyclic expl graphs
   scc.{cpp,h}          ... substantial part for inferences on cyclic expl. graphs 
+
+libLBFGS is a C library for Limited-memory Broyden-Fletcher-Goldfarb-Shanno
+(L-BFGS) method available at http://www.chokkan.org/software/liblbfgs/ under
+the MIT license.  Please find the document on the license agreement at the
+beginning of each related C source file.
