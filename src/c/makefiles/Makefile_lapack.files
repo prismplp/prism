@@ -65,7 +65,7 @@ MP_DIR     = mp
 
 SUBDIRS    = $(CORE_DIR) $(UP_DIR)
 
-OBJS    = $(CORE_OBJS) $(UP_OBJS) $(LAPACK_OBJS)
+OBJS    = $(CORE_OBJS) $(UP_OBJS)
 
 ##----------------------------------------------------------------------
 
