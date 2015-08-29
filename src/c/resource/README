@@ -1,0 +1,10 @@
+==================== README (src/c/resource) =======================
+
+This directory contains the source files of external software packages.
+As for the licenses of these packages, please find eigen/COPYRIGHT.*
+for Eigen (the MPL2 license) and for lapack/LICENSE.txt for LAPACK
+(the modified BSD license).
+
+README    ... this file
+eigen/    ... source files of Eigen
+lapack/   ... source files of 64bit LAPACK

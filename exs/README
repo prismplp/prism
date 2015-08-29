@@ -1,0 +1,14 @@
+========================== README (exs) ===========================
+
+Files/Directories:
+  README ... this file
+  base   ... examples with basic utilities
+  fail   ... examples describing generative processes with failures 
+  crf    ... examples that use generative conditional random fields
+  cyc    ... examples that use cyclic explanation graphs
+  foc    ... examples that use the First Order Compiler
+
+Comments:
+  This directory contains dozens of program examples that cover many
+  utilities provided by PRISM.  Please visit the directory `base'
+  first and then the rest for exploring some extended utilities.

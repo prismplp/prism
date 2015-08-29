@@ -1,0 +1,20 @@
+========================= README (bin) ==========================
+
+This directory contains executables and scripts (Windows batch files)
+to invoke PRISM.
+
+  README      ... this file
+  prism       ... shell script for PRISM in interactive run
+  upprism     ... shell script for PRISM in batch run
+  mpprism     ... shell script for PRISM in parallel batch run 
+  prism.bat   ... Windows batch for PRISM in interactive
+  upprism.bat ... Windows batch for PRISM in batch run
+  prism_up_linux.bin   ... executable for 64bit Linux
+  prism_up_darwin.bin  ... executable for Mac OS X
+  prism_up_cygwin.exe  ... executable for Cygwin
+  prism_win32.exe      ... executable for Win32
+  prism.out   ... Prolog bytecode for PRISM
+  bp.out      ... Prolog bytecode for B-Prolog
+  batch.out   ... additional bytecode for batch run
+  mpprism.out ... additional bytecode for parallel batch run
+  foc.out     ... additional bytecode for First Order Compiler

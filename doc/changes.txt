@@ -28,7 +28,7 @@
     src/prolog/up/crf.pl,
     src/prolog/up/crf_prob.pl
     - added for built-ins related to generative CRF 
-    - renamed from the pre-release version
+    - renamed and slightly modified from the pre-release version
   * src/c/up/linear_eq.cpp,
     src/c/up/linear_eq.h,
     src/c/up/linear_eq_lapack.c,
