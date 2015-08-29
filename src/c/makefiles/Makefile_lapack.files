@@ -55,6 +55,15 @@ MP_OBJS   = mp$(S)mp_core.$(O)          \
             mp$(S)mp_preds.$(O)         \
             mp$(S)mp_sw.$(O)
 
+ifeq ($(PLATFORM),linux)
+ifeq ($(MATRIX),lapack)
+## this order is important
+LAPACK_OBJS = resource$(S)lapack$(S)liblapacke.$(A)    \
+            resource$(S)lapack$(S)liblapack.$(A)   \
+            resource$(S)lapack$(S)libtmglib.$(A)    \
+            resource$(S)lapack$(S)librefblas.$(A)      
+endif
+endif
 
 ##----------------------------------------------------------------------
 
@@ -66,7 +75,7 @@ MP_DIR     = mp
 
 SUBDIRS    = $(CORE_DIR) $(UP_DIR)
 
-OBJS    = $(CORE_OBJS) $(UP_OBJS)
+OBJS    = $(CORE_OBJS) $(UP_OBJS) $(LAPACK_OBJS)
 
 ##----------------------------------------------------------------------
 
