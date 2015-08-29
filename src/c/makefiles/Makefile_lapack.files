@@ -41,6 +41,7 @@ UP_OBJS   = up$(S)graph.$(O)            \
             up$(S)linear_eq_lapack.$(O) \
             up$(S)lbfgs.$(O)            \
             up$(S)nonlinear_eq.$(O)     \
+            up$(S)cyc_em.$(O)           \
             up$(S)scc.$(O)              \
             up$(S)cyc_vt_preds.$(O)     \
             up$(S)cyc_vt_ml.$(O)

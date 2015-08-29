@@ -30,6 +30,7 @@ OBJS = graph.$(O)             \
        lbfgs.$(O)             \
        scc.$(O)               \
        nonlinear_eq.$(O)      \
+       cyc_em.$(O)      \
        cyc_vt_preds.$(O)      \
        cyc_vt_ml.$(O)      
 
