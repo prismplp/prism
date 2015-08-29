@@ -3,9 +3,10 @@
 This directory contains the Makefiles which are included into the
 Makefiles in the above directory:
 
-  Makefile.opts.gmake ... settings for GNU make
-  Makefile.opts.nmake ... settings for nmake (MSVC++)
-  Makefile.files      ... source file names
+  Makefile.opts.gmake   ... settings for GNU make
+  Makefile.opts.nmake   ... settings for nmake (MSVC++)
+  Makefile.files        ... names of source files without LAPACK
+  Makefile_lapack.files ... names of source files with LAPACK
 
 If you would like to change the default settings, please modify
 these Makefiles.

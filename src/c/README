@@ -24,19 +24,18 @@ respectively.
 
     make -f Makefile.gmake PLATFORM=XXXX
 
-  where XXXX is one from linux32, linux64, darwin9, darwin10 and cygwin,
-  which mean 32bit Linux, 64bit Linux, Mac OS X 10.5, Mac OS X 10.6 and
-  Cygwin, respectively.  The default is linux32.  For example, on 64bit
-  Linux, type:
+  where XXXX is one from linux, darwin and cygwin, which mean 64bit
+  Linux, Mac OS X and Cygwin, respectively.  The default is linux.
+  For example, on Mac OS X, type:
 
-    make -f Makefile.gmake PLATFORM=linux64
+    make -f Makefile.gmake PLATFORM=darwin
 
   
   We can omit "PLATFORM=XXXX" by setting XXXX to the environment
   variable PLATFORM in advance:
 
-    setenv PLATFORM linux64   (on csh-style shells like tcsh)
-    export PLATFORM=linux64   (on sh-style shells like bash)
+    setenv PLATFORM darwin   (on csh-style shells like tcsh)
+    export PLATFORM=darwin   (on sh-style shells like bash)
     make -f Makefile.gmake
 
   By default, the `prism' command (a shell script) assumes that

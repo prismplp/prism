@@ -73,6 +73,7 @@ prism_main([vt]) :- learn_with_vt(100,3),show_sw.
 
 % Batch routine for EM learning
 learn_with_em(N,Len) :-
+    set_sw(s, [0.4, 0.3, 0.3]),
     get_samples(N,pcfg(_),S),
     maplist(X,Y,(X=pcfg(L),trunc_prefix(L,P,Len),Y=prefix_pcfg(P)),S,Gs),
     get_prism_flag(learn_mode,M),
@@ -82,6 +83,7 @@ learn_with_em(N,Len) :-
 
 % Batch routine for Viterbi training
 learn_with_vt(N,Len) :-
+    set_sw(s, [0.4, 0.3, 0.3]),
     get_samples(N,pcfg(_),S),
     maplist(X,Y,(X=pcfg(L),trunc_prefix(L,P,Len),Y=prefix_pcfg(P)),S,Gs),
     get_prism_flag(learn_mode,M),

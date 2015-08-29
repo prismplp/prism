@@ -5,7 +5,7 @@
 #include "up/em_aux_ml.h"
 #include "up/flags.h"
 #include "up/util.h"
-#include "up/feature.h"
+#include "up/crf_learn.h"
 
 /*------------------------------------------------------------------------*/
 

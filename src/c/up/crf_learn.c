@@ -6,7 +6,7 @@
 #include "up/graph_aux.h"
 #include "up/flags.h"
 #include "up/viterbi.h"
-#include "up/crf_grd.h"
+#include "up/crf.h"
 #include "up/em_aux.h"
 #include "up/em_aux_ml.h"
 #include "up/hindsight.h"
@@ -902,10 +902,9 @@ static void initialize_LBFGS_q(void) {
 static void compute_LBFGS_y_rho(void) {
 	int i;
 	SW_INS_PTR sw_ptr;
-	double rho,a;
+	double rho;
 
 	rho = 0;
-	a = 0;
 
 	for (i=0; i<occ_switch_tab_size; i++) {
 		sw_ptr = occ_switches[i];
@@ -943,15 +942,15 @@ static int update_lambdas_LBFGS(double tmp_epsilon) {
 
 void config_crf(CRF_ENG_PTR crf_ptr) {
 	if (log_scale) {
-		crf_ptr->compute_feature      = compute_feature_scaling_log_exp;
-		crf_ptr->compute_crf_probs     = compute_crf_probs_scaling_log_exp;
-		crf_ptr->compute_likelihood   = compute_log_likelihood_scaling_log_exp;
-		crf_ptr->compute_gradient     = compute_gradient_scaling_log_exp;
+		crf_ptr->compute_feature    = compute_feature_scaling_log_exp;
+		crf_ptr->compute_crf_probs  = compute_crf_probs_scaling_log_exp;
+		crf_ptr->compute_likelihood = compute_log_likelihood_scaling_log_exp;
+		crf_ptr->compute_gradient   = compute_gradient_scaling_log_exp;
 	} else {
-		crf_ptr->compute_feature      = compute_feature_scaling_none;
-		crf_ptr->compute_crf_probs     = compute_crf_probs_scaling_none;
-		crf_ptr->compute_likelihood   = compute_log_likelihood_scaling_none;
-		crf_ptr->compute_gradient     = compute_gradient_scaling_none;
+		crf_ptr->compute_feature    = compute_feature_scaling_none;
+		crf_ptr->compute_crf_probs  = compute_crf_probs_scaling_none;
+		crf_ptr->compute_likelihood = compute_log_likelihood_scaling_none;
+		crf_ptr->compute_gradient   = compute_gradient_scaling_none;
 	}
 
 	if (crf_learn_mode == 1) {
@@ -965,9 +964,8 @@ void config_crf(CRF_ENG_PTR crf_ptr) {
 
 /* main loop */
 static int run_grd(CRF_ENG_PTR crf_ptr) {
-	int r,iterate,old_valid,converged,conv_time,saved = 0;
+	int r,iterate,old_valid,converged,saved = 0;
 	double likelihood,old_likelihood = 0.0;
-	double crf_max_iterate = 0.0;
 	double tmp_epsilon,alpha0,gf_sd,old_gf_sd = 0.0;
 
 	config_crf(crf_ptr);
@@ -987,12 +985,6 @@ static int run_grd(CRF_ENG_PTR crf_ptr) {
 		printf("learning rate:golden section\n");
 	}
 
-	if (max_iterate == -1) {
-		crf_max_iterate = DEFAULT_MAX_ITERATE;
-	} else if (max_iterate >= +1) {
-		crf_max_iterate = max_iterate;
-	}
-
 	for (r = 0; r < num_restart; r++) {
 		SHOW_PROGRESS_HEAD("#crf-iters", r);
 
@@ -1005,7 +997,6 @@ static int run_grd(CRF_ENG_PTR crf_ptr) {
 		tmp_epsilon = crf_epsilon;
 
 		LBFGS_index = 0;
-		conv_time = 0;
 
 		while (1) {
 			if (CTRLC_PRESSED) {

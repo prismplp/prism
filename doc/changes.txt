@@ -17,17 +17,18 @@
     src/c/Makefile
     - deleted the part related to 32bit Linux, which is no longer
       the target platform
-  * src/c/up/crf_grd.h,
-    src/c/up/crfviterbi.c,
-    src/c/up/crfviterbi.h,
-    src/c/up/feature.c,
-    src/c/up/feature.h,
-    src/prolog/up/crfhindsight.pl,
-    src/prolog/up/crflearn.pl,
-    src/prolog/up/crfviterbi.pl,
-    src/prolog/up/feature.pl,
-    src/prolog/up/fprob.pl
+  * src/c/up/crf.h,
+    src/c/up/crf_learn.c,
+    src/c/up/crf_learn.h,
+    src/c/up/crf_viterbi.c,
+    src/c/up/crf_viterbi.h,
+    src/prolog/up/crf_hindsight.pl,
+    src/prolog/up/crf_learn.pl,
+    src/prolog/up/crf_viterbi.pl,
+    src/prolog/up/crf.pl,
+    src/prolog/up/crf_prob.pl
     - added for built-ins related to generative CRF 
+    - renamed from the pre-release version
   * src/c/up/linear_eq.cpp,
     src/c/up/linear_eq.h,
     src/c/up/linear_eq_lapack.c,

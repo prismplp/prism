@@ -3,10 +3,12 @@
 This directory contains C source files for the routines for
 probabilistic infererences:
 
-  Makefile.gmake  ... Makefile for GNU make
-  Makefile.nmake  ... Makefile for nmake (MSVC++) on Windows
-  Makefile.files  ... auxiliary Makefile
-  up.h            ... common header file for source code in this directory
+  Makefile.gmake        ... Makefile for GNU make
+  Makefile.nmake        ... Makefile for nmake (MSVC++) on Windows
+  Makefile.files        ... names of source files without LAPACK
+  Makefile_lapack.files ... names of source files with LAPACK
+
+  up.h            ... common header file for the source code in this directory
   em.h            ... common header file for EM learning
   graph.{c,h}     ... explanation graphs
   graph_aux.{c,h} ... auxiliary utilities for explanation graphs
@@ -20,3 +22,33 @@ probabilistic infererences:
   hindsight.{c,h} ... hindsight computation
   flags.{c,h}     ... execution flags
   util.{c,h}      ... misellaneous utilities
+
+  mcmc.h             ... common header file for MCMC sampling
+  mcmc_preds.{c,h}   ... C interface (wrappers) for MCMC sampling
+  mcmc_sample.{c,h}  ... basic MCMC sampling
+  mcmc_eml.{c,h}     ... computation of estimated log marginal likelihood
+  mcmc_exact.{c,h}   ... computation of exact log marginal likelihood
+  mcmc_predict.{c,h} ... computation of the most probable explanation
+  
+  lbfgs.{c,h}             ... source code of libLBFGS
+  arithmetic_ansi.h       ... ANSI C impl.of vector operations (from libLBFGS)
+  arithmetic_sse_double.h ... SSE2 impl. of vector oprations (64bit double, from libLBFGS)
+  arithmetic_sse_float.h  ... SSE2 impl. of vector oprations (32bit float, from libLBFGS)
+  
+  crf.h             ... common header file for generative CRFs
+  crf_learn.{c,h}   ... weight learning of generative CRFs
+  crf_viterbi.{c,h} ... viterbi computation on generative CRFs
+  
+  cyc_vt_ml.{cpp,h}    ...
+  cyc_vt_preds.{c,h}   ... 
+  linear_eq.{cpp,h}    ... 
+  linear_eq_lapack.c   ... 
+  nonlinear_eq.{cpp,h} ... 
+  scc.{cpp,h}
+  
+  vt.h            ... 
+  vt_aux_ml.{c,h} ... 
+  vt_aux_vb.{c,h} ... 
+  vt_ml.{c,h}     ... 
+  vt_preds.{c,h}  ... 
+  vt_vb.{c,h}     ... 

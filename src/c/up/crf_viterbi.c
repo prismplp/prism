@@ -2,8 +2,8 @@
 #include "up/graph.h"
 #include "up/graph_aux.h"
 #include "up/flags.h"
-#include "viterbi.h"
-#include "up/feature.h"
+#include "up/viterbi.h"
+#include "up/crf_learn.h"
 
 /*------------------------------------------------------------------------*/
 

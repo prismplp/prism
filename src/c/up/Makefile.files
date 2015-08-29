@@ -23,12 +23,12 @@ OBJS = graph.$(O)             \
        viterbi.$(O)           \
        hindsight.$(O)         \
        flags.$(O)             \
-       feature.$(O)           \
-       crfviterbi.$(O)        \
+       crf_learn.$(O)         \
+       crf_viterbi.$(O)       \
        util.$(O)              \
        linear_eq.$(O)         \
        lbfgs.$(O)             \
-       scc.$(O)             \
+       scc.$(O)               \
        nonlinear_eq.$(O)      \
        cyc_vt_preds.$(O)      \
        cyc_vt_ml.$(O)      
@@ -53,7 +53,7 @@ UP_H   = up.h
 EM_H   = em.h
 VT_H   = vt.h
 MCMC_H = mcmc.h
-CRF_H  = crf_grd.h
+CRF_H  = crf.h
 
 ##----------------------------------------------------------------------
 
@@ -82,10 +82,8 @@ util.$(O)         : $(BPX_H) $(ERR_H) $(UP_H) util.h
 error.$(O)        : $(BPX_H) $(ERR_H) $(UP_H)
 linear_eq.$(O)    : $(BPX_H) $(ERR_H) $(UP_H) linear_eq.h
 nonlinear_eq.$(O) : $(BPX_H) $(ERR_H) $(UP_H) nonlinear_eq.h
-cyc_vt_ml.$(O) : $(BPX_H) $(ERR_H) $(UP_H) nonlinear_eq.h cyc_vt_ml.h
+cyc_vt_ml.$(O)    : $(BPX_H) $(ERR_H) $(UP_H) nonlinear_eq.h cyc_vt_ml.h
 cyc_vt_preds.$(O) : $(BPX_H) $(ERR_H) $(UP_H) nonlinear_eq.h cyc_vt_preds.h
 lbfgs.$(O)        :
-
-
 
 ##----------------------------------------------------------------------
