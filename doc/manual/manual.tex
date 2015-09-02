@@ -198,7 +198,7 @@ to the B-Prolog user's manual for details about Prolog built-ins.
 The latest information and resources on PRISM are available at
 the website below.
 \begin{quote}
-{\tt http://sato-www.cs.titech.ac.jp/prism/}
+{\tt http://rjida.meijo-u.ac.jp/prism/}
 \end{quote}
 For any questions, requests and bug-reports, please send an E-mail to:
 \begin{quote}
@@ -10677,10 +10677,9 @@ learning algorithm whereas the {\tt fg} mode uses
 the steepest descent algorithm.\conindex{steepest descent method}
 The latter mode has another set of flags to control its learning process
 (see \secref{sec:built-in:flags:list} for details).
-Viterbi  inference  for  CRFs  is  carried out  by  built-in  predicates
-{\tt crf\_viterbi/1},
-{\tt crf\_prob/2} and  so on.
-{\tt ?-~crf\_viterbi(G)}\predindex{crf\_viterbi/1}
+Probabilistic inferences for CRFs are also carried out by built-in predicates
+{\tt crf\_viterbi/1}, {\tt crf\_prob/2} and  so on.
+For example, {\tt ?-~crf\_viterbi(G)}\predindex{crf\_viterbi/1}
 prints out a Viterbi explanation and {\tt ?-~crf\_prob(G,W)}\predindex{crf\_prob/2}
 returns the weight {\tt W} of the goal {\tt  G}.
 There are also a group of top-$n$ Viterbi predicates.
@@ -14003,8 +14002,8 @@ This parser is a slight generalization of usual top-down PCFG
 parser where  the only difference  is the insertion  of one line code  commented as
 ``{\tt (pseudo) success}.''
 By the declaration of a random switch {\tt s} with {\tt values/2},
-The underlying grammar is defined as \{s $\to$ {ss} (0.4), s $\to$ a (0.3), s $\to$ a (0.3)\} 
-where a number following each rule is an initial application probability.
+the underlying grammar is defined as \{s $\to$ {ss} (0.4), s $\to$ a (0.3), s $\to$ a (0.3)\} 
+where the number following each rule is an initial application probability.
 
 Now think of a prefix {\tt [a,b]} in this PCFG, represented by a top-goal {\tt
   prefix\_pcfg([a,b])}.  By  {\tt probf/1} we obtain an  explanation graph for
@@ -14160,7 +14159,7 @@ We can see from this result that the parameter of rule `s $\to$ ss' learned
 from prefix substrings is rather different from the one learned from
 the whole sentences.  This is not surprising, because applying `s $\to$ ss'
 more will yield a longer sentence, and learning from prefix substrings
-assumes the existence of longer sentences behind such substrings.
+takes into account longer sentences behind such substrings.
 
 
 \section{Nonlinear cyclic explanation graphs*}

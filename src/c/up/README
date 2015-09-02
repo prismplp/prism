@@ -48,7 +48,8 @@ infererences:
   
   linear_eq.{cpp,h}    ... main routine for solving simul linear eqs 
   linear_eq_lapack.c   ... main routine for solving simul linear eqs (with LAPACK)
-  nonlinear_eq.{cpp,h} ... main routine for solving simul non-linear eqs  
+  nonlinear_eq.{cpp,h} ... main routine for solving simul nonlinear eqs  
+  cyc_em.{cpp,h}       ... main routine for EM on cyclic expl graphs
   cyc_vt_ml.{cpp,h}    ... main routine for VT on cyclic expl graphs
   cyc_vt_preds.{c,h}   ... C interface for VT on cyclic expl graphs
   scc.{cpp,h}          ... substantial part for inferences on cyclic expl. graphs 

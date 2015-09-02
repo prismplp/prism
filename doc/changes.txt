@@ -36,6 +36,8 @@
     src/c/up/nonlinear_eq.h,
     src/c/up/scc.cpp,
     src/c/up/scc.h,
+    src/c/up/cyc_em.cpp,
+    src/c/up/cyc_em.h,
     src/c/up/cyc_vt_ml.cpp,
     src/c/up/cyc_vt_ml.h,
     src/c/up/cyc_vt_preds.c,
