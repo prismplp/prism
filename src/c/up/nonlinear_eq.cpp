@@ -74,12 +74,18 @@ int pc_compute_nonlinear_viterbi_6(void) {
 	RET_ON_ERR(sort_one_egraph(goal_id,0,1));
 	if (verb_graph) print_egraph(0,PRINT_NEUTRAL);
 
+	double start_time=getCPUTime();
+    init_scc();
+	double scc_time=getCPUTime();
+	
 	compute_nonlinear_viterbi(scc_debug_level);
 
 	if (debug_level) print_egraph(1,PRINT_VITERBI);
 
 	get_most_likely_path(goal_id,&p_goal_path,&p_subpath_goal,
 			&p_subpath_sw,&viterbi_prob);
+
+	free_scc();
 
 	return
 		bpx_unify(bpx_get_call_arg(3,6), p_goal_path)    &&
