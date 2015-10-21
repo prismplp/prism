@@ -36,7 +36,11 @@ int pc_prism_cyc_vt_4(void) {
 
 int pc_prism_cyc_vbvt_2(void) {
 	struct VBVT_Engine vbvt_eng;
-
+	vbvt_eng.free_energy=0;  
+	vbvt_eng.iterate=0;
+	vbvt_eng.compute_pi = NULL;
+	vbvt_eng.compute_free_energy_l1 = NULL;
+	
 	RET_ON_ERR(check_smooth_vb());
 	//RET_ON_ERR(run_cyc_vbvt(&vbvt_eng));
 
@@ -47,6 +51,11 @@ int pc_prism_cyc_vbvt_2(void) {
 
 int pc_prism_cyc_both_vt_2(void) {
 	struct VBVT_Engine vbvt_eng;
+	vbvt_eng.free_energy = 0;
+	vbvt_eng.iterate = 0;
+	vbvt_eng.compute_pi = NULL;
+	vbvt_eng.compute_free_energy_l1 = NULL;
+
 
 	RET_ON_ERR(check_smooth_vb());
 	//RET_ON_ERR(run_cyc_vbvt(&vbvt_eng));

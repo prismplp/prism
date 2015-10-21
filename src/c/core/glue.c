@@ -10,7 +10,6 @@
 typedef struct sym_rec * SYM_REC_PTR;
 typedef long int TERM;
 SYM_REC_PTR insert_cpred(const char *, int, int(*)(void));
-void exit(int);
 
 /*--------------------------------------------------------------------*/
 

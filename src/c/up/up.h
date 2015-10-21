@@ -115,8 +115,7 @@ struct ObservedFactNode {
 
 #ifdef _MSC_VER
 #include <float.h>
-#define isfinite _finite
-#define isnan _isnan
+
 #endif
 
 #ifdef LINUX
