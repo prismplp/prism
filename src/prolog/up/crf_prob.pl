@@ -1,6 +1,6 @@
 %
 crf_prob(Goal) :-
-    fprob(Goal,P),
+    $pp_fprob(Goal,P),
     ( $pp_in_log_scale -> Text = 'Log-weight' ; Text = 'Weight' ),
     format("~w of ~w is: ~15f~n",[Text,Goal,P]).
 
@@ -37,7 +37,7 @@ $pp_fprob(Goal,Prob) :-
     $pp_assert_prob_stats1(InfTime),!.
 
 log_crf_prob(Goal) :-
-    log_fprob(Goal,P),format("Log-weight of ~w is: ~15f~n",[Goal,P]).
+    $pp_fprob(Goal,P),format("Log-weight of ~w is: ~15f~n",[Goal,P]).
 log_crf_prob(Goal,P) :-
     $pp_fprob(Goal,P0),( $pp_in_log_scale -> P = P0 ; P is log(P0) ).
 
