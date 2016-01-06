@@ -3,7 +3,11 @@
 #ifdef _MSC_VER
 #include <windows.h>
 #endif
+
 extern "C" {
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
 #include "up/up.h"
 #include "up/flags.h"
 #include "bprolog.h"
@@ -16,20 +20,17 @@ extern "C" {
 #include "up/em_aux_ml.h"
 #include "up/viterbi.h"
 #include "up/graph_aux.h"
-
-
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
 #include "up/nonlinear_eq.h"
 #include "up/scc.h"
 }
 
 #include "eigen/Core"
 #include "eigen/LU"
+
 #include <iostream>
 #include <set>
 #include <cmath>
+
 
 using namespace Eigen;
 

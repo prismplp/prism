@@ -6,7 +6,9 @@
 static ID_TABLE *g_table = NULL;  /* goals */
 static ID_TABLE *s_table = NULL;  /* switches */
 static ID_TABLE *i_table = NULL;  /* switch instances */
-
+#ifdef _MSC_VER
+#define strdup(x) _strdup(x)
+#endif
 /*--------------------------------------------------------------------*/
 
 int prism_goal_id_register(TERM term) {

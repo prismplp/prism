@@ -17,8 +17,7 @@
 /* (empty) */
 #elif defined _MSC_VER
 #include <float.h>
-#define isfinite    _finite
-#define isnan       _isnan
+
 #define INFINITY    HUGE_VAL
 #elif defined LINUX
 #  ifndef isfinite

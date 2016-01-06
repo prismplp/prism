@@ -26,10 +26,10 @@ A           = lib
 S           = \ #
 
 !IF "$(MATRIX)"=="lapack"
-CFLAGS      = /O2 /nologo /EHsc /I..\bp4prism\include /I.. /I..\resource\lapack /I..\resource
-LDFLAGS     = /nologo
+CFLAGS      = /O2 /nologo /MT   /Gy /Gd /DWIN32 /EHsc /I..\bp4prism\include /I.. /I..\resource\lapack /I..\resource /I..\up
+LDFLAGS     = /nologo /ENTRY:main
 !ELSE
-CFLAGS      = /O2 /nologo /EHsc /I..\bp4prism\include /I.. /I..\resource
+CFLAGS      = /O2 /nologo /MT  /Gy /Gd /DWIN32 /EHsc /I..\bp4prism\include /I.. /I..\resource /I..\up
 CPPFLAGS=$(CFLAGS)
 LDFLAGS     = /nologo
 !ENDIF
@@ -38,7 +38,7 @@ LDFLAGS     = /nologo
 ##----------------------------------------------------------------------
 
 !IF "$(PLATFORM)" == "win32"
-CFLAGS      = $(CFLAGS) /DWIN32 /DNT
+CFLAGS      = $(CFLAGS) /DWIN32 /DNT 
 !ENDIF
 
 ##----------------------------------------------------------------------
