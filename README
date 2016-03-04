@@ -1,6 +1,6 @@
 ========================== README (top) ==========================
 
-This is a software package of PRISM version 2.0, a logic-based
+This is a software package of PRISM version 2.2, a logic-based
 programming system for statistical modeling, which is built
 on top of B-Prolog (http://www.probp.com/).  Since version 2.0,
 the source code of the PRISM part is included in the released

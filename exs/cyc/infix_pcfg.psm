@@ -21,7 +21,7 @@
 %% in this files encodes Nederhof and Satta's algorithm.  We first build
 %% a deterministic finite automaton and mix it in our infix parsing.
 %% We then have a nonlinear cyclic explanation graph after parsing, and
-%% compute the infix probabilities using some linear algebra routines.
+%% compute the infix probabilities using some nonlinear algebra routines.
 %%
 %% Here let us compute the infix probability of a substring 'a':
 %%
@@ -53,7 +53,7 @@
 %%          v infix_pcfg(s0,s0,s) & infix_pcfg(s0,s0,s) & msw(s,[s,s])
 %%      infix_pcfg(s0,s0,b)
 %%
-%%    From above, we can consider a system of linear equations:
+%%    From above, we can consider a system of nonlinear equations:
 %%
 %%      x[1] = 0.4 * x[3] * x[1] + 0.4 * x[1] * x[2] + 0.3
 %%      x[2] = 0.4 * x[2] * x[2] + 0.3 + 0.3
@@ -61,7 +61,7 @@
 %%
 %%    where each x[i] indicates the corresponding goal probability and in particular
 %%    x[1] is the probability of infix_pcfg([a]) or the infix probability of substring
-%%    'a' by our model specification.  Under the constraint 0 <= x[i] <= 1, a linear
+%%    'a' by our model specification.  Under the constraint 0 <= x[i] <= 1, a nonlinear
 %%    algebra routines find the solution as follows:
 %%
 %%      x[1] = 0.61583
