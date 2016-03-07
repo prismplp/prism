@@ -17,6 +17,15 @@ rem ------------------------------------------------------------------------
 rem ------[[  Don't edit below unless you know what you're doing.  ]]-------
 rem ------------------------------------------------------------------------
 
+if "%PROCESSOR_ARCHITECTURE%" EQU "x86" (
+	set PRISM_BIN=prism_win32.exe
+)
+if "%PROCESSOR_ARCHITECTURE%" NEQ "x86" (
+	set PRISM_BIN=prism_win64.exe
+)
+
+
+
 if not "%CMDEXTVERSION%" == "" goto newer
 
 :older
@@ -24,7 +33,7 @@ if not "%CMDEXTVERSION%" == "" goto newer
 if "%PRISM%" == "" set PRISM=C:\prism
 set PRISM=%PRISM%\bin
 
-%PRISM%\prism_win32.exe -c -p %PAREA% -s %STACK% -b %TRAIL% -t %TABLE% %PRISM%\bp.out %PRISM%\prism.out %PRISM%\fo_all.out %1 %2 %3 %4 %5 %6 %7 %8 %9
+%PRISM%\%PRISM_BIN% -c -p %PAREA% -s %STACK% -b %TRAIL% -t %TABLE% %PRISM%\bp.out %PRISM%\prism.out %PRISM%\fo_all.out %1 %2 %3 %4 %5 %6 %7 %8 %9
 
 goto end
 
@@ -32,6 +41,6 @@ goto end
 
 if "%PRISM%" == "" (set PRISM=%~dp0) else (set PRISM=%PRISM%\bin)
 
-%PRISM%\prism_win32.exe -c -p %PAREA% -s %STACK% -b %TRAIL% -t %TABLE% %PRISM%\bp.out %PRISM%\prism.out %PRISM%\foc.out %*
+%PRISM%\%PRISM_BIN% -c -p %PAREA% -s %STACK% -b %TRAIL% -t %TABLE% %PRISM%\bp.out %PRISM%\prism.out %PRISM%\foc.out %*
 
 :end
