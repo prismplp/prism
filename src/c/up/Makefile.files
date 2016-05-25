@@ -32,6 +32,7 @@ OBJS = graph.$(O)             \
        nonlinear_eq.$(O)      \
        cyc_em.$(O)      \
        cyc_vt_preds.$(O)      \
+       rank.$(O)      \
        cyc_vt_ml.$(O)      
 
 
@@ -85,6 +86,7 @@ linear_eq.$(O)    : $(BPX_H) $(ERR_H) $(UP_H) linear_eq.h
 nonlinear_eq.$(O) : $(BPX_H) $(ERR_H) $(UP_H) nonlinear_eq.h
 cyc_vt_ml.$(O)    : $(BPX_H) $(ERR_H) $(UP_H) nonlinear_eq.h cyc_vt_ml.h
 cyc_vt_preds.$(O) : $(BPX_H) $(ERR_H) $(UP_H) nonlinear_eq.h cyc_vt_preds.h
+rank.$(O)    : $(BPX_H) $(ERR_H) $(UP_H) nonlinear_eq.h cyc_vt_ml.h rank.h
 lbfgs.$(O)        :
 
 ##----------------------------------------------------------------------

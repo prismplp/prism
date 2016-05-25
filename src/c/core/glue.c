@@ -168,6 +168,9 @@ void bp4p_register_preds(void) {
 	/* up/cyc_vt_preds.c */
 	REGISTER_CPRED(prism_cyc_vt,4);
 
+	/* up/rank.c */
+	REGISTER_CPRED(rank_learn,7);
+
 	/* up/feature.c */
 	REGISTER_CPRED(compute_feature,2);
 	REGISTER_CPRED(compute_fprobf,1);

@@ -39,7 +39,8 @@ PL_UP    = up/dynamic.pl        \
            up/crf_prob.pl       \
            up/crf_viterbi.pl    \
            up/crf_hindsight.pl  \
-           up/bigarray.pl
+           up/bigarray.pl       \
+           up/rank.pl
 
 PL_BAT   = up/batch.pl
 
