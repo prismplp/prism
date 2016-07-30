@@ -240,14 +240,19 @@ static void initialize_crf_count(void) {
 	for (i=0; i<sw_ins_tab_size; i++) {
 		switch_instances[i]->count = 0;
 	}
-
+	printf("num_root: %d\n",num_roots);
+	
+int sum=0;
 	for (i=0; i<num_roots; i++) {
+		printf("root id/pid: %d /%d  %d \n",roots[i]->id,roots[i]->pid,roots[i]->count);
+sum+=roots[i]->count;
 		roots[i]->sgd_count = roots[i]->count;
 		expl_graph[roots[i]->id]->root_id = i;
 		if (roots[i]->pid != -1) {
 			count_complete_features(expl_graph[roots[i]->id],roots[i]->count);
 		}
 	}
+printf("sum: %d \n",sum);
 }
 
 /* compute gradient for each switch (gradient is always no-scale)*/
@@ -672,10 +677,12 @@ static double line_search(CRF_ENG_PTR crf_ptr, double alpha0, double rho, double
 	save_current_params();
 
 	alpha = alpha0;
+	printf(">>> %f",gf_sd);
 	while (1) {
 		l_k2 = compute_phi_alpha(crf_ptr,alpha);
 		if ( l_k2 <= ( l_k + alpha * c_gf_sd ) ) break;
 		alpha *= rho;
+		printf(">> %f (%f,%f)\n",alpha,l_k2,l_k + alpha * c_gf_sd);
 	}
 
 	restore_current_params();
@@ -695,6 +702,7 @@ static double line_search_LBFGS(CRF_ENG_PTR crf_ptr, double alpha0, double rho, 
 	while (1) {
 		l_k2 = compute_phi_alpha_LBFGS(crf_ptr,alpha);
 		if ( l_k2 <= ( l_k + alpha * c_gf_sd ) ) break;
+
 		alpha *= rho;
 	}
 
@@ -1062,10 +1070,12 @@ static int run_grd(CRF_ENG_PTR crf_ptr) {
 			}
 
 			SHOW_PROGRESS(iterate);
-
+			
+			// computing learning rate
 			if (crf_learning_rate == 1) { // annealing
 				tmp_epsilon = (annealing_weight / (annealing_weight + iterate)) * crf_epsilon;
 			} else if (crf_learning_rate == 2) { // line-search(backtrack)
+				// gf_sd = grad f^T dot d (search direction)
 				if (crf_learn_mode == 1) {
 					gf_sd = compute_gf_sd_LBFGS();
 				} else {
@@ -1094,11 +1104,13 @@ static int run_grd(CRF_ENG_PTR crf_ptr) {
 					tmp_epsilon = golden_section(crf_ptr,0,crf_golden_b);
 				}
 			}
+			// updating with learning rate 
 			crf_ptr->update_lambdas(tmp_epsilon);
 
 			iterate++;
 		}
 
+			printf("#12\n");
 		SHOW_PROGRESS_TAIL(converged, iterate, likelihood);
 
 		if (r == 0 || likelihood > crf_ptr->likelihood) {
