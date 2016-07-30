@@ -37,6 +37,7 @@ UP_OBJS   = up$(S)graph.$(O)            \
             up$(S)flags.$(O)            \
             up$(S)crf_learn.$(O)        \
             up$(S)crf_viterbi.$(O)      \
+            up$(S)crf_rank.$(O)         \
             up$(S)util.$(O)             \
             up$(S)linear_eq.$(O)        \
             up$(S)lbfgs.$(O)            \

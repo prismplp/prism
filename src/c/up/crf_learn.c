@@ -22,7 +22,7 @@ static double *LBFGS_rho = NULL;
 
 /* initialize methods */
 
-static void initialize_lambdas_noisy_uniform(void) {
+void initialize_lambdas_noisy_uniform(void) {
 	int i;
 	SW_INS_PTR ptr;
 
@@ -38,7 +38,7 @@ static void initialize_lambdas_noisy_uniform(void) {
 	}
 }
 
-static void initialize_lambdas_random(void) {
+void initialize_lambdas_random(void) {
 	int i;
 	SW_INS_PTR ptr;
 
@@ -54,7 +54,7 @@ static void initialize_lambdas_random(void) {
 	}
 }
 
-static void initialize_lambdas_zero(void) {
+void initialize_lambdas_zero(void) {
 	int i;
 	SW_INS_PTR ptr;
 
@@ -70,7 +70,7 @@ static void initialize_lambdas_zero(void) {
 	}
 }
 
-static void initialize_lambdas(void) {
+void initialize_lambdas(void) {
 	if (crf_init_method == 1)
 		initialize_lambdas_noisy_uniform();
 	if (crf_init_method == 2)
@@ -93,7 +93,7 @@ void initialize_weights(void) {
 	}
 }
 
-static void set_visited_flags(EG_NODE_PTR node_ptr) {
+void set_visited_flags(EG_NODE_PTR node_ptr) {
 	int i;
 	EG_PATH_PTR path_ptr;
 
@@ -111,7 +111,7 @@ static void set_visited_flags(EG_NODE_PTR node_ptr) {
 	}
 }
 
-static void initialize_visited_flags(void) {
+void initialize_visited_flags(void) {
 	int i;
 	EG_NODE_PTR node_ptr;
 
@@ -217,7 +217,7 @@ int compute_feature_scaling_log_exp(void) {
 
 /* compute gradient */
 
-static void count_complete_features(EG_NODE_PTR node_ptr, int count) {
+void count_complete_features(EG_NODE_PTR node_ptr, int count) {
 	int k;
 	EG_PATH_PTR path_ptr;
 
@@ -234,7 +234,7 @@ static void count_complete_features(EG_NODE_PTR node_ptr, int count) {
 	}
 }
 
-static void initialize_crf_count(void) {
+void initialize_crf_count(void) {
 	int i;
 
 	for (i=0; i<sw_ins_tab_size; i++) {
@@ -258,7 +258,7 @@ printf("sum: %d \n",sum);
 /* compute gradient for each switch (gradient is always no-scale)*/
 /* sw->gradient = ( sw->count - sw->total_expect ) * sw->inside_h */
 /* use node->inside */
-static int compute_gradient_scaling_none(void) {
+int compute_gradient_scaling_none(void) {
 	int i,k;
 	EG_PATH_PTR path_ptr;
 	EG_NODE_PTR eg_ptr,node_ptr;
@@ -318,7 +318,7 @@ static int compute_gradient_scaling_none(void) {
 	return BP_TRUE;
 }
 
-static int compute_gradient_scaling_log_exp(void) {
+int compute_gradient_scaling_log_exp(void) {
 	int i,k;
 	EG_PATH_PTR path_ptr;
 	EG_NODE_PTR eg_ptr,node_ptr;
@@ -437,7 +437,7 @@ static int compute_gradient_scaling_log_exp(void) {
 
 /* compute log-likelihood */
 /* use node->crfprob */
-static double compute_log_likelihood_scaling_none(void) {
+double compute_log_likelihood_scaling_none(void) {
 	int i;
 	double log_likelihood,penalty;
 	SW_INS_PTR sw_ptr;
@@ -467,7 +467,7 @@ static double compute_log_likelihood_scaling_none(void) {
 
 }
 
-static double compute_log_likelihood_scaling_log_exp(void) {
+double compute_log_likelihood_scaling_log_exp(void) {
 	int i;
 	double log_likelihood,penalty;
 	SW_INS_PTR sw_ptr;
@@ -502,7 +502,7 @@ static double compute_log_likelihood_scaling_log_exp(void) {
 
 /* compute crfprob P(E|G) */
 /* use node->inside */
-static int compute_crf_probs_scaling_none(void) {
+int compute_crf_probs_scaling_none(void) {
 	int i;
 	EG_NODE_PTR eg_ptr;
 	EG_NODE_PTR peg_ptr;
@@ -518,7 +518,7 @@ static int compute_crf_probs_scaling_none(void) {
 	return BP_TRUE;
 }
 
-static int compute_crf_probs_scaling_log_exp(void) {
+int compute_crf_probs_scaling_log_exp(void) {
 	int i;
 	EG_NODE_PTR eg_ptr;
 	EG_NODE_PTR peg_ptr;
@@ -537,7 +537,7 @@ static int compute_crf_probs_scaling_log_exp(void) {
 /*------------------------------------------------------------------------*/
 
 /* update params */
-static int update_lambdas(double tmp_epsilon) {
+int update_lambdas(double tmp_epsilon) {
 	int i;
 	SW_INS_PTR sw_ptr;
 
@@ -559,7 +559,7 @@ static int update_lambdas(double tmp_epsilon) {
 
 /* learning rate */
 
-static void save_current_params(void) {
+void save_current_params(void) {
 	int i;
 	SW_INS_PTR ptr;
 
@@ -573,7 +573,7 @@ static void save_current_params(void) {
 	}
 }
 
-static void restore_current_params(void) {
+void restore_current_params(void) {
 	int i;
 	SW_INS_PTR ptr;
 
@@ -587,7 +587,7 @@ static void restore_current_params(void) {
 	}
 }
 
-static double compute_gf_sd(void) {
+double compute_gf_sd(void) {
 	int i;
 	SW_INS_PTR sw_ptr;
 	double gf_sd;
@@ -607,7 +607,7 @@ static double compute_gf_sd(void) {
 	return gf_sd;
 }
 
-static double compute_gf_sd_LBFGS(void) {
+double compute_gf_sd_LBFGS(void) {
 	int i;
 	SW_INS_PTR sw_ptr;
 	double gf_sd;
@@ -628,7 +628,7 @@ static double compute_gf_sd_LBFGS(void) {
 }
 
 /* line search(backtrack) */
-static double compute_phi_alpha(CRF_ENG_PTR crf_ptr, double alpha) {
+double compute_phi_alpha(CRF_ENG_PTR crf_ptr, double alpha) {
 	int i;
 	SW_INS_PTR sw_ptr;
 
@@ -648,7 +648,7 @@ static double compute_phi_alpha(CRF_ENG_PTR crf_ptr, double alpha) {
 	return crf_ptr->compute_likelihood() * (-1);
 }
 
-static double compute_phi_alpha_LBFGS(CRF_ENG_PTR crf_ptr, double alpha) {
+double compute_phi_alpha_LBFGS(CRF_ENG_PTR crf_ptr, double alpha) {
 	int i;
 	SW_INS_PTR sw_ptr;
 
@@ -668,7 +668,7 @@ static double compute_phi_alpha_LBFGS(CRF_ENG_PTR crf_ptr, double alpha) {
 	return crf_ptr->compute_likelihood() * (-1);
 }
 
-static double line_search(CRF_ENG_PTR crf_ptr, double alpha0, double rho, double c1, double likelihood, double gf_sd) {
+double line_search(CRF_ENG_PTR crf_ptr, double alpha0, double rho, double c1, double likelihood, double gf_sd) {
 	double c_gf_sd,alpha,l_k,l_k2;
 
 	l_k = (-1) * likelihood;
@@ -690,7 +690,7 @@ static double line_search(CRF_ENG_PTR crf_ptr, double alpha0, double rho, double
 	return alpha;
 }
 
-static double line_search_LBFGS(CRF_ENG_PTR crf_ptr, double alpha0, double rho, double c1, double likelihood, double gf_sd) {
+double line_search_LBFGS(CRF_ENG_PTR crf_ptr, double alpha0, double rho, double c1, double likelihood, double gf_sd) {
 	double c_gf_sd,alpha,l_k,l_k2;
 
 	l_k = (-1) * likelihood;
@@ -712,13 +712,11 @@ static double line_search_LBFGS(CRF_ENG_PTR crf_ptr, double alpha0, double rho, 
 }
 
 /* golden section */
-static double golden_section(CRF_ENG_PTR crf_ptr,double a, double b) {
+double golden_section(CRF_ENG_PTR crf_ptr,double a, double b) {
 	double p,q,f_p,f_q;
-	static double tau;
+	const double tau= (sqrt(5) - 1)/2;
 
 	save_current_params();
-
-	tau = (sqrt(5) - 1)/2;
 
 	p = b - tau * ( b - a );
 	q = a + tau * ( b - a );
@@ -748,13 +746,11 @@ static double golden_section(CRF_ENG_PTR crf_ptr,double a, double b) {
 	return (a + b)/2.0;
 }
 
-static double golden_section_LBFGS(CRF_ENG_PTR crf_ptr,double a, double b) {
+double golden_section_LBFGS(CRF_ENG_PTR crf_ptr,double a, double b) {
 	double p,q,f_p,f_q;
-	static double tau;
+	const double tau= (sqrt(5) - 1)/2;
 
 	save_current_params();
-
-	tau = (sqrt(5) - 1)/2;
 
 	p = b - tau * ( b - a );
 	q = a + tau * ( b - a );
@@ -786,7 +782,10 @@ static double golden_section_LBFGS(CRF_ENG_PTR crf_ptr,double a, double b) {
 
 /*-----[L-BFGS]-----------------------------------------------------------*/
 
-static void initialize_LBFGS(void) {
+void restart_LBFGS(void) {
+	LBFGS_index = 0;
+}
+void initialize_LBFGS(void) {
 	int i;
 	SW_INS_PTR sw_ptr;
 
@@ -806,7 +805,7 @@ static void initialize_LBFGS(void) {
 	LBFGS_index = 0;
 }
 
-static void clean_LBFGS(void) {
+void clean_LBFGS(void) {
 	int i;
 	SW_INS_PTR sw_ptr;
 
@@ -824,7 +823,7 @@ static void clean_LBFGS(void) {
 	FREE(LBFGS_rho);
 }
 
-static void compute_hessian(int iterate) {
+void compute_hessian(int iterate) {
 	int i,j,m,index;
 	SW_INS_PTR sw_ptr;
 	double a,b;
@@ -880,7 +879,7 @@ static void compute_hessian(int iterate) {
 	LBFGS_index = ( LBFGS_index + 11) % 10;
 }
 
-static void restore_old_gradient(void) {
+void restore_old_gradient(void) {
 	int i;
 	SW_INS_PTR sw_ptr;
 
@@ -893,7 +892,7 @@ static void restore_old_gradient(void) {
 	}
 }
 
-static void initialize_LBFGS_q(void) {
+void initialize_LBFGS_q(void) {
 	int i;
 	SW_INS_PTR sw_ptr;
 
@@ -907,7 +906,7 @@ static void initialize_LBFGS_q(void) {
 }
 
 /* compute LBFGS_y, LBFGS_rho, and LBFGS_a */
-static void compute_LBFGS_y_rho(void) {
+void compute_LBFGS_y_rho(void) {
 	int i;
 	SW_INS_PTR sw_ptr;
 	double rho;
@@ -927,7 +926,7 @@ static void compute_LBFGS_y_rho(void) {
 	LBFGS_rho[LBFGS_index] = 1 / rho;
 }
 
-static int update_lambdas_LBFGS(double tmp_epsilon) {
+int update_lambdas_LBFGS(double tmp_epsilon) {
 	int i;
 	SW_INS_PTR sw_ptr;
 
@@ -1004,7 +1003,7 @@ static int run_grd(CRF_ENG_PTR crf_ptr) {
 		iterate = 0;
 		tmp_epsilon = crf_epsilon;
 
-		LBFGS_index = 0;
+		restart_LBFGS();
 
 		while (1) {
 			if (CTRLC_PRESSED) {
