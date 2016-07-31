@@ -1,3 +1,4 @@
+
 #include <stdio.h>
 #include "bprolog.h"
 #include "up/up.h"
@@ -14,6 +15,10 @@
 #include "core/random.h"
 #include "up/crf_learn.h"
 #include "up/crf_learn_aux.h"
+#include "up/crf_rank.h"
+
+int num_rank_lists;
+RankList* rank_lists;
 
 /* main loop */
 int run_grd(CRF_ENG_PTR crf_ptr) {
@@ -155,7 +160,6 @@ int run_grd(CRF_ENG_PTR crf_ptr) {
 			iterate++;
 		}
 
-			printf("#12\n");
 		SHOW_PROGRESS_TAIL(converged, iterate, likelihood);
 
 		if (r == 0 || likelihood > crf_ptr->likelihood) {
@@ -174,14 +178,15 @@ int run_grd(CRF_ENG_PTR crf_ptr) {
 	return BP_TRUE;
 }
 
-int pc_crf_rank_prepare_4(void) {
-	TERM  p_fact_list;
+int pc_crf_rank_prepare_5(void) {
+	TERM  p_fact_list,p_rank_lists;
 	int   size;
 
-	p_fact_list        = bpx_get_call_arg(1,4);
-	size               = bpx_get_integer(bpx_get_call_arg(2,4));
-	num_goals          = bpx_get_integer(bpx_get_call_arg(3,4));
-	failure_root_index = bpx_get_integer(bpx_get_call_arg(4,4));
+	p_fact_list        = bpx_get_call_arg(1,5);
+	size               = bpx_get_integer(bpx_get_call_arg(2,5));
+	num_goals          = bpx_get_integer(bpx_get_call_arg(3,5));
+	failure_root_index = bpx_get_integer(bpx_get_call_arg(4,5));
+	p_rank_lists         = bpx_get_call_arg(5,5);
 
 	failure_observed = (failure_root_index != -1);
 
@@ -205,6 +210,43 @@ int pc_crf_rank_prepare_4(void) {
 	alloc_occ_switches();
 	alloc_num_sw_vals();
 
+
+	// count num_rank_list
+	num_rank_lists=0;
+	TERM  p_first_rank_list=p_rank_lists;
+	while (bpx_is_list(p_rank_lists)) {
+		p_rank_lists = bpx_get_cdr(p_rank_lists);
+		num_rank_lists++;
+	}
+	p_rank_lists=p_first_rank_list;
+	
+	// build rank lists
+	rank_lists=(RankList*)MALLOC(num_rank_lists*sizeof(RankList));
+	int i,j;
+	for(i=0;i<num_rank_lists;i++){
+		TERM p_ranks = bpx_get_car(p_rank_lists);
+		p_rank_lists = bpx_get_cdr(p_rank_lists);
+		int num_ranks=0;
+		// count ranks
+		TERM  p_first_ranks=p_ranks;
+		while (bpx_is_list(p_ranks)) {
+			p_ranks = bpx_get_cdr(p_ranks);
+			num_ranks++;
+		}
+		p_ranks=p_first_ranks;
+		// build ranks
+		RankData* ranks=MALLOC(num_ranks*sizeof(RankData));
+		for(j=0;j<num_ranks;j++){
+			TERM p_gid = bpx_get_car(p_ranks);
+			p_ranks = bpx_get_cdr(p_ranks);
+			int goal_id = bpx_get_integer(p_gid);
+			ranks[j].goal_id=goal_id;
+			printf("%d,",goal_id);
+		}
+		rank_lists[i].num_ranks=num_ranks;
+		rank_lists[i].ranks=ranks;
+		printf("\n");
+	}
 	return BP_TRUE;
 }
 

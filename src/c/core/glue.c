@@ -194,7 +194,7 @@ void bp4p_register_preds(void) {
 	REGISTER_CPRED(set_crf_penalty,1);
 
 	/* up/crf_rank.c */
-	REGISTER_CPRED(crf_rank_prepare,4);
+	REGISTER_CPRED(crf_rank_prepare,5);
 	REGISTER_CPRED(crf_rank_learn,2);
 
 #ifdef MPI

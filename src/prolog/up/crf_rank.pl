@@ -1,34 +1,34 @@
 zip([],[],[]).
 zip([X|Xs],[Y|Ys],[[X,Y]|Zs]):-zip(Xs,Ys,Zs).
 
-crf_rank_learn(PosGs,NegGs):- zip(PosGs,NegGs,Gs),call($pp_rank_crflearn_core(Gs)).
-crf_rank_learn(Gs):- call($pp_rank_crflearn_core(Gs)).
+crf_rank_learn(PosGs,NegGs):- zip(PosGs,NegGs,Gs),call($pp_crf_ranklearn_core(Gs)).
+crf_rank_learn(Gs):- call($pp_crf_ranklearn_core(Gs)).
 
-$pp_rank_crflearn_check_goals(GoalLists) :-
-    $pp_require_observed_data(GoalLists,$msg(1302),$pp_rank_crflearn_core/1),
-    $pp_rank_crflearn_check_goals2(GoalLists).
+$pp_crf_ranklearn_check_goals(GoalLists) :-
+    $pp_require_observed_data(GoalLists,$msg(1302),$pp_crf_ranklearn_core/1),
+    $pp_crf_ranklearn_check_goals2(GoalLists).
 
-$pp_rank_crflearn_check_goals2([]).
-$pp_rank_crflearn_check_goals2([G0|Gs]) :-
-	$pp_rank_crflearn_check_goals1(G0),
-	$pp_rank_crflearn_check_goals2(Gs).
+$pp_crf_ranklearn_check_goals2([]).
+$pp_crf_ranklearn_check_goals2([G0|Gs]) :-
+	$pp_crf_ranklearn_check_goals1(G0),
+	$pp_crf_ranklearn_check_goals2(Gs).
 
-$pp_rank_crflearn_check_goals1([]).
-$pp_rank_crflearn_check_goals1([G0|Gs]) :-
+$pp_crf_ranklearn_check_goals1([]).
+$pp_crf_ranklearn_check_goals1([G0|Gs]) :-
     ( (G0 = goal(G,Count) ; G0 = count(G,Count) ; G0 = (Count times G) ) ->
-        $pp_require_positive_integer(Count,$msg(1306),$pp_rank_crflearn_core/1)
+        $pp_require_positive_integer(Count,$msg(1306),$pp_crf_ranklearn_core/1)
     ; G = G0
     ),
-    $pp_require_tabled_probabilistic_atom(G,$msg(1303),$pp_rank_crflearn_core/1),!,
-    $pp_rank_crflearn_check_goals1(Gs).
+    $pp_require_tabled_probabilistic_atom(G,$msg(1303),$pp_crf_ranklearn_core/1),!,
+    $pp_crf_ranklearn_check_goals1(Gs).
 
-$pp_rank_crflearn_core(GoalLists) :-
-    $pp_rank_crflearn_check_goals(GoalLists),
+$pp_crf_ranklearn_core(GoalLists) :-
+    $pp_crf_ranklearn_check_goals(GoalLists),
     $pp_learn_message(MsgS,MsgE,MsgT,MsgM),
     $pc_set_em_message(MsgE),
     cputime(Start),
-    $pp_clean_rank_crflearn_info,
-    $pp_trans_rank_crf_goals(GoalLists,Table,GoalCountPairs1,GoalCountPairs2,AllGoals),
+    $pp_clean_crf_ranklearn_info,
+    $pp_trans_crf_rank_goals(GoalLists,Table,GoalCountPairs1,GoalCountPairs2,AllGoals),
 	append(GoalCountPairs1,GoalCountPairs2,GoalCountPairs),
 	format("All Goals: ~w\n",AllGoals),
 	format("Table: ~w\n",Table),
@@ -54,17 +54,22 @@ $pp_rank_crflearn_core(GoalLists) :-
 	% GoalID,count,Parent GoalID in GidCountPairs
 	% Parent Goal ID==-1 incomplete data
     %%%
-	$pp_crf_observed_facts(GoalCountPairs,GidCountPairs,Table,
-                       0,Len1,0,NGoals,-1,FailRootIndex),
+	$pp_crf_rank_observed_facts(GoalCountPairs,GidCountPairs,Table,0,NGoals,-1,FailRootIndex),
+	%$pp_crf_rank_observed_facts(GoalCountPairs2,GidCountPairs2,Table,0,NGoals2,-1,FailRootIndex2),
+	%append(GidCountPairs1,GidCountPairs2,GidCountPairs),
+	%zip(GidCountPairs1,GidCountPairs2,RankPair),
+	%NGoals is NGoals1 + NGoals2,
 	format("NGoal: ~w\n",NGoals),
-	format("NRoot: ~w\n",Len1),
-	format("GidCountList: ~w\n",GidCountPairs),
-    $pp_check_failure_in_rank_crflearn(GoalLists,FailRootIndex,rank_crflearn/1),
-	format("FailRootIndex:~w\n",FailRootIndex),
+	% format("FailRootIndex1:~w\n",FailRootIndex1),
+	% format("FailRootIndex2:~w\n",FailRootIndex2),
+    $pp_check_failure_in_crf_ranklearn(GoalLists,FailRootIndex,crf_ranklearn/1),
 	$pp_merge_facts(GidCountPairs,NewGidCountPairs),
 	length(NewGidCountPairs,Len),
-	format("Len:~w\n",NewGidCountPairs),
-    $pc_crf_prepare(NewGidCountPairs,Len,NGoals,FailRootIndex),
+	format("Len:~w\n",Len),
+	format("NGoals:~w\n",NGoals),
+	$pp_build_rank_pair(GoalLists,RankLists),
+	format("Rank:~w\n",RankLists),
+    $pc_crf_rank_prepare(NewGidCountPairs,Len,NGoals,FailRootIndex,RankLists),
     cputime(StartGrd),
     $pp_grd(Output),
     cputime(EndGrd),
@@ -87,7 +92,7 @@ $pp_grd(Output):-
     $pc_prism_grd(Iterate,Likelihood),
     Output = [Iterate,Likelihood].
 
-$pp_clean_rank_crflearn_info :-
+$pp_clean_crf_ranklearn_info :-
     $pp_clean_dummy_goal_table,
     $pp_clean_graph_stats,
     $pp_clean_learn_stats,
@@ -114,7 +119,7 @@ $pp_trans_crf_countpairs([goal(Goal,Count,_PGidx)|GoalCountPairs],GoalCountPairs
     GoalCountPairs1 = [goal(Goal,Count)|GoalCountPairs0],!,
     $pp_trans_crf_countpairs(GoalCountPairs,GoalCountPairs0).
 
-$pp_trans_rank_crf_goals(GoalLists,ParentTable,GoalCountPairsAll1,GoalCountPairsAll2,AllGoals) :-
+$pp_trans_crf_rank_goals(GoalLists,ParentTable,GoalCountPairsAll1,GoalCountPairsAll2,AllGoals) :-
 	zip(G1,G2,GoalLists),
     $pp_build_crf_count_pairs(G1,Pairs1,ParentPairs1),
     $pp_build_crf_count_pairs(G2,Pairs2,ParentPairs2),
@@ -154,7 +159,7 @@ $pp_count_crf_goals([G0|Goals],Table,Table2,N) :-
     ; G0 = (Count times Goal) -> true
     ; Goal = G0, Count = 1
     ),
-    $pp_require_ground(Goal,$msg(1601),$pp_rank_crflearn_core),
+    $pp_require_ground(Goal,$msg(1601),$pp_crf_ranklearn_core),
     ( $pp_hashtable_get(Table,Goal,(Count0,Pid)) ->
         Count1 is Count0 + Count,
         $pp_hashtable_put(Table,Goal,(Count1,Pid)),
@@ -187,6 +192,18 @@ $pp_trans_crf_count_pairs([Goal=(Count,PGidx)|Pairs],GoalCountPairs,PCountTable,
     ; $pp_hashtable_put(PCountTable,PGidx,Count)
     ),!,
     $pp_trans_crf_count_pairs(Pairs,GoalCountPairs1,PCountTable,AllGoals1).
+
+$pp_build_rank_pair1([],[]).
+$pp_build_rank_pair1([G|Gs],[R|Rs]):-
+    $pp_build_dummy_goal(G,DummyGoal),
+    $pc_prism_goal_id_get(G,R),
+	$pp_build_rank_pair1(Gs,Rs).
+
+	
+$pp_build_rank_pair([],[]).
+$pp_build_rank_pair([Gs|GoalLists],[Rs|RankLists]):-
+	$pp_build_rank_pair1(Gs,Rs),
+	$pp_build_rank_pair(GoalLists,RankLists).
 
 $pp_trans_crf_parent_count_pairs([],_,_,[],[]).
 $pp_trans_crf_parent_count_pairs([PGoal=PGidx|ParentPairs],PCountTable,Table,PGoalCountPairs,AllGoals) :-
@@ -229,9 +246,9 @@ $pp_merge_facts(GidCountPairs,NewGidCountPairs):-
 % out: 
 % GoalCountPair => Goal + PGidx == Table ==> Goal + PGoal == $pc_prism_goal_id_get == Gid + PGid
 %%%
-$pp_crf_observed_facts([],[],_Table,Len,Len,NGoals,NGoals,FailRootIndex,FailRootIndex).
-$pp_crf_observed_facts([goal(Goal,Count,PGidx)|GoalCountPairs],GidCountPairs,Table,
-                   Len0,Len,NGoals0,NGoals,FailRootIndex0,FailRootIndex) :-
+$pp_crf_rank_observed_facts([],[],_Table,NGoals,NGoals,FailRootIndex,FailRootIndex).
+$pp_crf_rank_observed_facts([goal(Goal,Count,PGidx)|GoalCountPairs],GidCountPairs,Table,
+                   NGoals0,NGoals,FailRootIndex0,FailRootIndex) :-
     % fails if the goal is ground but has no proof
     ( $pc_prism_goal_id_get(Goal,Gid) ->
         ( Goal == failure ->
@@ -245,14 +262,13 @@ $pp_crf_observed_facts([goal(Goal,Count,PGidx)|GoalCountPairs],GidCountPairs,Tab
         ; PGid = PGidx
         ),
 		% GoalID,Count,ParentGoalID
-        GidCountPairs = [goal(Gid,Count,PGid)|GidCountPairs1],
-        Len1 is Len0 + 1
-    ; $pp_raise_unexpected_failure($pp_crf_observed_facts/8)
+        GidCountPairs = [goal(Gid,Count,PGid)|GidCountPairs1]
+    ; $pp_raise_unexpected_failure($pp_crf_rank_observed_facts/8)
     ),!,
-    $pp_crf_observed_facts(GoalCountPairs,GidCountPairs1,Table,
-                       Len1,Len,NGoals1,NGoals,FailRootIndex1,FailRootIndex).
+    $pp_crf_rank_observed_facts(GoalCountPairs,GidCountPairs1,Table,
+                       NGoals1,NGoals,FailRootIndex1,FailRootIndex).
 
-$pp_check_failure_in_rank_crflearn(Gs,FailRootIndex,Source) :-
+$pp_check_failure_in_crf_ranklearn(Gs,FailRootIndex,Source) :-
     ( FailRootIndex >= 0 ->
         $pp_raise_runtime_error($msg(1603),[Gs],failure_in_crf_learn,Source)
     ; true
