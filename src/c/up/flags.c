@@ -46,6 +46,10 @@ double  crf_ls_c1             = 0.5;
 double  crf_penalty           = 0.0;
 /*for cyclic*/
 int     scc_debug_level        = 0;
+/*for sgd*/
+double  sgd_learning_rate     = 0.01;
+double  sgd_penalty           = 0.1;
+int     num_minibatch         = 1;
 /*
  * This variable does not correspond to any prism flags, and hence is
  * not initialized by reset_prism_flags/0.
@@ -208,4 +212,21 @@ int pc_set_scc_debug_level_1(void) {
 	scc_debug_level = bpx_get_integer(bpx_get_call_arg(1,1));
 	return BP_TRUE;
 }
+
+int pc_set_sgd_penalty_1(void) {
+	sgd_penalty = bpx_get_float(bpx_get_call_arg(1,1));
+	return BP_TRUE;
+}
+
+int pc_set_sgd_learning_rate_1(void) {
+	sgd_learning_rate = bpx_get_float(bpx_get_call_arg(1,1));
+	return BP_TRUE;
+}
+
+int pc_set_num_minibatch_1(void) {
+	num_minibatch = bpx_get_integer(bpx_get_call_arg(1,1));
+	return BP_TRUE;
+}
+
+
 /*------------------------------------------------------------------------*/

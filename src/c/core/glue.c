@@ -196,6 +196,11 @@ void bp4p_register_preds(void) {
 	/* up/crf_rank.c */
 	REGISTER_CPRED(crf_rank_prepare,5);
 	REGISTER_CPRED(crf_rank_learn,2);
+	/* up/sgd.cpp */
+	REGISTER_CPRED(sgd_learn,7);
+	REGISTER_CPRED(set_sgd_learning_rate,1);
+	REGISTER_CPRED(set_sgd_penalty,1);
+	REGISTER_CPRED(set_num_minibatch,1);
 
 #ifdef MPI
 	/* mp/mp_preds.c */

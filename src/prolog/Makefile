@@ -36,12 +36,13 @@ PL_UP    = up/dynamic.pl        \
            up/util.pl           \
            up/crf.pl            \
            up/crf_learn.pl      \
-           up/crf_rank.pl      \
+           up/crf_rank.pl       \
            up/crf_prob.pl       \
            up/crf_viterbi.pl    \
            up/crf_hindsight.pl  \
            up/bigarray.pl       \
-           up/rank.pl
+           up/rank.pl           \
+           up/sgd.pl
 
 PL_BAT   = up/batch.pl
 

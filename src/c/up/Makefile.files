@@ -25,16 +25,17 @@ OBJS = graph.$(O)             \
        flags.$(O)             \
        crf_learn.$(O)         \
        crf_viterbi.$(O)       \
-       crf_rank.$(O)      \
+       crf_rank.$(O)          \
        util.$(O)              \
        linear_eq.$(O)         \
        lbfgs.$(O)             \
        scc.$(O)               \
        nonlinear_eq.$(O)      \
-       cyc_em.$(O)      \
+       cyc_em.$(O)            \
        cyc_vt_preds.$(O)      \
-       rank.$(O)      \
-       cyc_vt_ml.$(O)      
+       cyc_vt_ml.$(O)         \
+       rank.$(O)              \
+       sgd.$(O)    
 
 
 ##----------------------------------------------------------------------

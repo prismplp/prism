@@ -98,6 +98,7 @@ struct SwitchInstance {
 	double *LBFGS_s; /*[D-PRISM]*/
 	double *LBFGS_y;/*[D-PRISM]*/
 	double LBFGS_q;/*[D-PRISM]*/
+	SW_INS_PTR parent; /* connect parent instance of the same switch */
 	SW_INS_PTR next; /* connect next instance of the same switch */
 };
 
