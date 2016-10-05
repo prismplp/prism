@@ -107,6 +107,7 @@ $pp_prism_flag(crf_penalty,float(-inf,+inf),0.0,$pc_set_crf_penalty).
 $pp_prism_flag(scc_debug_level,integer(0,+inf),0,$pc_set_scc_debug_level).
 $pp_prism_flag(sgd_penalty,float(-inf,+inf),0.01,$pc_set_sgd_penalty).
 $pp_prism_flag(sgd_learning_rate,float(-inf,+inf),0.0001,$pc_set_sgd_learning_rate).
+$pp_prism_flag(sgd_optimizer,enum([sgd,adadelta,adam]),adam,$pc_set_sgd_optimizer).
 $pp_prism_flag(num_minibatch,integer(1,+inf),1,$pc_set_num_minibatch).
 
 % first flag is enabled by default

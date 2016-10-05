@@ -65,15 +65,19 @@ void initialize_sgd_weights(void) {
 		ptr = switches[i];
 		while (ptr != NULL) {
 			ptr->pi=log(ptr->inside);
+			int num_g_aux=2;
+			ptr->gradient_aux=new double[num_g_aux];
+			for(int j=0;j<num_g_aux;j++){
+				ptr->gradient_aux[j]=0;
+			}
 			ptr = ptr->next;
 		}
 	}
 }
 
-int update_sgd_weights(void) {
+int update_sgd_weights(int iterate) {
 	int i;
 	SW_INS_PTR ptr;
-	double sum;
 
 	for (i = 0; i < occ_switch_tab_size; i++) {
 		ptr = occ_switches[i];
@@ -81,7 +85,54 @@ int update_sgd_weights(void) {
 		if (ptr->fixed > 0) continue;
 		while (ptr != NULL) {
 			if (ptr->fixed == 0){
-				ptr->pi += sgd_learning_rate*(ptr->total_expect-sgd_penalty*2*ptr->pi);
+				double g=ptr->total_expect-sgd_penalty*2*ptr->pi;
+				double dw;
+				double t= iterate;
+				switch(sgd_optimizer){
+					case OPTIMIZER_SGD:
+					{//SGD
+						dw=sgd_learning_rate*g;
+						break;
+					}
+					case OPTIMIZER_ADADELTA:
+					{//AdaDelta
+						//alpha is about 1
+						double alpha=sgd_learning_rate;
+						double gamma=0.95;
+						double epsilon=1.0e-8;
+						double r,v,s;
+						r=ptr->gradient_aux[0];
+						s=ptr->gradient_aux[1];
+						//
+						r=gamma*r+(1-gamma)*g*g;
+						v=sqrt(s+epsilon)/sqrt(r+epsilon)*g;
+						s=gamma*s+(1-gamma)*v*v;
+						//
+						ptr->gradient_aux[0]=r;
+						ptr->gradient_aux[1]=s;
+						dw=alpha*v;
+						break;
+					}
+					case OPTIMIZER_ADAM:
+					{//Adam
+						double alpha=0.001;
+						double beta=0.9;
+						double gamma=0.999;
+						double epsilon=1.0e-8;
+						double r,v;
+						r=ptr->gradient_aux[0];
+						v=ptr->gradient_aux[1];
+						//
+						r=gamma*r+(1-gamma)*g*g;
+						v=beta*v+(1-beta)*g;
+						//
+						ptr->gradient_aux[0]=r;
+						ptr->gradient_aux[1]=v;
+						dw=alpha/(sqrt(r/(1-pow(gamma,t+1))+epsilon))*v/(1-pow(beta,t+1));
+						break;
+					}
+				}
+				ptr->pi += dw;
 			}
 			if (log_scale && ptr->inside < TINY_PROB) {
 				emit_error("Parameter being zero (-inf in log scale) -- %s",
@@ -154,8 +205,21 @@ void initialize_visited_flags(void) {
 }
 
 
-void make_minibatch(void) {
-	minibatches=new Minibatch[num_minibatch];
+void clean_minibatch(void) {
+	for (int i=0; i<num_minibatch; i++) {
+		FREE(minibatches[i].roots);
+		FREE(minibatches[i].egraph);
+	}
+	FREE(minibatches);
+	minibatches=NULL;
+}
+void initialize_minibatch(void) {
+	
+	if(num_roots<num_minibatch){
+		prism_printf("The indicated minibatch size (%d) is greater than the number of goals (%d) \n",num_minibatch,num_roots);
+		num_minibatch=num_roots;
+	}
+	minibatches=(Minibatch*)MALLOC(num_minibatch*sizeof(Minibatch));
 
 	for (int i=0; i<num_minibatch; i++) {
 		minibatches[i].egraph_size=0;
@@ -386,7 +450,7 @@ int run_sgd(struct EM_Engine* em_ptr) {
 	double start_time=getCPUTime();
 	init_scc();
 	initialize_parent_switch();
-	make_minibatch();
+	initialize_minibatch();
 	double scc_time=getCPUTime();
 	//start EM
 	double itemp = 1.0;
@@ -450,7 +514,7 @@ int run_sgd(struct EM_Engine* em_ptr) {
 				//compute_expectation_linear();
 
 				SHOW_PROGRESS(iterate);
-				update_sgd_weights();
+				update_sgd_weights(iterate);
 				RET_ON_ERR(em_ptr->update_params());
 				//update_params();
 				iterate++;
@@ -493,6 +557,7 @@ int run_sgd(struct EM_Engine* em_ptr) {
 	double solution_time=getCPUTime();
 	//free data
 	free_scc();
+	clean_minibatch();
 	if(scc_debug_level>=1) {
 		printf("CPU time (scc,solution,all)\n");
 		printf("# %f,%f,%f\n",scc_time-start_time,solution_time-scc_time,solution_time - start_time);

@@ -14,6 +14,11 @@ struct ExplMinibatch{
 	int count;
 };
 
+enum SGDOptimizer{
+	OPTIMIZER_SGD=0,
+	OPTIMIZER_ADADELTA=1,
+	OPTIMIZER_ADAM=2,
+};
 
 
 #endif /* __SGD_H__ */

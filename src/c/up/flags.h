@@ -70,6 +70,7 @@ extern double  crf_ls_rho;
 extern double  crf_ls_c1;
 extern double  crf_penalty;
 extern int     scc_debug_level;
+extern int     sgd_optimizer;
 extern double  sgd_learning_rate;
 extern double  sgd_penalty;
 extern int     num_minibatch;

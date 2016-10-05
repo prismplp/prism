@@ -47,6 +47,7 @@ double  crf_penalty           = 0.0;
 /*for cyclic*/
 int     scc_debug_level        = 0;
 /*for sgd*/
+int     sgd_optimizer     = 2;
 double  sgd_learning_rate     = 0.01;
 double  sgd_penalty           = 0.1;
 int     num_minibatch         = 1;
@@ -217,6 +218,12 @@ int pc_set_sgd_penalty_1(void) {
 	sgd_penalty = bpx_get_float(bpx_get_call_arg(1,1));
 	return BP_TRUE;
 }
+
+int pc_set_sgd_optimizer_1(void) {
+	sgd_optimizer = bpx_get_integer(bpx_get_call_arg(1,1));
+	return BP_TRUE;
+}
+
 
 int pc_set_sgd_learning_rate_1(void) {
 	sgd_learning_rate = bpx_get_float(bpx_get_call_arg(1,1));

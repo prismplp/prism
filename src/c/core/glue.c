@@ -198,6 +198,7 @@ void bp4p_register_preds(void) {
 	REGISTER_CPRED(crf_rank_learn,2);
 	/* up/sgd.cpp */
 	REGISTER_CPRED(sgd_learn,7);
+	REGISTER_CPRED(set_sgd_optimizer,1);
 	REGISTER_CPRED(set_sgd_learning_rate,1);
 	REGISTER_CPRED(set_sgd_penalty,1);
 	REGISTER_CPRED(set_num_minibatch,1);

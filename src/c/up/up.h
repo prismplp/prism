@@ -91,6 +91,7 @@ struct SwitchInstance {
 	char   has_first_expectation;
 	double total_expect;      /* Sigma ru */
 	double best_total_expect; /* best Sigma ru */
+	double* gradient_aux; /*SGD*/
 	int    count;    /* number of occurrences in complete data */
 	double current_inside; /*[DPRISM] current inside use in line-search(CRF) */
 	double gradient; /*[D-PRISM] gradient of CRF log-likelihood (in SAG, latest gradient) */
