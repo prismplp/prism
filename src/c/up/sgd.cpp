@@ -115,7 +115,7 @@ int update_sgd_weights(int iterate) {
 					}
 					case OPTIMIZER_ADAM:
 					{//Adam
-						double alpha=0.001;
+						double alpha=sgd_learning_rate;
 						double beta=0.9;
 						double gamma=0.999;
 						double epsilon=1.0e-8;
@@ -250,7 +250,6 @@ void initialize_minibatch(void) {
 		}
 	}
 	for (int i=0; i<num_minibatch; i++) {
-		minibatches[i].count=0;
 		initialize_visited_flags();
 		for (int j=0;j<minibatches[i].num_roots;j++){
 			EG_NODE_PTR eg_ptr = expl_graph[minibatches[i].roots[j]->id];
@@ -262,6 +261,7 @@ void initialize_minibatch(void) {
 			}
 		}
 		minibatches[i].egraph=(EG_NODE_PTR*)MALLOC(minibatches[i].egraph_size*sizeof(EG_NODE_PTR));
+		minibatches[i].count=0;
 		for (int j=0; j<sorted_egraph_size; j++) {
 			if(sorted_expl_graph[j]->visited>0){
 				minibatches[i].egraph[minibatches[i].count]=sorted_expl_graph[j];
@@ -271,8 +271,10 @@ void initialize_minibatch(void) {
 	}
 	
 
-	for (int i=0; i<num_minibatch; i++) {
-		printf("%d:%d,%d\n",i,minibatches[i].num_roots,minibatches[i].egraph_size);
+	if (verb_em) {
+		for (int i=0; i<num_minibatch; i++) {
+			printf(" Minibatch(%d): Number of goals = %d, Graph size = %d\n",i,minibatches[i].batch_size,minibatches[i].egraph_size);
+		}
 	}
 }
 
@@ -287,8 +289,13 @@ int compute_sgd_expectation_scaling_none(void) {
 	SW_INS_PTR sw_ptr,sw_node_ptr;
 	double q;
 	MinibatchPtr mb_ptr=&minibatches[minibatch_id];
-	for (i = 0; i < sw_ins_tab_size; i++) {
-		switch_instances[i]->total_expect = 0.0;
+	
+	for (i = 0; i < occ_switch_tab_size; i++) {
+		sw_ptr = occ_switches[i];
+		while (sw_ptr != NULL) {
+			sw_ptr->total_expect = 0.0;
+			sw_ptr = sw_ptr->next;
+		}
 	}
 
 	for (i = 0; i < sorted_egraph_size; i++) {
@@ -340,13 +347,18 @@ int compute_sgd_expectation_scaling_log_exp(void) {
 	int i,k;
 	EG_PATH_PTR path_ptr;
 	EG_NODE_PTR eg_ptr,node_ptr;
-	SW_INS_PTR sw_ptr;
+	SW_INS_PTR sw_ptr,sw_node_ptr;
 	double q,r;
-
-	for (i = 0; i < sw_ins_tab_size; i++) {
-		switch_instances[i]->total_expect = 0.0;
-		switch_instances[i]->has_first_expectation = 0;
-		switch_instances[i]->first_expectation = 0.0;
+	MinibatchPtr mb_ptr=&minibatches[minibatch_id];
+	
+	for (i = 0; i < occ_switch_tab_size; i++) {
+		sw_ptr = occ_switches[i];
+		while (sw_ptr != NULL) {
+			sw_ptr->total_expect = 0.0;
+			sw_ptr->has_first_expectation = 0;
+			sw_ptr->first_expectation = 0.0;
+			sw_ptr = sw_ptr->next;
+		}
 	}
 
 	for (i = 0; i < sorted_egraph_size; i++) {
@@ -355,8 +367,9 @@ int compute_sgd_expectation_scaling_log_exp(void) {
 		sorted_expl_graph[i]->first_outside = 0.0;
 	}
 
-	for (i = 0; i < num_roots; i++) {
-		eg_ptr = expl_graph[roots[i]->id];
+	//for (i = 0; i < num_roots; i++) {
+	for (i = 0; i < mb_ptr->num_roots; i++) {
+		eg_ptr = expl_graph[mb_ptr->roots[i]->id];
 		if (i == failure_root_index) {
 			eg_ptr->first_outside =
 			    log(num_goals / (1.0 - exp(inside_failure)));
@@ -369,9 +382,13 @@ int compute_sgd_expectation_scaling_log_exp(void) {
 	}
 
 	/* sorted_expl_graph[to] must be a root node */
-	for (i = sorted_egraph_size - 1; i >= 0; i--) {
-		eg_ptr = sorted_expl_graph[i];
+	//for (i = sorted_egraph_size - 1; i >= 0; i--) {
+	//	eg_ptr = sorted_expl_graph[i];
 
+	//for (i = sorted_egraph_size - 1; i >= 0; i--) {
+	for (i = mb_ptr->egraph_size - 1; i >= 0; i--) {
+		//eg_ptr = sorted_expl_graph[i];
+		eg_ptr = mb_ptr->egraph[i];
 		/* First accumulate log-scale outside probabilities: */
 		if (!eg_ptr->has_first_outside) {
 			emit_internal_error("unexpected has_first_outside[%s]",
@@ -385,9 +402,9 @@ int compute_sgd_expectation_scaling_log_exp(void) {
 			eg_ptr->outside = eg_ptr->first_outside + log(eg_ptr->outside);
 		}
 
-		path_ptr = sorted_expl_graph[i]->path_ptr;
+		path_ptr = eg_ptr->path_ptr;
 		while (path_ptr != NULL) {
-			q = sorted_expl_graph[i]->outside + path_ptr->inside;
+			q = eg_ptr->outside + path_ptr->inside;
 			for (k = 0; k < path_ptr->children_len; k++) {
 				node_ptr = path_ptr->children[k];
 				r = q - node_ptr->inside;
@@ -405,32 +422,57 @@ int compute_sgd_expectation_scaling_log_exp(void) {
 			}
 			for (k = 0; k < path_ptr->sws_len; k++) {
 				sw_ptr = path_ptr->sws[k];
-				if (!sw_ptr->has_first_expectation) {
-					sw_ptr->first_expectation = q;
-					sw_ptr->total_expect += 1.0;
-					sw_ptr->has_first_expectation = 1;
-				} else if (q - sw_ptr->first_expectation >= log(HUGE_PROB)) {
-					sw_ptr->total_expect *= exp(sw_ptr->first_expectation - q);
-					sw_ptr->first_expectation = q;
-					sw_ptr->total_expect += 1.0;
-				} else {
-					sw_ptr->total_expect += exp(q - sw_ptr->first_expectation);
+				sw_node_ptr=sw_ptr->parent;
+				//sw_node_ptr->inside : unscale
+				//q,el : log scale
+				//sw_node_ptr->first_expectation: log scale;
+				//sw_node_ptr->total_expect: unscale;
+
+				while(sw_node_ptr!=NULL){
+					double el;
+					if(sw_node_ptr!=sw_ptr){
+						//sw_node_ptr->total_expect -= q*sw_node_ptr->inside;
+						el=-(q+log(sw_node_ptr->inside));
+					}else{
+						//sw_node_ptr->total_expect += q*(1.0-sw_node_ptr->inside);
+						el=q+log(1.0-sw_node_ptr->inside);
+					}
+					if (!sw_node_ptr->has_first_expectation) {
+						sw_node_ptr->first_expectation = el;
+						sw_node_ptr->total_expect += 1.0;
+						sw_node_ptr->has_first_expectation = 1;
+					} else if (el - sw_node_ptr->first_expectation >= log(HUGE_PROB)) {
+						sw_node_ptr->total_expect *= exp(sw_node_ptr->first_expectation - el);
+						sw_node_ptr->first_expectation = el;
+						sw_node_ptr->total_expect += 1.0;
+					} else {
+						sw_node_ptr->total_expect += exp(el - sw_node_ptr->first_expectation);
+					}
+					sw_node_ptr=sw_node_ptr->next;
 				}
 			}
+
 			path_ptr = path_ptr->next;
 		}
 	}
 
 	/* unscale total_expect */
-	for (i = 0; i < sw_ins_tab_size; i++) {
-		sw_ptr = switch_instances[i];
-		if (!sw_ptr->has_first_expectation) continue;
-		if (!(sw_ptr->total_expect > 0.0)) {
-			emit_error("unexpected expectation for %s",prism_sw_ins_string(i));
-			RET_ERR(err_invalid_numeric_value);
+	for (i = 0; i < occ_switch_tab_size; i++) {
+		sw_ptr = occ_switches[i];
+		while (sw_ptr != NULL) {
+			if (!sw_ptr->has_first_expectation){
+				sw_ptr = sw_ptr->next;
+				continue;
+			}
+			if (!(sw_ptr->total_expect > 0.0)) {
+				emit_error("unexpected expectation for %s",prism_sw_ins_string(i));
+				RET_ERR(err_invalid_numeric_value);
+			}
+			sw_ptr->total_expect =
+				exp(sw_ptr->first_expectation + log(sw_ptr->total_expect));
+			//printf("(%d,%f),",i,sw_ptr->total_expect);
+			sw_ptr = sw_ptr->next;
 		}
-		sw_ptr->total_expect =
-		    exp(sw_ptr->first_expectation + log(sw_ptr->total_expect));
 	}
 
 	return BP_TRUE;
@@ -456,7 +498,6 @@ int run_sgd(struct EM_Engine* em_ptr) {
 	double itemp = 1.0;
 	for (r = 0; r < num_restart; r++) {
 		SHOW_PROGRESS_HEAD("#sgd-iters", r);
-				printf("aaaaaa\n");
 		initialize_params();
 		initialize_sgd_weights();
 		iterate = 0;
@@ -593,6 +634,30 @@ int pc_sgd_learn_7(void) {
 	config_sgd(&em_eng);
 	//scc_debug_level = bpx_get_integer(bpx_get_call_arg(7,7));
 	run_sgd(&em_eng);
+	/*
+	printf("switches");
+	SW_INS_PTR ptr;
+	for (int i = 0; i < sw_tab_size; i++) {
+		SW_INS_PTR parent_ptr=ptr = switches[i];
+		printf("%d:",parent_ptr->id);
+		while (ptr != NULL) {
+			printf("%d,",ptr->id);
+			ptr = ptr->next;
+		}
+		printf("\n");
+	}
+	printf("instances\n");
+	for (int i = 0; i < sw_ins_tab_size; i++) {
+		ptr = switch_instances[i];
+		printf("%d:",ptr->id);
+		printf("\n");
+	}
+	printf("occ\n");
+	for (int i = 0; i < occ_switch_tab_size; i++) {
+		ptr = occ_switches[i];
+		printf("%d:",ptr->id);
+		printf("\n");
+	}*/
 	return
 	    bpx_unify(bpx_get_call_arg(1,7), bpx_build_integer(em_eng.iterate   )) &&
 	    bpx_unify(bpx_get_call_arg(2,7), bpx_build_float  (em_eng.lambda    )) &&
