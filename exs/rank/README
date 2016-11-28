@@ -1,0 +1,22 @@
+======================== README (exs/rank) =========================
+
+Files/Directories:
+  README                ... this file
+  rank_hmm.psm          ... Learing to rank for HMM 
+
+Comment:
+  All programs above illustrate how to perform learning to rank and 
+  ranking goals in PRISM.
+
+References:
+
+(PRISM)
+  Parameter Learning of Logic Programs for Symbolic-statistical Modeling,
+  Sato, T. and Kameya, Y.,
+  Journal of Artificial Intelligence Research 15, pp.391-454, 2001.
+
+  New advances in logic-based probabilistic modeling by PRISM,
+  Sato, T. and Kameya, Y.,
+  Probabilistic Inductive Logic Programming, LNCS 4911, Springer,
+  pp.118-155, 2008.
+

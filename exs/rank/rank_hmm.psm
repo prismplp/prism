@@ -1,0 +1,140 @@
+%%%%
+%%%%  Leaning to rank and ranking goals with Hidden Markov model --- rank_hmm.psm
+%%%%      
+%%%%  Copyright (C) 2014-2015
+%%%%    Sato Laboratory, Dept. of Computer Science,
+%%%%    Tokyo Institute of Technology
+%%%%
+
+%% This program describes how to rank goals and learn the parameters to rank
+%% with  Hidden Markov model (HMM) example.
+%% Please refer to "prism/exs/base/hmm.psm", for more information related to 
+%% the PRISM program for the HMM.
+%%
+%% Here let us distigish positive and negative goals.
+%% This is the most simple example of ranking, where only the goals rank first and second.
+%% 
+%% Here let us learning parameters from positive and negative goals:
+%%
+%% 1. First, load this program:
+%%
+%%      ?- prism(rank_hmm)
+%% 
+%% 2. Then, let us try to sample three positive and negative pairs.
+%%    
+%%      ?- sample_goal_pairs(3,GoalPairs)
+%% 
+%%      GoalPairs = [
+%%         [hmm([a,a,b,a,b,b,a,a,b,b]),hmm([c,b,a,c,b,c,a,c,b,a])],
+%%         [hmm([a,a,b,b,b,a,b,b,b,a]),hmm([a,a,b,b,a,b,a,b,b,a])],
+%%         [hmm([a,b,b,b,b,b,b,a,a,b]),hmm([a,c,a,a,b,b,b,a,b,c])]]
+%%
+%%    This predicate returns a list of lists c
+%%    The fist element is positive data generated from a positive model defined in the Declarations
+%%    and Modeling part of this program as hmm(+,_).
+%%    The second element is negative data generated from a negative model defined as hmm(-,_).
+%%
+%% 3. Before learning to rank, let us confirm accuracy by the default model without learning.
+%%
+%%      ?- sample_goal_pairs(100,_Gs),rank_list(_Gs,_Pred),check_acc(_Gs,_Pred).
+%%      Accuracy: 51/100
+%%
+%% 4. Finally, let us learn from sampled pairs and compute accuracy again.
+%%
+%%      ?- sample_goal_pairs(500,_Gs),rank_learn(_Gs).
+%%
+%%      ?- sample_goal_pairs(100,_Gs),rank_list(_Gs,_Pred),check_acc(_Gs,_Pred).
+%%
+%%
+
+%%------------------------------------
+%%  Declarations:
+
+%% Positive model: HMM to generate positive data 
+values(init(+),[s0,s1],[0.3,0.7]).          % state initialization
+values(out(+,s0),[a,b],[0.2,0.8]).          % symbol emission
+values(out(+,s1),[a,b],[0.5,0.5]).          % symbol emission
+values(tr(+,_),[s0,s1],[0.5,0.5]).          % state transition
+
+%% Negative model: HMM to generate negative data 
+values(init(-),[s0,s1,s2],[0.5,0.3,0.2]).    % state initialization
+values(out(-,s0),[a,b,c],[0.7,0.2,0.1]).         % symbol emission
+values(out(-,s1),[a,b,c],[0.3,0.6,0.1]).         % symbol emission
+values(out(-,s2),[a,b,c],[0.4,0.4,0.2]).         % symbol emission
+values(tr(-,_),[s0,s1,s2],[0.5,0.3,0.2]).    % state transition
+
+%% Training model
+values(init,[s0,s1,s2,s3]).       % state initialization
+values(out(_),[a,b,c]).           % symbol emission
+values(tr(_),[s0,s1,s2,s3]).      % state transition
+
+%%------------------------------------
+%%  Modeling part:
+
+hmm(Sign,L):-                   %   To observe a string L:
+   str_length(N),               %   Get the string length as N
+   msw(init(Sign),S),           %   Choose an initial state randomly
+   hmm(Sign,1,N,S,L).           %   Start stochastic transition (loop)
+
+hmm(_,T,N,_,[]):- T>N,!.        % Stop the loop
+hmm(Sign,T,N,S,[Ob|Y]) :-       % Loop: current state is S, current time is T
+   msw(out(Sign,S),Ob),         %   Output Ob at the state S
+   msw(tr(Sign,S),Next),        %   Transit from S to Next.
+   T1 is T+1,                   %   Count up time
+   hmm(Sign,T1,N,Next,Y).       %   Go next (recursion)
+
+
+hmm(L):-                        % To observe a string L:
+   str_length(N),               %   Get the string length as N
+   msw(init,S),                 %   Choose an initial state randomly
+   hmm(1,N,S,L).                %   Start stochastic transition (loop)
+
+hmm(T,N,_,[]):- T>N,!.          % Stop the loop
+hmm(T,N,S,[Ob|Y]) :-            % Loop: current state is S, current time is T
+   msw(out(S),Ob),              %   Output Ob at the state S
+   msw(tr(S),Next),             %   Transit from S to Next.
+   T1 is T+1,                   %   Count up time
+   hmm(T1,N,Next,Y).            %   Go next (recursion)
+
+
+str_length(10).                 % String length is 10
+
+%%------------------------------------
+%%  Utility part:
+
+:-set_prism_flag(max_iterate,3000).
+
+rank_list(GoalList,Pred):-
+	maplist(Gs,RG,
+		(rank(Gs,RG)),
+		GoalList,Pred).
+
+check_acc(GoalList,Answer):-
+	maplist(Gs1,Gs2,Y,
+		(Gs1=Gs2->Y=1;Y=0),
+		GoalList,Answer,R),
+	sumlist(R,Denom),
+	length(R,Num),
+	format("Accuracy: ~w/~w\n",[Denom,Num]).
+
+sample_goal_pairs(Num,GoalList):-
+	get_samples(Num,hmm(+,_),GsPos),
+	maplist(hmm(+,L),Y,(Y=hmm(L)),GsPos,Gs1),
+	get_samples(Num,hmm(-,_),GsNeg),
+	maplist(hmm(-,L),Y,(Y=hmm(L)),GsNeg,Gs2),
+	zip(Gs1,Gs2,GoalList).
+
+%%  prism_main/1 is a special predicate for batch execution.
+%%  The following command conducts learning from 500 and testing 100 randomly generated samples:
+%%      > upprism rank_hmm
+
+prism_main([]):-random_set_seed(1234),
+	sample_goal_pairs(500,GoalList),
+	sample_goal_pairs(100,TestList),
+	rank_list(TestList,Pred0),            % ranking without training
+	check_acc(TestList,Pred0),           % output accuray
+	rank_learn(GoalList),show_sw,         % learning to rank
+	rank_list(TestList,Pred),             % ranking with trained parameters
+	check_acc(TestList,Pred).            % output accuray
+
+

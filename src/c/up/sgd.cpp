@@ -22,9 +22,9 @@ extern "C" {
 #include "up/graph_aux.h"
 #include "up/nonlinear_eq.h"
 #include "up/scc.h"
-#include "up/sgd.h"
 }
 
+#include "up/sgd.h"
 #include <iostream>
 #include <set>
 #include <cmath>
@@ -36,7 +36,6 @@ void initialize_parent_switch(void) {
 	int i;
 	SW_INS_PTR ptr;
 	SW_INS_PTR parent_ptr;
-
 	for (i = 0; i < sw_tab_size; i++) {
 		parent_ptr=ptr = switches[i];
 		while (ptr != NULL) {
@@ -44,8 +43,9 @@ void initialize_parent_switch(void) {
 			ptr = ptr->next;
 		}
 	}
-
+/*
 	for (i = 0; i < sw_tab_size; i++) {
+	SW_INS_PTR parent_ptr;
 		parent_ptr=ptr = switches[i];
 		printf("%d:",parent_ptr->id);
 		while (ptr != NULL) {
@@ -54,7 +54,7 @@ void initialize_parent_switch(void) {
 		}
 		printf("\n");
 	}
-
+*/
 }
 
 void initialize_sgd_weights(void) {

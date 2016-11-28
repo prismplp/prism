@@ -170,6 +170,8 @@ void bp4p_register_preds(void) {
 
 	/* up/rank.c */
 	REGISTER_CPRED(rank_learn,7);
+	REGISTER_CPRED(set_goal_rank,1);
+	REGISTER_CPRED(clear_goal_rank,0);
 
 	/* up/crf_learn.c */
 	REGISTER_CPRED(compute_feature,2);

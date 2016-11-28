@@ -6,6 +6,7 @@ Files/Directories:
   fail   ... examples describing generative processes with failures 
   crf    ... examples that use generative conditional random fields
   cyc    ... examples that use cyclic explanation graphs
+  rank   ... examples that use learning to rank and ranking goals
   foc    ... examples that use the First Order Compiler
 
 Comments:

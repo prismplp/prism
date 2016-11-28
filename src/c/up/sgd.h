@@ -2,6 +2,10 @@
 #define __SGD_H__
 #include "up/up.h"
 
+void initialize_sgd_weights(void);
+void initialize_parent_switch(void);
+int update_sgd_weights(int iterate);
+int update_sgd_params(void);
 typedef struct ExplMinibatch* MinibatchPtr;
 typedef struct ExplMinibatch Minibatch;
 struct ExplMinibatch{

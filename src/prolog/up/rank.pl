@@ -1,14 +1,41 @@
 
+$pp_slice_push(List,[],N,Step):-
+	length(List,L),L<N.
+$pp_slice_push(List,[Sub|Dest],N,Step):-
+	length(List,L),
+	sublist(Sub,List,0,N),
+	sublist(Rest,List,Step,L),
+	$pp_slice_push(Rest,Dest,N,Step).
+slice(List,Dest,N,Step):-$pp_slice_push(List,Dest,N,Step).
+	
+$pp_build_pair_list(GoalList,GoalPairList):-
+	maplist(Gs,Y,
+		slice(Gs,Y,2,1),GoalList,Ys),
+	reducelist(X,Y,Z,append(X,Y,Z),Ys,[],GoalPairList).
+
+rank(Goals,Gs):-rank(Goals,Gs,_).
+rank(Goals,Gs,Probs):-
+	get_prism_flag(clean_table,Backup),
+	set_prism_flag(clean_table,off),
+	(maplist(G,Y,
+			(prob(G,P),Y=[P,G]),
+			Goals,Ys)),
+	sort(>,Ys,Rank),
+	zip(Probs,Gs,Rank).
+
 rank_learn(Goals) :-
-    get_prism_flag(learn_mode,Mode0),
-    $pp_conv_learn_mode(Mode0,Mode,VT),
-    ( VT = 0 -> $pp_rank_learn_main(Mode,Goals)
-    ; VT = 1 -> $pp_rank_vlearn_main(Mode,Goals)
-    ).
+	$pp_build_pair_list(Goals,GoalPairs),
+	get_prism_flag(learn_mode,Mode0),
+	$pp_conv_learn_mode(Mode0,Mode,VT),
+    $pp_rank_learn_main(Mode,GoalPairs).
+	%( VT = 0 -> $pp_rank_learn_main(Mode,Goals)
+	%; VT = 1 -> $pp_rank_vlearn_main(Mode,Goals))
+	
 
 $pp_rank_learn_main(Mode,Goals) :- $pp_rank_learn_core(Mode,Goals,0).
 
-$pp_rank_learn_core(Mode,Goals,Debug) :-
+$pp_rank_learn_core(Mode,GoalList,Debug) :-
+	flatten(GoalList,Goals),
     $pp_learn_check_goals(Goals),
     $pp_learn_message(MsgS,MsgE,MsgT,MsgM),
     $pc_set_em_message(MsgE),
@@ -27,9 +54,10 @@ $pp_rank_learn_core(Mode,Goals,Debug) :-
     flush_output,
     $pp_export_sw_info,
     $pp_format_if(MsgM,"done~n"),
-	%format("dd~w\n",[GoalCountPairs,GidCountPairs,0,Len,0,NGoals,-1,FailRootIndex]),
     $pp_observed_facts(GoalCountPairs,GidCountPairs,
                        0,Len,0,NGoals,-1,FailRootIndex),
+	$pc_set_goal_rank(GoalList),
+	%$pc_prism_goal_id_get(Goal,Gid)
     $pc_prism_prepare(GidCountPairs,Len,NGoals,FailRootIndex),
     cputime(StartEM),
     %%%
