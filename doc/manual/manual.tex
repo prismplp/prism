@@ -20,7 +20,7 @@
 \DeclareMathAlphabet{\mathtt}{OT1}{pcr}{m}{n}
 \SetMathAlphabet{\mathtt}{bold}{OT1}{pcr}{b}{n}
 
-\hypersetup{pdftitle={PRISM User's Manual (Version 2.2)}}
+\hypersetup{pdftitle={PRISM User's Manual (Version 2.3)}}
 \hypersetup{pdfauthor={Taisuke Sato, Neng-Fa Zhou, Yoshitaka Kameya, Yusuke Izumi, Keiichi Kubota and Ryosuke Kojima}}
 \hypersetup{pdfborder={0 0 0}}
 \hypersetup{pdfpagelabels=true}
@@ -119,9 +119,7 @@
 \par\vspace*{3cm}\par
 %{\Huge\bf PRISM User's Manual}\par\vspace*{0.5cm}\par
 {\Huge\bf PRISM User's Manual}\par\vspace*{0.5cm}\par
-{\Huge\bf and}\par\vspace*{0.5cm}\par
-{\Huge\bf Function Specification}\par\vspace*{0.5cm}\par
-{\Large (Version 2.2)}\par\vspace*{12cm}\par
+{\Large (Version 2.3)}\par\vspace*{12cm}\par
 
 {\normalsize Taisuke Sato, Neng-Fa Zhou, Yoshitaka Kameya, Yusuke Izumi, Keiichi Kubota and Ryosuke Kojima}
 
@@ -7445,6 +7443,18 @@ in later chapters.
   --- this flag determines $\mu$ in the penalty term\conindex{penalty term}
   $\frac{\mu}{2}\sum_{k=1}^{K}\lambda_k^2$ in learning generative CRFs (\secref{chap:crf}).
   \conindex{generative conditional random fields}
+\item{\tt sgd\_penalty}
+\flagindex{sgd\_penalty}
+(possible value:\ any floating-point number, default:\ 0.01)
+--- this flag determines a coefficient of the $L_2$ penalty term, for learning to rank (\secref{chap:rank}).
+\item{\tt sgd\_learning\_rate}
+\flagindex{sgd\_learning\_rate}
+(possible value:\ any floating-point number, default:\ 0.01)
+--- this flag determines the learning rate (or its initial value when the adaptive method is used) of stochastic gradient decent, for learning to rank (\secref{chap:rank}).
+\item{\tt sgd\_optimizer}
+\flagindex{sgd\_optimizer}
+(possible values:\ {\tt sgd}, {\tt adadeleta} and {\tt adam}, default:\ {\tt adam})
+--- the {sgd\_optimizer} flag specifies the algorithm to optimize the learning rate, for learning to rank  (\secref{chap:rank}).
 \item
   {\tt daem}
   \flagindex{daem}
@@ -10725,7 +10735,7 @@ in the programming system (\secref{sec:cycle:background}) and then describe
 the basic usage of built-in utilities related to cyclic explanation graphs
 (\secref{sec:cycle:built-in}). 
 In \secref{sec:example:lin} and \secref{sec:example:nonlin}, 
-we Additionally illustrate how to perform probability
+we additionally illustrate how to perform probability
 computation using cyclic explanation graphs.
 
 \section{Background}
@@ -10734,11 +10744,11 @@ computation using cyclic explanation graphs.
 %%%%
 Cyclic explanation graphs\conindex{cyclic explanation graph} are explanation graphs having
 cycles in their {\em goal dependency graph}.\footnote{
-  A {\em goal  dependency graph}\conindex{goal dependency graph}
-  is a directed graph whose  nodes are goals in
-  the explanation graph.  A goal $A$ is connected to $B$ by an arrow from $A$ to
-  $B$ iff $B$ occurs  in the right hand side of a sub-explanation graph
-  for $A$ (see \secref{sec:lang:model:expl} for a description on sub-explanation).
+	A {\em goal  dependency graph}\conindex{goal dependency graph}
+	is a directed graph whose  nodes are goals in
+	the explanation graph.  A goal $A$ is connected to $B$ by an arrow from $A$ to
+	$B$ iff $B$ occurs  in the right hand side of a sub-explanation graph
+	for $A$ (see \secref{sec:lang:model:expl} for a description on sub-explanation).
 }
 Although they  are violating the acyclicity condition imposed by the programming
 system (\secref{sec:lang:model:cond}),
@@ -10779,15 +10789,15 @@ belong  to  the same  SCC  as  $A$.  Below  is  an  example  of linear  cyclic
 explanation graph.
 %
 \begin{quote}
-\begin{verbatim}
-reach(s1,s4)
-   <=> tr(s1,s2) & reach(s2,s4)
-     v tr(s1,s1) & reach(s1,s4)
-reach(s2,s4)
-   <=> tr(s2,s3) & reach(s3,s4)
-     v tr(s2,s1) & reach(s1,s4)
-     v tr(s2,s2) & reach(s2,s4)
-\end{verbatim}
+	\begin{verbatim}
+	reach(s1,s4)
+	<=> tr(s1,s2) & reach(s2,s4)
+	v tr(s1,s1) & reach(s1,s4)
+	reach(s2,s4)
+	<=> tr(s2,s3) & reach(s3,s4)
+	v tr(s2,s1) & reach(s1,s4)
+	v tr(s2,s2) & reach(s2,s4)
+	\end{verbatim}
 \end{quote}
 %
 Here {\tt  reach(s1,s4)} and  {\tt reach(s2,s4)} call  each other and  form an
@@ -10804,14 +10814,14 @@ hand side  belong to the  same SCC.  Below  is an example of  nonlinear cyclic
 explanation graph.
 %
 \begin{quote}
-\begin{verbatim}
-infix_pcfg(0,0,[s,s])
-   <=> infix_pcfg(0,0,[s,s]) & infix_pcfg(0,0,[s]) & msw(s,[s,s])
-     v infix_pcfg(0,0,[s]) & msw(s,[b])
-infix_pcfg(0,0,[s])
-   <=> infix_pcfg(0,0,[s,s]) & msw(s,[s,s])
-     v msw(s,[b])
-\end{verbatim}
+	\begin{verbatim}
+	infix_pcfg(0,0,[s,s])
+	<=> infix_pcfg(0,0,[s,s]) & infix_pcfg(0,0,[s]) & msw(s,[s,s])
+	v infix_pcfg(0,0,[s]) & msw(s,[b])
+	infix_pcfg(0,0,[s])
+	<=> infix_pcfg(0,0,[s,s]) & msw(s,[s,s])
+	v msw(s,[b])
+	\end{verbatim}
 \end{quote}
 %
 Here the sub-explanation graph  for  {\tt  infix\_pcfg(0,0,[s,s])} has
@@ -10826,13 +10836,13 @@ which belong to the same SCC as {\tt infix\_\lb pcfg(0,0,[s])}.
 The programming system provides special built-in predicates  to perform probability
 computation for  tabled probabilistic goals  which generate linear  or nonlinear
 cyclic explanation graphs.\footnote{
-  {\tt prob({\it G})} works only  when {\tt probf({\it G})} generates an acyclic
-  explanation graph described in \secref{sec:built-in:expl}.
+	{\tt prob({\it G})} works only  when {\tt probf({\it G})} generates an acyclic
+	explanation graph described in \secref{sec:built-in:expl}.
 }
 They compute probabilities in a dynamic programming way by solving systems
 of linear or nonlinear equations derived from SCCs\footnote{
-  SCCs  themselves form  a partially  ordered  set and  so do  these systems  of
-  equations.
+	SCCs  themselves form  a partially  ordered  set and  so do  these systems  of
+	equations.
 } constructed  from an  explanation graph.
 
 {\tt lin\_prob({\it  G})}\predindex{lin\_prob/1}
@@ -10843,56 +10853,74 @@ graph.\conindex{cyclic explanation graph!linear ---}
 If it returns a nonlinear  cyclic explanation graph,
 \conindex{cyclic explanation graph!nonlinear ---}
 we should use {\tt nonlin\_prob({\it  G})}.\predindex{nonlin\_prob/1}
-To use {\tt lin\_prob({\it  G})} and {\tt nonlin\_prob({\it G})} however,
+The Viterbi probability (\secref{sec:vb:bg:viterbi}) on linear and nonlinear cyclic explanation graphs also can be computed using  {\tt lin\_viterbi({\it  G})} and {\tt nonlin\_viterbi({\it  G})}, respectively.\predindex{lin\_viterbi/1} \predindex{nonlin\_viterbi/1}
+To use these predicates however,
 the  {\tt error\_on\_cycle}\flagindex{error\_on\_cycle} flag needs to be
 set to `{\tt off}' beforehand\footnote{
-  The default value for {\tt error\_on\_cycle} is `{\tt on}' to avoid unintended
-  generation of cyclic explanation graphs.
+	The default value for {\tt error\_on\_cycle} is `{\tt on}' to avoid unintended
+	generation of cyclic explanation graphs.
 }
 as follows:
 \flagindex{error\_on\_cycle}
 \begin{quote}
-\begin{verbatim}
-:-  set_prism_flag(error_on_cycle,off).
-\end{verbatim}
+	\begin{verbatim}
+	:-  set_prism_flag(error_on_cycle,off).
+	\end{verbatim}
 \end{quote}
 We list all  special built-in predicates for cyclic  explanation graphs in the
 following.
 %
 \begin{itemize}
-\item {\tt lin\_prob({\it G})}\predindex{lin\_prob/1}
-  displays the  probability of {\it G} that has a
-  linear cyclic explanation graph.
-\item {\tt lin\_prob({\it  G},{\it P})}\predindex{lin\_prob/2}
-  returns as {\it  P} the probability of
-  {\it G} that has a linear cyclic explanation graph.
-\item {\tt lin\_probfi({\it G})}\predindex{lin\_probfi/1}
-  displays the explanation graph for {\it G} as
-  a Prolog  term and probabilities  of subgoals.   The display format  is the
-  same as {\tt probfi({\it G})}.
-\item {\tt lin\_probfi({\it G},{\it  Expl})}\predindex{lin\_probfi/2}
-  returns the explanation graph for
-  {\it G} as  a Prolog term and probabilities of subgoals  as {\it Expl}.  The
-  return format is the same as {\tt probfi({\it G},{\it Expl})}.
-\item {\tt lin\_probefi({\it G})}\predindex{lin\_probefi/1}
-  behaves like {\tt lin\_probfi({\it G})} but
-  displays an  encoded explanation graph.  The  display format is  the same as
-  {\tt probefi({\it G})}.
-\item   {\tt    lin\_probefi({\it   G},{\it   Expl})}\predindex{lin\_probefi/2}
-  behaves   like   {\tt
-  lin\_probfi({\it G},{\it  Expl})} but returns an  encoded explanation graph.
-  The return format is the same as {\tt probefi({\it G},{\it Expl})}.
-\item {\tt lin\_learn({\it Gs})}\predindex{lin\_learn/1}
-  learns parameters from goals {\it Gs}.  Currently maximum likelihood estimation
-  using EM learning and Viterbi training is possible. The learning framework
-  is switched by the {\tt learn\_mode} flag (\secref{sec:built-in:flags:list}) as
-  done in the acyclic case. 
-\item {\tt nonlin\_prob({\it G})}\predindex{nonlin\_prob/1}
-  displays the probability of {\it G} that has
-  a nonlinear cyclic explanation graph.
-\item {\tt nonlin\_prob({\it  G},{\it P})}\predindex{nonlin\_prob/2}
-  returns as {\it  P} the probability
-  of {\it G} that has a nonlinear cyclic explanation graph.
+	\item {\tt lin\_prob({\it G})}\predindex{lin\_prob/1}
+		displays the  probability of {\it G} that has a
+		linear cyclic explanation graph.
+	\item {\tt lin\_prob({\it  G},{\it P})}\predindex{lin\_prob/2}
+		returns as {\it  P} the probability of
+		{\it G} that has a linear cyclic explanation graph.
+	\item {\tt lin\_probfi({\it G})}\predindex{lin\_probfi/1}
+		displays the explanation graph for {\it G} as
+		a Prolog  term and probabilities  of subgoals.   The display format  is the
+		same as {\tt probfi({\it G})}.
+	\item {\tt lin\_probfi({\it G},{\it  Expl})}\predindex{lin\_probfi/2}
+		returns the explanation graph for
+		{\it G} as  a Prolog term and probabilities of subgoals  as {\it Expl}.  The
+		return format is the same as {\tt probfi({\it G},{\it Expl})}.
+	\item {\tt lin\_probefi({\it G})}\predindex{lin\_probefi/1}
+		behaves like {\tt lin\_probfi({\it G})} but
+		displays an  encoded explanation graph.  The  display format is  the same as
+		{\tt probefi({\it G})}.
+	\item   {\tt    lin\_probefi({\it   G},{\it   Expl})}\predindex{lin\_probefi/2}
+		behaves   like   {\tt
+		lin\_probfi({\it G},{\it  Expl})} but returns an  encoded explanation graph.
+		The return format is the same as {\tt probefi({\it G},{\it Expl})}.
+	\item {\tt lin\_learn({\it Gs})}\predindex{lin\_learn/1}
+		learns parameters from goals {\it Gs}.  Currently maximum likelihood estimation
+		using EM learning and Viterbi training is possible. The learning framework
+		is switched by the {\tt learn\_mode} flag (\secref{sec:built-in:flags:list}) as
+		done in the acyclic case. 
+	\item {\tt nonlin\_prob({\it G})}\predindex{nonlin\_prob/1}
+		displays the probability of {\it G} that has
+		a nonlinear cyclic explanation graph.
+	\item {\tt nonlin\_prob({\it  G},{\it P})}\predindex{nonlin\_prob/2}
+		returns as {\it  P} the probability
+		of {\it G} that has a nonlinear cyclic explanation graph.
+	\item {\tt lin\_viterbi({\it G})}\predindex{lin\_viterbi/1}
+		displays the Viterbi probability of {\it G} that has a
+		linear cyclic explanation graph ({\tt nonlin\_viterbi({\it G})}\predindex{lin\_viterbi/1} can be used for nonlinear cyclic explanation graphs).
+	\item {\tt lin\_viterbi({\it  G},{\it P})}\predindex{lin\_viterbi/2}
+		returns as {\it  P} the Viterbi probability of
+		{\it G} that has a linear cyclic explanation graph ({\tt nonlin\_viterbi({\it G},{\it P})}\predindex{lin\_viterbi/2} can be used for nonlinear cyclic explanation graphs).
+	\item {\tt lin\_viterbif({\it G})}\predindex{lin\_viterbif/1}
+		displays the Viterbi probability and the Viterbi explanation for {\it G} that has a linear cyclic explanation graph ({\tt nonlin\_viterbif({\it G})}\predindex{nonlin\_viterbif/1} can be used for nonlinear cyclic explanation graphs).
+	\item {\tt lin\_viterbif({\it G}, {\it P}, {\it Expl})}\predindex{lin\_viterbif/3}
+		returns the Viterbi probability of {\it G} to {\it P}, and a Prolog-term representation of the Viterbi explanation {\it E*} for {\it G} to {\it Expl} when {\it G} has a linear cyclic explanation graph ({\tt nonlin\_viterbif({\it G}, {\it P}, {\it Expl})}\predindex{nonlin\_viterbif/3} can be used for nonlinear cyclic explanation graphs).
+	\item {\tt lin\_viterbig($G$)} \predindex{lin\_viterbig/1}
+		is the same as {\tt lin\_viterbi($G$)} except that
+		$G$ is unified with its instantiation by the same manner as {\tt viterbig($G$)} ({\tt nonlin\_viterbig({\it G})}\predindex{nonlin\_viterbig/1} can be used for nonlinear cyclic explanation graphs).
+	\item {\tt lin\_viterbig($G$,$P$)} \predindex{lin\_viterbig/2}
+		is the same as {\tt lin\_viterbi($G$,$P$)} except that $G$ is unified with its instantiation by the same manner as {\tt viterbig($G$)} ({\tt nonlin\_viterbig($G$, $P$)}\predindex{nonlin\_viterbig/2} can be used for nonlinear cyclic explanation graphs).
+	\item {\tt lin\_viterbig($G$,$P$,{\it Expl})} \predindex{lin\_viterbig/3}  
+		is the same as {\tt lin\_viterbif($G$,$P$,{\it Expl})} except that $G$ is unified with its instantiation by the same manner as {\tt viterbig($G$)} ({\tt nonlin\_viterbig($G$, $P$,{\it Expl})}\predindex{nonlin\_viterbig/3} can be used for nonlinear cyclic explanation graphs).
 \end{itemize}
 %
 Note  that  {\tt  lin\_prob/1}  is backward compatible  to  {\tt  prob/1}\predindex{prob/1}
@@ -10909,6 +10937,72 @@ enables us to conduct parameter learning even from linear cyclic explanation gra
 \secref{sec:example:lin} and \secref{sec:example:nonlin} illustrate how to use
 these built-in predicates using an example on probabilistic context-free
 grammars.
+
+
+\chapter{Learning to rank and ranking goals*}
+\label{chap:rank}
+
+
+
+This programming system supports several parameter learning and inference features as described in Chapter 4.
+This chapter describes another learning and inference manner called ``ranking''.
+Ranking entities is a main problem in many information retrieval applications such as collaborative filtering, question answering, multimedia retrieval, text summarization, and online advertising.
+This system provides utilities to solve such ranking problem.
+In the following, we first give an overview of ranking in the programming system (\secref{sec:rank:background}) and then describe the basic usage of built-in utilities related to ranking (\secref{sec:rank:util}).
+
+
+\section{Background}
+\label{sec:rank:background}
+
+Ranking in this system provides two features: learning parameters from the ranked goals (learning to rank) and ranking the given goals (ranking goals).
+In learning to rank, a scoring function is constructed by minimizing a loss function
+on given goals.
+In ranking goals, given a new list of goals, the scoring function is applied to 
+produce a list sorted in descending order of their scores.
+The scoring function from the given goal to the ranking score is defined as the log probability of the goal.
+Given a list $G=\left[g_1, g_2, g_3, ..., g_n\right]$ of goals, The loss function $L(G)$ is defined as follows:
+
+\[
+L(G)=\sum_{i=1}^{n-1} f( g_{i}, g_{i+1} ) 
+\]
+\[
+f(g_1,g_2) = \begin{cases}
+\left(l(g_2)-l(g_1)\right)^2 & (l(g_1)<l(g_2)) \\
+0 & (otherwise)
+\end{cases}
+\]
+
+where
+$l(g)=log P(g)$ is a scoring function of a goal $g$,
+The pairwise loss function $f(g_1,g_2)$ is positive unless $l(g_1) > l(g_2)$.
+
+This loss function is categorized in the pairwise approach.
+This approach is widely used,
+for example, in the loss functions of Ranking SVM \cite{joachims2002optimizing}, RankBoost \cite{freund2003efficient}, and RankNet \cite{burges2005learning}.
+The loss function of this system is inspired by the loss function of ProPPR\cite{wang2013programming}.
+
+The minimization of the loss is performed by the SGD (stochastic gradient decent) with the $L_2$ regularization.
+This algorithm works well in many cases when its parameter called learning rate is appropriately set.
+This system supports manual setting and several adaptive algorithms to optimize the learning rate.
+
+
+
+\section{Built-in utilities}
+\label{sec:rank:util}
+
+
+The programming system provides special built-in predicates for learning to rank and ranking goals.
+
+
+We list all special built-in predicates for learning to rank and ranking goals.
+\begin{itemize}
+\item {\tt rank\_learn(GoalLists)} learns parameters from a list of ranked goal lists {\tt GoalLists}. The loss function (\secref{sec:rank:background}) is used and its optimization algorithms are switched and controlled using flags: {\tt sgd\_penalty}, {\tt sgd\_learning\_rate}, and {\tt sgd\_optimizer} (\secref{sec:built-in:flags:list}
+).
+\item {\tt rank(GoalList,RankedList)} returns the ranked goal list from given unsorted goal list.
+\item {\tt rank(GoalList,RankedList,Scores)} returns the ranked goal list with their ranking scores from given unsorted goal list.
+\end{itemize}
+
+When you want the ranking score, {\tt prob}-family predicates (\secref{sec:built-in:prob}) are available, because this system adopt the log probability of the goal as the ranking score.
 
 
 \chapter{Parallel EM learning*}
