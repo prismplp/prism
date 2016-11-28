@@ -26,6 +26,16 @@ extern "C" {
 }
 
 extern "C"
+int pc_compute_n_nonlinear_viterbi_rerank_4(void){
+	emit_error("n_viterbi on cyclic explanation graphs is not supported");
+	RET_ERR(ierr_function_not_implemented);
+}
+extern "C"
+int pc_compute_n_nonlinear_viterbi_3(void){
+	emit_error("n_viterbi on cyclic explanation graphs is not supported");
+	RET_ERR(ierr_function_not_implemented);
+}
+extern "C"
 int pc_nonlinear_eq_2(void) {
 	int i;
 	scc_debug_level = bpx_get_integer(bpx_get_call_arg(1,2));
@@ -79,6 +89,8 @@ int pc_compute_nonlinear_viterbi_6(void) {
 	double scc_time=getCPUTime();
 	
 	compute_nonlinear_viterbi(scc_debug_level);
+	
+	double solution_time=getCPUTime();
 
 	if (debug_level) print_egraph(1,PRINT_VITERBI);
 
@@ -86,7 +98,10 @@ int pc_compute_nonlinear_viterbi_6(void) {
 			&p_subpath_sw,&viterbi_prob);
 
 	free_scc();
-
+	if(scc_debug_level>=1) {
+		printf("CPU time (scc,solution,all)\n");
+		printf("# %f,%f,%f\n",scc_time-start_time,solution_time-scc_time,solution_time - start_time);
+	}
 	return
 		bpx_unify(bpx_get_call_arg(3,6), p_goal_path)    &&
 		bpx_unify(bpx_get_call_arg(4,6), p_subpath_goal) &&

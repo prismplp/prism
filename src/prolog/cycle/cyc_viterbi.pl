@@ -1,5 +1,44 @@
 %%%% Viterbi wrappers
 
+lin_viterbi(G) :-cyc_viterbi(G).
+lin_viterbi(G,P) :-cyc_viterbi(G,P).
+lin_viterbif(G) :-cyc_viterbif(G).
+lin_viterbif(G,P,V) :-cyc_viterbif(G,P,V).
+lin_viterbit(G) :-cyc_viterbit(G).
+lin_viterbit(G,P,T) :-cyc_viterbit(G,P,T).
+n_lin_viterbi(N,G) :-n_cyc_viterbi(N,G).
+n_lin_viterbi(N,G,P) :-n_cyc_viterbi(N,G,P).
+n_lin_viterbif(N,G) :-n_cyc_viterbif(N,G).
+n_lin_viterbif(N,G,V) :-n_cyc_viterbif(N,G,V).
+n_lin_viterbit(N,G) :-n_cyc_viterbit(N,G).
+n_lin_viterbit(N,G,T) :-n_cyc_viterbit(N,G,T).
+lin_viterbig(G) :-cyc_viterbig(G).
+lin_viterbig(G,P) :-cyc_viterbig(G,P).
+lin_viterbig(G,P,V) :-cyc_viterbig(G,P,V).
+n_lin_viterbig(N,G) :-n_cyc_viterbig(N,G).
+n_lin_viterbig(N,G,P) :-n_cyc_viterbig(N,G,P).
+n_lin_viterbig(N,G,P,V) :- n_cyc_viterbig(N,G,P,V).
+
+nonlin_viterbi(G) :-cyc_viterbi(G).
+nonlin_viterbi(G,P) :-cyc_viterbi(G,P).
+nonlin_viterbif(G) :-cyc_viterbif(G).
+nonlin_viterbif(G,P,V) :-cyc_viterbif(G,P,V).
+nonlin_viterbit(G) :-cyc_viterbit(G).
+nonlin_viterbit(G,P,T) :-cyc_viterbit(G,P,T).
+n_nonlin_viterbi(N,G) :-n_cyc_viterbi(N,G).
+n_nonlin_viterbi(N,G,P) :-n_cyc_viterbi(N,G,P).
+n_nonlin_viterbif(N,G) :-n_cyc_viterbif(N,G).
+n_nonlin_viterbif(N,G,V) :-n_cyc_viterbif(N,G,V).
+n_nonlin_viterbit(N,G) :-n_cyc_viterbit(N,G).
+n_nonlin_viterbit(N,G,T) :-n_cyc_viterbit(N,G,T).
+nonlin_viterbig(G) :-cyc_viterbig(G).
+nonlin_viterbig(G,P) :-cyc_viterbig(G,P).
+nonlin_viterbig(G,P,V) :-cyc_viterbig(G,P,V).
+n_nonlin_viterbig(N,G) :-n_cyc_viterbig(N,G).
+n_nonlin_viterbig(N,G,P) :-n_cyc_viterbig(N,G,P).
+n_nonlin_viterbig(N,G,P,V) :- n_cyc_viterbig(N,G,P,V).
+
+
 cyc_viterbi(G) :-
     $pp_cyc_viterbi_wrapper(cyc_viterbi(G)).
 cyc_viterbi(G,P) :-
@@ -458,7 +497,7 @@ $pp_n_cyc_viterbi_p_core(N,Goal,VPathL) :-
 $pp_compute_n_cyc_viterbi_p(N,Goal,VPathL) :-
     $pp_export_sw_info,!,
     $pc_prism_goal_id_get(Goal,Gid),
-    $pc_compute_n_cyc_viterbi(N,Gid,VPathL0),
+    $pc_compute_n_nonlinear_viterbi(N,Gid,VPathL0),
     $pp_build_n_cyc_viterbi_path(VPathL0,VPathL),!.
 
 $pp_replace_dummy_goal(_,_,[],[]).
@@ -711,7 +750,7 @@ $pp_n_cyc_viterbi_h_core(N,M,Goal,VPathL) :-
 $pp_compute_n_cyc_viterbi_h(N,M,Goal,VPathL) :-
     $pp_export_sw_info,
     $pc_prism_goal_id_get(Goal,Gid),
-    $pc_compute_n_cyc_viterbi_rerank(N,M,Gid,VPathL0),
+    $pc_compute_n_nonlinear_viterbi_rerank(N,M,Gid,VPathL0),
     $pp_build_n_cyc_viterbi_path(VPathL0,VPathL),!.
 
 %% Statistics
