@@ -104,25 +104,28 @@ str_length(10).                 % String length is 10
 
 :-set_prism_flag(max_iterate,3000).
 
-rank_list(GoalList,Pred):-
+zip([],[],[]).
+zip([X|Xs],[Y|Ys],[[X,Y]|Zs]):-zip(Xs,Ys,Zs).
+
+rank_list(GoalLists,Pred):-
 	maplist(Gs,RG,
 		(rank(Gs,RG)),
-		GoalList,Pred).
+		GoalLists,Pred).
 
-check_acc(GoalList,Answer):-
+check_acc(GoalLists,Answer):-
 	maplist(Gs1,Gs2,Y,
 		(Gs1=Gs2->Y=1;Y=0),
-		GoalList,Answer,R),
+		GoalLists,Answer,R),
 	sumlist(R,Denom),
 	length(R,Num),
 	format("Accuracy: ~w/~w\n",[Denom,Num]).
 
-sample_goal_pairs(Num,GoalList):-
+sample_goal_pairs(Num,GoalLists):-
 	get_samples(Num,hmm(+,_),GsPos),
 	maplist(hmm(+,L),Y,(Y=hmm(L)),GsPos,Gs1),
 	get_samples(Num,hmm(-,_),GsNeg),
 	maplist(hmm(-,L),Y,(Y=hmm(L)),GsNeg,Gs2),
-	zip(Gs1,Gs2,GoalList).
+	zip(Gs1,Gs2,GoalLists).
 
 %%  prism_main/1 is a special predicate for batch execution.
 %%  The following command conducts learning from 500 and testing 100 randomly generated samples:

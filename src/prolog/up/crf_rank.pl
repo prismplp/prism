@@ -1,5 +1,3 @@
-zip([],[],[]).
-zip([X|Xs],[Y|Ys],[[X,Y]|Zs]):-zip(Xs,Ys,Zs).
 
 crf_rank_learn(PosGs,NegGs):- zip(PosGs,NegGs,Gs),call($pp_crf_ranklearn_core(Gs)).
 crf_rank_learn(Gs):- call($pp_crf_ranklearn_core(Gs)).
