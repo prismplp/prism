@@ -45,12 +45,21 @@ double  crf_ls_rho            = 0.5;
 double  crf_ls_c1             = 0.5;
 double  crf_penalty           = 0.0;
 /*for cyclic*/
-int     scc_debug_level        = 0;
+int     scc_debug_level       = 0;
 /*for sgd*/
-int     sgd_optimizer     = 2;
+int     sgd_optimizer         = 2;
 double  sgd_learning_rate     = 0.01;
 double  sgd_penalty           = 0.1;
 int     num_minibatch         = 1;
+double  sgd_adam_beta         = 0.9;
+double  sgd_adam_gamma        = 0.999;
+double  sgd_adam_epsilon      = 1.0e-8;
+double  sgd_adadelta_gamma    = 0.95;
+double  sgd_adadelta_epsilon  = 1.0e-8;
+/*fro rank*/
+double  rank_loss_c                = 1;
+int     rank_loss             = 0;
+
 /*
  * This variable does not correspond to any prism flags, and hence is
  * not initialized by reset_prism_flags/0.
@@ -232,6 +241,35 @@ int pc_set_sgd_learning_rate_1(void) {
 
 int pc_set_num_minibatch_1(void) {
 	num_minibatch = bpx_get_integer(bpx_get_call_arg(1,1));
+	return BP_TRUE;
+}
+
+int pc_set_sgd_adam_beta_1(void) {
+	sgd_adam_beta = bpx_get_float(bpx_get_call_arg(1,1));
+	return BP_TRUE;
+}
+int pc_set_sgd_adam_gamma_1(void) {
+	sgd_adam_gamma = bpx_get_float(bpx_get_call_arg(1,1));
+	return BP_TRUE;
+}
+int pc_set_sgd_adam_epsilon_1(void) {
+	sgd_adam_epsilon = bpx_get_float(bpx_get_call_arg(1,1));
+	return BP_TRUE;
+}
+int pc_set_sgd_adadelta_gamma_1(void) {
+	sgd_adadelta_gamma = bpx_get_float(bpx_get_call_arg(1,1));
+	return BP_TRUE;
+}
+int pc_set_sgd_adadelta_epsilon_1(void) {
+	sgd_adadelta_epsilon = bpx_get_float(bpx_get_call_arg(1,1));
+	return BP_TRUE;
+}
+int pc_set_rank_loss_1(void) {
+	rank_loss = bpx_get_integer(bpx_get_call_arg(1,1));
+	return BP_TRUE;
+}
+int pc_set_rank_loss_c_1(void) {
+	rank_loss_c = bpx_get_float(bpx_get_call_arg(1,1));
 	return BP_TRUE;
 }
 

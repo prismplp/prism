@@ -174,6 +174,8 @@ void bp4p_register_preds(void) {
 	REGISTER_CPRED(rank_learn,7);
 	REGISTER_CPRED(set_goal_rank,1);
 	REGISTER_CPRED(clear_goal_rank,0);
+	REGISTER_CPRED(set_rank_loss,1);
+	REGISTER_CPRED(set_rank_loss_c,1);
 
 	/* up/crf_learn.c */
 	REGISTER_CPRED(compute_feature,2);
@@ -206,6 +208,11 @@ void bp4p_register_preds(void) {
 	REGISTER_CPRED(set_sgd_learning_rate,1);
 	REGISTER_CPRED(set_sgd_penalty,1);
 	REGISTER_CPRED(set_num_minibatch,1);
+	REGISTER_CPRED(set_sgd_adam_beta,1);
+	REGISTER_CPRED(set_sgd_adam_gamma,1);
+	REGISTER_CPRED(set_sgd_adam_epsilon,1);
+	REGISTER_CPRED(set_sgd_adadelta_gamma,1);
+	REGISTER_CPRED(set_sgd_adadelta_epsilon,1);
 
 #ifdef MPI
 	/* mp/mp_preds.c */

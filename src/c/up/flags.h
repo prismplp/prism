@@ -36,6 +36,13 @@ int pc_set_crf_penalty_1(void);
 int pc_set_sgd_learning_rate_1(void);
 int pc_set_sgd_penalty_1(void);
 int pc_set_scc_debug_level_1(void);
+int pc_set_sgd_adam_beta_1(void);
+int pc_set_sgd_adam_gamma_1(void);
+int pc_set_sgd_adam_epsilon_1(void);
+int pc_set_sgd_adadelta_gamma_1(void);
+int pc_set_sgd_adadelta_epsilon_1(void);
+int pc_set_rank_loss_1(void);
+int pc_set_rank_loss_c_1(void);
 
 /*========================================================================*/
 
@@ -74,5 +81,12 @@ extern int     sgd_optimizer;
 extern double  sgd_learning_rate;
 extern double  sgd_penalty;
 extern int     num_minibatch;
+extern double  sgd_adam_beta;
+extern double  sgd_adam_gamma;
+extern double  sgd_adam_epsilon;
+extern double  sgd_adadelta_gamma;
+extern double  sgd_adadelta_epsilon;
+extern double  rank_loss_c;
+extern int     rank_loss;
 
 #endif /* FLAGS_H */

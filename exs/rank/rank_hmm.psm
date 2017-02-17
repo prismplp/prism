@@ -132,10 +132,26 @@ sample_goal_pairs(Num,GoalLists):-
 %%      > upprism rank_hmm
 
 prism_main([]):-random_set_seed(1234),
-	sample_goal_pairs(500,GoalList),
-	sample_goal_pairs(100,TestList),
+	set_prism_flag(rank_loss,square),
+	sample_goal_pairs(100,GoalList),
+	sample_goal_pairs(1000,TestList),
 	rank_list(TestList,Pred0),            % ranking without training
 	check_acc(TestList,Pred0),           % output accuray
+	rank_learn(GoalList),show_sw,         % learning to rank
+	rank_list(TestList,Pred),             % ranking with trained parameters
+	check_acc(TestList,Pred).            % output accuray
+
+%%  prism_main/1 is a special predicate for batch execution.
+%%  The following command conducts learning from 500 and testing 100 randomly generated samples:
+%%      > upprism rank_hmm sgd
+
+prism_main([sgd]):-random_set_seed(1234),
+	sample_goal_pairs(100,GoalList),
+	sample_goal_pairs(1000,TestList),
+	rank_list(TestList,Pred0),            % ranking without training
+	check_acc(TestList,Pred0),           % output accuray
+	set_prism_flag(verb,em),
+	set_prism_flag(num_minibatch,1),
 	rank_learn(GoalList),show_sw,         % learning to rank
 	rank_list(TestList,Pred),             % ranking with trained parameters
 	check_acc(TestList,Pred).            % output accuray

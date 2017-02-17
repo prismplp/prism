@@ -11,6 +11,26 @@ struct RankNode{
 	int* goals;
 	RNK_NODE_PTR next;
 };
+typedef struct ExplRankMinibatch *RankMinibatchPtr;
+typedef struct ExplRankMinibatch RankMinibatch;
+struct ExplRankMinibatch{
+	RNK_NODE_PTR* roots;
+	int num_roots;
+	EG_NODE_PTR* egraph;
+	int* egraph_count;
+	int egraph_size;
+	int batch_size;
+	int count;
+};
+
+enum RankLoss{
+	RANK_LOSS_HINGE=0,
+	RANK_LOSS_SQUARE=1,
+	RANK_LOSS_LOG=2,
+	RANK_LOSS_EXP=3,
+};
+
+
 
 int pc_rank_learn_7(void);
 int pc_set_goal_rank_1(void);

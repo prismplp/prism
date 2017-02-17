@@ -240,19 +240,14 @@ void initialize_crf_count(void) {
 	for (i=0; i<sw_ins_tab_size; i++) {
 		switch_instances[i]->count = 0;
 	}
-	printf("num_root: %d\n",num_roots);
 	
-int sum=0;
 	for (i=0; i<num_roots; i++) {
-		printf("root id/pid: %d /%d  %d \n",roots[i]->id,roots[i]->pid,roots[i]->count);
-sum+=roots[i]->count;
 		roots[i]->sgd_count = roots[i]->count;
 		expl_graph[roots[i]->id]->root_id = i;
 		if (roots[i]->pid != -1) {
 			count_complete_features(expl_graph[roots[i]->id],roots[i]->count);
 		}
 	}
-printf("sum: %d \n",sum);
 }
 
 /* compute gradient for each switch (gradient is always no-scale)*/

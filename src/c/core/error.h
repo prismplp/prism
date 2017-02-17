@@ -9,6 +9,11 @@
         return BP_ERROR;                          \
     } while (0)
 
+#define SET_ERR(err)                              \
+    do {                                          \
+        exception = (err);                        \
+    } while (0)
+
 #define RET_RUNTIME_ERR                           \
     do {                                          \
         exception = err_runtime;                  \

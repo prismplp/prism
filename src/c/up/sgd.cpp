@@ -98,8 +98,8 @@ int update_sgd_weights(int iterate) {
 					{//AdaDelta
 						//alpha is about 1
 						double alpha=sgd_learning_rate;
-						double gamma=0.95;
-						double epsilon=1.0e-8;
+						double gamma=sgd_adadelta_gamma;
+						double epsilon=sgd_adadelta_epsilon;
 						double r,v,s;
 						r=ptr->gradient_aux[0];
 						s=ptr->gradient_aux[1];
@@ -116,9 +116,9 @@ int update_sgd_weights(int iterate) {
 					case OPTIMIZER_ADAM:
 					{//Adam
 						double alpha=sgd_learning_rate;
-						double beta=0.9;
-						double gamma=0.999;
-						double epsilon=1.0e-8;
+						double beta=sgd_adam_beta;
+						double gamma=sgd_adam_gamma;
+						double epsilon=sgd_adam_epsilon;
 						double r,v;
 						r=ptr->gradient_aux[0];
 						v=ptr->gradient_aux[1];

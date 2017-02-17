@@ -59,6 +59,16 @@
 %% [Note] Make sure to declare flags in alphabetical order.
 
 $pp_prism_flag(clean_table,bool,on,$none).
+$pp_prism_flag(crf_enable,bool,on,$none).
+$pp_prism_flag(crf_annealing_weight,float(1,+inf),1.0,$pc_set_annealing_weight).
+$pp_prism_flag(crf_learning_rate,enum([none,annealing,backtrack,golden]),backtrack,$pc_set_crf_learning_rate).
+$pp_prism_flag(crf_golden_b,float(@0,+inf),1.0,$pc_set_crf_golden_b).
+$pp_prism_flag(crf_epsilon,float(0,+inf),1.0,$pc_set_crf_epsilon).
+$pp_prism_flag(crf_init,enum([none,noisy_u,random,zero]),zero,$pc_set_crf_init_method).
+$pp_prism_flag(crf_learn_mode,enum([fg,lbfgs]),lbfgs,$pc_set_crf_learn_mode).
+$pp_prism_flag(crf_ls_rho,float(@0,@1),0.5,$pc_set_crf_ls_rho).
+$pp_prism_flag(crf_ls_c1,float(@0,@1),0.5,$pc_set_crf_ls_c1).
+$pp_prism_flag(crf_penalty,float(-inf,+inf),0.0,$pc_set_crf_penalty).
 $pp_prism_flag(daem,bool,off,$pc_set_daem).
 $pp_prism_flag(data_source,term([none,data/1,file(_)]),data/1,$none).
 $pp_prism_flag(default_sw,special($pp_check_default_sw),uniform,$none).
@@ -67,6 +77,7 @@ $pp_prism_flag(default_sw_d,special($pp_check_default_sw_d),0,$none).
 $pp_prism_flag(em_progress,integer(1,+inf),10,$pc_set_em_progress).
 $pp_prism_flag(epsilon,float(@0,+inf),0.0001,$pc_set_prism_epsilon).
 $pp_prism_flag(error_on_cycle,bool,on,$pc_set_error_on_cycle).
+$pp_prism_flag(error_on_invalid_distribution,bool,on,$none).
 $pp_prism_flag(explicit_empty_expls,bool,on,$pc_set_explicit_empty_expls).
 $pp_prism_flag(fix_init_order,bool,on,$pc_set_fix_init_order).
 $pp_prism_flag(force_gc,bool,on,$none).
@@ -82,10 +93,22 @@ $pp_prism_flag(mcmc_e,integer(0,+inf),2000,$none).
 $pp_prism_flag(mcmc_message,special($pp_check_mcmc_message),all,$none).
 $pp_prism_flag(mcmc_progress,integer(1,+inf),100,$pc_set_mcmc_progress).
 $pp_prism_flag(mcmc_s,integer(1,+inf),5,$none).
+$pp_prism_flag(num_minibatch,integer(1,+inf),1,$pc_set_num_minibatch).
+$pp_prism_flag(rank_loss,enum([hinge,square,exp]),hinge,$pc_set_rank_loss).
+$pp_prism_flag(rank_loss_c,float(0,+inf),1.0,$pc_set_rank_loss_c).
 $pp_prism_flag(reset_hparams,bool,on,$none).
 $pp_prism_flag(restart,integer(1,+inf),1,$pc_set_num_restart).
 $pp_prism_flag(rerank,integer(1,+inf),10,$none).
+$pp_prism_flag(scc_debug_level,integer(0,+inf),0,$pc_set_scc_debug_level).
 $pp_prism_flag(search_progress,integer(1,+inf),10,$none).
+$pp_prism_flag(sgd_adam_beta,float(0,+inf),0.9,$pc_set_sgd_adam_beta).
+$pp_prism_flag(sgd_adam_epsilon,float(0,+inf),1.0e-8,$pc_set_sgd_adam_epsilon).
+$pp_prism_flag(sgd_adam_gamma,float(0,+inf),0.999,$pc_set_sgd_adam_gamma).
+$pp_prism_flag(sgd_adadelta_epsilon,float(0,+inf),1.0e-8,$pc_set_sgd_adadelta_epsilon).
+$pp_prism_flag(sgd_adadelta_gamma,float(0,+inf),0.95,$pc_set_sgd_adadelta_gamma).
+$pp_prism_flag(sgd_learning_rate,float(-inf,+inf),0.0001,$pc_set_sgd_learning_rate).
+$pp_prism_flag(sgd_optimizer,enum([sgd,adadelta,adam]),adam,$pc_set_sgd_optimizer).
+$pp_prism_flag(sgd_penalty,float(-inf,+inf),0.01,$pc_set_sgd_penalty).
 $pp_prism_flag(show_itemp,bool,off,$pc_set_show_itemp).
 $pp_prism_flag(sort_hindsight,enum([by_goal,by_prob]),by_goal,$none).
 $pp_prism_flag(std_ratio,float(@0,+inf),0.2,$pc_set_std_ratio).
@@ -93,22 +116,6 @@ $pp_prism_flag(verb,special($pp_check_verb),none,$pp_set_verb).
 $pp_prism_flag(viterbi_mode,enum([params,hparams,ml,vb]),ml,$none).
 $pp_prism_flag(warn,bool,off,$pc_set_warn).
 $pp_prism_flag(write_call_events,special($pp_check_write_call_events),all,$none).
-$pp_prism_flag(error_on_invalid_distribution,bool,on,$none).
-$pp_prism_flag(crf_enable,bool,on,$none).
-$pp_prism_flag(crf_annealing_weight,float(1,+inf),1.0,$pc_set_annealing_weight).
-$pp_prism_flag(crf_learning_rate,enum([none,annealing,backtrack,golden]),backtrack,$pc_set_crf_learning_rate).
-$pp_prism_flag(crf_golden_b,float(@0,+inf),1.0,$pc_set_crf_golden_b).
-$pp_prism_flag(crf_epsilon,float(0,+inf),1.0,$pc_set_crf_epsilon).
-$pp_prism_flag(crf_init,enum([none,noisy_u,random,zero]),zero,$pc_set_crf_init_method).
-$pp_prism_flag(crf_learn_mode,enum([fg,lbfgs]),lbfgs,$pc_set_crf_learn_mode).
-$pp_prism_flag(crf_ls_rho,float(@0,@1),0.5,$pc_set_crf_ls_rho).
-$pp_prism_flag(crf_ls_c1,float(@0,@1),0.5,$pc_set_crf_ls_c1).
-$pp_prism_flag(crf_penalty,float(-inf,+inf),0.0,$pc_set_crf_penalty).
-$pp_prism_flag(scc_debug_level,integer(0,+inf),0,$pc_set_scc_debug_level).
-$pp_prism_flag(sgd_penalty,float(-inf,+inf),0.01,$pc_set_sgd_penalty).
-$pp_prism_flag(sgd_learning_rate,float(-inf,+inf),0.0001,$pc_set_sgd_learning_rate).
-$pp_prism_flag(sgd_optimizer,enum([sgd,adadelta,adam]),adam,$pc_set_sgd_optimizer).
-$pp_prism_flag(num_minibatch,integer(1,+inf),1,$pc_set_num_minibatch).
 
 % first flag is enabled by default
 $pp_prism_flag_exclusive([default_sw_d,default_sw_a]).
