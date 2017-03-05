@@ -121,6 +121,7 @@ void initialize_rank_minibatch(void) {
 			printf(" rank_minibatch(%d): Number of goals = %d, Graph size = %d\n",i,rank_minibatches[i].batch_size,rank_minibatches[i].egraph_size);
 		}
 	}
+	INIT_VISITED_FLAGS;
 }
 
 
@@ -148,8 +149,6 @@ double compute_rank_loss(bool verb,int iterate) {
 				//	eg_ptr->outside = num_goals / (1.0 - inside_failure);
 				//}
 				pair_count++;
-	//printf("<%f,%f>\n",eg_ptr0->inside,eg_ptr1->inside);
-				double h = log(eg_ptr1->inside) - log(eg_ptr0->inside)+rank_loss_c;
 				switch(rank_loss){
 					case RANK_LOSS_HINGE:
 					{
