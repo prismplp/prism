@@ -109,6 +109,12 @@
 \newcommand{\db}{\mathit{DB}}
 \newcommand{\weight}{w}
 
+%%% 2.3
+\newcommand{\vw}{\bvec{w}}
+\newcommand{\vB}{\bvec{B}}
+\newcommand{\vG}{\bvec{G}}
+%%%
+
 \bibliographystyle{plain}
 \makeindex{concept}
 \makeindex{predicate}
@@ -297,6 +303,9 @@ This document is organized as follows:
   probability computation based on cyclic explanation graphs
   with some introductory description.
 \item
+  Chapter~\ref{chap:rank} explains how to use the utilities for
+  learning to rank and ranking goals based on the probability computation in this system with some introductory description.
+\item
   Chapter~\ref{chap:parallel} explains how to use the utilities for
   parallel EM learning using MPI (Message-Passing Interface).
 \item
@@ -317,11 +326,24 @@ a (rough) reference manual.  Chapters~\ref{chap:vb} and \ref{chap:parallel}
 have the facilities introduced recently, and the authors
 expect these chapters to be referred to (only) by the users who are
 interested in these extended facilities.  Note that a version number like
-`2.2' is also referred to as a generic number of the versions numbered as
-2.2.$x$, so if there is no proviso, all descriptions about version 2.2
-apply to versions 2.2.$x$.
+`2.3' is also referred to as a generic number of the versions numbered as
+2.3.$x$, so if there is no proviso, all descriptions about version 2.3
+apply to versions 2.3.$x$.
 
 \newpage
+
+\section*{Major changes from version 2.2}
+\label{change:2.2}
+
+\begin{itemize}
+\item
+  Chapter~\ref{chap:cycle} was changed to describe viterbi computation on cyclic explanation graphs, newly introduced in version 2.3.
+\item
+  Chapter~\ref{chap:rank} was added to describe learning to rank and ranking goals based on the probability computation in this system,
+  newly introduced in version 2.3.
+\item
+  \secref{sec:example:rank} were added to present a simple exmaple of learning to rank and ranking goals.
+\end{itemize}
 
 \section*{Major changes from version 2.1}
 \label{change:2.1}
@@ -7938,6 +7960,67 @@ in later chapters.
   some events are specified in the options of {\tt write\_call/2}.
   If this flag is set as {\tt off}, the message will not be displayed
   regardless of the options passed to {\tt write\_call/2}.
+%% 2.3
+\item{{\tt rank\_loss}}
+\flagindex{rank\_loss}
+(possible values:\ {\tt hinge}, {\tt square} and {\tt exp}, default:\ {\tt hinge})
+--- this flag specifies the pairwise loss function (\secref{rank}) for learning to rank (Chapter~\ref{chap:rank}).
+
+\item{{\tt rank\_loss\_c}}
+\flagindex{rank\_loss\_c}
+(possible value:\ any floating-point number, default:\ 1)
+--- this flag determines a parameter $c$ in  Eq.~\ref{eq:rank_loss_h} and \ref{eq:rank_loss_sq} for learning to rank (Chapter~\ref{chap:rank}).
+
+\item{{\tt sgd\_adam\_beta}}
+\flagindex{\tt sgd\_adam\_beta}
+(possible value:\ any floating-point number, default:\ 0.9)
+--- this flag determines a parameter $beta$ in Eq.~\ref{eq:adam} of Adam for learning to rank (Chapter~\ref{chap:rank}).
+
+\item{{\tt sgd\_adam\_epsilon}}
+\flagindex{\tt sgd\_adam\_epsilon}
+(possible value:\ any floating-point number, default:\ 1.0e-08)
+--- this flag determines a parameter $epsilon$ in Eq.~\ref{eq:adam} of Adam for learning to rank (Chapter~\ref{chap:rank}).
+
+\item{{\tt sgd\_adam\_gamma}}
+\flagindex{\tt sgd\_adam\_gamma}
+(possible value:\ any floating-point number, default:\ 0.999)
+--- this flag determines the parameter $gamma$ in Eq.~\ref{eq:adam} of Adam for learning to rank (Chapter~\ref{chap:rank}).
+
+
+\item{{\tt sgd\_adadelta\_epsilon}}
+\flagindex{\tt sgd\_adadelta\_epsilon}
+(possible value:\ any floating-point number, default:\ 1.0e-08)
+--- this flag determines the parameter $epsilon$ in Eq.~\ref{eq:adadelta} of Adadelta for learning to rank (Chapter~\ref{chap:rank}).
+
+\item{{\tt sgd\_adadelta\_gamma}}
+\flagindex{\tt sgd\_adadelta\_gamma}
+(possible value:\ any floating-point number, default:\ 0.95)
+--- this flag determines the parameter $gamma$ in Eq.~\ref{eq:adadelta} of Adadelta learning rate for learning to rank (Chapter~\ref{chap:rank}).
+
+\item{{\tt sgd\_learning\_rate}}
+\flagindex{sgd\_learning\_rate}
+(possible value:\ any floating-point number, default:\ 0.0001)
+--- this flag determines the learning rate (or its parameter when adaptive methods are used) of stochastic gradient decent for learning to rank (Chapter~\ref{chap:rank}).
+
+\item{{\tt sgd\_optimizer}}
+\flagindex{sgd\_optimizer}
+(possible values:\ {\tt sgd}, {\tt adadeleta} and {\tt adam}, default:\ {\tt adam})
+--- the {sgd\_optimizer} flag specifies the algorithm to optimize the learning rate, for learning to rank  (Chapter~\ref{chap:rank}).
+
+\item{{\tt sgd\_penalty}}
+\flagindex{sgd\_penalty}
+(possible value:\ any floating-point number, default:\ 0.01)
+--- this flag determines the coefficient of the $L_2$ penalty for learning to rank (Chapter~\ref{chap:rank}).
+
+\item{{\tt num\_minibatch}}
+\flagindex{num\_minibatch}
+(possible value:\ any positive integer, default:\ 1)
+--- this flag determines the number of minibatch in learning to rank (Chapter~\ref{chap:rank}). The size of minibatch (the number of samples in a minibatch) is automatically determined by equally dividing the data.
+Because the default value is one, the data is not divided into minibatches by default.
+Note that the loss function does not always decrease while optimizing parameters when the number of minibatches is greater than one; therefore, this system does not notify rising the loss as an error.
+When the specified {\tt num\_minibatch} is greater than the number of data,
+{\tt num\_minibatch} is set as the number of data.
+%%
 \end{itemize}
 
 
@@ -10713,11 +10796,10 @@ There are also a group of top-$n$ Viterbi predicates.
 For example, {\tt ?-~crf\_n\_viterbi(3,G)}
 prints out three explanations in the order of higher weight of goal {\tt G}.
 
-
 \chapter{Cyclic explanation graphs*}
 \label{chap:cycle}
 
-{\em Cyclic explanation graph}s
+{\em Cyclic explanation graph}
 \conindex{cyclic explanation graph}
 \conindex{explanation graph!cyclic ---|see{cyclic explanation graph}}
 provide interesting  and useful computation
@@ -10938,53 +11020,197 @@ enables us to conduct parameter learning even from linear cyclic explanation gra
 these built-in predicates using an example on probabilistic context-free
 grammars.
 
-
 \chapter{Learning to rank and ranking goals*}
 \label{chap:rank}
 
-
-
-This programming system supports several parameter learning and inference features as described in Chapter 4.
+This programming system supports several parameter learning and inference features as described in Chapter~\ref{chap:built-in}.
 This chapter describes another learning and inference manner called ``ranking''.
 Ranking entities is a main problem in many information retrieval applications such as collaborative filtering, question answering, multimedia retrieval, text summarization, and online advertising.
-This system provides utilities to solve such ranking problem.
-In the following, we first give an overview of ranking in the programming system (\secref{sec:rank:background}) and then describe the basic usage of built-in utilities related to ranking (\secref{sec:rank:util}).
-
+This system provides utilities to solve such ranking problems.
+In the following, we first give an overview of ranking in the programming system (\secref{sec:rank:background}), and then describe how to use built-in utilities related to ranking (\secref{sec:rank:util}).
 
 \section{Background}
 \label{sec:rank:background}
 
-Ranking in this system provides two features: learning parameters from the ranked goals (learning to rank) and ranking the given goals (ranking goals).
-In learning to rank, a scoring function is constructed by minimizing a loss function
-on given goals.
-In ranking goals, given a new list of goals, the scoring function is applied to 
+Learning parameters from ranked goals ({\it learning to rank}\conindex{learning to rank}) and ranking given goals ({\it ranking goals}\conindex{ranking goals}) are two main issues related to ranking.
+In learning to rank, a scoring function is constructed by minimizing a loss function on given goals.
+In ranking goals, the scoring function is applied to given goals to
 produce a list sorted in descending order of their scores.
-The scoring function from the given goal to the ranking score is defined as the log probability of the goal.
-Given a list $G=\left[g_1, g_2, g_3, ..., g_n\right]$ of goals, The loss function $L(G)$ is defined as follows:
+This system assumes that a score of a goal is defined as a log probability of the goal,
+and the scoring and loss functions are computed based on a model defined in a program.
 
+Designing the loss function is essential in learning to rank.
+%, a scoring function is constructed by minimizing a loss function on given goals.
+Given a set of goal lists $\vG=\left\{ G^{(i)}\right\}$ such that $G^{(i)}$ is the $i$th list of goals $\left[g^{(i)}_1, g^{(i)}_2, g^{(i)}_3, ..., g^{(i)}_{n_i} \right]$, the loss function $J(\vG)$ is defined as follows:
+
+\begin{eqnarray}
+J(\vG) = \sum_{i} \sum_{j=1}^{n_i-1} f( l(g^{(i)}_{j}), l(g^{(i)}_{j+1}) )
+\label{eq:rank_loss}
+\end{eqnarray}
+
+where
+$l(g) = \log P(g)$ is a scoring function of a goal $g$, and $f(g_1, g_2)$ is a pairwise loss function representing difference between scores of $g_1$ and $g_2$ by using a formulation described later.
+This loss function is categorized into the pairwise approach, widely adopted
+for the well-known ranking algorithms such as Ranking SVM \cite{joachims2002optimizing}, RankBoost \cite{freund2003efficient}, and RankNet \cite{burges2005learning}.
+The loss function of this system is inspired by the loss function of ProPPR \cite{wang2013programming}.
+
+The minimization of the loss function is performed by a gradient-based method like the gradient decent.
+Computing a gradient of the loss function $J(\vG)$ requires the partial derivative of the pairwise loss function with respect to a vector of parameters $\vw$.
+The following three well-known pairwise loss functions $f(g_1, g_2)$ exist.
+
+\begin{description}
+	\item[Hinge loss function] 
+	\begin{eqnarray}
+	f(g_1,g_2) &=&  \max \left(0 ,z \right) \nonumber \\
+	z&=&l(g_2)-l(g_1) + c, \label{eq:rank_loss_h}
+	\end{eqnarray}
+	where $c$ is a parameter to control the domain where the result is positive.
+	Differentiation of this function is represented as follows:
+	\begin{align}
+	\frac{\partial f(g_1,g_2)}{\partial \vw} &=  \begin{cases}
+	\frac{\partial P(g_2)}{\partial \vw}/P(g_2)-\frac{\partial P(g_1)}{\partial \vw}/P(g_1)  & (z > 0) \nonumber \\
+	0 & (z< 0) 
+	\end{cases}
+	\end{align}
+	\item[Square loss function] 
+	\begin{align}
+	f(g_1,g_2) &= \begin{cases}
+	z^2 & (z > 0) \nonumber \\
+	0 & (otherwise)
+	\end{cases} \nonumber \\
+	z&=l(g_2)-l(g_1) + c, \label{eq:rank_loss_sq}
+	\end{align}
+	where $c$ is a parameter to control the domain where the result is positive.
+	Differentiation of this function is represented as follows:
+	\begin{align}
+	\frac{\partial f(g_1,g_2)}{\partial \vw} &=  \begin{cases}
+	2 z \left( \frac{\partial P(g_2)}{\partial \vw}/P(g_2)-\frac{\partial P(g_1)}{\partial \vw}/P(g_1) \right)  & (z > 0) \nonumber \\
+	0 & (otherwise)
+	\end{cases}
+	\end{align}
+	\item[Exponential loss function] 
+	\begin{align}
+	f(g_1,g_2) &= \exp(z) \nonumber \\
+	z&=l(g_2)-l(g_1). \label{eq:rank_loss_exp}
+	\end{align}
+	Differentiation of this function is represented as follows:
+	\begin{align}
+	\frac{\partial f(g_1,g_2)}{\partial \vw} &= 
+	 \exp(z) \left( \frac{\partial P(g_2)}{\partial \vw}/P(g_2)-\frac{\partial P(g_1)}{\partial \vw}/P(g_1) \right)
+	\end{align}
+\end{description}
+
+Although the hinge loss function contains non-differentiable points,
+the optimization can be performed by introducing {\it subgradients} \cite{shor2012minimization} instead of the gradients .
+
+% The derivative of prob. and outside probability on explanation graph
+All of the above derivatives of the loss functions include so-called ``outside probabilities''\conindex{outside probability}, derivatives of a probability of a goal \cite{Sato01b}.
+By the chain rules of derivatives, the outside probability of a goal can be computed using outside probabilities of other ground atoms.
+%The outside probability can be computed by the similar manner with the Inside-Outside algorithm.
+%This quantity coincides with so-called outside probability \cite{Sato01b}.
+In this system, the outside probability of every ground atom can be efficiently computed using outside probabilities of other adjacent ground atoms and probabilistic switches {\tt msw} in the explanation graph.
+The outside probability of {\tt msw} can be similarly regarded as a derivative of a probability of {\tt msw}.
+
+
+In learning to rank, a probability of {\tt msw($i$,$v$)}, $\theta_{i,v}$, is reparametarized using parameters $w$ as follows:
+\[\theta_{i,v}=\frac{\exp(w_{i,v})}{\sum_{v'} \exp(w_{i,v'})}\]
+The right-hand side of this equation is called {\it soft-max function}, also used in muti-variate logistic regressions and multi-class classifiers using feed-forward neural networks.
+This parameterization enables the range of parameters to be the whole real number and removes the constraints between $w$s, unlike the parameter $\theta_{i,v}$ ($ 0 < \theta_{i,v} < 1, \forall i, \sum_{v'} \theta_{i,v'} =1 $) used in the EM learning (\secref{sec:built-in:learn}).
+Then, a derivative of $\theta_{i,v}$ with respect to a parameter $w_{i',v'}$ can be derived as follows:
 \[
-L(G)=\sum_{i=1}^{n-1} f( g_{i}, g_{i+1} ) 
-\]
-\[
-f(g_1,g_2) = \begin{cases}
-\left(l(g_2)-l(g_1)\right)^2 & (l(g_1)<l(g_2)) \\
-0 & (otherwise)
+\frac{\partial \theta_{i,v}}{\partial w_{i',v'}}= \begin{cases}
+\theta_{i,v}(1-\theta_{i,v})  & (i=i', v=v') \\
+ -\theta_{i,v}\theta_{i,v'}  & (i=i', v\neq v') \\
+0 & (i \neq i') 
 \end{cases}
 \]
 
-where
-$l(g)=log P(g)$ is a scoring function of a goal $g$,
-The pairwise loss function $f(g_1,g_2)$ is positive unless $l(g_1) > l(g_2)$.
+As stated above, the derivative of $\theta_{i,v}$ can be computed by separating the three cases: the derivative of $\theta_{i,v}$ is positive in the first case, negative in the second case, zero in the last case.
+The derivative of $\theta_{i,v}$ is called outside probability of {\tt msw($i$,$v$)}.
+Note that the outside probability, defined in this manner, may be negative and be greater than one; therefore, the outside probability is not so-called ``probability''.
 
-This loss function is categorized in the pairwise approach.
-This approach is widely used,
-for example, in the loss functions of Ranking SVM \cite{joachims2002optimizing}, RankBoost \cite{freund2003efficient}, and RankNet \cite{burges2005learning}.
-The loss function of this system is inspired by the loss function of ProPPR\cite{wang2013programming}.
+%Because $ 0 < \theta_{i,v} < 1$,
+%In EM algorithm (), outside probability of msw is defined as follows:
+%The parametarization of a probabilistic switch.
 
-The minimization of the loss is performed by the SGD (stochastic gradient decent) with the $L_2$ regularization.
-This algorithm works well in many cases when its parameter called learning rate is appropriately set.
-This system supports manual setting and several adaptive algorithms to optimize the learning rate.
+\section{Optimization methods}
+\label{sec:rank:opt}
 
+To minimize the objective function $J(\vG)$, the {\it stochastic gradient decent (SGD)}\conindex{SGD} with {\it minibatch training}\conindex{minibatch training} is applicable instead of the gradient decent method.
+The SGD requires less computation than the gradient decent and can be made more efficient using minibatch training.
+In minibatch training, a dataset $\vG$ is partitioned into $M$ subsets: $\vG=\cup_{m=1}^{M} \vG_m,  \vG_{m} \cap \vG_{m'} = \emptyset$  $(m \neq m') $, where $\vG_m$ is called minibatch.
+%($\vG_1,\vG_2,...,\vG_m,...,\vG_M$)
+%Let $J(\vG_m)$ be the sum of the loss functions associated with goal lists in the minibatch $\vG_m$.
+Let $J(\vG_m)$ be the loss function of minibatch $\vG_m$.
+$J(\vG_m)$ is defined by replacing the dataset with minibatch in 
+Eq.~\ref{eq:rank_loss}.
+When minimizing the loss function, to prevent overfitting, an L2 norm of the parameter vector is added to the loss function as a penalty (L2 regularization\conindex{L2 regularization}
+).
+The parameter vector is updated with respect to $\vG_m$ as follows:
+
+\[
+\vw \leftarrow \vw + \alpha \nabla_{\vw} J(\vG_m)
+\]
+
+where $\alpha$ is a parameter called learning rate.
+Note that this update does not always decrease the loss function of the dataset (Eq.~\ref{eq:rank_loss}) unlike the update of  the gradient decent, which always decreases the loss function as long as an appropriate learning rate is chosen.
+%However, the SGD is faster than the gradient decent.
+Empirically, when the number of minibatches $M$ is larger, the more iterations to converge and the less computational time are required.
+Considering this trade-off, an appropriate $M$ should be selected.
+When the number of minibatches is one ($M=1$), minibatch training can be regarded as the gradient decent.
+%set equals $\vG$ 
+When $M$ equals the number of data, each minibatch consists of one list; therefore, minibatch training can be regarded as the SGD without using minibatches.
+%When $\vG$ is separated into subsets 
+%Also, mini-batch training can be regarded as the SGD without minibatch training.
+%  when the number of minibatches equals the number of data
+
+
+The learning rate should be determined carefully to obtain good performance of the gradient-based methods.
+%, when setting it manually
+To determine an appropriate learning rate automatically, adaptive algorithms such as
+ {\it Adadelta}\conindex{Adadelta} \cite{zeiler2012adadelta} and {\it Adam}\conindex{Adadelta} \cite{kingma2014adam} can be used.
+
+\begin{description}
+%	\item[Adagrad]
+%	Update steps using Adagrad performs the following calculation for each element $w$ in the parameter vector $\vw$.
+%\begin{align}
+%r &\leftarrow r + (\nabla_{w} J)^{2} \nonumber \\
+%w &\leftarrow w - \frac{\alpha}{\sqrt{r} + \epsilon} \nabla_{w} J %\label{eq:adagrad}
+%\end{align}
+%%%\begin{align}
+%%%\vr &\leftarrow \vr + \nabla_{\vw}^{2} \\
+%%%\vw &\leftarrow \vw - \frac{\alpha}{\sqrt{diag(\vr)} + \epsilon} \nabla_{w}}
+%%%\end{align}
+%additional memory for $r$ is the same size with that of $w$ 
+	\item[Adadelta]
+	%Update steps using Adadelta performs the following calculation.
+	The following calculation is performed to update a parameter vector $\vw$.
+\begin{align}
+r &\leftarrow \gamma r + (1 - \gamma) || \nabla_{\vw} J ||^2 \nonumber \\
+\Delta \bvec{w} &= \frac{\sqrt{s + \epsilon}}{\sqrt{r + \epsilon}} \nabla_{\vw} J \nonumber \\
+s &\leftarrow \gamma s + (1 - \gamma) ||\Delta \bvec{w} ||^{2} \nonumber \\
+\vw &\leftarrow \vw - \Delta \bvec{w} \label{eq:adadelta}
+\end{align}
+The initial values of $s$ and $r$ are zero.
+$\gamma$ and $\epsilon$ are parameters of the Adadelta.
+%???
+%Although $\alpha$ is fixed at one in the original AdaDelta, it is genera one
+	\item[Adam]
+	%Update steps using AdaGrad performs the following calculation for each element $w$ in the parameter vector $\vw$.
+	The following calculation is performed to update each element $w$ in the parameter vector $\vw$.
+	\begin{align}
+	m &\leftarrow \beta m + (1 - \beta) \nabla_{\vw} J \nonumber \\
+	v &\leftarrow \gamma v + (1 - \gamma) (\nabla_{\vw} J \odot \nabla_{\vw} J) \nonumber \\
+	\hat{m} &= \frac{m}{1 - \beta} \nonumber \\
+	\hat{v} &= \frac{v}{1 - \gamma} \nonumber \\
+	w &\leftarrow w - \frac{\alpha}{\sqrt{\hat{v}} + \epsilon} \hat{m} \label{eq:adam}
+	\end{align}	
+	where $\odot$ is an operator for element-wise products.
+	The initial values of $m$ and $v$ are zero.
+	$\beta$, $\gamma$, and $\epsilon$ are parameters of the Adam.
+	Note that this algorithm consumes additional memory for $m$ and $v$.
+	The size of the additional memory is almost twice size of $\vw$.
+\end{description}
 
 
 \section{Built-in utilities}
@@ -10996,13 +11222,28 @@ The programming system provides special built-in predicates for learning to rank
 
 We list all special built-in predicates for learning to rank and ranking goals.
 \begin{itemize}
-\item {\tt rank\_learn(GoalLists)} learns parameters from a list of ranked goal lists {\tt GoalLists}. The loss function (\secref{sec:rank:background}) is used and its optimization algorithms are switched and controlled using flags: {\tt sgd\_penalty}, {\tt sgd\_learning\_rate}, and {\tt sgd\_optimizer} (\secref{sec:built-in:flags:list}
+\item {\tt rank(GoalList, RankedList)}\predindex{rank/2} returns the ranked goal list {\tt RankedList} from given unsorted goal list {\tt GoalList}.
+\item {\tt rank(GoalList, RankedList, Scores)}\predindex{rank/3} returns the ranked goal list with their ranking scores {\tt Scores} from given unsorted goal list.
+\item {\tt rank(GoalList, RankedList, Scores, Ordering)}\predindex{rank/4} returns the ranked goal list with their ranking scores and their order {\tt Ordering} from given unsorted goal list.
+\item {\tt rank\_learn(GoalLists)}\predindex{rank\_learn/1} learns parameters from a list of ranked goal lists {\tt GoalLists}. The loss function (\secref{sec:rank:background}) is used and its optimization algorithms are switched and controlled using flags: {\tt sgd\_penalty}\flagindex{sgd\_penalty}, {\tt sgd\_learning\_rate}\flagindex{sgd\_learning\_rate}, and {\tt sgd\_optimizer}\flagindex{sgd\_optimizer} (\secref{sec:built-in:flags:list}
 ).
-\item {\tt rank(GoalList,RankedList)} returns the ranked goal list from given unsorted goal list.
-\item {\tt rank(GoalList,RankedList,Scores)} returns the ranked goal list with their ranking scores from given unsorted goal list.
+
 \end{itemize}
 
-When you want the ranking score, {\tt prob}-family predicates (\secref{sec:built-in:prob}) are available, because this system adopt the log probability of the goal as the ranking score.
+For example, let us consider ranking of goals {\tt [a, b, c]}.
+%{\tt a}, {\tt b}, and {\tt c}.
+Let the scores of {\tt a}, {\tt b}, and {\tt c} be -3.0, -1.0, and -2.0, respectively.
+Then, the ranked goal {\tt RankedList} is  {\tt [b, c, a]}, and, the ranking scores {\tt Scores} is {\tt [-1.0, -2.0, -3.0]}.
+In this example, the {\tt a} is third, the {\tt b} is first, and the {\tt c} is second; therefore, order of goals {\tt Ordering} is {\tt [3, 1, 2]}.
+
+When you want a score for ranking, {\tt prob}-family predicates (\secref{sec:built-in:prob})\predindex{prob/1} are available,
+because this system adopt a log probability of a goal as the ranking score.
+
+To learn parameters to rank goals, {\tt rank\_learn/1} is available. 
+This predicate requires lists of ranked goals as supervised data to determine the parameters by the optimization (\secref{sec:rank:opt}).
+Since the outside probability of a ground atom in ranking may be negative and be greater than one as described in \secref{sec:rank:background},
+the log-scaled probability described in \secref{sec:built-in:underflow} cannot be used in this situation.
+That is why this system in the current version does not support log scaling and ignores the {\tt log\_scale} flag in {\tt rank\_learn/1}\flagindex{log\_scale}.
 
 
 \chapter{Parallel EM learning*}
@@ -13975,6 +14216,8 @@ Zs = [[a,a],[a,b],[b,a]]
 \section{Linear cyclic explanation graph*}
 \label{sec:example:lin}
 
+\exindex{discrete time Markov chain program|(}
+
 Cyclic  explanation graphs (Chapter~\ref{chap:cycle})
 enable us  to deal  with useful  models  of cyclic
 probabilistic  relations.  For  example, a  reachability relation  in discrete
@@ -14076,6 +14319,12 @@ tr(s0,s0) [0.5]
 \end{verbatim}
 \end{small}
 \end{quote}
+
+
+\exindex{discrete time Markov chain program|)}
+
+
+\exindex{prefix probability computation of PCFG|(}
 
 As another example of  probability computation using linear cyclic explanation
 graphs, let us consider prefix probability computation in PCFGs.  A prefix $u$
@@ -14272,9 +14521,12 @@ the whole sentences.  This is not surprising, because applying `s $\to$ ss'
 more will yield a longer sentence, and learning from prefix substrings
 takes into account longer sentences behind such substrings.
 
+\exindex{prefix probability computation of PCFG|)}
 
 \section{Nonlinear cyclic explanation graphs*}
 \label{sec:example:nonlin}
+
+\exindex{infix probability computation of PCFG|(}
 
 Nonlinear  cyclic explanation  graphs (Chapter~\ref{chap:cycle})
 enable the  user to  perform yet
@@ -14384,6 +14636,177 @@ Then, {\tt nonlin\_prob(infix\_\lb pcfg([a,b]))} computes the infix probability 
 Probability is 0.235363
 \end{verbatim}
 \end{quote}
+
+\exindex{infix probability computation of PCFG|)}
+
+
+%%%2.3
+\section{Learning to rank and ranking goals*}
+\label{sec:example:rank}
+
+\exindex{learning to rank and ranking goals |(}
+
+Learning to rank and ranking goals (Chapter~\ref{chap:rank})
+provide a new approach to learn parameters and enable the user to develop more applications.
+This system supports ranking multiple goals based on their probabilities.
+The simplest case is ranking two goals: positive and negative goals.
+This section introduces a simple example and tackles two issues: learning from positive and negative goals and identifying positive goals.
+
+To generate example data, let us consider two generative models.
+The first model generates correct data, and
+the second model generates fake data.
+A given data is a pair of these two data, but which one is correct is not known.
+Our goal is estimating which one is correct (or fake).
+We consider a supervised situation in which parameters of a model are trained from annotated pairs of correct and fake data.
+
+First of all, let us define the two generative models using two different HMMs (Figure~\ref{fig:rank_hmm_ex}) as shown in the following program:
+
+\begin{quote}
+\begin{small}
+\begin{verbatim}
+
+%% Positive model: HMM to generate correct data 
+values(init(+),[s0,s1],[0.3,0.7]).           % state initialization
+values(out(+,s0),[a,b],[0.2,0.8]).           % symbol emission
+values(out(+,s1),[a,b],[0.5,0.5]).           % symbol emission
+values(tr(+,_),[s0,s1],[0.5,0.5]).           % state transition
+
+%% Negative model: HMM to generate fake data 
+values(init(-),[s0,s1,s2],[0.5,0.3,0.2]).    % state initialization
+values(out(-,s0),[a,b,c],[0.7,0.2,0.1]).     % symbol emission
+values(out(-,s1),[a,b,c],[0.3,0.6,0.1]).     % symbol emission
+values(out(-,s2),[a,b,c],[0.4,0.4,0.2]).     % symbol emission
+values(tr(-,_),[s0,s1,s2],[0.5,0.3,0.2]).    % state transition
+
+%% HNM Modeling
+
+str_length(10).                % String length is 10
+
+hmm(Sign,L):-                  %   To observe a string L:
+  str_length(N),               %   Get the string length as N
+  msw(init(Sign),S),           %   Choose an initial state randomly
+  hmm(Sign,1,N,S,L).           %   Start stochastic transition (loop)
+
+hmm(_,T,N,_,[]):- T>N,!.       % Stop the loop
+hmm(Sign,T,N,S,[Ob|Y]) :-      % Loop: current state is S, current time is T
+  msw(out(Sign,S),Ob),         %   Output Ob at the state S
+  msw(tr(Sign,S),Next),        %   Transit from S to Next.
+  T1 is T+1,                   %   Count up time
+  hmm(Sign,T1,N,Next,Y).       %   Go next (recursion)
+\end{verbatim}
+\end{small}
+\end{quote}
+
+where {\tt +} specifies positive goals corresponding to correct data, and {\tt -} specifies negative goals corresponding to fake data, for example, {\tt hmm(+,[a,a,b,a,b,b,a,a,b,b])} is a positive goal and {\tt hmm(-,[c,b,a,c,b,c,a,c,b,a])} is a negative goal. 
+% hmm Fig
+\begin{figure}[t]
+	\begin{center}
+	\centerline{\includegraphics[width=0.9\hsize]{fig/rank_hmm01.eps}}
+	\caption{HMMs to generate correct and fake data}
+	\label{fig:rank_hmm_ex}
+	\end{center}
+\end{figure}
+
+Now sampling a positive goal can be run by the following command:
+
+\begin{quote}
+\begin{small}
+\begin{verbatim}
+?- get_samples(1,hmm(+,_),Goals).
+\end{verbatim}
+\end{small}
+\end{quote}
+
+Next, to generate pairs of positive and negative goals, the following auxiliary predicates are defined:
+
+\begin{quote}
+\begin{small}
+\begin{verbatim}
+
+zip([],[],[]).
+zip([X|Xs],[Y|Ys],[[X,Y]|Zs]):-zip(Xs,Ys,Zs).
+
+sample_goal_pairs(Num,GoalLists):-
+  get_samples(Num,hmm(+,_),GsPos),
+  maplist(hmm(+,L),Y,(Y=hmm(L)),GsPos,Gs1),
+  get_samples(Num,hmm(-,_),GsNeg),
+  maplist(hmm(-,L),Y,(Y=hmm(L)),GsNeg,Gs2),
+  zip(Gs1,Gs2,GoalLists).
+\end{verbatim}
+\end{small}
+\end{quote}
+
+Then, let us try to sample three positive and negative pairs using the following command:
+
+\begin{quote}
+\begin{small}
+\begin{verbatim}
+?- sample_goal_pairs(3,GoalPairs)
+	
+	GoalPairs = [
+	  [hmm([a,a,b,a,b,b,a,a,b,b]),hmm([c,b,a,c,b,c,a,c,b,a])],
+	  [hmm([a,a,b,b,b,a,b,b,b,a]),hmm([a,a,b,b,a,b,a,b,b,a])],
+	  [hmm([a,b,b,b,b,b,b,a,a,b]),hmm([a,c,a,a,b,b,b,a,b,c])]]
+
+\end{verbatim}
+\end{small}
+\end{quote}
+
+{\tt sample\_goal\_pairs/2} returns a list of pairs of goals.
+The fist element in the pair is correct data generated from the positive model defined as {\tt hmm(+,\_)}. The second element in the pair is negative data generated from the negative model defined as {\tt hmm(-,\_)}. 
+{\tt sample\_goal\_pairs/2} removes the sign {\tt +/-} and construct pairs because {\tt rank\_learn/1} accepts the list-of-lists format for generalization to rank more than two elements.
+In this example, we regarded this sampled data as supervised data.
+
+Before leaning from the sampled data, we define a model to identify the positive goals as follows: 
+
+\begin{quote}
+\begin{small}
+\begin{verbatim}
+
+values(init,[s0,s1,s2,s3]).    % state initialization
+values(out(_),[a,b,c]).        % symbol emission
+values(tr(_),[s0,s1,s2,s3]).   % state transition
+
+hmm(L):-                       % To observe a string L:
+  str_length(N),               %   Get the string length as N
+  msw(init,S),                 %   Choose an initial state randomly
+  hmm(1,N,S,L).                %   Start stochastic transition (loop)
+
+hmm(T,N,_,[]):- T>N,!.         % Stop the loop
+hmm(T,N,S,[Ob|Y]) :-           % Loop: current state is S, current time is T
+  msw(out(S),Ob),              %   Output Ob at the state S
+  msw(tr(S),Next),             %   Transit from S to Next.
+  T1 is T+1,                   %   Count up time
+  hmm(T1,N,Next,Y).            %   Go next (recursion)
+\end{verbatim}
+\end{small}
+\end{quote}
+
+%This is a normal HMM model in this system, also described in \ref{chap:c}.
+Note that this HMM accepts the correct and fake data.
+Next, to train from the training data, the following command perform learning to rank.
+
+\begin{quote}
+\begin{small}
+\begin{verbatim}
+?- sample_goal_pairs(500,_Gs),set_prism_flag(max_iterate,3000),rank_learn(_Gs).
+\end{verbatim}
+\end{small}
+\end{quote}
+
+Finally, using the trained model, we estimate which one is correct data using {\tt rank/3} as follows:
+
+\begin{quote}
+\begin{small}
+\begin{verbatim}
+?- rank([hmm([a,a,b,a,b,b,a,a,b,b]),hmm([c,b,a,c,b,c,a,c,b,a])],
+     RankedGoals, RankedScores).
+\end{verbatim}
+\end{small}
+\end{quote}
+%%%
+
+\exindex{learning to rank and ranking goals |)}
 
 
 \appendix
