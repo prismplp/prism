@@ -135,7 +135,7 @@
 
 \par\vspace*{2cm}\par
 
-{\footnotesize Copyright \copyright~2015 T. Sato, N.-F. Zhou, Y. Kameya, Y. Izumi, K. Kubota and R. Kojima}
+{\footnotesize Copyright \copyright~2017 T. Sato, N.-F. Zhou, Y. Kameya, Y. Izumi, K. Kubota and R. Kojima}
 \end{center}
 \thispagestyle{empty}
 \setcounter{page}{0}%% quick hack for hyperref
@@ -445,7 +445,7 @@ the programming system just running the command `{\tt prism}':
 \begin{small}
 \begin{verbatim}
 % prism
-PRISM 2.2, (C) Sato Lab, Tokyo Institute of Technology, September, 2015
+PRISM 2.3, (C) Sato Lab, Tokyo Institute of Technology, August, 2017
 B-Prolog Version 7.8b1, All rights reserved, (C) Afany Software 1994-2012.
 
 Type 'prism_help' for usage.
@@ -7963,7 +7963,7 @@ in later chapters.
 %% 2.3
 \item{{\tt rank\_loss}}
 \flagindex{rank\_loss}
-(possible values:\ {\tt hinge}, {\tt square} and {\tt exp}, default:\ {\tt hinge})
+(possible values:\ {\tt hinge}, {\tt square}, {\tt exp} and {\tt log}, default:\ {\tt hinge})
 --- this flag specifies the pairwise loss function (\secref{rank}) for learning to rank (Chapter~\ref{chap:rank}).
 
 \item{{\tt rank\_loss\_c}}
@@ -11056,7 +11056,7 @@ The loss function of this system is inspired by the loss function of ProPPR \cit
 
 The minimization of the loss function is performed by a gradient-based method like the gradient decent.
 Computing a gradient of the loss function $J(\vG)$ requires the partial derivative of the pairwise loss function with respect to a vector of parameters $\vw$.
-The following three well-known pairwise loss functions $f(g_1, g_2)$ exist.
+The following four well-known pairwise loss functions $f(g_1, g_2)$ exist.
 
 \begin{description}
 	\item[Hinge loss function] 
@@ -11097,6 +11097,16 @@ The following three well-known pairwise loss functions $f(g_1, g_2)$ exist.
 	\begin{align}
 	\frac{\partial f(g_1,g_2)}{\partial \vw} &= 
 	 \exp(z) \left( \frac{\partial P(g_2)}{\partial \vw}/P(g_2)-\frac{\partial P(g_1)}{\partial \vw}/P(g_1) \right)
+	\end{align}
+	\item[Logistic loss function] 
+	\begin{align}
+	f(g_1,g_2) &= \log( 1+\exp(z) ) \nonumber \\
+	z&=l(g_2)-l(g_1). \label{eq:rank_loss_exp}
+	\end{align}
+	Differentiation of this function is represented as follows:
+	\begin{align}
+	\frac{\partial f(g_1,g_2)}{\partial \vw} &= 
+	\frac{\exp(z)}{1+\exp(z)} \left( \frac{\partial P(g_2)}{\partial \vw}/P(g_2)-\frac{\partial P(g_1)}{\partial \vw}/P(g_1) \right)
 	\end{align}
 \end{description}
 
@@ -11183,29 +11193,27 @@ To determine an appropriate learning rate automatically, adaptive algorithms suc
 %%%\end{align}
 %additional memory for $r$ is the same size with that of $w$ 
 	\item[Adadelta]
-	%Update steps using Adadelta performs the following calculation.
-	The following calculation is performed to update a parameter vector $\vw$.
+	The following calculation is performed to update each element $w$ in a parameter vector $\vw$.
 \begin{align}
-r &\leftarrow \gamma r + (1 - \gamma) || \nabla_{\vw} J ||^2 \nonumber \\
-\Delta \bvec{w} &= \frac{\sqrt{s + \epsilon}}{\sqrt{r + \epsilon}} \nabla_{\vw} J \nonumber \\
-s &\leftarrow \gamma s + (1 - \gamma) ||\Delta \bvec{w} ||^{2} \nonumber \\
-\vw &\leftarrow \vw - \Delta \bvec{w} \label{eq:adadelta}
+r &\leftarrow \gamma r + (1 - \gamma)  \nabla_{w} J^2  \nonumber \\
+\Delta w &= \frac{\sqrt{s + \epsilon}}{\sqrt{r + \epsilon}} \nabla_{w} J \nonumber \\
+s &\leftarrow \gamma s + (1 - \gamma)  \Delta w^2 \nonumber \\
+w &\leftarrow w - \Delta w \label{eq:adadelta}
 \end{align}
 The initial values of $s$ and $r$ are zero.
 $\gamma$ and $\epsilon$ are parameters of the Adadelta.
-%???
-%Although $\alpha$ is fixed at one in the original AdaDelta, it is genera one
+Note that this algorithm consumes additional memory for $s$ and $r$.
+The size of the additional memory is almost twice size of $\vw$.
 	\item[Adam]
 	%Update steps using AdaGrad performs the following calculation for each element $w$ in the parameter vector $\vw$.
-	The following calculation is performed to update each element $w$ in the parameter vector $\vw$.
+	The following calculation is performed to update each element $w$ in a parameter vector $\vw$.
 	\begin{align}
-	m &\leftarrow \beta m + (1 - \beta) \nabla_{\vw} J \nonumber \\
-	v &\leftarrow \gamma v + (1 - \gamma) (\nabla_{\vw} J \odot \nabla_{\vw} J) \nonumber \\
+	m &\leftarrow \beta m + (1 - \beta) \nabla_{w} J \nonumber \\
+	v &\leftarrow \gamma v + (1 - \gamma) \nabla_{w} J^2 \nonumber \\
 	\hat{m} &= \frac{m}{1 - \beta} \nonumber \\
 	\hat{v} &= \frac{v}{1 - \gamma} \nonumber \\
 	w &\leftarrow w - \frac{\alpha}{\sqrt{\hat{v}} + \epsilon} \hat{m} \label{eq:adam}
 	\end{align}	
-	where $\odot$ is an operator for element-wise products.
 	The initial values of $m$ and $v$ are zero.
 	$\beta$, $\gamma$, and $\epsilon$ are parameters of the Adam.
 	Note that this algorithm consumes additional memory for $m$ and $v$.

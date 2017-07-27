@@ -1,3 +1,23 @@
+2017-7-27 Ryosuke Kojima and Yoshitaka Kameya <ykameya@meijo-u.ac.jp>
+  * version 2.3
+  * src/c/up/rank.cpp
+    src/c/up/rank.h
+    src/c/up/crf_learn.c
+    src/c/up/crf_learn_aux.h
+    src/c/up/cyc_em.cpp
+    src/c/up/cyc_vt_preds.c
+    src/c/up/flags.c
+    src/c/up/flags.h
+    src/c/up/nonlinear_eq.cpp
+    src/c/up/nonlinear_eq.h
+    src/c/up/scc.cpp
+    src/c/up/sgd.cpp
+    src/c/up/sgd.h
+    src/c/up/up.h
+    - added for built-ins related to learnig to rank and rankig goals
+  * updated all related documentations (doc/changes.txt)
+  * added program examples under exs/{rank}
+
 2015-9-4 Ryosuke Kojima and Yoshitaka Kameya <ykameya@meijo-u.ac.jp>
   * version 2.2
   * files under src/resource,
