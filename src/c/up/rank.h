@@ -26,8 +26,8 @@ struct ExplRankMinibatch{
 enum RankLoss{
 	RANK_LOSS_HINGE=0,
 	RANK_LOSS_SQUARE=1,
-	RANK_LOSS_LOG=2,
-	RANK_LOSS_EXP=3,
+	RANK_LOSS_EXP=2,
+	RANK_LOSS_LOG=3,
 };
 
 

@@ -94,7 +94,7 @@ $pp_prism_flag(mcmc_message,special($pp_check_mcmc_message),all,$none).
 $pp_prism_flag(mcmc_progress,integer(1,+inf),100,$pc_set_mcmc_progress).
 $pp_prism_flag(mcmc_s,integer(1,+inf),5,$none).
 $pp_prism_flag(num_minibatch,integer(1,+inf),1,$pc_set_num_minibatch).
-$pp_prism_flag(rank_loss,enum([hinge,square,exp]),hinge,$pc_set_rank_loss).
+$pp_prism_flag(rank_loss,enum([hinge,square,exp,log]),hinge,$pc_set_rank_loss).
 $pp_prism_flag(rank_loss_c,float(0,+inf),1.0,$pc_set_rank_loss_c).
 $pp_prism_flag(reset_hparams,bool,on,$none).
 $pp_prism_flag(restart,integer(1,+inf),1,$pc_set_num_restart).

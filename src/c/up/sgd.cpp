@@ -43,18 +43,6 @@ void initialize_parent_switch(void) {
 			ptr = ptr->next;
 		}
 	}
-/*
-	for (i = 0; i < sw_tab_size; i++) {
-	SW_INS_PTR parent_ptr;
-		parent_ptr=ptr = switches[i];
-		printf("%d:",parent_ptr->id);
-		while (ptr != NULL) {
-			printf("%d,",ptr->id);
-			ptr = ptr->next;
-		}
-		printf("\n");
-	}
-*/
 }
 
 void initialize_sgd_weights(void) {
@@ -301,7 +289,6 @@ int compute_sgd_expectation_scaling_none(void) {
 	for (i = 0; i < sorted_egraph_size; i++) {
 		sorted_expl_graph[i]->outside = 0.0;
 	}
-	//for (i = 0; i < num_roots; i++) {
 	for (i = 0; i < mb_ptr->num_roots; i++) {
 		eg_ptr = expl_graph[roots[i]->id];
 		if (i == failure_root_index) {
@@ -311,9 +298,7 @@ int compute_sgd_expectation_scaling_none(void) {
 		}
 	}
 
-	//for (i = sorted_egraph_size - 1; i >= 0; i--) {
 	for (i = mb_ptr->egraph_size - 1; i >= 0; i--) {
-		//eg_ptr = sorted_expl_graph[i];
 		eg_ptr = mb_ptr->egraph[i];
 		path_ptr = eg_ptr->path_ptr;
 		while (path_ptr != NULL) {
@@ -367,7 +352,6 @@ int compute_sgd_expectation_scaling_log_exp(void) {
 		sorted_expl_graph[i]->first_outside = 0.0;
 	}
 
-	//for (i = 0; i < num_roots; i++) {
 	for (i = 0; i < mb_ptr->num_roots; i++) {
 		eg_ptr = expl_graph[mb_ptr->roots[i]->id];
 		if (i == failure_root_index) {
@@ -381,13 +365,7 @@ int compute_sgd_expectation_scaling_log_exp(void) {
 		eg_ptr->outside = 1.0;
 	}
 
-	/* sorted_expl_graph[to] must be a root node */
-	//for (i = sorted_egraph_size - 1; i >= 0; i--) {
-	//	eg_ptr = sorted_expl_graph[i];
-
-	//for (i = sorted_egraph_size - 1; i >= 0; i--) {
 	for (i = mb_ptr->egraph_size - 1; i >= 0; i--) {
-		//eg_ptr = sorted_expl_graph[i];
 		eg_ptr = mb_ptr->egraph[i];
 		/* First accumulate log-scale outside probabilities: */
 		if (!eg_ptr->has_first_outside) {
@@ -431,10 +409,8 @@ int compute_sgd_expectation_scaling_log_exp(void) {
 				while(sw_node_ptr!=NULL){
 					double el;
 					if(sw_node_ptr!=sw_ptr){
-						//sw_node_ptr->total_expect -= q*sw_node_ptr->inside;
 						el=-(q+log(sw_node_ptr->inside));
 					}else{
-						//sw_node_ptr->total_expect += q*(1.0-sw_node_ptr->inside);
 						el=q+log(1.0-sw_node_ptr->inside);
 					}
 					if (!sw_node_ptr->has_first_expectation) {
@@ -470,7 +446,6 @@ int compute_sgd_expectation_scaling_log_exp(void) {
 			}
 			sw_ptr->total_expect =
 				exp(sw_ptr->first_expectation + log(sw_ptr->total_expect));
-			//printf("(%d,%f),",i,sw_ptr->total_expect);
 			sw_ptr = sw_ptr->next;
 		}
 	}
@@ -484,9 +459,9 @@ int compute_sgd_expectation_scaling_log_exp(void) {
 
 
 int run_sgd(struct EM_Engine* em_ptr) {
-	int	 r, iterate, old_valid, converged, saved = 0;
+	int	r, iterate,old_valid=0, converged=0, saved = 0;
 	double  likelihood, log_prior=0;
-	double  lambda, old_lambda = 0.0;
+	double  old_lambda,lambda;
 
 	//config_em(em_ptr);
 	double start_time=getCPUTime();

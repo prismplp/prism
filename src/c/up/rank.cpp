@@ -118,7 +118,7 @@ void initialize_rank_minibatch(void) {
 
 	if (verb_em) {
 		for (int i=0; i<num_minibatch; i++) {
-			printf(" rank_minibatch(%d): Number of goals = %d, Graph size = %d\n",i,rank_minibatches[i].batch_size,rank_minibatches[i].egraph_size);
+			prism_printf(" rank_minibatch(%d): Number of goals = %d, Graph size = %d\n",i,rank_minibatches[i].batch_size,rank_minibatches[i].egraph_size);
 		}
 	}
 	INIT_VISITED_FLAGS;
@@ -133,7 +133,6 @@ double compute_rank_loss(bool verb,int iterate) {
 	int i;
 	EG_NODE_PTR eg_ptr0,eg_ptr1;
 	SW_INS_PTR sw_ptr;
-	RankMinibatchPtr mb_ptr=&rank_minibatches[rank_minibatch_id];
 	RNK_NODE_PTR rank_ptr=rank_root;
 	int pair_count=0;
 	int pair_grad_count=0;
@@ -178,7 +177,18 @@ double compute_rank_loss(bool verb,int iterate) {
 						pair_grad_count++;
 					}
 					break;
+					case RANK_LOSS_LOG:
+					{
+						// loss=exp(z)
+						double z = log(eg_ptr1->inside) - log(eg_ptr0->inside);
+						ll_loss+=log(1.0+exp(z));
+						pair_grad_count++;
+					}
+					break;
 					default:
+						emit_internal_error("unexpected loss function[%d]",
+							rank_loss);
+						RET_INTERNAL_ERR;
 					break;
 				}
 			}
@@ -208,8 +218,6 @@ int compute_rank_expectation_scaling_none(void) {
 	EG_NODE_PTR eg_ptr0,eg_ptr1;
 	SW_INS_PTR sw_ptr,sw_node_ptr;
 	double q;
-	RankMinibatchPtr mb_ptr=&rank_minibatches[rank_minibatch_id];
-	RNK_NODE_PTR rank_ptr=rank_root;
 	
 	for (i = 0; i < occ_switch_tab_size; i++) {
 		sw_ptr = occ_switches[i];
@@ -222,22 +230,18 @@ int compute_rank_expectation_scaling_none(void) {
 	for (i = 0; i < sorted_egraph_size; i++) {
 		sorted_expl_graph[i]->outside = 0.0;
 	}
-	//for (i = 0; i < num_roots; i++) {
 	int pair_count=0;
 	int pair_grad_count=0;
-	//for (RNK_NODE_PTR itr = rank_ptr; itr != NULL; itr=itr->next) {
+	RankMinibatchPtr mb_ptr=&rank_minibatches[rank_minibatch_id];
 	for (i = 0; i < mb_ptr->num_roots; i++) {
 		RNK_NODE_PTR itr =mb_ptr->roots[i];
 		if(itr->goal_count>=2){
 				for(k=0;k<itr->goal_count-1;k++){
 					eg_ptr0 = expl_graph[itr->goals[k]];
 					eg_ptr1 = expl_graph[itr->goals[k+1]];
-					//if (i == failure_root_index) {
-					//	eg_ptr->outside = num_goals / (1.0 - inside_failure);
-					//}
 					pair_count++;
 					switch(rank_loss){
-					case RANK_LOSS_HINGE:
+					case RANK_LOSS_SQUARE:
 						{
 							// loss=h^2 (h>0)
 							double h = log(eg_ptr1->inside) - log(eg_ptr0->inside)+rank_loss_c;
@@ -248,7 +252,7 @@ int compute_rank_expectation_scaling_none(void) {
 							}
 						}
 						break;
-					case RANK_LOSS_SQUARE:
+					case RANK_LOSS_HINGE:
 						{
 							// loss=h (h>0)
 							double h = log(eg_ptr1->inside) - log(eg_ptr0->inside)+rank_loss_c;
@@ -263,11 +267,23 @@ int compute_rank_expectation_scaling_none(void) {
 						{
 							// loss=exp(z)
 							double z = log(eg_ptr1->inside) - log(eg_ptr0->inside);
+							eg_ptr0->outside += 1.0 * exp(z)/eg_ptr0->inside;
+							eg_ptr1->outside += -1.0* exp(z)/eg_ptr1->inside;
+						}
+						break;
+					case RANK_LOSS_LOG:
+						{
+							// loss=exp(z)
+							double z = log(eg_ptr1->inside) - log(eg_ptr0->inside);
 							eg_ptr0->outside += 1.0 * exp(z)/((1+exp(z))* eg_ptr0->inside);
 							eg_ptr1->outside += -1.0* exp(z)/((1+exp(z))* eg_ptr1->inside);
 						}
 						break;
+
 					default:
+						emit_internal_error("unexpected loss function[%d]",
+							rank_loss);
+						RET_INTERNAL_ERR;
 						break;
 					}
 					
@@ -276,9 +292,7 @@ int compute_rank_expectation_scaling_none(void) {
 		}
 	}
 
-	//for (i = sorted_egraph_size - 1; i >= 0; i--) {
 	for (i = mb_ptr->egraph_size - 1; i >= 0; i--) {
-		//eg_ptr = sorted_expl_graph[i];
 		eg_ptr = mb_ptr->egraph[i];
 		path_ptr = eg_ptr->path_ptr;
 		while (path_ptr != NULL) {
@@ -334,9 +348,6 @@ int compute_rank_expectation_scaling_log_exp(void) {
 		sorted_expl_graph[i]->first_outside = 0.0;
 	}
 
-	//for (i = 0; i < num_roots; i++) {
-	//for (i = 0; i < mb_ptr->num_roots; i++) {
-	//	eg_ptr = expl_graph[mb_ptr->roots[i]->id];
 	for (RNK_NODE_PTR itr = rank_ptr; itr != NULL; itr=itr->next) {
 		if(itr->goal_count>=2){
 			for(i=0;i<itr->goal_count-1;i++){
@@ -344,14 +355,8 @@ int compute_rank_expectation_scaling_log_exp(void) {
 				eg_ptr1 = expl_graph[itr->goals[i+1]];
 				
 				if(eg_ptr0->inside > eg_ptr1->inside){
-					//if (i == failure_root_index) {
-					//	eg_ptr->first_outside =
-					//	    log(num_goals / (1.0 - exp(inside_failure)));
-					//}
 					eg_ptr0->first_outside =
 						log((double)(1.0)) - eg_ptr0->inside;
-					//eg_ptr1->first_outside =
-					//    log((double)(roots[i]->count)) - eg_ptr->inside;
 					eg_ptr0->has_first_outside = 1;
 					eg_ptr0->outside = 1.0;
 				}
@@ -359,13 +364,7 @@ int compute_rank_expectation_scaling_log_exp(void) {
 		}
 	}
 
-	/* sorted_expl_graph[to] must be a root node */
-	//for (i = sorted_egraph_size - 1; i >= 0; i--) {
-	//	eg_ptr = sorted_expl_graph[i];
-
-	//for (i = sorted_egraph_size - 1; i >= 0; i--) {
 	for (i = mb_ptr->egraph_size - 1; i >= 0; i--) {
-		//eg_ptr = sorted_expl_graph[i];
 		eg_ptr = mb_ptr->egraph[i];
 		/* First accumulate log-scale outside probabilities: */
 		if (!eg_ptr->has_first_outside) {
@@ -409,10 +408,8 @@ int compute_rank_expectation_scaling_log_exp(void) {
 				while(sw_node_ptr!=NULL){
 					double el;
 					if(sw_node_ptr!=sw_ptr){
-						//sw_node_ptr->total_expect -= q*sw_node_ptr->inside;
 						el=-(q+log(sw_node_ptr->inside));
 					}else{
-						//sw_node_ptr->total_expect += q*(1.0-sw_node_ptr->inside);
 						el=q+log(1.0-sw_node_ptr->inside);
 					}
 					if (!sw_node_ptr->has_first_expectation) {
@@ -460,9 +457,8 @@ int compute_rank_expectation_scaling_log_exp(void) {
 
 
 int run_rank_learn(struct EM_Engine* em_ptr) {
-	int	 r, iterate, old_valid, converged, saved = 0;
+	int	 r, iterate, old_valid, converged=0, saved = 0;
 	double  loss,old_loss;
-	//double  lambda, old_lambda = 0.0;
 
 	//config_em(em_ptr);
 	double start_time=getCPUTime();
@@ -470,7 +466,7 @@ int run_rank_learn(struct EM_Engine* em_ptr) {
 	initialize_parent_switch();
 	initialize_rank_minibatch();
 	double scc_time=getCPUTime();
-	//start EM
+	//start SGD
 	double itemp = 1.0;
 	int err=0;
 	for (r = 0; r < num_restart; r++) {
@@ -489,21 +485,10 @@ int run_rank_learn(struct EM_Engine* em_ptr) {
 				}
 				rank_minibatch_id=iterate%num_minibatch;
 				
-				//RET_ON_ERR(em_ptr->compute_inside());
 				compute_inside_linear();
-				//RET_ON_ERR(em_ptr->examine_inside());
-				//examine_inside_linear_cycle();
-				//likelihood = em_ptr->compute_likelihood();
-				//likelihood=compute_likelihood_scaling_none();
-				//log_prior  = em_ptr->smooth ? em_ptr->compute_log_prior() : 0.0;
-				//lambda = likelihood + log_prior;
-				if (verb_em) {
-					loss=compute_rank_loss(true,iterate);
-					if(scc_debug_level>=4) {
-							print_eq();
-					}
-				}else{
-					loss=compute_rank_loss(false,iterate);
+				loss=compute_rank_loss(verb_em,iterate);
+				if(scc_debug_level>=4) {
+					print_eq();
 				}
 			
 				if (!std::isfinite(loss)) {
@@ -519,10 +504,6 @@ int run_rank_learn(struct EM_Engine* em_ptr) {
 								old_loss, loss, iterate);
 						break;
 					}
-					//converged = (old_valid && old_loss - loss <= prism_epsilon);
-					//if (converged) {
-					//	break;
-					//}
 				}
 				
 				if ( REACHED_MAX_ITERATE(iterate)) {
@@ -536,7 +517,6 @@ int run_rank_learn(struct EM_Engine* em_ptr) {
 					err=1;
 					break;
 				}
-				//compute_expectation_linear();
 
 				SHOW_PROGRESS(iterate);
 				update_sgd_weights(iterate);
@@ -587,8 +567,8 @@ int run_rank_learn(struct EM_Engine* em_ptr) {
 	free_scc();
 	clean_rank_minibatch();
 	if(scc_debug_level>=1) {
-		printf("CPU time (scc,solution,all)\n");
-		printf("# %f,%f,%f\n",scc_time-start_time,solution_time-scc_time,solution_time - start_time);
+		prism_printf("CPU time (scc,solution,all)\n");
+		prism_printf("# %f,%f,%f\n",scc_time-start_time,solution_time-scc_time,solution_time - start_time);
 	}
 	if (err) {
 		return BP_ERROR;
@@ -622,7 +602,6 @@ int pc_rank_learn_7(void) {
 	struct EM_Engine em_eng;
 	RET_ON_ERR(check_smooth(&em_eng.smooth));
 	config_rank_learn(&em_eng);
-	//scc_debug_level = bpx_get_integer(bpx_get_call_arg(7,7));
 	RET_ON_ERR(run_rank_learn(&em_eng));
 	return
 	    bpx_unify(bpx_get_call_arg(1,7), bpx_build_integer(em_eng.iterate   )) &&
@@ -698,7 +677,7 @@ int pc_clear_goal_rank_0(void) {
 	return BP_TRUE;
 }
 
-/* main loop */
+// crf rank learn is not supported
 int crf_rank_learn(CRF_ENG_PTR crf_ptr) {
 	int r,iterate,old_valid,converged,saved = 0;
 	double likelihood,old_likelihood = 0.0;
@@ -761,11 +740,6 @@ int crf_rank_learn(CRF_ENG_PTR crf_ptr) {
 				                    isnan(likelihood) ? "NaN" : "infinity", iterate);
 				RET_ERR(ierr_invalid_likelihood);
 			}
-			/*        if (old_valid && old_likelihood - likelihood > prism_epsilon) {
-					  emit_error("log likelihood decreased [old: %.9f, new: %.9f] (at iteration #%d)",
-					  old_likelihood, likelihood, iterate);
-					  RET_ERR(err_invalid_likelihood);
-					  }*/
 			if (likelihood > 0.0) {
 				emit_error("log likelihood greater than zero [value: %.9f] (at iteration #%d)",
 				           likelihood, iterate);
