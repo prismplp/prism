@@ -737,7 +737,7 @@ int crf_rank_learn(CRF_ENG_PTR crf_ptr) {
 
 			if (!std::isfinite(likelihood)) {
 				emit_internal_error("invalid log likelihood: %s (at iteration #%d)",
-				                    isnan(likelihood) ? "NaN" : "infinity", iterate);
+				                    std::isnan(likelihood) ? "NaN" : "infinity", iterate);
 				RET_ERR(ierr_invalid_likelihood);
 			}
 			if (likelihood > 0.0) {
