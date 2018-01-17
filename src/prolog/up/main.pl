@@ -99,6 +99,7 @@ prism(File) :-
     prism([],File).
 
 prism(Opts,File) :-
+	format("prism***********"),
     $pp_require_atom(File,$msg(3000),prism/2),
     $pp_require_list_or_nil(Opts,$msg(1006),prism/2),
     reset_prism_flags,
