@@ -35,6 +35,7 @@ OBJS = graph.$(O)             \
        cyc_vt_preds.$(O)      \
        cyc_vt_ml.$(O)         \
        rank.$(O)              \
+       vec.$(O)               \
        sgd.$(O)    
 
 
@@ -90,6 +91,7 @@ cyc_vt_ml.$(O)    : $(BPX_H) $(ERR_H) $(UP_H) nonlinear_eq.h cyc_vt_ml.h
 cyc_vt_preds.$(O) : $(BPX_H) $(ERR_H) $(UP_H) nonlinear_eq.h cyc_vt_preds.h
 rank.$(O)         : $(BPX_H) $(ERR_H) $(UP_H) nonlinear_eq.h cyc_vt_ml.h rank.h
 crf_rank.$(O)     : $(BPX_H) $(ERR_H) $(UP_H) $(CRF_H) crf_learn.h crf_learn_aux.h
+vec.$(O)    : $(BPX_H) $(ERR_H) $(UP_H) vec.h
 lbfgs.$(O)        : 
 
 ##----------------------------------------------------------------------

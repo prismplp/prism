@@ -38,6 +38,8 @@ core:
 
 up:
 	cd $(UP_DIR) && $(MAKE) -f $(MAKEFILE) all
+external:
+	cd $(EXTERNAL_DIR) && $(MAKE) -f $(MAKEFILE) all
 
 mp:
 	if [ $(PROCTYPE) = mp ]; then                 \

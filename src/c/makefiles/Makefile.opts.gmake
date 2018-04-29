@@ -31,7 +31,7 @@ CXXFLAGS=$(CFLAGS)
 LD         = g++
 else
 CFLAGS     = -fomit-frame-pointer -fno-strict-aliasing -Wall -I../bp4prism/include -I.. -I../resource -I../up
-LDFLAGS    = -lm -lpthread 
+LDFLAGS    = -lm -lpthread `pkg-config --cflags --libs protobuf`
 CXXFLAGS=$(CFLAGS)
 LD         = g++
 endif
