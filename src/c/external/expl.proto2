@@ -1,0 +1,35 @@
+package prism;
+
+message ExplGraph {
+  repeated ExplGraphGoal goals =1;
+  repeated Root roots =2;
+}
+message ExplGraphGoal {
+  required ExplGraphNode node =1;
+  repeated ExplGraphPath paths =2;
+}
+message ExplGraphPath {
+  repeated ExplGraphNode nodes =1;
+  repeated SwIns sws =2;
+}
+message ExplGraphNode {
+  required int32 id = 1;
+  required PredTerm goal = 2;
+}
+message PredTerm{
+  required string name = 1;
+  repeated string args = 2;
+}
+
+message SwIns{
+  required int32 id = 1;
+  required PredTerm name = 2;
+  required PredTerm value= 3;
+}
+
+message Root{
+  required int32 id = 1;
+  required int32 count = 2;
+}
+
+

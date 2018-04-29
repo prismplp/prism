@@ -1,0 +1,36 @@
+syntax = "proto3";
+package prism;
+
+message ExplGraph {
+  repeated ExplGraphGoal goals =1;
+  repeated Root roots =2;
+}
+message ExplGraphGoal {
+  ExplGraphNode node =1;
+  repeated ExplGraphPath paths =2;
+}
+message ExplGraphPath {
+  repeated ExplGraphNode nodes =1;
+  repeated SwIns sws =2;
+}
+message ExplGraphNode {
+  int32 id = 1;
+  PredTerm goal = 2;
+}
+message PredTerm{
+  string name = 1;
+  repeated string args = 2;
+}
+
+message SwIns{
+  int32 id = 1;
+  PredTerm name = 2;
+  PredTerm value= 3;
+}
+
+message Root{
+  int32 id = 1;
+  int32 count = 2;
+}
+
+

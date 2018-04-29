@@ -1,0 +1,31 @@
+# -*- Makefile -*-
+
+##----------------------------------------------------------------------
+
+OBJS = expl.pb.$(O)
+       
+##----------------------------------------------------------------------
+
+BP4P_H = ..$(S)bp4prism$(S)include$(S)bprolog.h                     \
+         ..$(S)bp4prism$(S)include$(S)bapi.h                        \
+         ..$(S)bp4prism$(S)include$(S)basic.h                       \
+         ..$(S)bp4prism$(S)include$(S)extern_decl.h                 \
+         ..$(S)bp4prism$(S)include$(S)frame.h                       \
+         ..$(S)bp4prism$(S)include$(S)term.h
+
+BP4P_A = ..$(S)bp4prism$(S)lib$(S)bp4prism-$(PLATFORM).$(A)
+
+##----------------------------------------------------------------------
+
+BPX_H  = $(BP4P_H) ..$(S)core$(S)bpx.h ..$(S)core$(S)stuff.h
+ERR_H  = ..$(S)core$(S)error.h
+UP_H   = ..$(S)up$(S)up.h
+EM_H   = ..$(S)up$(S)em.h
+VT_H   = ..$(S)up$(S)vt.h
+MCMC_H = ..$(S)up$(S)mcmc.h
+CRF_H  = ..$(S)up$(S)crf.h
+
+##----------------------------------------------------------------------
+expl.pb.$(O)    : $(BPX_H) $(ERR_H) $(UP_H) expl.pb.h
+
+##----------------------------------------------------------------------
