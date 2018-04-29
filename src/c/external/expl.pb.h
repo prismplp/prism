@@ -36,7 +36,7 @@ namespace protobuf_expl_2eproto {
 struct TableStruct {
   static const ::google::protobuf::internal::ParseTableField entries[];
   static const ::google::protobuf::internal::AuxillaryParseTableField aux[];
-  static const ::google::protobuf::internal::ParseTable schema[7];
+  static const ::google::protobuf::internal::ParseTable schema[8];
   static const ::google::protobuf::internal::FieldMetadata field_metadata[];
   static const ::google::protobuf::internal::SerializationTable serialization_table[];
   static const ::google::protobuf::uint32 offsets[];
@@ -50,8 +50,10 @@ void InitDefaultsExplGraphPathImpl();
 void InitDefaultsExplGraphPath();
 void InitDefaultsExplGraphNodeImpl();
 void InitDefaultsExplGraphNode();
-void InitDefaultsPredTermImpl();
-void InitDefaultsPredTerm();
+void InitDefaultsGoalTermImpl();
+void InitDefaultsGoalTerm();
+void InitDefaultsValueImpl();
+void InitDefaultsValue();
 void InitDefaultsSwInsImpl();
 void InitDefaultsSwIns();
 void InitDefaultsRootImpl();
@@ -61,7 +63,8 @@ inline void InitDefaults() {
   InitDefaultsExplGraphGoal();
   InitDefaultsExplGraphPath();
   InitDefaultsExplGraphNode();
-  InitDefaultsPredTerm();
+  InitDefaultsGoalTerm();
+  InitDefaultsValue();
   InitDefaultsSwIns();
   InitDefaultsRoot();
 }
@@ -79,15 +82,18 @@ extern ExplGraphNodeDefaultTypeInternal _ExplGraphNode_default_instance_;
 class ExplGraphPath;
 class ExplGraphPathDefaultTypeInternal;
 extern ExplGraphPathDefaultTypeInternal _ExplGraphPath_default_instance_;
-class PredTerm;
-class PredTermDefaultTypeInternal;
-extern PredTermDefaultTypeInternal _PredTerm_default_instance_;
+class GoalTerm;
+class GoalTermDefaultTypeInternal;
+extern GoalTermDefaultTypeInternal _GoalTerm_default_instance_;
 class Root;
 class RootDefaultTypeInternal;
 extern RootDefaultTypeInternal _Root_default_instance_;
 class SwIns;
 class SwInsDefaultTypeInternal;
 extern SwInsDefaultTypeInternal _SwIns_default_instance_;
+class Value;
+class ValueDefaultTypeInternal;
+extern ValueDefaultTypeInternal _Value_default_instance_;
 }  // namespace prism
 namespace prism {
 
@@ -526,14 +532,14 @@ class ExplGraphNode : public ::google::protobuf::Message /* @@protoc_insertion_p
 
   // accessors -------------------------------------------------------
 
-  // .prism.PredTerm goal = 2;
+  // .prism.GoalTerm goal = 2;
   bool has_goal() const;
   void clear_goal();
   static const int kGoalFieldNumber = 2;
-  const ::prism::PredTerm& goal() const;
-  ::prism::PredTerm* release_goal();
-  ::prism::PredTerm* mutable_goal();
-  void set_allocated_goal(::prism::PredTerm* goal);
+  const ::prism::GoalTerm& goal() const;
+  ::prism::GoalTerm* release_goal();
+  ::prism::GoalTerm* mutable_goal();
+  void set_allocated_goal(::prism::GoalTerm* goal);
 
   // int32 id = 1;
   void clear_id();
@@ -545,7 +551,7 @@ class ExplGraphNode : public ::google::protobuf::Message /* @@protoc_insertion_p
  private:
 
   ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
-  ::prism::PredTerm* goal_;
+  ::prism::GoalTerm* goal_;
   ::google::protobuf::int32 id_;
   mutable int _cached_size_;
   friend struct ::protobuf_expl_2eproto::TableStruct;
@@ -553,24 +559,24 @@ class ExplGraphNode : public ::google::protobuf::Message /* @@protoc_insertion_p
 };
 // -------------------------------------------------------------------
 
-class PredTerm : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:prism.PredTerm) */ {
+class GoalTerm : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:prism.GoalTerm) */ {
  public:
-  PredTerm();
-  virtual ~PredTerm();
+  GoalTerm();
+  virtual ~GoalTerm();
 
-  PredTerm(const PredTerm& from);
+  GoalTerm(const GoalTerm& from);
 
-  inline PredTerm& operator=(const PredTerm& from) {
+  inline GoalTerm& operator=(const GoalTerm& from) {
     CopyFrom(from);
     return *this;
   }
   #if LANG_CXX11
-  PredTerm(PredTerm&& from) noexcept
-    : PredTerm() {
+  GoalTerm(GoalTerm&& from) noexcept
+    : GoalTerm() {
     *this = ::std::move(from);
   }
 
-  inline PredTerm& operator=(PredTerm&& from) noexcept {
+  inline GoalTerm& operator=(GoalTerm&& from) noexcept {
     if (GetArenaNoVirtual() == from.GetArenaNoVirtual()) {
       if (this != &from) InternalSwap(&from);
     } else {
@@ -580,30 +586,30 @@ class PredTerm : public ::google::protobuf::Message /* @@protoc_insertion_point(
   }
   #endif
   static const ::google::protobuf::Descriptor* descriptor();
-  static const PredTerm& default_instance();
+  static const GoalTerm& default_instance();
 
   static void InitAsDefaultInstance();  // FOR INTERNAL USE ONLY
-  static inline const PredTerm* internal_default_instance() {
-    return reinterpret_cast<const PredTerm*>(
-               &_PredTerm_default_instance_);
+  static inline const GoalTerm* internal_default_instance() {
+    return reinterpret_cast<const GoalTerm*>(
+               &_GoalTerm_default_instance_);
   }
   static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
     4;
 
-  void Swap(PredTerm* other);
-  friend void swap(PredTerm& a, PredTerm& b) {
+  void Swap(GoalTerm* other);
+  friend void swap(GoalTerm& a, GoalTerm& b) {
     a.Swap(&b);
   }
 
   // implements Message ----------------------------------------------
 
-  inline PredTerm* New() const PROTOBUF_FINAL { return New(NULL); }
+  inline GoalTerm* New() const PROTOBUF_FINAL { return New(NULL); }
 
-  PredTerm* New(::google::protobuf::Arena* arena) const PROTOBUF_FINAL;
+  GoalTerm* New(::google::protobuf::Arena* arena) const PROTOBUF_FINAL;
   void CopyFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
   void MergeFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
-  void CopyFrom(const PredTerm& from);
-  void MergeFrom(const PredTerm& from);
+  void CopyFrom(const GoalTerm& from);
+  void MergeFrom(const GoalTerm& from);
   void Clear() PROTOBUF_FINAL;
   bool IsInitialized() const PROTOBUF_FINAL;
 
@@ -619,7 +625,7 @@ class PredTerm : public ::google::protobuf::Message /* @@protoc_insertion_point(
   void SharedCtor();
   void SharedDtor();
   void SetCachedSize(int size) const PROTOBUF_FINAL;
-  void InternalSwap(PredTerm* other);
+  void InternalSwap(GoalTerm* other);
   private:
   inline ::google::protobuf::Arena* GetArenaNoVirtual() const {
     return NULL;
@@ -671,7 +677,7 @@ class PredTerm : public ::google::protobuf::Message /* @@protoc_insertion_point(
   ::std::string* release_name();
   void set_allocated_name(::std::string* name);
 
-  // @@protoc_insertion_point(class_scope:prism.PredTerm)
+  // @@protoc_insertion_point(class_scope:prism.GoalTerm)
  private:
 
   ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
@@ -679,7 +685,122 @@ class PredTerm : public ::google::protobuf::Message /* @@protoc_insertion_point(
   ::google::protobuf::internal::ArenaStringPtr name_;
   mutable int _cached_size_;
   friend struct ::protobuf_expl_2eproto::TableStruct;
-  friend void ::protobuf_expl_2eproto::InitDefaultsPredTermImpl();
+  friend void ::protobuf_expl_2eproto::InitDefaultsGoalTermImpl();
+};
+// -------------------------------------------------------------------
+
+class Value : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:prism.Value) */ {
+ public:
+  Value();
+  virtual ~Value();
+
+  Value(const Value& from);
+
+  inline Value& operator=(const Value& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  #if LANG_CXX11
+  Value(Value&& from) noexcept
+    : Value() {
+    *this = ::std::move(from);
+  }
+
+  inline Value& operator=(Value&& from) noexcept {
+    if (GetArenaNoVirtual() == from.GetArenaNoVirtual()) {
+      if (this != &from) InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+  #endif
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const Value& default_instance();
+
+  static void InitAsDefaultInstance();  // FOR INTERNAL USE ONLY
+  static inline const Value* internal_default_instance() {
+    return reinterpret_cast<const Value*>(
+               &_Value_default_instance_);
+  }
+  static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
+    5;
+
+  void Swap(Value* other);
+  friend void swap(Value& a, Value& b) {
+    a.Swap(&b);
+  }
+
+  // implements Message ----------------------------------------------
+
+  inline Value* New() const PROTOBUF_FINAL { return New(NULL); }
+
+  Value* New(::google::protobuf::Arena* arena) const PROTOBUF_FINAL;
+  void CopyFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
+  void MergeFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
+  void CopyFrom(const Value& from);
+  void MergeFrom(const Value& from);
+  void Clear() PROTOBUF_FINAL;
+  bool IsInitialized() const PROTOBUF_FINAL;
+
+  size_t ByteSizeLong() const PROTOBUF_FINAL;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input) PROTOBUF_FINAL;
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const PROTOBUF_FINAL;
+  ::google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
+      bool deterministic, ::google::protobuf::uint8* target) const PROTOBUF_FINAL;
+  int GetCachedSize() const PROTOBUF_FINAL { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const PROTOBUF_FINAL;
+  void InternalSwap(Value* other);
+  private:
+  inline ::google::protobuf::Arena* GetArenaNoVirtual() const {
+    return NULL;
+  }
+  inline void* MaybeArenaPtr() const {
+    return NULL;
+  }
+  public:
+
+  ::google::protobuf::Metadata GetMetadata() const PROTOBUF_FINAL;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // repeated string list = 1;
+  int list_size() const;
+  void clear_list();
+  static const int kListFieldNumber = 1;
+  const ::std::string& list(int index) const;
+  ::std::string* mutable_list(int index);
+  void set_list(int index, const ::std::string& value);
+  #if LANG_CXX11
+  void set_list(int index, ::std::string&& value);
+  #endif
+  void set_list(int index, const char* value);
+  void set_list(int index, const char* value, size_t size);
+  ::std::string* add_list();
+  void add_list(const ::std::string& value);
+  #if LANG_CXX11
+  void add_list(::std::string&& value);
+  #endif
+  void add_list(const char* value);
+  void add_list(const char* value, size_t size);
+  const ::google::protobuf::RepeatedPtrField< ::std::string>& list() const;
+  ::google::protobuf::RepeatedPtrField< ::std::string>* mutable_list();
+
+  // @@protoc_insertion_point(class_scope:prism.Value)
+ private:
+
+  ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
+  ::google::protobuf::RepeatedPtrField< ::std::string> list_;
+  mutable int _cached_size_;
+  friend struct ::protobuf_expl_2eproto::TableStruct;
+  friend void ::protobuf_expl_2eproto::InitDefaultsValueImpl();
 };
 // -------------------------------------------------------------------
 
@@ -718,7 +839,7 @@ class SwIns : public ::google::protobuf::Message /* @@protoc_insertion_point(cla
                &_SwIns_default_instance_);
   }
   static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
-    5;
+    6;
 
   void Swap(SwIns* other);
   friend void swap(SwIns& a, SwIns& b) {
@@ -765,23 +886,28 @@ class SwIns : public ::google::protobuf::Message /* @@protoc_insertion_point(cla
 
   // accessors -------------------------------------------------------
 
-  // .prism.PredTerm name = 2;
-  bool has_name() const;
+  // string name = 2;
   void clear_name();
   static const int kNameFieldNumber = 2;
-  const ::prism::PredTerm& name() const;
-  ::prism::PredTerm* release_name();
-  ::prism::PredTerm* mutable_name();
-  void set_allocated_name(::prism::PredTerm* name);
+  const ::std::string& name() const;
+  void set_name(const ::std::string& value);
+  #if LANG_CXX11
+  void set_name(::std::string&& value);
+  #endif
+  void set_name(const char* value);
+  void set_name(const char* value, size_t size);
+  ::std::string* mutable_name();
+  ::std::string* release_name();
+  void set_allocated_name(::std::string* name);
 
-  // .prism.PredTerm value = 3;
+  // .prism.Value value = 3;
   bool has_value() const;
   void clear_value();
   static const int kValueFieldNumber = 3;
-  const ::prism::PredTerm& value() const;
-  ::prism::PredTerm* release_value();
-  ::prism::PredTerm* mutable_value();
-  void set_allocated_value(::prism::PredTerm* value);
+  const ::prism::Value& value() const;
+  ::prism::Value* release_value();
+  ::prism::Value* mutable_value();
+  void set_allocated_value(::prism::Value* value);
 
   // int32 id = 1;
   void clear_id();
@@ -793,8 +919,8 @@ class SwIns : public ::google::protobuf::Message /* @@protoc_insertion_point(cla
  private:
 
   ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
-  ::prism::PredTerm* name_;
-  ::prism::PredTerm* value_;
+  ::google::protobuf::internal::ArenaStringPtr name_;
+  ::prism::Value* value_;
   ::google::protobuf::int32 id_;
   mutable int _cached_size_;
   friend struct ::protobuf_expl_2eproto::TableStruct;
@@ -837,7 +963,7 @@ class Root : public ::google::protobuf::Message /* @@protoc_insertion_point(clas
                &_Root_default_instance_);
   }
   static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
-    6;
+    7;
 
   void Swap(Root* other);
   friend void swap(Root& a, Root& b) {
@@ -1143,7 +1269,7 @@ inline void ExplGraphNode::set_id(::google::protobuf::int32 value) {
   // @@protoc_insertion_point(field_set:prism.ExplGraphNode.id)
 }
 
-// .prism.PredTerm goal = 2;
+// .prism.GoalTerm goal = 2;
 inline bool ExplGraphNode::has_goal() const {
   return this != internal_default_instance() && goal_ != NULL;
 }
@@ -1153,28 +1279,28 @@ inline void ExplGraphNode::clear_goal() {
   }
   goal_ = NULL;
 }
-inline const ::prism::PredTerm& ExplGraphNode::goal() const {
-  const ::prism::PredTerm* p = goal_;
+inline const ::prism::GoalTerm& ExplGraphNode::goal() const {
+  const ::prism::GoalTerm* p = goal_;
   // @@protoc_insertion_point(field_get:prism.ExplGraphNode.goal)
-  return p != NULL ? *p : *reinterpret_cast<const ::prism::PredTerm*>(
-      &::prism::_PredTerm_default_instance_);
+  return p != NULL ? *p : *reinterpret_cast<const ::prism::GoalTerm*>(
+      &::prism::_GoalTerm_default_instance_);
 }
-inline ::prism::PredTerm* ExplGraphNode::release_goal() {
+inline ::prism::GoalTerm* ExplGraphNode::release_goal() {
   // @@protoc_insertion_point(field_release:prism.ExplGraphNode.goal)
   
-  ::prism::PredTerm* temp = goal_;
+  ::prism::GoalTerm* temp = goal_;
   goal_ = NULL;
   return temp;
 }
-inline ::prism::PredTerm* ExplGraphNode::mutable_goal() {
+inline ::prism::GoalTerm* ExplGraphNode::mutable_goal() {
   
   if (goal_ == NULL) {
-    goal_ = new ::prism::PredTerm;
+    goal_ = new ::prism::GoalTerm;
   }
   // @@protoc_insertion_point(field_mutable:prism.ExplGraphNode.goal)
   return goal_;
 }
-inline void ExplGraphNode::set_allocated_goal(::prism::PredTerm* goal) {
+inline void ExplGraphNode::set_allocated_goal(::prism::GoalTerm* goal) {
   ::google::protobuf::Arena* message_arena = GetArenaNoVirtual();
   if (message_arena == NULL) {
     delete goal_;
@@ -1195,128 +1321,201 @@ inline void ExplGraphNode::set_allocated_goal(::prism::PredTerm* goal) {
 
 // -------------------------------------------------------------------
 
-// PredTerm
+// GoalTerm
 
 // string name = 1;
-inline void PredTerm::clear_name() {
+inline void GoalTerm::clear_name() {
   name_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
-inline const ::std::string& PredTerm::name() const {
-  // @@protoc_insertion_point(field_get:prism.PredTerm.name)
+inline const ::std::string& GoalTerm::name() const {
+  // @@protoc_insertion_point(field_get:prism.GoalTerm.name)
   return name_.GetNoArena();
 }
-inline void PredTerm::set_name(const ::std::string& value) {
+inline void GoalTerm::set_name(const ::std::string& value) {
   
   name_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
-  // @@protoc_insertion_point(field_set:prism.PredTerm.name)
+  // @@protoc_insertion_point(field_set:prism.GoalTerm.name)
 }
 #if LANG_CXX11
-inline void PredTerm::set_name(::std::string&& value) {
+inline void GoalTerm::set_name(::std::string&& value) {
   
   name_.SetNoArena(
     &::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
-  // @@protoc_insertion_point(field_set_rvalue:prism.PredTerm.name)
+  // @@protoc_insertion_point(field_set_rvalue:prism.GoalTerm.name)
 }
 #endif
-inline void PredTerm::set_name(const char* value) {
+inline void GoalTerm::set_name(const char* value) {
   GOOGLE_DCHECK(value != NULL);
   
   name_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
-  // @@protoc_insertion_point(field_set_char:prism.PredTerm.name)
+  // @@protoc_insertion_point(field_set_char:prism.GoalTerm.name)
 }
-inline void PredTerm::set_name(const char* value, size_t size) {
+inline void GoalTerm::set_name(const char* value, size_t size) {
   
   name_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
       ::std::string(reinterpret_cast<const char*>(value), size));
-  // @@protoc_insertion_point(field_set_pointer:prism.PredTerm.name)
+  // @@protoc_insertion_point(field_set_pointer:prism.GoalTerm.name)
 }
-inline ::std::string* PredTerm::mutable_name() {
+inline ::std::string* GoalTerm::mutable_name() {
   
-  // @@protoc_insertion_point(field_mutable:prism.PredTerm.name)
+  // @@protoc_insertion_point(field_mutable:prism.GoalTerm.name)
   return name_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
-inline ::std::string* PredTerm::release_name() {
-  // @@protoc_insertion_point(field_release:prism.PredTerm.name)
+inline ::std::string* GoalTerm::release_name() {
+  // @@protoc_insertion_point(field_release:prism.GoalTerm.name)
   
   return name_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
-inline void PredTerm::set_allocated_name(::std::string* name) {
+inline void GoalTerm::set_allocated_name(::std::string* name) {
   if (name != NULL) {
     
   } else {
     
   }
   name_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), name);
-  // @@protoc_insertion_point(field_set_allocated:prism.PredTerm.name)
+  // @@protoc_insertion_point(field_set_allocated:prism.GoalTerm.name)
 }
 
 // repeated string args = 2;
-inline int PredTerm::args_size() const {
+inline int GoalTerm::args_size() const {
   return args_.size();
 }
-inline void PredTerm::clear_args() {
+inline void GoalTerm::clear_args() {
   args_.Clear();
 }
-inline const ::std::string& PredTerm::args(int index) const {
-  // @@protoc_insertion_point(field_get:prism.PredTerm.args)
+inline const ::std::string& GoalTerm::args(int index) const {
+  // @@protoc_insertion_point(field_get:prism.GoalTerm.args)
   return args_.Get(index);
 }
-inline ::std::string* PredTerm::mutable_args(int index) {
-  // @@protoc_insertion_point(field_mutable:prism.PredTerm.args)
+inline ::std::string* GoalTerm::mutable_args(int index) {
+  // @@protoc_insertion_point(field_mutable:prism.GoalTerm.args)
   return args_.Mutable(index);
 }
-inline void PredTerm::set_args(int index, const ::std::string& value) {
-  // @@protoc_insertion_point(field_set:prism.PredTerm.args)
+inline void GoalTerm::set_args(int index, const ::std::string& value) {
+  // @@protoc_insertion_point(field_set:prism.GoalTerm.args)
   args_.Mutable(index)->assign(value);
 }
 #if LANG_CXX11
-inline void PredTerm::set_args(int index, ::std::string&& value) {
-  // @@protoc_insertion_point(field_set:prism.PredTerm.args)
+inline void GoalTerm::set_args(int index, ::std::string&& value) {
+  // @@protoc_insertion_point(field_set:prism.GoalTerm.args)
   args_.Mutable(index)->assign(std::move(value));
 }
 #endif
-inline void PredTerm::set_args(int index, const char* value) {
+inline void GoalTerm::set_args(int index, const char* value) {
   GOOGLE_DCHECK(value != NULL);
   args_.Mutable(index)->assign(value);
-  // @@protoc_insertion_point(field_set_char:prism.PredTerm.args)
+  // @@protoc_insertion_point(field_set_char:prism.GoalTerm.args)
 }
-inline void PredTerm::set_args(int index, const char* value, size_t size) {
+inline void GoalTerm::set_args(int index, const char* value, size_t size) {
   args_.Mutable(index)->assign(
     reinterpret_cast<const char*>(value), size);
-  // @@protoc_insertion_point(field_set_pointer:prism.PredTerm.args)
+  // @@protoc_insertion_point(field_set_pointer:prism.GoalTerm.args)
 }
-inline ::std::string* PredTerm::add_args() {
-  // @@protoc_insertion_point(field_add_mutable:prism.PredTerm.args)
+inline ::std::string* GoalTerm::add_args() {
+  // @@protoc_insertion_point(field_add_mutable:prism.GoalTerm.args)
   return args_.Add();
 }
-inline void PredTerm::add_args(const ::std::string& value) {
+inline void GoalTerm::add_args(const ::std::string& value) {
   args_.Add()->assign(value);
-  // @@protoc_insertion_point(field_add:prism.PredTerm.args)
+  // @@protoc_insertion_point(field_add:prism.GoalTerm.args)
 }
 #if LANG_CXX11
-inline void PredTerm::add_args(::std::string&& value) {
+inline void GoalTerm::add_args(::std::string&& value) {
   args_.Add(std::move(value));
-  // @@protoc_insertion_point(field_add:prism.PredTerm.args)
+  // @@protoc_insertion_point(field_add:prism.GoalTerm.args)
 }
 #endif
-inline void PredTerm::add_args(const char* value) {
+inline void GoalTerm::add_args(const char* value) {
   GOOGLE_DCHECK(value != NULL);
   args_.Add()->assign(value);
-  // @@protoc_insertion_point(field_add_char:prism.PredTerm.args)
+  // @@protoc_insertion_point(field_add_char:prism.GoalTerm.args)
 }
-inline void PredTerm::add_args(const char* value, size_t size) {
+inline void GoalTerm::add_args(const char* value, size_t size) {
   args_.Add()->assign(reinterpret_cast<const char*>(value), size);
-  // @@protoc_insertion_point(field_add_pointer:prism.PredTerm.args)
+  // @@protoc_insertion_point(field_add_pointer:prism.GoalTerm.args)
 }
 inline const ::google::protobuf::RepeatedPtrField< ::std::string>&
-PredTerm::args() const {
-  // @@protoc_insertion_point(field_list:prism.PredTerm.args)
+GoalTerm::args() const {
+  // @@protoc_insertion_point(field_list:prism.GoalTerm.args)
   return args_;
 }
 inline ::google::protobuf::RepeatedPtrField< ::std::string>*
-PredTerm::mutable_args() {
-  // @@protoc_insertion_point(field_mutable_list:prism.PredTerm.args)
+GoalTerm::mutable_args() {
+  // @@protoc_insertion_point(field_mutable_list:prism.GoalTerm.args)
   return &args_;
+}
+
+// -------------------------------------------------------------------
+
+// Value
+
+// repeated string list = 1;
+inline int Value::list_size() const {
+  return list_.size();
+}
+inline void Value::clear_list() {
+  list_.Clear();
+}
+inline const ::std::string& Value::list(int index) const {
+  // @@protoc_insertion_point(field_get:prism.Value.list)
+  return list_.Get(index);
+}
+inline ::std::string* Value::mutable_list(int index) {
+  // @@protoc_insertion_point(field_mutable:prism.Value.list)
+  return list_.Mutable(index);
+}
+inline void Value::set_list(int index, const ::std::string& value) {
+  // @@protoc_insertion_point(field_set:prism.Value.list)
+  list_.Mutable(index)->assign(value);
+}
+#if LANG_CXX11
+inline void Value::set_list(int index, ::std::string&& value) {
+  // @@protoc_insertion_point(field_set:prism.Value.list)
+  list_.Mutable(index)->assign(std::move(value));
+}
+#endif
+inline void Value::set_list(int index, const char* value) {
+  GOOGLE_DCHECK(value != NULL);
+  list_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:prism.Value.list)
+}
+inline void Value::set_list(int index, const char* value, size_t size) {
+  list_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:prism.Value.list)
+}
+inline ::std::string* Value::add_list() {
+  // @@protoc_insertion_point(field_add_mutable:prism.Value.list)
+  return list_.Add();
+}
+inline void Value::add_list(const ::std::string& value) {
+  list_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:prism.Value.list)
+}
+#if LANG_CXX11
+inline void Value::add_list(::std::string&& value) {
+  list_.Add(std::move(value));
+  // @@protoc_insertion_point(field_add:prism.Value.list)
+}
+#endif
+inline void Value::add_list(const char* value) {
+  GOOGLE_DCHECK(value != NULL);
+  list_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:prism.Value.list)
+}
+inline void Value::add_list(const char* value, size_t size) {
+  list_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:prism.Value.list)
+}
+inline const ::google::protobuf::RepeatedPtrField< ::std::string>&
+Value::list() const {
+  // @@protoc_insertion_point(field_list:prism.Value.list)
+  return list_;
+}
+inline ::google::protobuf::RepeatedPtrField< ::std::string>*
+Value::mutable_list() {
+  // @@protoc_insertion_point(field_mutable_list:prism.Value.list)
+  return &list_;
 }
 
 // -------------------------------------------------------------------
@@ -1337,57 +1536,60 @@ inline void SwIns::set_id(::google::protobuf::int32 value) {
   // @@protoc_insertion_point(field_set:prism.SwIns.id)
 }
 
-// .prism.PredTerm name = 2;
-inline bool SwIns::has_name() const {
-  return this != internal_default_instance() && name_ != NULL;
-}
+// string name = 2;
 inline void SwIns::clear_name() {
-  if (GetArenaNoVirtual() == NULL && name_ != NULL) {
-    delete name_;
-  }
-  name_ = NULL;
+  name_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
-inline const ::prism::PredTerm& SwIns::name() const {
-  const ::prism::PredTerm* p = name_;
+inline const ::std::string& SwIns::name() const {
   // @@protoc_insertion_point(field_get:prism.SwIns.name)
-  return p != NULL ? *p : *reinterpret_cast<const ::prism::PredTerm*>(
-      &::prism::_PredTerm_default_instance_);
+  return name_.GetNoArena();
 }
-inline ::prism::PredTerm* SwIns::release_name() {
+inline void SwIns::set_name(const ::std::string& value) {
+  
+  name_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
+  // @@protoc_insertion_point(field_set:prism.SwIns.name)
+}
+#if LANG_CXX11
+inline void SwIns::set_name(::std::string&& value) {
+  
+  name_.SetNoArena(
+    &::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
+  // @@protoc_insertion_point(field_set_rvalue:prism.SwIns.name)
+}
+#endif
+inline void SwIns::set_name(const char* value) {
+  GOOGLE_DCHECK(value != NULL);
+  
+  name_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
+  // @@protoc_insertion_point(field_set_char:prism.SwIns.name)
+}
+inline void SwIns::set_name(const char* value, size_t size) {
+  
+  name_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      ::std::string(reinterpret_cast<const char*>(value), size));
+  // @@protoc_insertion_point(field_set_pointer:prism.SwIns.name)
+}
+inline ::std::string* SwIns::mutable_name() {
+  
+  // @@protoc_insertion_point(field_mutable:prism.SwIns.name)
+  return name_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline ::std::string* SwIns::release_name() {
   // @@protoc_insertion_point(field_release:prism.SwIns.name)
   
-  ::prism::PredTerm* temp = name_;
-  name_ = NULL;
-  return temp;
+  return name_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
-inline ::prism::PredTerm* SwIns::mutable_name() {
-  
-  if (name_ == NULL) {
-    name_ = new ::prism::PredTerm;
-  }
-  // @@protoc_insertion_point(field_mutable:prism.SwIns.name)
-  return name_;
-}
-inline void SwIns::set_allocated_name(::prism::PredTerm* name) {
-  ::google::protobuf::Arena* message_arena = GetArenaNoVirtual();
-  if (message_arena == NULL) {
-    delete name_;
-  }
-  if (name) {
-    ::google::protobuf::Arena* submessage_arena = NULL;
-    if (message_arena != submessage_arena) {
-      name = ::google::protobuf::internal::GetOwnedMessage(
-          message_arena, name, submessage_arena);
-    }
+inline void SwIns::set_allocated_name(::std::string* name) {
+  if (name != NULL) {
     
   } else {
     
   }
-  name_ = name;
+  name_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), name);
   // @@protoc_insertion_point(field_set_allocated:prism.SwIns.name)
 }
 
-// .prism.PredTerm value = 3;
+// .prism.Value value = 3;
 inline bool SwIns::has_value() const {
   return this != internal_default_instance() && value_ != NULL;
 }
@@ -1397,28 +1599,28 @@ inline void SwIns::clear_value() {
   }
   value_ = NULL;
 }
-inline const ::prism::PredTerm& SwIns::value() const {
-  const ::prism::PredTerm* p = value_;
+inline const ::prism::Value& SwIns::value() const {
+  const ::prism::Value* p = value_;
   // @@protoc_insertion_point(field_get:prism.SwIns.value)
-  return p != NULL ? *p : *reinterpret_cast<const ::prism::PredTerm*>(
-      &::prism::_PredTerm_default_instance_);
+  return p != NULL ? *p : *reinterpret_cast<const ::prism::Value*>(
+      &::prism::_Value_default_instance_);
 }
-inline ::prism::PredTerm* SwIns::release_value() {
+inline ::prism::Value* SwIns::release_value() {
   // @@protoc_insertion_point(field_release:prism.SwIns.value)
   
-  ::prism::PredTerm* temp = value_;
+  ::prism::Value* temp = value_;
   value_ = NULL;
   return temp;
 }
-inline ::prism::PredTerm* SwIns::mutable_value() {
+inline ::prism::Value* SwIns::mutable_value() {
   
   if (value_ == NULL) {
-    value_ = new ::prism::PredTerm;
+    value_ = new ::prism::Value;
   }
   // @@protoc_insertion_point(field_mutable:prism.SwIns.value)
   return value_;
 }
-inline void SwIns::set_allocated_value(::prism::PredTerm* value) {
+inline void SwIns::set_allocated_value(::prism::Value* value) {
   ::google::protobuf::Arena* message_arena = GetArenaNoVirtual();
   if (message_arena == NULL) {
     delete value_;
@@ -1472,6 +1674,8 @@ inline void Root::set_count(::google::protobuf::int32 value) {
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

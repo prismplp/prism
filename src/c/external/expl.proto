@@ -15,17 +15,19 @@ message ExplGraphPath {
 }
 message ExplGraphNode {
   int32 id = 1;
-  PredTerm goal = 2;
+  GoalTerm goal = 2;
 }
-message PredTerm{
+message GoalTerm{
   string name = 1;
   repeated string args = 2;
 }
-
+message Value{
+  repeated string list = 1;
+}
 message SwIns{
   int32 id = 1;
-  PredTerm name = 2;
-  PredTerm value= 3;
+  string name = 2;
+  Value value= 3;
 }
 
 message Root{

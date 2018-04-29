@@ -40,39 +40,49 @@ extern "C" {
 using namespace std;
 using namespace google::protobuf;
 
-prism::PredTerm get_pred(TERM term){
-	prism::PredTerm pred;
+prism::GoalTerm get_goal(TERM term){
+	prism::GoalTerm goal;
 	const char* name=bpx_get_name(term);
-	pred.set_name(name);
+	goal.set_name(name);
 	int arity=bpx_get_arity(term);
 	for(BPLONG j=1; j<=arity; j++){
 		TERM el= bpx_get_arg(j, term);
 		char*arg= bpx_term_2_string(el);
-		pred.add_args(arg);
+		goal.add_args(arg);
 	}
-	return pred;
+	return goal;
 }
 prism::ExplGraphNode get_node(int id){
 	prism::ExplGraphNode node;
 	TERM term=prism_goal_term(id);
-	prism::PredTerm* pred=node.mutable_goal();
-	*pred=get_pred(term);
+	prism::GoalTerm* pred=node.mutable_goal();
+	*pred=get_goal(term);
 	node.set_id(id);
 	return node;
 }
 
 prism::SwIns get_swins(int id){
 	prism::SwIns sw;
-	prism::PredTerm* name_pred=sw.mutable_name();
-	prism::PredTerm* value_pred=sw.mutable_value();
+	prism::Value* value_pred=sw.mutable_value();
 	TERM term=prism_sw_ins_term(id);
 	const char* s=bpx_get_name(term);
 	int arity=bpx_get_arity(term);
 	if(arity==2){
 		TERM el1= bpx_get_arg(1, term);
 		TERM el2= bpx_get_arg(2, term);
-		*name_pred=get_pred(el1);
-		*value_pred=get_pred(el2);
+		char* el1_name= bpx_term_2_string(el1);
+		sw.set_name(el1_name);
+		if(bpx_is_list(el2)){
+			while(!bpx_is_nil(el2)){
+				TERM el = bpx_get_car(el2);
+				char* el_str= bpx_term_2_string(el);
+				value_pred->add_list(el_str);
+				el2 = bpx_get_cdr(el2);
+			}
+		}else{
+			char* el2_name= bpx_term_2_string(el1);
+			value_pred->add_list(el2_name);
+		}
 	}
 	sw.set_id(id);
 	return sw;
@@ -180,10 +190,13 @@ int run_vec(const string& outfilename,SaveFormat format) {
 
 extern "C"
 int pc_prism_vec_1(void) {
+	
+	SaveFormat format = (SaveFormat) bpx_get_integer(bpx_get_call_arg(1,1));
 	//struct EM_Engine em_eng;
 	//RET_ON_ERR(check_smooth(&em_eng.smooth));
 	//scc_debug_level = bpx_get_integer(bpx_get_call_arg(7,7));
-	run_vec("expl.bin",FormatPb);
-	return bpx_unify(bpx_get_call_arg(1,1), bpx_build_integer(1));
+	run_vec("expl.bin",format);
+	//return bpx_unify(bpx_get_call_arg(1,1), bpx_build_integer(1));
+	return BP_TRUE;
 }
 

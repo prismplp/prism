@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='expl.proto',
   package='prism',
   syntax='proto3',
-  serialized_pb=_b('\n\nexpl.proto\x12\x05prism\"L\n\tExplGraph\x12#\n\x05goals\x18\x01 \x03(\x0b\x32\x14.prism.ExplGraphGoal\x12\x1a\n\x05roots\x18\x02 \x03(\x0b\x32\x0b.prism.Root\"X\n\rExplGraphGoal\x12\"\n\x04node\x18\x01 \x01(\x0b\x32\x14.prism.ExplGraphNode\x12#\n\x05paths\x18\x02 \x03(\x0b\x32\x14.prism.ExplGraphPath\"O\n\rExplGraphPath\x12#\n\x05nodes\x18\x01 \x03(\x0b\x32\x14.prism.ExplGraphNode\x12\x19\n\x03sws\x18\x02 \x03(\x0b\x32\x0c.prism.SwIns\":\n\rExplGraphNode\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x1d\n\x04goal\x18\x02 \x01(\x0b\x32\x0f.prism.PredTerm\"&\n\x08PredTerm\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0c\n\x04\x61rgs\x18\x02 \x03(\t\"R\n\x05SwIns\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x1d\n\x04name\x18\x02 \x01(\x0b\x32\x0f.prism.PredTerm\x12\x1e\n\x05value\x18\x03 \x01(\x0b\x32\x0f.prism.PredTerm\"!\n\x04Root\x12\n\n\x02id\x18\x01 \x01(\x05\x12\r\n\x05\x63ount\x18\x02 \x01(\x05\x62\x06proto3')
+  serialized_pb=_b('\n\nexpl.proto\x12\x05prism\"L\n\tExplGraph\x12#\n\x05goals\x18\x01 \x03(\x0b\x32\x14.prism.ExplGraphGoal\x12\x1a\n\x05roots\x18\x02 \x03(\x0b\x32\x0b.prism.Root\"X\n\rExplGraphGoal\x12\"\n\x04node\x18\x01 \x01(\x0b\x32\x14.prism.ExplGraphNode\x12#\n\x05paths\x18\x02 \x03(\x0b\x32\x14.prism.ExplGraphPath\"O\n\rExplGraphPath\x12#\n\x05nodes\x18\x01 \x03(\x0b\x32\x14.prism.ExplGraphNode\x12\x19\n\x03sws\x18\x02 \x03(\x0b\x32\x0c.prism.SwIns\":\n\rExplGraphNode\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x1d\n\x04goal\x18\x02 \x01(\x0b\x32\x0f.prism.GoalTerm\"&\n\x08GoalTerm\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0c\n\x04\x61rgs\x18\x02 \x03(\t\"\x15\n\x05Value\x12\x0c\n\x04list\x18\x01 \x03(\t\">\n\x05SwIns\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x1b\n\x05value\x18\x03 \x01(\x0b\x32\x0c.prism.Value\"!\n\x04Root\x12\n\n\x02id\x18\x01 \x01(\x05\x12\r\n\x05\x63ount\x18\x02 \x01(\x05\x62\x06proto3')
 )
 
 
@@ -177,22 +177,22 @@ _EXPLGRAPHNODE = _descriptor.Descriptor(
 )
 
 
-_PREDTERM = _descriptor.Descriptor(
-  name='PredTerm',
-  full_name='prism.PredTerm',
+_GOALTERM = _descriptor.Descriptor(
+  name='GoalTerm',
+  full_name='prism.GoalTerm',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='name', full_name='prism.PredTerm.name', index=0,
+      name='name', full_name='prism.GoalTerm.name', index=0,
       number=1, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='args', full_name='prism.PredTerm.args', index=1,
+      name='args', full_name='prism.GoalTerm.args', index=1,
       number=2, type=9, cpp_type=9, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
@@ -215,6 +215,37 @@ _PREDTERM = _descriptor.Descriptor(
 )
 
 
+_VALUE = _descriptor.Descriptor(
+  name='Value',
+  full_name='prism.Value',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='list', full_name='prism.Value.list', index=0,
+      number=1, type=9, cpp_type=9, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=370,
+  serialized_end=391,
+)
+
+
 _SWINS = _descriptor.Descriptor(
   name='SwIns',
   full_name='prism.SwIns',
@@ -231,8 +262,8 @@ _SWINS = _descriptor.Descriptor(
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='name', full_name='prism.SwIns.name', index=1,
-      number=2, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
@@ -255,8 +286,8 @@ _SWINS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=370,
-  serialized_end=452,
+  serialized_start=393,
+  serialized_end=455,
 )
 
 
@@ -293,8 +324,8 @@ _ROOT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=454,
-  serialized_end=487,
+  serialized_start=457,
+  serialized_end=490,
 )
 
 _EXPLGRAPH.fields_by_name['goals'].message_type = _EXPLGRAPHGOAL
@@ -303,14 +334,14 @@ _EXPLGRAPHGOAL.fields_by_name['node'].message_type = _EXPLGRAPHNODE
 _EXPLGRAPHGOAL.fields_by_name['paths'].message_type = _EXPLGRAPHPATH
 _EXPLGRAPHPATH.fields_by_name['nodes'].message_type = _EXPLGRAPHNODE
 _EXPLGRAPHPATH.fields_by_name['sws'].message_type = _SWINS
-_EXPLGRAPHNODE.fields_by_name['goal'].message_type = _PREDTERM
-_SWINS.fields_by_name['name'].message_type = _PREDTERM
-_SWINS.fields_by_name['value'].message_type = _PREDTERM
+_EXPLGRAPHNODE.fields_by_name['goal'].message_type = _GOALTERM
+_SWINS.fields_by_name['value'].message_type = _VALUE
 DESCRIPTOR.message_types_by_name['ExplGraph'] = _EXPLGRAPH
 DESCRIPTOR.message_types_by_name['ExplGraphGoal'] = _EXPLGRAPHGOAL
 DESCRIPTOR.message_types_by_name['ExplGraphPath'] = _EXPLGRAPHPATH
 DESCRIPTOR.message_types_by_name['ExplGraphNode'] = _EXPLGRAPHNODE
-DESCRIPTOR.message_types_by_name['PredTerm'] = _PREDTERM
+DESCRIPTOR.message_types_by_name['GoalTerm'] = _GOALTERM
+DESCRIPTOR.message_types_by_name['Value'] = _VALUE
 DESCRIPTOR.message_types_by_name['SwIns'] = _SWINS
 DESCRIPTOR.message_types_by_name['Root'] = _ROOT
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
@@ -343,12 +374,19 @@ ExplGraphNode = _reflection.GeneratedProtocolMessageType('ExplGraphNode', (_mess
   ))
 _sym_db.RegisterMessage(ExplGraphNode)
 
-PredTerm = _reflection.GeneratedProtocolMessageType('PredTerm', (_message.Message,), dict(
-  DESCRIPTOR = _PREDTERM,
+GoalTerm = _reflection.GeneratedProtocolMessageType('GoalTerm', (_message.Message,), dict(
+  DESCRIPTOR = _GOALTERM,
   __module__ = 'expl_pb2'
-  # @@protoc_insertion_point(class_scope:prism.PredTerm)
+  # @@protoc_insertion_point(class_scope:prism.GoalTerm)
   ))
-_sym_db.RegisterMessage(PredTerm)
+_sym_db.RegisterMessage(GoalTerm)
+
+Value = _reflection.GeneratedProtocolMessageType('Value', (_message.Message,), dict(
+  DESCRIPTOR = _VALUE,
+  __module__ = 'expl_pb2'
+  # @@protoc_insertion_point(class_scope:prism.Value)
+  ))
+_sym_db.RegisterMessage(Value)
 
 SwIns = _reflection.GeneratedProtocolMessageType('SwIns', (_message.Message,), dict(
   DESCRIPTOR = _SWINS,

@@ -86,8 +86,8 @@ $pp_vec_conv_args([Arg|Args],[NewArg|NewArgs]):-
 
 %%%%%%%%%%%%
 
-vec_core:-$pp_vec_core(em).
-vec_core(Goals) :-$pp_vec_core(em,Goals).
+vec_core:-$pp_vec_core(0).
+vec_core(Goals) :-$pp_vec_core(0,Goals).
 
 $pp_vec_core(Mode) :-
 	$pp_learn_data_file(FileName),
@@ -99,7 +99,7 @@ $pp_vec_core(Mode,Goals) :-
 	$pp_learn_message(MsgS,MsgE,MsgT,MsgM),
 	cputime(Start),
 	$pp_clean_learn_info,
-	$pp_learn_reset_hparams(Mode),
+	%$pp_learn_reset_hparams(Mode),
 	$pp_trans_goals(Goals,GoalCountPairs,AllGoals),!,
 	global_set($pg_observed_facts,GoalCountPairs),
 	cputime(StartExpl),
@@ -117,7 +117,7 @@ $pp_vec_core(Mode,Goals) :-
 	$pc_prism_prepare(GidCountPairs,Len,NGoals,FailRootIndex),
 	cputime(StartEM),
 	%$pp_em(Mode,Output),
-	$pc_prism_vec(_),
+	$pc_prism_vec(Mode),
 	format("=======================\n"),
 	cputime(EndEM),
 	$pc_import_occ_switches(NewSws,NSwitches,NSwVals),
@@ -130,7 +130,6 @@ $pp_vec_core(Mode,Goals) :-
 	%$pp_assert_learn_stats(Mode,Output,NSwitches,NSwVals,TableSpace,
 	%					   Start,End,StartExpl,EndExpl,StartEM,EndEM,1000),
 	$pp_print_learn_stats_message(MsgT),
-	format("=======================\n"),
-	$pp_print_learn_end_message(MsgM,Mode),!.
+	format("=======================\n"),!.
 
 
