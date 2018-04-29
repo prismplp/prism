@@ -22,6 +22,7 @@ extern "C" {
 #include "up/graph_aux.h"
 #include "up/nonlinear_eq.h"
 #include "up/scc.h"
+#include "up/rank.h"
 }
 
 #include <iostream>
@@ -52,12 +53,13 @@ prism::GoalTerm get_goal(TERM term){
 	}
 	return goal;
 }
-prism::ExplGraphNode get_node(int id){
+prism::ExplGraphNode get_node(int id,int sorted_id){
 	prism::ExplGraphNode node;
 	TERM term=prism_goal_term(id);
 	prism::GoalTerm* pred=node.mutable_goal();
 	*pred=get_goal(term);
 	node.set_id(id);
+	node.set_sorted_id(sorted_id);
 	return node;
 }
 
@@ -88,11 +90,23 @@ prism::SwIns get_swins(int id){
 	return sw;
 }
 
+std::vector<int> build_mapping_goal_id_to_sorted_id(){
+	std::vector<int> mapping(egraph_size); 
+	for (int i = 0; i < sorted_egraph_size; i++) {
+		EG_NODE_PTR eg_ptr = sorted_expl_graph[i];
+		int id= eg_ptr->id;
+		mapping.at(id)=i;
+	}
+	return mapping;
+}
+
 enum SaveFormat{
 	FormatJson=0,
 	FormatPb=1,
 	FormatPbTxt=2,
 };
+
+
 
 void save_expl(const string& outfilename,prism::ExplGraph& goals,SaveFormat format) {
 	switch(format){
@@ -127,11 +141,10 @@ void save_expl(const string& outfilename,prism::ExplGraph& goals,SaveFormat form
 		}
 		default:
 			cerr << "Unknown format." << endl;  
-			break;
-			
-	}
-	
+			break;		
+	}	
 }
+
 int run_vec(const string& outfilename,SaveFormat format) {
 	//config_em(em_ptr);
 	double start_time=getCPUTime();
@@ -142,7 +155,7 @@ int run_vec(const string& outfilename,SaveFormat format) {
 	save_params();
 	print_sccs_statistics();
 	double solution_time=getCPUTime();
-	
+	std::vector<int> mapping_to_sorted_id=build_mapping_goal_id_to_sorted_id();
 	EG_NODE_PTR eg_ptr;
 	EG_PATH_PTR path_ptr;
 	prism::ExplGraph goals;
@@ -151,14 +164,16 @@ int run_vec(const string& outfilename,SaveFormat format) {
 		int id= eg_ptr->id;
 		prism::ExplGraphGoal* goal=goals.add_goals();
 		prism::ExplGraphNode* node=goal->mutable_node();
-		*node=get_node(id);
+		int sorted_id=mapping_to_sorted_id.at(id);
+		*node=get_node(id,sorted_id);
 		path_ptr = eg_ptr->path_ptr;
 		while (path_ptr != NULL) {
 			prism::ExplGraphPath* path=goal->add_paths();
 			for (int k = 0; k < path_ptr->children_len; k++) {
 				int id= path_ptr->children[k]->id;
+				int sorted_id=mapping_to_sorted_id.at(id);
 				prism::ExplGraphNode* node= path->add_nodes();
-				*node=get_node(id);
+				*node=get_node(id,sorted_id);
 			}
 			for (int k = 0; k < path_ptr->sws_len; k++) {
 				int id= path_ptr->sws[k]->id;
@@ -169,12 +184,28 @@ int run_vec(const string& outfilename,SaveFormat format) {
 		}
 	}
 	//
+	/*
 	for (int i = 0; i < num_roots; i++) {
 		prism::Root* r=goals.add_roots();
 		eg_ptr = expl_graph[roots[i]->id];
 		r->set_id(eg_ptr->id);
+		int sorted_id=mapping_to_sorted_id.at(id);
 		r->set_count(roots[i]->count);
+	}*/
+	int i=0;
+	for (RNK_NODE_PTR itr = rank_root; itr != NULL; itr=itr->next) {
+		int index = i%num_minibatch;
+		prism::RankRoot* rr=goals.add_root_list();
+		for(int j=0;j<itr->goal_count;j++){
+			prism::Root* r=rr->add_roots();
+			int id = itr->goals[j];
+			int sorted_id=mapping_to_sorted_id.at(id);
+			r->set_id(id);
+			r->set_sorted_id(sorted_id);
+		}
+		rr->set_count(1);
 	}
+
 	save_expl(outfilename,goals,format);
 
 //free data

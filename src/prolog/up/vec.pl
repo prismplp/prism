@@ -94,12 +94,12 @@ $pp_vec_core(Mode) :-
 	load_clauses(FileName,Goals,[]),!,
 	$pp_vec_core(Mode,Goals).
 
-$pp_vec_core(Mode,Goals) :-
+$pp_vec_core(Mode,GoalList) :-
+	flatten(GoalList,Goals),
 	$pp_learn_check_goals(Goals),
 	$pp_learn_message(MsgS,MsgE,MsgT,MsgM),
 	cputime(Start),
 	$pp_clean_learn_info,
-	%$pp_learn_reset_hparams(Mode),
 	$pp_trans_goals(Goals,GoalCountPairs,AllGoals),!,
 	global_set($pg_observed_facts,GoalCountPairs),
 	cputime(StartExpl),
@@ -108,12 +108,14 @@ $pp_vec_core(Mode,Goals) :-
 	$pp_print_num_goals(MsgS),
 	cputime(EndExpl),
 	statistics(table,[TableSpace,_]),
-	$pp_format_if(MsgM,"Exporting switch information to the EM routine ... "),
+	$pp_format_if(MsgM,"Exporting switch information ... "),
 	flush_output,
 	$pp_export_sw_info,
 	$pp_format_if(MsgM,"done~n"),
 	$pp_observed_facts(GoalCountPairs,GidCountPairs,
 					   0,Len,0,NGoals,-1,FailRootIndex),
+	$pc_clear_goal_rank,
+	$pc_set_goal_rank(GoalList),
 	$pc_prism_prepare(GidCountPairs,Len,NGoals,FailRootIndex),
 	cputime(StartEM),
 	%$pp_em(Mode,Output),

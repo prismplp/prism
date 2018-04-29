@@ -3,7 +3,7 @@ package prism;
 
 message ExplGraph {
   repeated ExplGraphGoal goals =1;
-  repeated Root roots =2;
+  repeated RankRoot root_list =2;
 }
 message ExplGraphGoal {
   ExplGraphNode node =1;
@@ -15,7 +15,8 @@ message ExplGraphPath {
 }
 message ExplGraphNode {
   int32 id = 1;
-  GoalTerm goal = 2;
+  int32 sorted_id = 2;
+  GoalTerm goal = 3;
 }
 message GoalTerm{
   string name = 1;
@@ -32,6 +33,11 @@ message SwIns{
 
 message Root{
   int32 id = 1;
+  int32 sorted_id = 2;
+}
+
+message RankRoot{
+  repeated Root roots= 1;
   int32 count = 2;
 }
 

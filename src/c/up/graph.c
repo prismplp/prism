@@ -16,7 +16,7 @@ int    list_length(BPLONG, BPLONG);
 
 static int max_egraph_size        = INIT_MAX_EGRAPH_SIZE;
 static int max_sorted_egraph_size = INIT_MAX_EGRAPH_SIZE;
-static int egraph_size            = 0;
+int egraph_size            = 0;
 
 static int max_sw_tab_size     = INIT_MAX_SW_TABLE_SIZE;
 static int max_sw_ins_tab_size = INIT_MAX_SW_INS_TABLE_SIZE;

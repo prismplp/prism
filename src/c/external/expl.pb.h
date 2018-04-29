@@ -36,7 +36,7 @@ namespace protobuf_expl_2eproto {
 struct TableStruct {
   static const ::google::protobuf::internal::ParseTableField entries[];
   static const ::google::protobuf::internal::AuxillaryParseTableField aux[];
-  static const ::google::protobuf::internal::ParseTable schema[8];
+  static const ::google::protobuf::internal::ParseTable schema[9];
   static const ::google::protobuf::internal::FieldMetadata field_metadata[];
   static const ::google::protobuf::internal::SerializationTable serialization_table[];
   static const ::google::protobuf::uint32 offsets[];
@@ -58,6 +58,8 @@ void InitDefaultsSwInsImpl();
 void InitDefaultsSwIns();
 void InitDefaultsRootImpl();
 void InitDefaultsRoot();
+void InitDefaultsRankRootImpl();
+void InitDefaultsRankRoot();
 inline void InitDefaults() {
   InitDefaultsExplGraph();
   InitDefaultsExplGraphGoal();
@@ -67,6 +69,7 @@ inline void InitDefaults() {
   InitDefaultsValue();
   InitDefaultsSwIns();
   InitDefaultsRoot();
+  InitDefaultsRankRoot();
 }
 }  // namespace protobuf_expl_2eproto
 namespace prism {
@@ -85,6 +88,9 @@ extern ExplGraphPathDefaultTypeInternal _ExplGraphPath_default_instance_;
 class GoalTerm;
 class GoalTermDefaultTypeInternal;
 extern GoalTermDefaultTypeInternal _GoalTerm_default_instance_;
+class RankRoot;
+class RankRootDefaultTypeInternal;
+extern RankRootDefaultTypeInternal _RankRoot_default_instance_;
 class Root;
 class RootDefaultTypeInternal;
 extern RootDefaultTypeInternal _Root_default_instance_;
@@ -193,24 +199,24 @@ class ExplGraph : public ::google::protobuf::Message /* @@protoc_insertion_point
   const ::google::protobuf::RepeatedPtrField< ::prism::ExplGraphGoal >&
       goals() const;
 
-  // repeated .prism.Root roots = 2;
-  int roots_size() const;
-  void clear_roots();
-  static const int kRootsFieldNumber = 2;
-  const ::prism::Root& roots(int index) const;
-  ::prism::Root* mutable_roots(int index);
-  ::prism::Root* add_roots();
-  ::google::protobuf::RepeatedPtrField< ::prism::Root >*
-      mutable_roots();
-  const ::google::protobuf::RepeatedPtrField< ::prism::Root >&
-      roots() const;
+  // repeated .prism.RankRoot root_list = 2;
+  int root_list_size() const;
+  void clear_root_list();
+  static const int kRootListFieldNumber = 2;
+  const ::prism::RankRoot& root_list(int index) const;
+  ::prism::RankRoot* mutable_root_list(int index);
+  ::prism::RankRoot* add_root_list();
+  ::google::protobuf::RepeatedPtrField< ::prism::RankRoot >*
+      mutable_root_list();
+  const ::google::protobuf::RepeatedPtrField< ::prism::RankRoot >&
+      root_list() const;
 
   // @@protoc_insertion_point(class_scope:prism.ExplGraph)
  private:
 
   ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
   ::google::protobuf::RepeatedPtrField< ::prism::ExplGraphGoal > goals_;
-  ::google::protobuf::RepeatedPtrField< ::prism::Root > roots_;
+  ::google::protobuf::RepeatedPtrField< ::prism::RankRoot > root_list_;
   mutable int _cached_size_;
   friend struct ::protobuf_expl_2eproto::TableStruct;
   friend void ::protobuf_expl_2eproto::InitDefaultsExplGraphImpl();
@@ -532,10 +538,10 @@ class ExplGraphNode : public ::google::protobuf::Message /* @@protoc_insertion_p
 
   // accessors -------------------------------------------------------
 
-  // .prism.GoalTerm goal = 2;
+  // .prism.GoalTerm goal = 3;
   bool has_goal() const;
   void clear_goal();
-  static const int kGoalFieldNumber = 2;
+  static const int kGoalFieldNumber = 3;
   const ::prism::GoalTerm& goal() const;
   ::prism::GoalTerm* release_goal();
   ::prism::GoalTerm* mutable_goal();
@@ -547,12 +553,19 @@ class ExplGraphNode : public ::google::protobuf::Message /* @@protoc_insertion_p
   ::google::protobuf::int32 id() const;
   void set_id(::google::protobuf::int32 value);
 
+  // int32 sorted_id = 2;
+  void clear_sorted_id();
+  static const int kSortedIdFieldNumber = 2;
+  ::google::protobuf::int32 sorted_id() const;
+  void set_sorted_id(::google::protobuf::int32 value);
+
   // @@protoc_insertion_point(class_scope:prism.ExplGraphNode)
  private:
 
   ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
   ::prism::GoalTerm* goal_;
   ::google::protobuf::int32 id_;
+  ::google::protobuf::int32 sorted_id_;
   mutable int _cached_size_;
   friend struct ::protobuf_expl_2eproto::TableStruct;
   friend void ::protobuf_expl_2eproto::InitDefaultsExplGraphNodeImpl();
@@ -1016,21 +1029,133 @@ class Root : public ::google::protobuf::Message /* @@protoc_insertion_point(clas
   ::google::protobuf::int32 id() const;
   void set_id(::google::protobuf::int32 value);
 
-  // int32 count = 2;
-  void clear_count();
-  static const int kCountFieldNumber = 2;
-  ::google::protobuf::int32 count() const;
-  void set_count(::google::protobuf::int32 value);
+  // int32 sorted_id = 2;
+  void clear_sorted_id();
+  static const int kSortedIdFieldNumber = 2;
+  ::google::protobuf::int32 sorted_id() const;
+  void set_sorted_id(::google::protobuf::int32 value);
 
   // @@protoc_insertion_point(class_scope:prism.Root)
  private:
 
   ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
   ::google::protobuf::int32 id_;
-  ::google::protobuf::int32 count_;
+  ::google::protobuf::int32 sorted_id_;
   mutable int _cached_size_;
   friend struct ::protobuf_expl_2eproto::TableStruct;
   friend void ::protobuf_expl_2eproto::InitDefaultsRootImpl();
+};
+// -------------------------------------------------------------------
+
+class RankRoot : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:prism.RankRoot) */ {
+ public:
+  RankRoot();
+  virtual ~RankRoot();
+
+  RankRoot(const RankRoot& from);
+
+  inline RankRoot& operator=(const RankRoot& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  #if LANG_CXX11
+  RankRoot(RankRoot&& from) noexcept
+    : RankRoot() {
+    *this = ::std::move(from);
+  }
+
+  inline RankRoot& operator=(RankRoot&& from) noexcept {
+    if (GetArenaNoVirtual() == from.GetArenaNoVirtual()) {
+      if (this != &from) InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+  #endif
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const RankRoot& default_instance();
+
+  static void InitAsDefaultInstance();  // FOR INTERNAL USE ONLY
+  static inline const RankRoot* internal_default_instance() {
+    return reinterpret_cast<const RankRoot*>(
+               &_RankRoot_default_instance_);
+  }
+  static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
+    8;
+
+  void Swap(RankRoot* other);
+  friend void swap(RankRoot& a, RankRoot& b) {
+    a.Swap(&b);
+  }
+
+  // implements Message ----------------------------------------------
+
+  inline RankRoot* New() const PROTOBUF_FINAL { return New(NULL); }
+
+  RankRoot* New(::google::protobuf::Arena* arena) const PROTOBUF_FINAL;
+  void CopyFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
+  void MergeFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
+  void CopyFrom(const RankRoot& from);
+  void MergeFrom(const RankRoot& from);
+  void Clear() PROTOBUF_FINAL;
+  bool IsInitialized() const PROTOBUF_FINAL;
+
+  size_t ByteSizeLong() const PROTOBUF_FINAL;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input) PROTOBUF_FINAL;
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const PROTOBUF_FINAL;
+  ::google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
+      bool deterministic, ::google::protobuf::uint8* target) const PROTOBUF_FINAL;
+  int GetCachedSize() const PROTOBUF_FINAL { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const PROTOBUF_FINAL;
+  void InternalSwap(RankRoot* other);
+  private:
+  inline ::google::protobuf::Arena* GetArenaNoVirtual() const {
+    return NULL;
+  }
+  inline void* MaybeArenaPtr() const {
+    return NULL;
+  }
+  public:
+
+  ::google::protobuf::Metadata GetMetadata() const PROTOBUF_FINAL;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // repeated .prism.Root roots = 1;
+  int roots_size() const;
+  void clear_roots();
+  static const int kRootsFieldNumber = 1;
+  const ::prism::Root& roots(int index) const;
+  ::prism::Root* mutable_roots(int index);
+  ::prism::Root* add_roots();
+  ::google::protobuf::RepeatedPtrField< ::prism::Root >*
+      mutable_roots();
+  const ::google::protobuf::RepeatedPtrField< ::prism::Root >&
+      roots() const;
+
+  // int32 count = 2;
+  void clear_count();
+  static const int kCountFieldNumber = 2;
+  ::google::protobuf::int32 count() const;
+  void set_count(::google::protobuf::int32 value);
+
+  // @@protoc_insertion_point(class_scope:prism.RankRoot)
+ private:
+
+  ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
+  ::google::protobuf::RepeatedPtrField< ::prism::Root > roots_;
+  ::google::protobuf::int32 count_;
+  mutable int _cached_size_;
+  friend struct ::protobuf_expl_2eproto::TableStruct;
+  friend void ::protobuf_expl_2eproto::InitDefaultsRankRootImpl();
 };
 // ===================================================================
 
@@ -1073,34 +1198,34 @@ ExplGraph::goals() const {
   return goals_;
 }
 
-// repeated .prism.Root roots = 2;
-inline int ExplGraph::roots_size() const {
-  return roots_.size();
+// repeated .prism.RankRoot root_list = 2;
+inline int ExplGraph::root_list_size() const {
+  return root_list_.size();
 }
-inline void ExplGraph::clear_roots() {
-  roots_.Clear();
+inline void ExplGraph::clear_root_list() {
+  root_list_.Clear();
 }
-inline const ::prism::Root& ExplGraph::roots(int index) const {
-  // @@protoc_insertion_point(field_get:prism.ExplGraph.roots)
-  return roots_.Get(index);
+inline const ::prism::RankRoot& ExplGraph::root_list(int index) const {
+  // @@protoc_insertion_point(field_get:prism.ExplGraph.root_list)
+  return root_list_.Get(index);
 }
-inline ::prism::Root* ExplGraph::mutable_roots(int index) {
-  // @@protoc_insertion_point(field_mutable:prism.ExplGraph.roots)
-  return roots_.Mutable(index);
+inline ::prism::RankRoot* ExplGraph::mutable_root_list(int index) {
+  // @@protoc_insertion_point(field_mutable:prism.ExplGraph.root_list)
+  return root_list_.Mutable(index);
 }
-inline ::prism::Root* ExplGraph::add_roots() {
-  // @@protoc_insertion_point(field_add:prism.ExplGraph.roots)
-  return roots_.Add();
+inline ::prism::RankRoot* ExplGraph::add_root_list() {
+  // @@protoc_insertion_point(field_add:prism.ExplGraph.root_list)
+  return root_list_.Add();
 }
-inline ::google::protobuf::RepeatedPtrField< ::prism::Root >*
-ExplGraph::mutable_roots() {
-  // @@protoc_insertion_point(field_mutable_list:prism.ExplGraph.roots)
-  return &roots_;
+inline ::google::protobuf::RepeatedPtrField< ::prism::RankRoot >*
+ExplGraph::mutable_root_list() {
+  // @@protoc_insertion_point(field_mutable_list:prism.ExplGraph.root_list)
+  return &root_list_;
 }
-inline const ::google::protobuf::RepeatedPtrField< ::prism::Root >&
-ExplGraph::roots() const {
-  // @@protoc_insertion_point(field_list:prism.ExplGraph.roots)
-  return roots_;
+inline const ::google::protobuf::RepeatedPtrField< ::prism::RankRoot >&
+ExplGraph::root_list() const {
+  // @@protoc_insertion_point(field_list:prism.ExplGraph.root_list)
+  return root_list_;
 }
 
 // -------------------------------------------------------------------
@@ -1269,7 +1394,21 @@ inline void ExplGraphNode::set_id(::google::protobuf::int32 value) {
   // @@protoc_insertion_point(field_set:prism.ExplGraphNode.id)
 }
 
-// .prism.GoalTerm goal = 2;
+// int32 sorted_id = 2;
+inline void ExplGraphNode::clear_sorted_id() {
+  sorted_id_ = 0;
+}
+inline ::google::protobuf::int32 ExplGraphNode::sorted_id() const {
+  // @@protoc_insertion_point(field_get:prism.ExplGraphNode.sorted_id)
+  return sorted_id_;
+}
+inline void ExplGraphNode::set_sorted_id(::google::protobuf::int32 value) {
+  
+  sorted_id_ = value;
+  // @@protoc_insertion_point(field_set:prism.ExplGraphNode.sorted_id)
+}
+
+// .prism.GoalTerm goal = 3;
 inline bool ExplGraphNode::has_goal() const {
   return this != internal_default_instance() && goal_ != NULL;
 }
@@ -1657,23 +1796,73 @@ inline void Root::set_id(::google::protobuf::int32 value) {
   // @@protoc_insertion_point(field_set:prism.Root.id)
 }
 
+// int32 sorted_id = 2;
+inline void Root::clear_sorted_id() {
+  sorted_id_ = 0;
+}
+inline ::google::protobuf::int32 Root::sorted_id() const {
+  // @@protoc_insertion_point(field_get:prism.Root.sorted_id)
+  return sorted_id_;
+}
+inline void Root::set_sorted_id(::google::protobuf::int32 value) {
+  
+  sorted_id_ = value;
+  // @@protoc_insertion_point(field_set:prism.Root.sorted_id)
+}
+
+// -------------------------------------------------------------------
+
+// RankRoot
+
+// repeated .prism.Root roots = 1;
+inline int RankRoot::roots_size() const {
+  return roots_.size();
+}
+inline void RankRoot::clear_roots() {
+  roots_.Clear();
+}
+inline const ::prism::Root& RankRoot::roots(int index) const {
+  // @@protoc_insertion_point(field_get:prism.RankRoot.roots)
+  return roots_.Get(index);
+}
+inline ::prism::Root* RankRoot::mutable_roots(int index) {
+  // @@protoc_insertion_point(field_mutable:prism.RankRoot.roots)
+  return roots_.Mutable(index);
+}
+inline ::prism::Root* RankRoot::add_roots() {
+  // @@protoc_insertion_point(field_add:prism.RankRoot.roots)
+  return roots_.Add();
+}
+inline ::google::protobuf::RepeatedPtrField< ::prism::Root >*
+RankRoot::mutable_roots() {
+  // @@protoc_insertion_point(field_mutable_list:prism.RankRoot.roots)
+  return &roots_;
+}
+inline const ::google::protobuf::RepeatedPtrField< ::prism::Root >&
+RankRoot::roots() const {
+  // @@protoc_insertion_point(field_list:prism.RankRoot.roots)
+  return roots_;
+}
+
 // int32 count = 2;
-inline void Root::clear_count() {
+inline void RankRoot::clear_count() {
   count_ = 0;
 }
-inline ::google::protobuf::int32 Root::count() const {
-  // @@protoc_insertion_point(field_get:prism.Root.count)
+inline ::google::protobuf::int32 RankRoot::count() const {
+  // @@protoc_insertion_point(field_get:prism.RankRoot.count)
   return count_;
 }
-inline void Root::set_count(::google::protobuf::int32 value) {
+inline void RankRoot::set_count(::google::protobuf::int32 value) {
   
   count_ = value;
-  // @@protoc_insertion_point(field_set:prism.Root.count)
+  // @@protoc_insertion_point(field_set:prism.RankRoot.count)
 }
 
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

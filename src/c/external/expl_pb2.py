@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='expl.proto',
   package='prism',
   syntax='proto3',
-  serialized_pb=_b('\n\nexpl.proto\x12\x05prism\"L\n\tExplGraph\x12#\n\x05goals\x18\x01 \x03(\x0b\x32\x14.prism.ExplGraphGoal\x12\x1a\n\x05roots\x18\x02 \x03(\x0b\x32\x0b.prism.Root\"X\n\rExplGraphGoal\x12\"\n\x04node\x18\x01 \x01(\x0b\x32\x14.prism.ExplGraphNode\x12#\n\x05paths\x18\x02 \x03(\x0b\x32\x14.prism.ExplGraphPath\"O\n\rExplGraphPath\x12#\n\x05nodes\x18\x01 \x03(\x0b\x32\x14.prism.ExplGraphNode\x12\x19\n\x03sws\x18\x02 \x03(\x0b\x32\x0c.prism.SwIns\":\n\rExplGraphNode\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x1d\n\x04goal\x18\x02 \x01(\x0b\x32\x0f.prism.GoalTerm\"&\n\x08GoalTerm\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0c\n\x04\x61rgs\x18\x02 \x03(\t\"\x15\n\x05Value\x12\x0c\n\x04list\x18\x01 \x03(\t\">\n\x05SwIns\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x1b\n\x05value\x18\x03 \x01(\x0b\x32\x0c.prism.Value\"!\n\x04Root\x12\n\n\x02id\x18\x01 \x01(\x05\x12\r\n\x05\x63ount\x18\x02 \x01(\x05\x62\x06proto3')
+  serialized_pb=_b('\n\nexpl.proto\x12\x05prism\"T\n\tExplGraph\x12#\n\x05goals\x18\x01 \x03(\x0b\x32\x14.prism.ExplGraphGoal\x12\"\n\troot_list\x18\x02 \x03(\x0b\x32\x0f.prism.RankRoot\"X\n\rExplGraphGoal\x12\"\n\x04node\x18\x01 \x01(\x0b\x32\x14.prism.ExplGraphNode\x12#\n\x05paths\x18\x02 \x03(\x0b\x32\x14.prism.ExplGraphPath\"O\n\rExplGraphPath\x12#\n\x05nodes\x18\x01 \x03(\x0b\x32\x14.prism.ExplGraphNode\x12\x19\n\x03sws\x18\x02 \x03(\x0b\x32\x0c.prism.SwIns\"M\n\rExplGraphNode\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x11\n\tsorted_id\x18\x02 \x01(\x05\x12\x1d\n\x04goal\x18\x03 \x01(\x0b\x32\x0f.prism.GoalTerm\"&\n\x08GoalTerm\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0c\n\x04\x61rgs\x18\x02 \x03(\t\"\x15\n\x05Value\x12\x0c\n\x04list\x18\x01 \x03(\t\">\n\x05SwIns\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x1b\n\x05value\x18\x03 \x01(\x0b\x32\x0c.prism.Value\"%\n\x04Root\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x11\n\tsorted_id\x18\x02 \x01(\x05\"5\n\x08RankRoot\x12\x1a\n\x05roots\x18\x01 \x03(\x0b\x32\x0b.prism.Root\x12\r\n\x05\x63ount\x18\x02 \x01(\x05\x62\x06proto3')
 )
 
 
@@ -40,7 +40,7 @@ _EXPLGRAPH = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='roots', full_name='prism.ExplGraph.roots', index=1,
+      name='root_list', full_name='prism.ExplGraph.root_list', index=1,
       number=2, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
@@ -59,7 +59,7 @@ _EXPLGRAPH = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=21,
-  serialized_end=97,
+  serialized_end=105,
 )
 
 
@@ -96,8 +96,8 @@ _EXPLGRAPHGOAL = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=99,
-  serialized_end=187,
+  serialized_start=107,
+  serialized_end=195,
 )
 
 
@@ -134,8 +134,8 @@ _EXPLGRAPHPATH = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=189,
-  serialized_end=268,
+  serialized_start=197,
+  serialized_end=276,
 )
 
 
@@ -154,8 +154,15 @@ _EXPLGRAPHNODE = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='goal', full_name='prism.ExplGraphNode.goal', index=1,
-      number=2, type=11, cpp_type=10, label=1,
+      name='sorted_id', full_name='prism.ExplGraphNode.sorted_id', index=1,
+      number=2, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='goal', full_name='prism.ExplGraphNode.goal', index=2,
+      number=3, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -172,8 +179,8 @@ _EXPLGRAPHNODE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=270,
-  serialized_end=328,
+  serialized_start=278,
+  serialized_end=355,
 )
 
 
@@ -210,8 +217,8 @@ _GOALTERM = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=330,
-  serialized_end=368,
+  serialized_start=357,
+  serialized_end=395,
 )
 
 
@@ -241,8 +248,8 @@ _VALUE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=370,
-  serialized_end=391,
+  serialized_start=397,
+  serialized_end=418,
 )
 
 
@@ -286,8 +293,8 @@ _SWINS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=393,
-  serialized_end=455,
+  serialized_start=420,
+  serialized_end=482,
 )
 
 
@@ -306,7 +313,7 @@ _ROOT = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='count', full_name='prism.Root.count', index=1,
+      name='sorted_id', full_name='prism.Root.sorted_id', index=1,
       number=2, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
@@ -324,18 +331,57 @@ _ROOT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=457,
-  serialized_end=490,
+  serialized_start=484,
+  serialized_end=521,
+)
+
+
+_RANKROOT = _descriptor.Descriptor(
+  name='RankRoot',
+  full_name='prism.RankRoot',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='roots', full_name='prism.RankRoot.roots', index=0,
+      number=1, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='count', full_name='prism.RankRoot.count', index=1,
+      number=2, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=523,
+  serialized_end=576,
 )
 
 _EXPLGRAPH.fields_by_name['goals'].message_type = _EXPLGRAPHGOAL
-_EXPLGRAPH.fields_by_name['roots'].message_type = _ROOT
+_EXPLGRAPH.fields_by_name['root_list'].message_type = _RANKROOT
 _EXPLGRAPHGOAL.fields_by_name['node'].message_type = _EXPLGRAPHNODE
 _EXPLGRAPHGOAL.fields_by_name['paths'].message_type = _EXPLGRAPHPATH
 _EXPLGRAPHPATH.fields_by_name['nodes'].message_type = _EXPLGRAPHNODE
 _EXPLGRAPHPATH.fields_by_name['sws'].message_type = _SWINS
 _EXPLGRAPHNODE.fields_by_name['goal'].message_type = _GOALTERM
 _SWINS.fields_by_name['value'].message_type = _VALUE
+_RANKROOT.fields_by_name['roots'].message_type = _ROOT
 DESCRIPTOR.message_types_by_name['ExplGraph'] = _EXPLGRAPH
 DESCRIPTOR.message_types_by_name['ExplGraphGoal'] = _EXPLGRAPHGOAL
 DESCRIPTOR.message_types_by_name['ExplGraphPath'] = _EXPLGRAPHPATH
@@ -344,6 +390,7 @@ DESCRIPTOR.message_types_by_name['GoalTerm'] = _GOALTERM
 DESCRIPTOR.message_types_by_name['Value'] = _VALUE
 DESCRIPTOR.message_types_by_name['SwIns'] = _SWINS
 DESCRIPTOR.message_types_by_name['Root'] = _ROOT
+DESCRIPTOR.message_types_by_name['RankRoot'] = _RANKROOT
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 ExplGraph = _reflection.GeneratedProtocolMessageType('ExplGraph', (_message.Message,), dict(
@@ -401,6 +448,13 @@ Root = _reflection.GeneratedProtocolMessageType('Root', (_message.Message,), dic
   # @@protoc_insertion_point(class_scope:prism.Root)
   ))
 _sym_db.RegisterMessage(Root)
+
+RankRoot = _reflection.GeneratedProtocolMessageType('RankRoot', (_message.Message,), dict(
+  DESCRIPTOR = _RANKROOT,
+  __module__ = 'expl_pb2'
+  # @@protoc_insertion_point(class_scope:prism.RankRoot)
+  ))
+_sym_db.RegisterMessage(RankRoot)
 
 
 # @@protoc_insertion_point(module_scope)

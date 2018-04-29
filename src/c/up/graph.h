@@ -65,6 +65,7 @@ int sort_crf_egraphs(TERM);/*[D-PRISM]*/
 
 /*====================================================================*/
 
+extern int egraph_size;
 extern int sorted_egraph_size;
 extern EG_NODE_PTR *expl_graph;
 extern EG_NODE_PTR *sorted_expl_graph;

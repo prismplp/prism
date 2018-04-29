@@ -36,5 +36,6 @@ int pc_rank_learn_7(void);
 int pc_set_goal_rank_1(void);
 int pc_clear_goal_rank_0(void);
 
+extern RNK_NODE_PTR rank_root;
 #endif /* __RANK_H__ */
 
