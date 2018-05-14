@@ -214,8 +214,8 @@ void bp4p_register_preds(void) {
 	REGISTER_CPRED(set_sgd_adadelta_gamma,1);
 	REGISTER_CPRED(set_sgd_adadelta_epsilon,1);
 
-	/* up/vec.cpp */
-	REGISTER_CPRED(prism_vec,1);
+	/* up/save_expl_graph.cpp */
+	REGISTER_CPRED(prism_save_expl_graph,1);
 #ifdef MPI
 	/* mp/mp_preds.c */
 	REGISTER_CPRED(mp_size,1);

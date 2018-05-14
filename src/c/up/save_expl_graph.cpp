@@ -106,9 +106,7 @@ enum SaveFormat{
 	FormatPbTxt=2,
 };
 
-
-
-void save_expl(const string& outfilename,prism::ExplGraph& goals,SaveFormat format) {
+void save_expl_graph(const string& outfilename,prism::ExplGraph& goals,SaveFormat format) {
 	switch(format){
 		case FormatJson:
 		{
@@ -145,7 +143,7 @@ void save_expl(const string& outfilename,prism::ExplGraph& goals,SaveFormat form
 	}	
 }
 
-int run_vec(const string& outfilename,SaveFormat format) {
+int run_save_expl_graph(const string& outfilename,SaveFormat format) {
 	//config_em(em_ptr);
 	double start_time=getCPUTime();
 	init_scc();
@@ -191,7 +189,8 @@ int run_vec(const string& outfilename,SaveFormat format) {
 		r->set_id(eg_ptr->id);
 		int sorted_id=mapping_to_sorted_id.at(id);
 		r->set_count(roots[i]->count);
-	}*/
+	}
+	*/
 	int i=0;
 	for (RNK_NODE_PTR itr = rank_root; itr != NULL; itr=itr->next) {
 		int index = i%num_minibatch;
@@ -205,28 +204,22 @@ int run_vec(const string& outfilename,SaveFormat format) {
 		}
 		rr->set_count(1);
 	}
+	save_expl_graph(outfilename,goals,format);
 
-	save_expl(outfilename,goals,format);
-
-//free data
+	//free data
 	free_scc();
 	if(scc_debug_level>=1) {
 		printf("CPU time (scc,solution,all)\n");
 		printf("# %f,%f,%f\n",scc_time-start_time,solution_time-scc_time,solution_time - start_time);
 	}
 	
-	
 	return BP_TRUE;
 }
 
 extern "C"
-int pc_prism_vec_1(void) {
-	
+int pc_prism_save_expl_graph_1(void) {
 	SaveFormat format = (SaveFormat) bpx_get_integer(bpx_get_call_arg(1,1));
-	//struct EM_Engine em_eng;
-	//RET_ON_ERR(check_smooth(&em_eng.smooth));
-	//scc_debug_level = bpx_get_integer(bpx_get_call_arg(7,7));
-	run_vec("expl.bin",format);
+	run_save_expl_graph("expl.bin",format);
 	//return bpx_unify(bpx_get_call_arg(1,1), bpx_build_integer(1));
 	return BP_TRUE;
 }

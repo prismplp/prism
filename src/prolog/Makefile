@@ -42,7 +42,7 @@ PL_UP    = up/dynamic.pl        \
            up/crf_hindsight.pl  \
            up/bigarray.pl       \
            up/rank.pl           \
-           up/vec.pl            \
+           up/tensor.pl            \
            up/sgd.pl
 
 PL_BAT   = up/batch.pl

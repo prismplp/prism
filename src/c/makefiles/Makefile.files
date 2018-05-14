@@ -47,8 +47,8 @@ UP_OBJS   = up$(S)graph.$(O)            \
             up$(S)cyc_vt_preds.$(O)     \
             up$(S)cyc_vt_ml.$(O)        \
             up$(S)rank.$(O)             \
-            up$(S)vec.$(O)              \
-            external$(S)expl.pb.$(O)              \
+            up$(S)save_expl_graph.$(O)  \
+            external$(S)expl.pb.$(O)    \
             up$(S)sgd.$(O)
 
 MP_OBJS   = mp$(S)mp_core.$(O)          \
