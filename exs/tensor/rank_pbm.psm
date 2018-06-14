@@ -1,0 +1,36 @@
+index(v(_),[[i],[j]]).
+index(rel(_),[[i,j]]).
+:-set_index_range(i,20).
+:-set_index_range(j,20).
+
+edge(U,V,E):-vector(v(U),[i]),vector(v(V),[j]),matrix(rel(E),[i,j]).
+
+candidate(U,E,Goals,L):-findall(V,(member(edge(_,V,_),Goals),not member(edge(U,V,E),Goals)),L).
+random_select_negative(edge(U,V,E),Goals,edge(U,NegativeV,E)):-
+	candidate(U,E,Goals,L),
+	random_select(L,NegativeV).
+
+prism_main([]):-
+	random_set_seed(1234),
+	save_flags('test.json'),
+	load_clauses('sample.dat',Gs),
+	maplist(G,NegG,random_select_negative(G,Gs,NegG),Gs,NegGs),
+	maplist(X,Y,Z,Z=[X,Y],Gs,NegGs,GoalPairList),
+	save_expl_graph(GoalPairList).
+
+
+%generate_placeholder_goals(GP0,GoalPairList,0,GG,Var),
+%GP0=[edge(Placeholder1,Placeholder2,0),edge(Placeholder3,Placeholder4,0),edge(P1,P2,0),edge(P3,P4,0)],
+%generate_placeholder_goals(GP0,Gs,0,GG,Var),
+prism_main([pl]):-
+	random_set_seed(1234),
+	load_clauses('sample.dat',Gs),
+	maplist(G,NegG,random_select_negative(G,Gs,NegG),Gs,NegGs),
+	maplist(X,Y,Z,Z=[X,Y],Gs,NegGs,GoalPairList),
+	GoalPlaceholder=[[edge(_,_,0),edge(_,_,0)]],
+	save_placeholder_goals(GoalPlaceholder,GoalPairList),
+	save_flags,
+	save_expl_graph(GoalPlaceholder).
+
+
+
