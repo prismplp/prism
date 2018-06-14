@@ -1,6 +1,33 @@
 syntax = "proto3";
 package prism;
-
+// placeholder data
+message PlaceholderData {
+  repeated PlaceholderGoal goals =1;
+}
+message PlaceholderGoal {
+  repeated Placeholder placeholders =1;
+  repeated DataRecord records =2;
+}
+message DataRecord {
+  repeated string items =2;
+}
+message Placeholder {
+  string name =1;
+}
+// flags and options
+message Option {
+  repeated Flag flags =1;
+  repeated IndexRange index_range =2;
+}
+message Flag {
+  string key =1;
+  string value =2;
+}
+message IndexRange {
+  string index =1;
+  int32 range =2;
+}
+// explanation graph
 message ExplGraph {
   repeated ExplGraphGoal goals =1;
   repeated RankRoot root_list =2;

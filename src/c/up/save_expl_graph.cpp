@@ -30,6 +30,7 @@ extern "C" {
 #include <cmath>
 #include <string>
 #include "external/expl.pb.h"
+#include "up/save_expl_graph.h"
 #include <google/protobuf/text_format.h>
 #include <google/protobuf/message.h>
 #include <google/protobuf/descriptor.h>
@@ -100,12 +101,6 @@ std::vector<int> build_mapping_goal_id_to_sorted_id(){
 	return mapping;
 }
 
-enum SaveFormat{
-	FormatJson=0,
-	FormatPb=1,
-	FormatPbTxt=2,
-};
-
 void save_expl_graph(const string& outfilename,prism::ExplGraph& goals,SaveFormat format) {
 	switch(format){
 		case FormatJson:
@@ -149,7 +144,7 @@ int run_save_expl_graph(const string& outfilename,SaveFormat format) {
 	init_scc();
 	double scc_time=getCPUTime();
 	initialize_params();
-	print_eq();
+	//print_eq();
 	save_params();
 	print_sccs_statistics();
 	double solution_time=getCPUTime();
@@ -217,9 +212,10 @@ int run_save_expl_graph(const string& outfilename,SaveFormat format) {
 }
 
 extern "C"
-int pc_prism_save_expl_graph_1(void) {
-	SaveFormat format = (SaveFormat) bpx_get_integer(bpx_get_call_arg(1,1));
-	run_save_expl_graph("expl.bin",format);
+int pc_prism_save_expl_graph_2(void) {
+	const char* filename=bpx_get_name(bpx_get_call_arg(1,2));
+	SaveFormat format = (SaveFormat) bpx_get_integer(bpx_get_call_arg(2,2));
+	run_save_expl_graph(filename,format);
 	//return bpx_unify(bpx_get_call_arg(1,1), bpx_build_integer(1));
 	return BP_TRUE;
 }

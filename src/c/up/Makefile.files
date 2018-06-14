@@ -35,7 +35,8 @@ OBJS = graph.$(O)             \
        cyc_vt_preds.$(O)      \
        cyc_vt_ml.$(O)         \
        rank.$(O)              \
-       save_expl_graph.$(O)               \
+       save_expl_graph.$(O)   \
+       tensor_preds.$(O)      \
        sgd.$(O)    
 
 

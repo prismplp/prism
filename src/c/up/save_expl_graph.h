@@ -1,6 +1,12 @@
-#ifndef VEC_PREDS_H
-#define VEC_PREDS_H
+#ifndef SAVE_EXPL_GRAPH_H
+#define SAVE_EXPL_GRAPH_H
 
-int pc_prism_save__1(void);
+enum SaveFormat{
+	FormatJson=0,
+	FormatPb=1,
+	FormatPbTxt=2,
+};
 
-#endif /* VEC_PREDS_H */
+int pc_prism_save_2(void);
+
+#endif /* SAVE_EXPL_GRAPH_H */
