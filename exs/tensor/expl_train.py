@@ -8,7 +8,7 @@ import collections
 
 import expl_graph
 
-graph,options = expl_graph.load_explanation_graph("expl.bin","test.json")
+graph,options = expl_graph.load_explanation_graph("expl.json","flags.json")
 tensor_embedding = expl_graph.build_variables(graph,options)
 goal_inside = expl_graph.build_explanation_graph(graph,tensor_embedding)
 

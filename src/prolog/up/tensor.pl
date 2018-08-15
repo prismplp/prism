@@ -5,8 +5,8 @@
 set_index_range(Index,R):-
 	$pc_set_index_range(Index,R).
 
-save_placeholder_goals(PlaceholderGoals,Goals):-save_placeholder_goals('data.json',0,PlaceholderGoals,Goals).
-save_placeholder_goals(Filename,PlaceholderGoals,Goals):-save_placeholder_goals(Filename,0,PlaceholderGoals,Goals).
+save_placeholder_goals(PlaceholderGoals,Goals):-save_placeholder_goals('data.h5',hdf5,PlaceholderGoals,Goals).
+save_placeholder_goals(Filename,PlaceholderGoals,Goals):-save_placeholder_goals(Filename,hdf5,PlaceholderGoals,Goals).
 save_placeholder_goals(Filename,Mode,PlaceholderGoals,Goals):-
 	$pp_generate_placeholder_goals(PlaceholderGoals,Goals,0,GG,Var),
 	save_placeholder_data(Filename,Mode,Var,GG).
@@ -15,7 +15,8 @@ $pp_generate_placeholder([],N,N).
 $pp_generate_placeholder([V|VV],N,O):-
 	M is N+1,
 	term2atom(M,AM),
-	atom_concat(placeholder,AM,V),
+	atom_concat($placeholder,AM,V0),
+	atom_concat(V0,$,V),
 	$pp_generate_placeholder(VV,M,O).
 
 $pp_generate_placeholder_goals([],_,_,[],[]).
@@ -28,20 +29,30 @@ $pp_generate_placeholder_goals([GP0|GP],Goals,N,[X|XX],[V0|Var]):-
 	$pp_generate_placeholder_goals(GP,Goals,M,XX,Var).
 	
 
-save_placeholder_data(Placeholders,Data):-save_placeholder_data('data.json',0,Placeholders,Data).
-save_placeholder_data(Filename,Placeholders,Data):-save_placeholder_data(Filename,0,Placeholders,Data).
+save_placeholder_data(Placeholders,Data):-save_placeholder_data('data.h5',hdf5,Placeholders,Data).
+save_placeholder_data(Filename,Placeholders,Data):-save_placeholder_data(Filename,hdf5,Placeholders,Data).
 save_placeholder_data(Filename,Mode,Placeholders,Data):-
-	$pc_save_placeholder_data(Filename,Mode,Placeholders,Data).
+	(Mode==json ->Mode0=0
+	;Mode==pb   ->Mode0=1
+	;Mode==pbtxt->Mode0=2
+	;Mode==hdf5 ->Mode0=3
+	;$pp_raise_runtime_error($msg(9804),unknown_save_format,save_placeholder_data/4)),
+	$pc_save_placeholder_data(Filename,Mode0,Placeholders,Data,20000000).
 
 %%%
 %%% save prism flags
 %%%
 
-save_flags:-save_flags('flags.json',0).
-save_flags(Filename):-save_flags(Filename,0).
+save_flags:-save_flags('flags.json',json).
+save_flags(Filename):-save_flags(Filename,json).
 save_flags(Filename,Mode):-findall([X,F],get_prism_flag(X,F),G),
 	$pc_set_export_flags(G),
-	$pc_save_options(Filename,Mode).
+	(Mode==json ->Mode0=0
+	;Mode==pb   ->Mode0=1
+	;Mode==pbtxt->Mode0=2
+	;Mode==hdf5 ->Mode0=$pp_raise_runtime_error($msg(9806),hdf5_is_not_supportted_for_saving_flags,save_flags/2)
+	;$pp_raise_runtime_error($msg(9804),unknown_save_format,save_flags/2)),
+	$pc_save_options(Filename,Mode0).
 
 %%%%
 %%%% save explanation graph
@@ -67,7 +78,8 @@ $pp_trans_phase_tensor(Prog0,Prog_tensor,Info):-
 	flatten(IndexList,IndexAtoms),
 	unique(IndexAtoms,UIndexAtoms),
 	assert(index_atoms(UIndexAtoms)),
-	Prog_tensor0=Prog_tensor.
+	Pred1=pred(values,3,_,_,_,[values($operator(_),[$operator],fix@[1.0])]),
+	Prog_tensor=[Pred1|Prog_tensor0].
 
 $pp_tensor_parse_clauses(Clauses,NewClauses,CollectLists):-
 	maplist(C,NC,CollectList,(
@@ -92,6 +104,7 @@ $pp_tensor_msw_filter([],[],[]).
 $pp_tensor_msw_filter([tensor(A0,A1)|Atoms],[msw(tensor(A0),A1)|Msws],[tensor(A0,A1)|VecList]):-$pp_tensor_msw_filter(Atoms,Msws,VecList).
 $pp_tensor_msw_filter([vector(A0,A1)|Atoms],[msw(tensor(A0),A1)|Msws],[tensor(A0,A1)|VecList]):-$pp_tensor_msw_filter(Atoms,Msws,VecList).
 $pp_tensor_msw_filter([matrix(A0,A1)|Atoms],[msw(tensor(A0),A1)|Msws],[tensor(A0,A1)|VecList]):-$pp_tensor_msw_filter(Atoms,Msws,VecList).
+$pp_tensor_msw_filter([operator(A0)|Atoms],[msw($operator(A0),$operator)|Msws],VecList):-$pp_tensor_msw_filter(Atoms,Msws,VecList).
 $pp_tensor_msw_filter([A|Atoms],[A|Msws],VecList):-$pp_tensor_msw_filter(Atoms,Msws,VecList).
 
 $pp_tensor_values_filter([],[],[]).

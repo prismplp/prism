@@ -5,8 +5,9 @@ message PlaceholderData {
   repeated PlaceholderGoal goals =1;
 }
 message PlaceholderGoal {
-  repeated Placeholder placeholders =1;
-  repeated DataRecord records =2;
+  int32 id =1;
+  repeated Placeholder placeholders =2;
+  repeated DataRecord records =3;
 }
 message DataRecord {
   repeated string items =2;
@@ -38,7 +39,9 @@ message ExplGraphGoal {
 }
 message ExplGraphPath {
   repeated ExplGraphNode nodes =1;
-  repeated SwIns sws =2;
+  repeated SwIns prob_switches =2;
+  repeated SwIns tensor_switches =3;
+  repeated SwIns operators =4;
 }
 message ExplGraphNode {
   int32 id = 1;
@@ -49,13 +52,18 @@ message GoalTerm{
   string name = 1;
   repeated string args = 2;
 }
-message Value{
-  repeated string list = 1;
+enum SwType {
+  Probabilistic = 0;
+  Tensor = 1;
+  Operator = 2;
 }
 message SwIns{
   int32 id = 1;
   string name = 2;
-  Value value= 3;
+  repeated string values = 3;
+  float inside = 4;
+  SwType sw_type = 5;
+  
 }
 
 message Root{

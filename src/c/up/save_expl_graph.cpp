@@ -64,28 +64,56 @@ prism::ExplGraphNode get_node(int id,int sorted_id){
 	return node;
 }
 
-prism::SwIns get_swins(int id){
+void set_value_list(prism::SwIns* sw,TERM term){
+	if(bpx_is_list(term)){
+		while(!bpx_is_nil(term)){
+			TERM el = bpx_get_car(term);
+			char* el_str= bpx_term_2_string(el);
+			sw->add_values(el_str);
+			term = bpx_get_cdr(term);
+		}
+	}else{
+		char* term_str= bpx_term_2_string(term);
+		sw->add_values(term_str);
+	}
+}
+prism::SwIns get_swins(SW_INS_PTR sw_ins){
 	prism::SwIns sw;
-	prism::Value* value_pred=sw.mutable_value();
+	int id= sw_ins->id;
 	TERM term=prism_sw_ins_term(id);
-	const char* s=bpx_get_name(term);
-	int arity=bpx_get_arity(term);
-	if(arity==2){
+	// msw
+	//const char* s=bpx_get_name(term);
+	BPLONG arity=bpx_get_arity(term);
+	if(arity>=2){
 		TERM el1= bpx_get_arg(1, term);
 		TERM el2= bpx_get_arg(2, term);
 		char* el1_name= bpx_term_2_string(el1);
-		sw.set_name(el1_name);
-		if(bpx_is_list(el2)){
-			while(!bpx_is_nil(el2)){
-				TERM el = bpx_get_car(el2);
+		string name=bpx_get_name(el1);
+		if(name=="tensor"){
+			sw.set_name(el1_name);
+			sw.set_sw_type(prism::Tensor);
+			sw.set_inside(0.0);
+			set_value_list(&sw,el2);
+		}else if(name=="$operator"){
+			sw.set_name(name);
+			TERM op_term= bpx_get_arg(1, el1);
+			BPLONG op_arity=bpx_get_arity(op_term);
+			for(BPLONG j=1; j<=op_arity; j++){
+				TERM el= bpx_get_arg(j, op_term);
 				char* el_str= bpx_term_2_string(el);
-				value_pred->add_list(el_str);
-				el2 = bpx_get_cdr(el2);
+				sw.add_values(el_str);
 			}
+			string op_name=bpx_get_name(op_term);
+			sw.set_name(op_name);
+			sw.set_sw_type(prism::Operator);
+			sw.set_inside(0.0);
 		}else{
-			char* el2_name= bpx_term_2_string(el1);
-			value_pred->add_list(el2_name);
+			sw.set_name(el1_name);
+			sw.set_sw_type(prism::Probabilistic);
+			sw.set_inside(sw_ins->inside);
+			set_value_list(&sw,el2);
 		}
+		
 	}
 	sw.set_id(id);
 	return sw;
@@ -169,9 +197,16 @@ int run_save_expl_graph(const string& outfilename,SaveFormat format) {
 				*node=get_node(id,sorted_id);
 			}
 			for (int k = 0; k < path_ptr->sws_len; k++) {
-				int id= path_ptr->sws[k]->id;
-				prism::SwIns* sw= path->add_sws();
-				*sw=get_swins(id);
+				prism::SwIns temp_sw=get_swins(path_ptr->sws[k]);
+				prism::SwIns* sw;
+				if(temp_sw.sw_type()==prism::Probabilistic){
+					sw= path->add_prob_switches();
+				}else if(temp_sw.sw_type()==prism::Operator){
+					sw= path->add_operators();
+				}else{
+					sw= path->add_tensor_switches();
+				}
+				*sw=temp_sw;
 			}
 			path_ptr = path_ptr->next;
 		}
@@ -186,9 +221,8 @@ int run_save_expl_graph(const string& outfilename,SaveFormat format) {
 		r->set_count(roots[i]->count);
 	}
 	*/
-	int i=0;
 	for (RNK_NODE_PTR itr = rank_root; itr != NULL; itr=itr->next) {
-		int index = i%num_minibatch;
+		//int index = i%num_minibatch;
 		prism::RankRoot* rr=goals.add_root_list();
 		for(int j=0;j<itr->goal_count;j++){
 			prism::Root* r=rr->add_roots();

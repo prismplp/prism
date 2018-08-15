@@ -51,6 +51,7 @@ int     sgd_optimizer         = 2;
 double  sgd_learning_rate     = 0.01;
 double  sgd_penalty           = 0.1;
 int     num_minibatch         = 1;
+int     sgd_minibatch_size    = -1;/* gradient decent*/
 double  sgd_adam_beta         = 0.9;
 double  sgd_adam_gamma        = 0.999;
 double  sgd_adam_epsilon      = 1.0e-8;
@@ -241,6 +242,11 @@ int pc_set_sgd_learning_rate_1(void) {
 
 int pc_set_num_minibatch_1(void) {
 	num_minibatch = bpx_get_integer(bpx_get_call_arg(1,1));
+	return BP_TRUE;
+}
+
+int pc_set_sgd_minibatch_size_1(void) {
+	sgd_minibatch_size = bpx_get_integer(bpx_get_call_arg(1,1));
 	return BP_TRUE;
 }
 

@@ -638,24 +638,35 @@ int pc_set_goal_rank_1(void) {
 		
 		goal_list = bpx_get_car(goal_ranks);
 		// length of goal_list
-		goal_count=0;
-		while (bpx_is_list(goal_list)){
-			goal_count++;
-			goal_list = bpx_get_cdr(goal_list);
-		}
-		rank_path->goal_count=goal_count;
-		rank_path->goals=(int*)MALLOC(goal_count*sizeof(int));
-		// set gid
-		goal_list = bpx_get_car(goal_ranks);
-		goal_count=0;
-		while (bpx_is_list(goal_list)){
-			goal = bpx_get_car(goal_list);
+	
+		if(bpx_is_list(goal_list)){
+			goal_count=0;
+			while(!bpx_is_nil(goal_list)){
+				goal_count++;
+				goal_list = bpx_get_cdr(goal_list);
+			}
+			rank_path->goal_count=goal_count;
+			rank_path->goals=(int*)MALLOC(goal_count*sizeof(int));
+			// set gid
+			goal_list = bpx_get_car(goal_ranks);
+			goal_count=0;
+			while(!bpx_is_nil(goal_list)){
+				goal = bpx_get_car(goal_list);
+				gid = prism_goal_id_get(goal);
+				//char* s=bp_term_2_string(goal);
+				//printf("[%d:%s]",gid,s);
+				rank_path->goals[goal_count]=gid;
+				goal_count++;
+				goal_list = bpx_get_cdr(goal_list);
+			}
+		}else{
+			goal_count=1;
+			rank_path->goal_count=goal_count;
+			rank_path->goals=(int*)MALLOC(goal_count*sizeof(int));
+			// set gid
+			goal = bpx_get_car(goal_ranks);
 			gid = prism_goal_id_get(goal);
-			//char* s=bp_term_2_string(goal);
-			//printf("[%d:%s]",gid,s);
-			rank_path->goals[goal_count]=gid;
-			goal_count++;
-			goal_list = bpx_get_cdr(goal_list);
+			rank_path->goals[0]=gid;
 		}
 		goal_ranks = bpx_get_cdr(goal_ranks);
 	}

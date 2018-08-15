@@ -24,6 +24,7 @@ extern "C" {
 #include <set>
 #include <cmath>
 #include <string>
+#include <fstream>
 #include "external/expl.pb.h"
 #include "up/save_expl_graph.h"
 #include <google/protobuf/text_format.h>
@@ -33,7 +34,8 @@ extern "C" {
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 #include <google/protobuf/util/json_util.h>
 
-#include <fstream>
+#include <H5Cpp.h>
+
 using namespace std;
 using namespace google::protobuf;
 std::map<string,string> exported_flags;
@@ -95,7 +97,8 @@ void export_flags(TERM el2){
 	return;
 }
 
-void construct_placeholder_goal(prism::PlaceholderGoal* g, TERM ph_term, TERM data_term) {
+TERM construct_placeholder_goal(prism::PlaceholderGoal* g, TERM ph_term, TERM data_term,int split_num) {
+	// adding placeholder list
 	if(bpx_is_list(ph_term)){
 		while(!bpx_is_nil(ph_term)){
 			TERM ph_el= bpx_get_car(ph_term);
@@ -105,11 +108,11 @@ void construct_placeholder_goal(prism::PlaceholderGoal* g, TERM ph_term, TERM da
 			ph_term = bpx_get_cdr(ph_term);
 		}
 	}
-	//
+	// adding records
 	if(!bpx_is_list(data_term)){
 		printf("[ERROR] A data term is not a list");
 	}
-	while(!bpx_is_nil(data_term)){
+	for(int i=0; i<split_num && !bpx_is_nil(data_term); i++){
 		TERM data_sample_term= bpx_get_car(data_term);
 		prism::DataRecord* r=g->add_records();
 		
@@ -120,33 +123,138 @@ void construct_placeholder_goal(prism::PlaceholderGoal* g, TERM ph_term, TERM da
 		while(!bpx_is_nil(data_sample_term)){
 			TERM data_el_term= bpx_get_car(data_sample_term);
 			char* name =bpx_term_2_string(data_el_term);
-			//const char* name=bpx_get_name(data_el_term);
 			r->add_items(name);
 			data_sample_term = bpx_get_cdr(data_sample_term);
 		}
 		data_term = bpx_get_cdr(data_term);
 	}
+	return data_term;
 }
-extern "C"
-int pc_save_placeholder_data_4(void) {
-	TERM ph  =bpx_get_call_arg(3,4);
-	TERM data=bpx_get_call_arg(4,4);
+
+void save_placeholder_data_hdf5(TERM ph, TERM data, string filename,SaveFormat format) {
+	int goal_counter=0;
+	if(!bpx_is_list(ph) || !bpx_is_list(data)){
+	}
+	while(!bpx_is_nil(ph) && !bpx_is_nil(data)){
+		string group_name=std::to_string(goal_counter);
+		vector<string> placeholders;
+		TERM ph_term   = bpx_get_car(ph);
+		TERM data_term = bpx_get_car(data);
+		//
+		if(!bpx_is_list(ph_term)){
+		}
+		while(!bpx_is_nil(ph_term)){
+			TERM ph_el= bpx_get_car(ph_term);
+			const char* name=bpx_get_name(ph_el);
+			placeholders.push_back(name);
+			ph_term = bpx_get_cdr(ph_term);
+		}
+		int n=placeholders.size();
+		// compute length
+		int length=0;
+		TERM temp_data_term=data_term;
+		while(!bpx_is_nil(temp_data_term)){
+			temp_data_term = bpx_get_cdr(temp_data_term);
+			length++;
+		}
+		
+		H5::CompType mtype(sizeof(int)*n);
+		for(int j=0;j<n;j++){
+			mtype.insertMember(placeholders[j], j*sizeof(int), H5::PredType::NATIVE_INT);
+		}
+		//
+		{
+			int* data_table=new int[length*placeholders.size()];
+			for(int i=0;!bpx_is_nil(data_term);i++){
+				TERM data_sample_term= bpx_get_car(data_term);
+				if(!bpx_is_list(data_sample_term)){
+					char* s =bpx_term_2_string(data_sample_term);
+					printf("[ERROR] A sample term is not a list: %s\n",s);
+				}
+				for(int j=0;!bpx_is_nil(data_sample_term);j++){
+					TERM data_el_term= bpx_get_car(data_sample_term);
+					char* name =bpx_term_2_string(data_el_term);
+					int v=stoi(name);
+					data_table[i*n+j]=v;
+					data_sample_term = bpx_get_cdr(data_sample_term);
+				}
+				data_term = bpx_get_cdr(data_term);
+			}
+			// save dataset
+			H5::H5File file( filename, H5F_ACC_TRUNC );
+			{
+				hsize_t     dimsf[1];              // dataset dimensions
+				dimsf[0] = length;
+				dimsf[1] = placeholders.size();
+				H5::DataSpace dataspace(2, dimsf );
+				H5::IntType datatype( H5::PredType::NATIVE_INT );
+				datatype.setOrder( H5T_ORDER_LE );
+				file.createGroup( group_name);
+				H5::DataSet dataset = file.createDataSet( group_name+"/data", datatype, dataspace );
+				dataset.write( data_table, H5::PredType::NATIVE_INT );
+			
+				{
+					hsize_t  dimsf[1] = {n};
+					H5::DataSpace dataspace(1, dimsf );
+
+					H5::StrType str_type(H5::PredType::C_S1, H5T_VARIABLE);
+					const char * cStrArray[n];
+					for(int index = 0; index < n; ++index){
+						cStrArray[index]=placeholders[index].c_str();
+					}
+					H5::Attribute attr = dataset.createAttribute("placeholders", str_type, dataspace);
+					attr.write(str_type,(void*)&cStrArray[0]);
+				}
+			}
+		}
+		// next
+		ph   = bpx_get_cdr(ph);
+		data = bpx_get_cdr(data);
+		goal_counter++;
+	}
+	//save_message(filename+std::to_string(file_count),&ph_data,format);
 	
-	prism::PlaceholderData ph_data;
-	if(bpx_is_list(ph) && bpx_is_list(data)){
+}
+void save_placeholder_data(TERM ph, TERM data, string filename,SaveFormat format,int split_num) {
+	int goal_counter=0;
+	TERM data_el=bpx_build_nil();
+	if(!bpx_is_list(ph) || !bpx_is_list(data)){
+	}
+	// for split save
+	for(int file_count=0;!bpx_is_nil(ph) && !bpx_is_nil(data);file_count++){
+		prism::PlaceholderData ph_data;
 		while(!bpx_is_nil(ph) && !bpx_is_nil(data)){
 			TERM ph_el   = bpx_get_car(ph);
-			TERM data_el = bpx_get_car(data);
+			if(bpx_is_nil(data_el)){
+				data_el = bpx_get_car(data);
+			}
 			prism::PlaceholderGoal* g=ph_data.add_goals();
-			construct_placeholder_goal(g, ph_el, data_el);
-			
-			ph   = bpx_get_cdr(ph);
-			data = bpx_get_cdr(data);
+			g->set_id(goal_counter);
+			data_el=construct_placeholder_goal(g, ph_el, data_el,split_num);
+			if(bpx_is_nil(data_el)){
+				ph   = bpx_get_cdr(ph);
+				data = bpx_get_cdr(data);
+				goal_counter++;
+			}else{
+				break;
+			}
 		}
+		save_message(filename+std::to_string(file_count),&ph_data,format);
 	}
-	const char* filename=bpx_get_name(bpx_get_call_arg(1,4));
-	SaveFormat format = (SaveFormat) bpx_get_integer(bpx_get_call_arg(2,4));
-	save_message(filename,&ph_data,format);
+}
+
+extern "C"
+int pc_save_placeholder_data_5(void) {
+	const char* filename=bpx_get_name(bpx_get_call_arg(1,5));
+	SaveFormat format = (SaveFormat) bpx_get_integer(bpx_get_call_arg(2,5));
+	TERM ph  =bpx_get_call_arg(3,5);
+	TERM data=bpx_get_call_arg(4,5);
+	int split_num=bpx_get_integer(bpx_get_call_arg(5,5));//=20000000
+	if(FormatHDF5==format){
+		save_placeholder_data_hdf5(ph, data, filename, format);
+	}else{
+		save_placeholder_data(ph, data, filename, format, split_num);
+	}
 	return BP_TRUE;
 }
 extern "C"

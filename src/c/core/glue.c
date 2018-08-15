@@ -213,13 +213,14 @@ void bp4p_register_preds(void) {
 	REGISTER_CPRED(set_sgd_adam_epsilon,1);
 	REGISTER_CPRED(set_sgd_adadelta_gamma,1);
 	REGISTER_CPRED(set_sgd_adadelta_epsilon,1);
+	REGISTER_CPRED(set_sgd_minibatch_size,1);
 
 	/* up/save_expl_graph.cpp */
 	REGISTER_CPRED(prism_save_expl_graph,2);
 	REGISTER_CPRED(set_index_range,2);
 	REGISTER_CPRED(save_options,2);
 	REGISTER_CPRED(set_export_flags,1);
-	REGISTER_CPRED(save_placeholder_data,4);
+	REGISTER_CPRED(save_placeholder_data,5);
 	
 #ifdef MPI
 	/* mp/mp_preds.c */

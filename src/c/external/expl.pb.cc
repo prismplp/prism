@@ -80,11 +80,6 @@ class GoalTermDefaultTypeInternal {
   ::google::protobuf::internal::ExplicitlyConstructed<GoalTerm>
       _instance;
 } _GoalTerm_default_instance_;
-class ValueDefaultTypeInternal {
- public:
-  ::google::protobuf::internal::ExplicitlyConstructed<Value>
-      _instance;
-} _Value_default_instance_;
 class SwInsDefaultTypeInternal {
  public:
   ::google::protobuf::internal::ExplicitlyConstructed<SwIns>
@@ -366,27 +361,6 @@ void InitDefaultsGoalTerm() {
   ::google::protobuf::GoogleOnceInit(&once, &InitDefaultsGoalTermImpl);
 }
 
-void InitDefaultsValueImpl() {
-  GOOGLE_PROTOBUF_VERIFY_VERSION;
-
-#ifdef GOOGLE_PROTOBUF_ENFORCE_UNIQUENESS
-  ::google::protobuf::internal::InitProtobufDefaultsForceUnique();
-#else
-  ::google::protobuf::internal::InitProtobufDefaults();
-#endif  // GOOGLE_PROTOBUF_ENFORCE_UNIQUENESS
-  {
-    void* ptr = &::prism::_Value_default_instance_;
-    new (ptr) ::prism::Value();
-    ::google::protobuf::internal::OnShutdownDestroyMessage(ptr);
-  }
-  ::prism::Value::InitAsDefaultInstance();
-}
-
-void InitDefaultsValue() {
-  static GOOGLE_PROTOBUF_DECLARE_ONCE(once);
-  ::google::protobuf::GoogleOnceInit(&once, &InitDefaultsValueImpl);
-}
-
 void InitDefaultsSwInsImpl() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
@@ -395,7 +369,6 @@ void InitDefaultsSwInsImpl() {
 #else
   ::google::protobuf::internal::InitProtobufDefaults();
 #endif  // GOOGLE_PROTOBUF_ENFORCE_UNIQUENESS
-  protobuf_expl_2eproto::InitDefaultsValue();
   {
     void* ptr = &::prism::_SwIns_default_instance_;
     new (ptr) ::prism::SwIns();
@@ -452,7 +425,8 @@ void InitDefaultsRankRoot() {
   ::google::protobuf::GoogleOnceInit(&once, &InitDefaultsRankRootImpl);
 }
 
-::google::protobuf::Metadata file_level_metadata[16];
+::google::protobuf::Metadata file_level_metadata[15];
+const ::google::protobuf::EnumDescriptor* file_level_enum_descriptors[1];
 
 const ::google::protobuf::uint32 TableStruct::offsets[] GOOGLE_PROTOBUF_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
   ~0u,  // no _has_bits_
@@ -466,6 +440,7 @@ const ::google::protobuf::uint32 TableStruct::offsets[] GOOGLE_PROTOBUF_ATTRIBUT
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::prism::PlaceholderGoal, id_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::prism::PlaceholderGoal, placeholders_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::prism::PlaceholderGoal, records_),
   ~0u,  // no _has_bits_
@@ -521,7 +496,9 @@ const ::google::protobuf::uint32 TableStruct::offsets[] GOOGLE_PROTOBUF_ATTRIBUT
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::prism::ExplGraphPath, nodes_),
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::prism::ExplGraphPath, sws_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::prism::ExplGraphPath, prob_switches_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::prism::ExplGraphPath, tensor_switches_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::prism::ExplGraphPath, operators_),
   ~0u,  // no _has_bits_
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::prism::ExplGraphNode, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -538,19 +515,15 @@ const ::google::protobuf::uint32 TableStruct::offsets[] GOOGLE_PROTOBUF_ATTRIBUT
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::prism::GoalTerm, name_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::prism::GoalTerm, args_),
   ~0u,  // no _has_bits_
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::prism::Value, _internal_metadata_),
-  ~0u,  // no _extensions_
-  ~0u,  // no _oneof_case_
-  ~0u,  // no _weak_field_map_
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::prism::Value, list_),
-  ~0u,  // no _has_bits_
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::prism::SwIns, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::prism::SwIns, id_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::prism::SwIns, name_),
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::prism::SwIns, value_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::prism::SwIns, values_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::prism::SwIns, inside_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::prism::SwIns, sw_type_),
   ~0u,  // no _has_bits_
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::prism::Root, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -569,20 +542,19 @@ const ::google::protobuf::uint32 TableStruct::offsets[] GOOGLE_PROTOBUF_ATTRIBUT
 static const ::google::protobuf::internal::MigrationSchema schemas[] GOOGLE_PROTOBUF_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
   { 0, -1, sizeof(::prism::PlaceholderData)},
   { 6, -1, sizeof(::prism::PlaceholderGoal)},
-  { 13, -1, sizeof(::prism::DataRecord)},
-  { 19, -1, sizeof(::prism::Placeholder)},
-  { 25, -1, sizeof(::prism::Option)},
-  { 32, -1, sizeof(::prism::Flag)},
-  { 39, -1, sizeof(::prism::IndexRange)},
-  { 46, -1, sizeof(::prism::ExplGraph)},
-  { 53, -1, sizeof(::prism::ExplGraphGoal)},
-  { 60, -1, sizeof(::prism::ExplGraphPath)},
-  { 67, -1, sizeof(::prism::ExplGraphNode)},
-  { 75, -1, sizeof(::prism::GoalTerm)},
-  { 82, -1, sizeof(::prism::Value)},
-  { 88, -1, sizeof(::prism::SwIns)},
-  { 96, -1, sizeof(::prism::Root)},
-  { 103, -1, sizeof(::prism::RankRoot)},
+  { 14, -1, sizeof(::prism::DataRecord)},
+  { 20, -1, sizeof(::prism::Placeholder)},
+  { 26, -1, sizeof(::prism::Option)},
+  { 33, -1, sizeof(::prism::Flag)},
+  { 40, -1, sizeof(::prism::IndexRange)},
+  { 47, -1, sizeof(::prism::ExplGraph)},
+  { 54, -1, sizeof(::prism::ExplGraphGoal)},
+  { 61, -1, sizeof(::prism::ExplGraphPath)},
+  { 70, -1, sizeof(::prism::ExplGraphNode)},
+  { 78, -1, sizeof(::prism::GoalTerm)},
+  { 85, -1, sizeof(::prism::SwIns)},
+  { 95, -1, sizeof(::prism::Root)},
+  { 102, -1, sizeof(::prism::RankRoot)},
 };
 
 static ::google::protobuf::Message const * const file_default_instances[] = {
@@ -598,7 +570,6 @@ static ::google::protobuf::Message const * const file_default_instances[] = {
   reinterpret_cast<const ::google::protobuf::Message*>(&::prism::_ExplGraphPath_default_instance_),
   reinterpret_cast<const ::google::protobuf::Message*>(&::prism::_ExplGraphNode_default_instance_),
   reinterpret_cast<const ::google::protobuf::Message*>(&::prism::_GoalTerm_default_instance_),
-  reinterpret_cast<const ::google::protobuf::Message*>(&::prism::_Value_default_instance_),
   reinterpret_cast<const ::google::protobuf::Message*>(&::prism::_SwIns_default_instance_),
   reinterpret_cast<const ::google::protobuf::Message*>(&::prism::_Root_default_instance_),
   reinterpret_cast<const ::google::protobuf::Message*>(&::prism::_RankRoot_default_instance_),
@@ -609,7 +580,7 @@ void protobuf_AssignDescriptors() {
   ::google::protobuf::MessageFactory* factory = NULL;
   AssignDescriptors(
       "expl.proto", schemas, file_default_instances, TableStruct::offsets, factory,
-      file_level_metadata, NULL, NULL);
+      file_level_metadata, file_level_enum_descriptors, NULL);
 }
 
 void protobuf_AssignDescriptorsOnce() {
@@ -620,39 +591,43 @@ void protobuf_AssignDescriptorsOnce() {
 void protobuf_RegisterTypes(const ::std::string&) GOOGLE_PROTOBUF_ATTRIBUTE_COLD;
 void protobuf_RegisterTypes(const ::std::string&) {
   protobuf_AssignDescriptorsOnce();
-  ::google::protobuf::internal::RegisterAllTypes(file_level_metadata, 16);
+  ::google::protobuf::internal::RegisterAllTypes(file_level_metadata, 15);
 }
 
 void AddDescriptorsImpl() {
   InitDefaults();
   static const char descriptor[] GOOGLE_PROTOBUF_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
       "\n\nexpl.proto\022\005prism\"8\n\017PlaceholderData\022%"
-      "\n\005goals\030\001 \003(\0132\026.prism.PlaceholderGoal\"_\n"
-      "\017PlaceholderGoal\022(\n\014placeholders\030\001 \003(\0132\022"
-      ".prism.Placeholder\022\"\n\007records\030\002 \003(\0132\021.pr"
-      "ism.DataRecord\"\033\n\nDataRecord\022\r\n\005items\030\002 "
-      "\003(\t\"\033\n\013Placeholder\022\014\n\004name\030\001 \001(\t\"L\n\006Opti"
-      "on\022\032\n\005flags\030\001 \003(\0132\013.prism.Flag\022&\n\013index_"
-      "range\030\002 \003(\0132\021.prism.IndexRange\"\"\n\004Flag\022\013"
-      "\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t\"*\n\nIndexRange"
-      "\022\r\n\005index\030\001 \001(\t\022\r\n\005range\030\002 \001(\005\"T\n\tExplGr"
-      "aph\022#\n\005goals\030\001 \003(\0132\024.prism.ExplGraphGoal"
-      "\022\"\n\troot_list\030\002 \003(\0132\017.prism.RankRoot\"X\n\r"
-      "ExplGraphGoal\022\"\n\004node\030\001 \001(\0132\024.prism.Expl"
-      "GraphNode\022#\n\005paths\030\002 \003(\0132\024.prism.ExplGra"
-      "phPath\"O\n\rExplGraphPath\022#\n\005nodes\030\001 \003(\0132\024"
-      ".prism.ExplGraphNode\022\031\n\003sws\030\002 \003(\0132\014.pris"
-      "m.SwIns\"M\n\rExplGraphNode\022\n\n\002id\030\001 \001(\005\022\021\n\t"
-      "sorted_id\030\002 \001(\005\022\035\n\004goal\030\003 \001(\0132\017.prism.Go"
-      "alTerm\"&\n\010GoalTerm\022\014\n\004name\030\001 \001(\t\022\014\n\004args"
-      "\030\002 \003(\t\"\025\n\005Value\022\014\n\004list\030\001 \003(\t\">\n\005SwIns\022\n"
-      "\n\002id\030\001 \001(\005\022\014\n\004name\030\002 \001(\t\022\033\n\005value\030\003 \001(\0132"
-      "\014.prism.Value\"%\n\004Root\022\n\n\002id\030\001 \001(\005\022\021\n\tsor"
-      "ted_id\030\002 \001(\005\"5\n\010RankRoot\022\032\n\005roots\030\001 \003(\0132"
-      "\013.prism.Root\022\r\n\005count\030\002 \001(\005b\006proto3"
+      "\n\005goals\030\001 \003(\0132\026.prism.PlaceholderGoal\"k\n"
+      "\017PlaceholderGoal\022\n\n\002id\030\001 \001(\005\022(\n\014placehol"
+      "ders\030\002 \003(\0132\022.prism.Placeholder\022\"\n\007record"
+      "s\030\003 \003(\0132\021.prism.DataRecord\"\033\n\nDataRecord"
+      "\022\r\n\005items\030\002 \003(\t\"\033\n\013Placeholder\022\014\n\004name\030\001"
+      " \001(\t\"L\n\006Option\022\032\n\005flags\030\001 \003(\0132\013.prism.Fl"
+      "ag\022&\n\013index_range\030\002 \003(\0132\021.prism.IndexRan"
+      "ge\"\"\n\004Flag\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t\"*"
+      "\n\nIndexRange\022\r\n\005index\030\001 \001(\t\022\r\n\005range\030\002 \001"
+      "(\005\"T\n\tExplGraph\022#\n\005goals\030\001 \003(\0132\024.prism.E"
+      "xplGraphGoal\022\"\n\troot_list\030\002 \003(\0132\017.prism."
+      "RankRoot\"X\n\rExplGraphGoal\022\"\n\004node\030\001 \001(\0132"
+      "\024.prism.ExplGraphNode\022#\n\005paths\030\002 \003(\0132\024.p"
+      "rism.ExplGraphPath\"\241\001\n\rExplGraphPath\022#\n\005"
+      "nodes\030\001 \003(\0132\024.prism.ExplGraphNode\022#\n\rpro"
+      "b_switches\030\002 \003(\0132\014.prism.SwIns\022%\n\017tensor"
+      "_switches\030\003 \003(\0132\014.prism.SwIns\022\037\n\toperato"
+      "rs\030\004 \003(\0132\014.prism.SwIns\"M\n\rExplGraphNode\022"
+      "\n\n\002id\030\001 \001(\005\022\021\n\tsorted_id\030\002 \001(\005\022\035\n\004goal\030\003"
+      " \001(\0132\017.prism.GoalTerm\"&\n\010GoalTerm\022\014\n\004nam"
+      "e\030\001 \001(\t\022\014\n\004args\030\002 \003(\t\"a\n\005SwIns\022\n\n\002id\030\001 \001"
+      "(\005\022\014\n\004name\030\002 \001(\t\022\016\n\006values\030\003 \003(\t\022\016\n\006insi"
+      "de\030\004 \001(\002\022\036\n\007sw_type\030\005 \001(\0162\r.prism.SwType"
+      "\"%\n\004Root\022\n\n\002id\030\001 \001(\005\022\021\n\tsorted_id\030\002 \001(\005\""
+      "5\n\010RankRoot\022\032\n\005roots\030\001 \003(\0132\013.prism.Root\022"
+      "\r\n\005count\030\002 \001(\005*5\n\006SwType\022\021\n\rProbabilisti"
+      "c\020\000\022\n\n\006Tensor\020\001\022\014\n\010Operator\020\002b\006proto3"
   };
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-      descriptor, 955);
+      descriptor, 1117);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "expl.proto", &protobuf_RegisterTypes);
 }
@@ -669,6 +644,21 @@ struct StaticDescriptorInitializer {
 } static_descriptor_initializer;
 }  // namespace protobuf_expl_2eproto
 namespace prism {
+const ::google::protobuf::EnumDescriptor* SwType_descriptor() {
+  protobuf_expl_2eproto::protobuf_AssignDescriptorsOnce();
+  return protobuf_expl_2eproto::file_level_enum_descriptors[0];
+}
+bool SwType_IsValid(int value) {
+  switch (value) {
+    case 0:
+    case 1:
+    case 2:
+      return true;
+    default:
+      return false;
+  }
+}
+
 
 // ===================================================================
 
@@ -916,6 +906,7 @@ void PlaceholderData::InternalSwap(PlaceholderData* other) {
 void PlaceholderGoal::InitAsDefaultInstance() {
 }
 #if !defined(_MSC_VER) || _MSC_VER >= 1900
+const int PlaceholderGoal::kIdFieldNumber;
 const int PlaceholderGoal::kPlaceholdersFieldNumber;
 const int PlaceholderGoal::kRecordsFieldNumber;
 #endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
@@ -935,10 +926,12 @@ PlaceholderGoal::PlaceholderGoal(const PlaceholderGoal& from)
       records_(from.records_),
       _cached_size_(0) {
   _internal_metadata_.MergeFrom(from._internal_metadata_);
+  id_ = from.id_;
   // @@protoc_insertion_point(copy_constructor:prism.PlaceholderGoal)
 }
 
 void PlaceholderGoal::SharedCtor() {
+  id_ = 0;
   _cached_size_ = 0;
 }
 
@@ -981,6 +974,7 @@ void PlaceholderGoal::Clear() {
 
   placeholders_.Clear();
   records_.Clear();
+  id_ = 0;
   _internal_metadata_.Clear();
 }
 
@@ -994,10 +988,24 @@ bool PlaceholderGoal::MergePartialFromCodedStream(
     tag = p.first;
     if (!p.second) goto handle_unusual;
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // repeated .prism.Placeholder placeholders = 1;
+      // int32 id = 1;
       case 1: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
-            static_cast< ::google::protobuf::uint8>(10u /* 10 & 0xFF */)) {
+            static_cast< ::google::protobuf::uint8>(8u /* 8 & 0xFF */)) {
+
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
+                 input, &id_)));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // repeated .prism.Placeholder placeholders = 2;
+      case 2: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(18u /* 18 & 0xFF */)) {
           DO_(::google::protobuf::internal::WireFormatLite::ReadMessage(input, add_placeholders()));
         } else {
           goto handle_unusual;
@@ -1005,10 +1013,10 @@ bool PlaceholderGoal::MergePartialFromCodedStream(
         break;
       }
 
-      // repeated .prism.DataRecord records = 2;
-      case 2: {
+      // repeated .prism.DataRecord records = 3;
+      case 3: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
-            static_cast< ::google::protobuf::uint8>(18u /* 18 & 0xFF */)) {
+            static_cast< ::google::protobuf::uint8>(26u /* 26 & 0xFF */)) {
           DO_(::google::protobuf::internal::WireFormatLite::ReadMessage(input, add_records()));
         } else {
           goto handle_unusual;
@@ -1042,18 +1050,23 @@ void PlaceholderGoal::SerializeWithCachedSizes(
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // repeated .prism.Placeholder placeholders = 1;
+  // int32 id = 1;
+  if (this->id() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteInt32(1, this->id(), output);
+  }
+
+  // repeated .prism.Placeholder placeholders = 2;
   for (unsigned int i = 0,
       n = static_cast<unsigned int>(this->placeholders_size()); i < n; i++) {
     ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
-      1, this->placeholders(static_cast<int>(i)), output);
+      2, this->placeholders(static_cast<int>(i)), output);
   }
 
-  // repeated .prism.DataRecord records = 2;
+  // repeated .prism.DataRecord records = 3;
   for (unsigned int i = 0,
       n = static_cast<unsigned int>(this->records_size()); i < n; i++) {
     ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
-      2, this->records(static_cast<int>(i)), output);
+      3, this->records(static_cast<int>(i)), output);
   }
 
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
@@ -1070,20 +1083,25 @@ void PlaceholderGoal::SerializeWithCachedSizes(
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // repeated .prism.Placeholder placeholders = 1;
+  // int32 id = 1;
+  if (this->id() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(1, this->id(), target);
+  }
+
+  // repeated .prism.Placeholder placeholders = 2;
   for (unsigned int i = 0,
       n = static_cast<unsigned int>(this->placeholders_size()); i < n; i++) {
     target = ::google::protobuf::internal::WireFormatLite::
       InternalWriteMessageToArray(
-        1, this->placeholders(static_cast<int>(i)), deterministic, target);
+        2, this->placeholders(static_cast<int>(i)), deterministic, target);
   }
 
-  // repeated .prism.DataRecord records = 2;
+  // repeated .prism.DataRecord records = 3;
   for (unsigned int i = 0,
       n = static_cast<unsigned int>(this->records_size()); i < n; i++) {
     target = ::google::protobuf::internal::WireFormatLite::
       InternalWriteMessageToArray(
-        2, this->records(static_cast<int>(i)), deterministic, target);
+        3, this->records(static_cast<int>(i)), deterministic, target);
   }
 
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
@@ -1103,7 +1121,7 @@ size_t PlaceholderGoal::ByteSizeLong() const {
       ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()));
   }
-  // repeated .prism.Placeholder placeholders = 1;
+  // repeated .prism.Placeholder placeholders = 2;
   {
     unsigned int count = static_cast<unsigned int>(this->placeholders_size());
     total_size += 1UL * count;
@@ -1114,7 +1132,7 @@ size_t PlaceholderGoal::ByteSizeLong() const {
     }
   }
 
-  // repeated .prism.DataRecord records = 2;
+  // repeated .prism.DataRecord records = 3;
   {
     unsigned int count = static_cast<unsigned int>(this->records_size());
     total_size += 1UL * count;
@@ -1123,6 +1141,13 @@ size_t PlaceholderGoal::ByteSizeLong() const {
         ::google::protobuf::internal::WireFormatLite::MessageSize(
           this->records(static_cast<int>(i)));
     }
+  }
+
+  // int32 id = 1;
+  if (this->id() != 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::Int32Size(
+        this->id());
   }
 
   int cached_size = ::google::protobuf::internal::ToCachedSize(total_size);
@@ -1156,6 +1181,9 @@ void PlaceholderGoal::MergeFrom(const PlaceholderGoal& from) {
 
   placeholders_.MergeFrom(from.placeholders_);
   records_.MergeFrom(from.records_);
+  if (from.id() != 0) {
+    set_id(from.id());
+  }
 }
 
 void PlaceholderGoal::CopyFrom(const ::google::protobuf::Message& from) {
@@ -1184,6 +1212,7 @@ void PlaceholderGoal::InternalSwap(PlaceholderGoal* other) {
   using std::swap;
   placeholders_.InternalSwap(&other->placeholders_);
   records_.InternalSwap(&other->records_);
+  swap(id_, other->id_);
   _internal_metadata_.Swap(&other->_internal_metadata_);
   swap(_cached_size_, other->_cached_size_);
 }
@@ -3170,7 +3199,9 @@ void ExplGraphPath::InitAsDefaultInstance() {
 }
 #if !defined(_MSC_VER) || _MSC_VER >= 1900
 const int ExplGraphPath::kNodesFieldNumber;
-const int ExplGraphPath::kSwsFieldNumber;
+const int ExplGraphPath::kProbSwitchesFieldNumber;
+const int ExplGraphPath::kTensorSwitchesFieldNumber;
+const int ExplGraphPath::kOperatorsFieldNumber;
 #endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
 
 ExplGraphPath::ExplGraphPath()
@@ -3185,7 +3216,9 @@ ExplGraphPath::ExplGraphPath(const ExplGraphPath& from)
   : ::google::protobuf::Message(),
       _internal_metadata_(NULL),
       nodes_(from.nodes_),
-      sws_(from.sws_),
+      prob_switches_(from.prob_switches_),
+      tensor_switches_(from.tensor_switches_),
+      operators_(from.operators_),
       _cached_size_(0) {
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   // @@protoc_insertion_point(copy_constructor:prism.ExplGraphPath)
@@ -3233,7 +3266,9 @@ void ExplGraphPath::Clear() {
   (void) cached_has_bits;
 
   nodes_.Clear();
-  sws_.Clear();
+  prob_switches_.Clear();
+  tensor_switches_.Clear();
+  operators_.Clear();
   _internal_metadata_.Clear();
 }
 
@@ -3258,11 +3293,33 @@ bool ExplGraphPath::MergePartialFromCodedStream(
         break;
       }
 
-      // repeated .prism.SwIns sws = 2;
+      // repeated .prism.SwIns prob_switches = 2;
       case 2: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
             static_cast< ::google::protobuf::uint8>(18u /* 18 & 0xFF */)) {
-          DO_(::google::protobuf::internal::WireFormatLite::ReadMessage(input, add_sws()));
+          DO_(::google::protobuf::internal::WireFormatLite::ReadMessage(input, add_prob_switches()));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // repeated .prism.SwIns tensor_switches = 3;
+      case 3: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(26u /* 26 & 0xFF */)) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadMessage(input, add_tensor_switches()));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // repeated .prism.SwIns operators = 4;
+      case 4: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(34u /* 34 & 0xFF */)) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadMessage(input, add_operators()));
         } else {
           goto handle_unusual;
         }
@@ -3302,11 +3359,25 @@ void ExplGraphPath::SerializeWithCachedSizes(
       1, this->nodes(static_cast<int>(i)), output);
   }
 
-  // repeated .prism.SwIns sws = 2;
+  // repeated .prism.SwIns prob_switches = 2;
   for (unsigned int i = 0,
-      n = static_cast<unsigned int>(this->sws_size()); i < n; i++) {
+      n = static_cast<unsigned int>(this->prob_switches_size()); i < n; i++) {
     ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
-      2, this->sws(static_cast<int>(i)), output);
+      2, this->prob_switches(static_cast<int>(i)), output);
+  }
+
+  // repeated .prism.SwIns tensor_switches = 3;
+  for (unsigned int i = 0,
+      n = static_cast<unsigned int>(this->tensor_switches_size()); i < n; i++) {
+    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
+      3, this->tensor_switches(static_cast<int>(i)), output);
+  }
+
+  // repeated .prism.SwIns operators = 4;
+  for (unsigned int i = 0,
+      n = static_cast<unsigned int>(this->operators_size()); i < n; i++) {
+    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
+      4, this->operators(static_cast<int>(i)), output);
   }
 
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
@@ -3331,12 +3402,28 @@ void ExplGraphPath::SerializeWithCachedSizes(
         1, this->nodes(static_cast<int>(i)), deterministic, target);
   }
 
-  // repeated .prism.SwIns sws = 2;
+  // repeated .prism.SwIns prob_switches = 2;
   for (unsigned int i = 0,
-      n = static_cast<unsigned int>(this->sws_size()); i < n; i++) {
+      n = static_cast<unsigned int>(this->prob_switches_size()); i < n; i++) {
     target = ::google::protobuf::internal::WireFormatLite::
       InternalWriteMessageToArray(
-        2, this->sws(static_cast<int>(i)), deterministic, target);
+        2, this->prob_switches(static_cast<int>(i)), deterministic, target);
+  }
+
+  // repeated .prism.SwIns tensor_switches = 3;
+  for (unsigned int i = 0,
+      n = static_cast<unsigned int>(this->tensor_switches_size()); i < n; i++) {
+    target = ::google::protobuf::internal::WireFormatLite::
+      InternalWriteMessageToArray(
+        3, this->tensor_switches(static_cast<int>(i)), deterministic, target);
+  }
+
+  // repeated .prism.SwIns operators = 4;
+  for (unsigned int i = 0,
+      n = static_cast<unsigned int>(this->operators_size()); i < n; i++) {
+    target = ::google::protobuf::internal::WireFormatLite::
+      InternalWriteMessageToArray(
+        4, this->operators(static_cast<int>(i)), deterministic, target);
   }
 
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
@@ -3367,14 +3454,36 @@ size_t ExplGraphPath::ByteSizeLong() const {
     }
   }
 
-  // repeated .prism.SwIns sws = 2;
+  // repeated .prism.SwIns prob_switches = 2;
   {
-    unsigned int count = static_cast<unsigned int>(this->sws_size());
+    unsigned int count = static_cast<unsigned int>(this->prob_switches_size());
     total_size += 1UL * count;
     for (unsigned int i = 0; i < count; i++) {
       total_size +=
         ::google::protobuf::internal::WireFormatLite::MessageSize(
-          this->sws(static_cast<int>(i)));
+          this->prob_switches(static_cast<int>(i)));
+    }
+  }
+
+  // repeated .prism.SwIns tensor_switches = 3;
+  {
+    unsigned int count = static_cast<unsigned int>(this->tensor_switches_size());
+    total_size += 1UL * count;
+    for (unsigned int i = 0; i < count; i++) {
+      total_size +=
+        ::google::protobuf::internal::WireFormatLite::MessageSize(
+          this->tensor_switches(static_cast<int>(i)));
+    }
+  }
+
+  // repeated .prism.SwIns operators = 4;
+  {
+    unsigned int count = static_cast<unsigned int>(this->operators_size());
+    total_size += 1UL * count;
+    for (unsigned int i = 0; i < count; i++) {
+      total_size +=
+        ::google::protobuf::internal::WireFormatLite::MessageSize(
+          this->operators(static_cast<int>(i)));
     }
   }
 
@@ -3408,7 +3517,9 @@ void ExplGraphPath::MergeFrom(const ExplGraphPath& from) {
   (void) cached_has_bits;
 
   nodes_.MergeFrom(from.nodes_);
-  sws_.MergeFrom(from.sws_);
+  prob_switches_.MergeFrom(from.prob_switches_);
+  tensor_switches_.MergeFrom(from.tensor_switches_);
+  operators_.MergeFrom(from.operators_);
 }
 
 void ExplGraphPath::CopyFrom(const ::google::protobuf::Message& from) {
@@ -3436,7 +3547,9 @@ void ExplGraphPath::Swap(ExplGraphPath* other) {
 void ExplGraphPath::InternalSwap(ExplGraphPath* other) {
   using std::swap;
   nodes_.InternalSwap(&other->nodes_);
-  sws_.InternalSwap(&other->sws_);
+  prob_switches_.InternalSwap(&other->prob_switches_);
+  tensor_switches_.InternalSwap(&other->tensor_switches_);
+  operators_.InternalSwap(&other->operators_);
   _internal_metadata_.Swap(&other->_internal_metadata_);
   swap(_cached_size_, other->_cached_size_);
 }
@@ -4084,263 +4197,14 @@ void GoalTerm::InternalSwap(GoalTerm* other) {
 
 // ===================================================================
 
-void Value::InitAsDefaultInstance() {
-}
-#if !defined(_MSC_VER) || _MSC_VER >= 1900
-const int Value::kListFieldNumber;
-#endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
-
-Value::Value()
-  : ::google::protobuf::Message(), _internal_metadata_(NULL) {
-  if (GOOGLE_PREDICT_TRUE(this != internal_default_instance())) {
-    ::protobuf_expl_2eproto::InitDefaultsValue();
-  }
-  SharedCtor();
-  // @@protoc_insertion_point(constructor:prism.Value)
-}
-Value::Value(const Value& from)
-  : ::google::protobuf::Message(),
-      _internal_metadata_(NULL),
-      list_(from.list_),
-      _cached_size_(0) {
-  _internal_metadata_.MergeFrom(from._internal_metadata_);
-  // @@protoc_insertion_point(copy_constructor:prism.Value)
-}
-
-void Value::SharedCtor() {
-  _cached_size_ = 0;
-}
-
-Value::~Value() {
-  // @@protoc_insertion_point(destructor:prism.Value)
-  SharedDtor();
-}
-
-void Value::SharedDtor() {
-}
-
-void Value::SetCachedSize(int size) const {
-  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
-  _cached_size_ = size;
-  GOOGLE_SAFE_CONCURRENT_WRITES_END();
-}
-const ::google::protobuf::Descriptor* Value::descriptor() {
-  ::protobuf_expl_2eproto::protobuf_AssignDescriptorsOnce();
-  return ::protobuf_expl_2eproto::file_level_metadata[kIndexInFileMessages].descriptor;
-}
-
-const Value& Value::default_instance() {
-  ::protobuf_expl_2eproto::InitDefaultsValue();
-  return *internal_default_instance();
-}
-
-Value* Value::New(::google::protobuf::Arena* arena) const {
-  Value* n = new Value;
-  if (arena != NULL) {
-    arena->Own(n);
-  }
-  return n;
-}
-
-void Value::Clear() {
-// @@protoc_insertion_point(message_clear_start:prism.Value)
-  ::google::protobuf::uint32 cached_has_bits = 0;
-  // Prevent compiler warnings about cached_has_bits being unused
-  (void) cached_has_bits;
-
-  list_.Clear();
-  _internal_metadata_.Clear();
-}
-
-bool Value::MergePartialFromCodedStream(
-    ::google::protobuf::io::CodedInputStream* input) {
-#define DO_(EXPRESSION) if (!GOOGLE_PREDICT_TRUE(EXPRESSION)) goto failure
-  ::google::protobuf::uint32 tag;
-  // @@protoc_insertion_point(parse_start:prism.Value)
-  for (;;) {
-    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
-    tag = p.first;
-    if (!p.second) goto handle_unusual;
-    switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // repeated string list = 1;
-      case 1: {
-        if (static_cast< ::google::protobuf::uint8>(tag) ==
-            static_cast< ::google::protobuf::uint8>(10u /* 10 & 0xFF */)) {
-          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
-                input, this->add_list()));
-          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-            this->list(this->list_size() - 1).data(),
-            static_cast<int>(this->list(this->list_size() - 1).length()),
-            ::google::protobuf::internal::WireFormatLite::PARSE,
-            "prism.Value.list"));
-        } else {
-          goto handle_unusual;
-        }
-        break;
-      }
-
-      default: {
-      handle_unusual:
-        if (tag == 0) {
-          goto success;
-        }
-        DO_(::google::protobuf::internal::WireFormat::SkipField(
-              input, tag, _internal_metadata_.mutable_unknown_fields()));
-        break;
-      }
-    }
-  }
-success:
-  // @@protoc_insertion_point(parse_success:prism.Value)
-  return true;
-failure:
-  // @@protoc_insertion_point(parse_failure:prism.Value)
-  return false;
-#undef DO_
-}
-
-void Value::SerializeWithCachedSizes(
-    ::google::protobuf::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:prism.Value)
-  ::google::protobuf::uint32 cached_has_bits = 0;
-  (void) cached_has_bits;
-
-  // repeated string list = 1;
-  for (int i = 0, n = this->list_size(); i < n; i++) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->list(i).data(), static_cast<int>(this->list(i).length()),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "prism.Value.list");
-    ::google::protobuf::internal::WireFormatLite::WriteString(
-      1, this->list(i), output);
-  }
-
-  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
-    ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
-        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), output);
-  }
-  // @@protoc_insertion_point(serialize_end:prism.Value)
-}
-
-::google::protobuf::uint8* Value::InternalSerializeWithCachedSizesToArray(
-    bool deterministic, ::google::protobuf::uint8* target) const {
-  (void)deterministic; // Unused
-  // @@protoc_insertion_point(serialize_to_array_start:prism.Value)
-  ::google::protobuf::uint32 cached_has_bits = 0;
-  (void) cached_has_bits;
-
-  // repeated string list = 1;
-  for (int i = 0, n = this->list_size(); i < n; i++) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->list(i).data(), static_cast<int>(this->list(i).length()),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "prism.Value.list");
-    target = ::google::protobuf::internal::WireFormatLite::
-      WriteStringToArray(1, this->list(i), target);
-  }
-
-  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
-    target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
-        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), target);
-  }
-  // @@protoc_insertion_point(serialize_to_array_end:prism.Value)
-  return target;
-}
-
-size_t Value::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:prism.Value)
-  size_t total_size = 0;
-
-  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
-    total_size +=
-      ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
-        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()));
-  }
-  // repeated string list = 1;
-  total_size += 1 *
-      ::google::protobuf::internal::FromIntSize(this->list_size());
-  for (int i = 0, n = this->list_size(); i < n; i++) {
-    total_size += ::google::protobuf::internal::WireFormatLite::StringSize(
-      this->list(i));
-  }
-
-  int cached_size = ::google::protobuf::internal::ToCachedSize(total_size);
-  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
-  _cached_size_ = cached_size;
-  GOOGLE_SAFE_CONCURRENT_WRITES_END();
-  return total_size;
-}
-
-void Value::MergeFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_merge_from_start:prism.Value)
-  GOOGLE_DCHECK_NE(&from, this);
-  const Value* source =
-      ::google::protobuf::internal::DynamicCastToGenerated<const Value>(
-          &from);
-  if (source == NULL) {
-  // @@protoc_insertion_point(generalized_merge_from_cast_fail:prism.Value)
-    ::google::protobuf::internal::ReflectionOps::Merge(from, this);
-  } else {
-  // @@protoc_insertion_point(generalized_merge_from_cast_success:prism.Value)
-    MergeFrom(*source);
-  }
-}
-
-void Value::MergeFrom(const Value& from) {
-// @@protoc_insertion_point(class_specific_merge_from_start:prism.Value)
-  GOOGLE_DCHECK_NE(&from, this);
-  _internal_metadata_.MergeFrom(from._internal_metadata_);
-  ::google::protobuf::uint32 cached_has_bits = 0;
-  (void) cached_has_bits;
-
-  list_.MergeFrom(from.list_);
-}
-
-void Value::CopyFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_copy_from_start:prism.Value)
-  if (&from == this) return;
-  Clear();
-  MergeFrom(from);
-}
-
-void Value::CopyFrom(const Value& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:prism.Value)
-  if (&from == this) return;
-  Clear();
-  MergeFrom(from);
-}
-
-bool Value::IsInitialized() const {
-  return true;
-}
-
-void Value::Swap(Value* other) {
-  if (other == this) return;
-  InternalSwap(other);
-}
-void Value::InternalSwap(Value* other) {
-  using std::swap;
-  list_.InternalSwap(&other->list_);
-  _internal_metadata_.Swap(&other->_internal_metadata_);
-  swap(_cached_size_, other->_cached_size_);
-}
-
-::google::protobuf::Metadata Value::GetMetadata() const {
-  protobuf_expl_2eproto::protobuf_AssignDescriptorsOnce();
-  return ::protobuf_expl_2eproto::file_level_metadata[kIndexInFileMessages];
-}
-
-
-// ===================================================================
-
 void SwIns::InitAsDefaultInstance() {
-  ::prism::_SwIns_default_instance_._instance.get_mutable()->value_ = const_cast< ::prism::Value*>(
-      ::prism::Value::internal_default_instance());
 }
 #if !defined(_MSC_VER) || _MSC_VER >= 1900
 const int SwIns::kIdFieldNumber;
 const int SwIns::kNameFieldNumber;
-const int SwIns::kValueFieldNumber;
+const int SwIns::kValuesFieldNumber;
+const int SwIns::kInsideFieldNumber;
+const int SwIns::kSwTypeFieldNumber;
 #endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
 
 SwIns::SwIns()
@@ -4354,26 +4218,24 @@ SwIns::SwIns()
 SwIns::SwIns(const SwIns& from)
   : ::google::protobuf::Message(),
       _internal_metadata_(NULL),
+      values_(from.values_),
       _cached_size_(0) {
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   name_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   if (from.name().size() > 0) {
     name_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.name_);
   }
-  if (from.has_value()) {
-    value_ = new ::prism::Value(*from.value_);
-  } else {
-    value_ = NULL;
-  }
-  id_ = from.id_;
+  ::memcpy(&id_, &from.id_,
+    static_cast<size_t>(reinterpret_cast<char*>(&sw_type_) -
+    reinterpret_cast<char*>(&id_)) + sizeof(sw_type_));
   // @@protoc_insertion_point(copy_constructor:prism.SwIns)
 }
 
 void SwIns::SharedCtor() {
   name_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-  ::memset(&value_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&id_) -
-      reinterpret_cast<char*>(&value_)) + sizeof(id_));
+  ::memset(&id_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&sw_type_) -
+      reinterpret_cast<char*>(&id_)) + sizeof(sw_type_));
   _cached_size_ = 0;
 }
 
@@ -4384,7 +4246,6 @@ SwIns::~SwIns() {
 
 void SwIns::SharedDtor() {
   name_.DestroyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-  if (this != internal_default_instance()) delete value_;
 }
 
 void SwIns::SetCachedSize(int size) const {
@@ -4416,12 +4277,11 @@ void SwIns::Clear() {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
+  values_.Clear();
   name_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-  if (GetArenaNoVirtual() == NULL && value_ != NULL) {
-    delete value_;
-  }
-  value_ = NULL;
-  id_ = 0;
+  ::memset(&id_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&sw_type_) -
+      reinterpret_cast<char*>(&id_)) + sizeof(sw_type_));
   _internal_metadata_.Clear();
 }
 
@@ -4465,12 +4325,46 @@ bool SwIns::MergePartialFromCodedStream(
         break;
       }
 
-      // .prism.Value value = 3;
+      // repeated string values = 3;
       case 3: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
             static_cast< ::google::protobuf::uint8>(26u /* 26 & 0xFF */)) {
-          DO_(::google::protobuf::internal::WireFormatLite::ReadMessage(
-               input, mutable_value()));
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->add_values()));
+          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+            this->values(this->values_size() - 1).data(),
+            static_cast<int>(this->values(this->values_size() - 1).length()),
+            ::google::protobuf::internal::WireFormatLite::PARSE,
+            "prism.SwIns.values"));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // float inside = 4;
+      case 4: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(37u /* 37 & 0xFF */)) {
+
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
+                 input, &inside_)));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // .prism.SwType sw_type = 5;
+      case 5: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(40u /* 40 & 0xFF */)) {
+          int value;
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   int, ::google::protobuf::internal::WireFormatLite::TYPE_ENUM>(
+                 input, &value)));
+          set_sw_type(static_cast< ::prism::SwType >(value));
         } else {
           goto handle_unusual;
         }
@@ -4518,10 +4412,25 @@ void SwIns::SerializeWithCachedSizes(
       2, this->name(), output);
   }
 
-  // .prism.Value value = 3;
-  if (this->has_value()) {
-    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
-      3, *this->value_, output);
+  // repeated string values = 3;
+  for (int i = 0, n = this->values_size(); i < n; i++) {
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+      this->values(i).data(), static_cast<int>(this->values(i).length()),
+      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
+      "prism.SwIns.values");
+    ::google::protobuf::internal::WireFormatLite::WriteString(
+      3, this->values(i), output);
+  }
+
+  // float inside = 4;
+  if (this->inside() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteFloat(4, this->inside(), output);
+  }
+
+  // .prism.SwType sw_type = 5;
+  if (this->sw_type() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteEnum(
+      5, this->sw_type(), output);
   }
 
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
@@ -4554,11 +4463,25 @@ void SwIns::SerializeWithCachedSizes(
         2, this->name(), target);
   }
 
-  // .prism.Value value = 3;
-  if (this->has_value()) {
+  // repeated string values = 3;
+  for (int i = 0, n = this->values_size(); i < n; i++) {
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+      this->values(i).data(), static_cast<int>(this->values(i).length()),
+      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
+      "prism.SwIns.values");
     target = ::google::protobuf::internal::WireFormatLite::
-      InternalWriteMessageToArray(
-        3, *this->value_, deterministic, target);
+      WriteStringToArray(3, this->values(i), target);
+  }
+
+  // float inside = 4;
+  if (this->inside() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteFloatToArray(4, this->inside(), target);
+  }
+
+  // .prism.SwType sw_type = 5;
+  if (this->sw_type() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteEnumToArray(
+      5, this->sw_type(), target);
   }
 
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
@@ -4578,6 +4501,14 @@ size_t SwIns::ByteSizeLong() const {
       ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()));
   }
+  // repeated string values = 3;
+  total_size += 1 *
+      ::google::protobuf::internal::FromIntSize(this->values_size());
+  for (int i = 0, n = this->values_size(); i < n; i++) {
+    total_size += ::google::protobuf::internal::WireFormatLite::StringSize(
+      this->values(i));
+  }
+
   // string name = 2;
   if (this->name().size() > 0) {
     total_size += 1 +
@@ -4585,18 +4516,22 @@ size_t SwIns::ByteSizeLong() const {
         this->name());
   }
 
-  // .prism.Value value = 3;
-  if (this->has_value()) {
-    total_size += 1 +
-      ::google::protobuf::internal::WireFormatLite::MessageSize(
-        *this->value_);
-  }
-
   // int32 id = 1;
   if (this->id() != 0) {
     total_size += 1 +
       ::google::protobuf::internal::WireFormatLite::Int32Size(
         this->id());
+  }
+
+  // float inside = 4;
+  if (this->inside() != 0) {
+    total_size += 1 + 4;
+  }
+
+  // .prism.SwType sw_type = 5;
+  if (this->sw_type() != 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::EnumSize(this->sw_type());
   }
 
   int cached_size = ::google::protobuf::internal::ToCachedSize(total_size);
@@ -4628,15 +4563,19 @@ void SwIns::MergeFrom(const SwIns& from) {
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
+  values_.MergeFrom(from.values_);
   if (from.name().size() > 0) {
 
     name_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.name_);
   }
-  if (from.has_value()) {
-    mutable_value()->::prism::Value::MergeFrom(from.value());
-  }
   if (from.id() != 0) {
     set_id(from.id());
+  }
+  if (from.inside() != 0) {
+    set_inside(from.inside());
+  }
+  if (from.sw_type() != 0) {
+    set_sw_type(from.sw_type());
   }
 }
 
@@ -4664,9 +4603,11 @@ void SwIns::Swap(SwIns* other) {
 }
 void SwIns::InternalSwap(SwIns* other) {
   using std::swap;
+  values_.InternalSwap(&other->values_);
   name_.Swap(&other->name_);
-  swap(value_, other->value_);
   swap(id_, other->id_);
+  swap(inside_, other->inside_);
+  swap(sw_type_, other->sw_type_);
   _internal_metadata_.Swap(&other->_internal_metadata_);
   swap(_cached_size_, other->_cached_size_);
 }

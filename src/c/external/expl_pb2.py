@@ -3,6 +3,7 @@
 
 import sys
 _b=sys.version_info[0]<3 and (lambda x:x) or (lambda x:x.encode('latin1'))
+from google.protobuf.internal import enum_type_wrapper
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
 from google.protobuf import reflection as _reflection
@@ -19,9 +20,39 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='expl.proto',
   package='prism',
   syntax='proto3',
-  serialized_pb=_b('\n\nexpl.proto\x12\x05prism\"8\n\x0fPlaceholderData\x12%\n\x05goals\x18\x01 \x03(\x0b\x32\x16.prism.PlaceholderGoal\"_\n\x0fPlaceholderGoal\x12(\n\x0cplaceholders\x18\x01 \x03(\x0b\x32\x12.prism.Placeholder\x12\"\n\x07records\x18\x02 \x03(\x0b\x32\x11.prism.DataRecord\"\x1b\n\nDataRecord\x12\r\n\x05items\x18\x02 \x03(\t\"\x1b\n\x0bPlaceholder\x12\x0c\n\x04name\x18\x01 \x01(\t\"L\n\x06Option\x12\x1a\n\x05\x66lags\x18\x01 \x03(\x0b\x32\x0b.prism.Flag\x12&\n\x0bindex_range\x18\x02 \x03(\x0b\x32\x11.prism.IndexRange\"\"\n\x04\x46lag\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\"*\n\nIndexRange\x12\r\n\x05index\x18\x01 \x01(\t\x12\r\n\x05range\x18\x02 \x01(\x05\"T\n\tExplGraph\x12#\n\x05goals\x18\x01 \x03(\x0b\x32\x14.prism.ExplGraphGoal\x12\"\n\troot_list\x18\x02 \x03(\x0b\x32\x0f.prism.RankRoot\"X\n\rExplGraphGoal\x12\"\n\x04node\x18\x01 \x01(\x0b\x32\x14.prism.ExplGraphNode\x12#\n\x05paths\x18\x02 \x03(\x0b\x32\x14.prism.ExplGraphPath\"O\n\rExplGraphPath\x12#\n\x05nodes\x18\x01 \x03(\x0b\x32\x14.prism.ExplGraphNode\x12\x19\n\x03sws\x18\x02 \x03(\x0b\x32\x0c.prism.SwIns\"M\n\rExplGraphNode\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x11\n\tsorted_id\x18\x02 \x01(\x05\x12\x1d\n\x04goal\x18\x03 \x01(\x0b\x32\x0f.prism.GoalTerm\"&\n\x08GoalTerm\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0c\n\x04\x61rgs\x18\x02 \x03(\t\"\x15\n\x05Value\x12\x0c\n\x04list\x18\x01 \x03(\t\">\n\x05SwIns\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x1b\n\x05value\x18\x03 \x01(\x0b\x32\x0c.prism.Value\"%\n\x04Root\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x11\n\tsorted_id\x18\x02 \x01(\x05\"5\n\x08RankRoot\x12\x1a\n\x05roots\x18\x01 \x03(\x0b\x32\x0b.prism.Root\x12\r\n\x05\x63ount\x18\x02 \x01(\x05\x62\x06proto3')
+  serialized_pb=_b('\n\nexpl.proto\x12\x05prism\"8\n\x0fPlaceholderData\x12%\n\x05goals\x18\x01 \x03(\x0b\x32\x16.prism.PlaceholderGoal\"k\n\x0fPlaceholderGoal\x12\n\n\x02id\x18\x01 \x01(\x05\x12(\n\x0cplaceholders\x18\x02 \x03(\x0b\x32\x12.prism.Placeholder\x12\"\n\x07records\x18\x03 \x03(\x0b\x32\x11.prism.DataRecord\"\x1b\n\nDataRecord\x12\r\n\x05items\x18\x02 \x03(\t\"\x1b\n\x0bPlaceholder\x12\x0c\n\x04name\x18\x01 \x01(\t\"L\n\x06Option\x12\x1a\n\x05\x66lags\x18\x01 \x03(\x0b\x32\x0b.prism.Flag\x12&\n\x0bindex_range\x18\x02 \x03(\x0b\x32\x11.prism.IndexRange\"\"\n\x04\x46lag\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\"*\n\nIndexRange\x12\r\n\x05index\x18\x01 \x01(\t\x12\r\n\x05range\x18\x02 \x01(\x05\"T\n\tExplGraph\x12#\n\x05goals\x18\x01 \x03(\x0b\x32\x14.prism.ExplGraphGoal\x12\"\n\troot_list\x18\x02 \x03(\x0b\x32\x0f.prism.RankRoot\"X\n\rExplGraphGoal\x12\"\n\x04node\x18\x01 \x01(\x0b\x32\x14.prism.ExplGraphNode\x12#\n\x05paths\x18\x02 \x03(\x0b\x32\x14.prism.ExplGraphPath\"\xa1\x01\n\rExplGraphPath\x12#\n\x05nodes\x18\x01 \x03(\x0b\x32\x14.prism.ExplGraphNode\x12#\n\rprob_switches\x18\x02 \x03(\x0b\x32\x0c.prism.SwIns\x12%\n\x0ftensor_switches\x18\x03 \x03(\x0b\x32\x0c.prism.SwIns\x12\x1f\n\toperators\x18\x04 \x03(\x0b\x32\x0c.prism.SwIns\"M\n\rExplGraphNode\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x11\n\tsorted_id\x18\x02 \x01(\x05\x12\x1d\n\x04goal\x18\x03 \x01(\x0b\x32\x0f.prism.GoalTerm\"&\n\x08GoalTerm\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0c\n\x04\x61rgs\x18\x02 \x03(\t\"a\n\x05SwIns\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x0e\n\x06values\x18\x03 \x03(\t\x12\x0e\n\x06inside\x18\x04 \x01(\x02\x12\x1e\n\x07sw_type\x18\x05 \x01(\x0e\x32\r.prism.SwType\"%\n\x04Root\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x11\n\tsorted_id\x18\x02 \x01(\x05\"5\n\x08RankRoot\x12\x1a\n\x05roots\x18\x01 \x03(\x0b\x32\x0b.prism.Root\x12\r\n\x05\x63ount\x18\x02 \x01(\x05*5\n\x06SwType\x12\x11\n\rProbabilistic\x10\x00\x12\n\n\x06Tensor\x10\x01\x12\x0c\n\x08Operator\x10\x02\x62\x06proto3')
 )
 
+_SWTYPE = _descriptor.EnumDescriptor(
+  name='SwType',
+  full_name='prism.SwType',
+  filename=None,
+  file=DESCRIPTOR,
+  values=[
+    _descriptor.EnumValueDescriptor(
+      name='Probabilistic', index=0, number=0,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='Tensor', index=1, number=1,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='Operator', index=2, number=2,
+      options=None,
+      type=None),
+  ],
+  containing_type=None,
+  options=None,
+  serialized_start=1056,
+  serialized_end=1109,
+)
+_sym_db.RegisterEnumDescriptor(_SWTYPE)
+
+SwType = enum_type_wrapper.EnumTypeWrapper(_SWTYPE)
+Probabilistic = 0
+Tensor = 1
+Operator = 2
 
 
 
@@ -64,15 +95,22 @@ _PLACEHOLDERGOAL = _descriptor.Descriptor(
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='placeholders', full_name='prism.PlaceholderGoal.placeholders', index=0,
-      number=1, type=11, cpp_type=10, label=3,
+      name='id', full_name='prism.PlaceholderGoal.id', index=0,
+      number=1, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='placeholders', full_name='prism.PlaceholderGoal.placeholders', index=1,
+      number=2, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='records', full_name='prism.PlaceholderGoal.records', index=1,
-      number=2, type=11, cpp_type=10, label=3,
+      name='records', full_name='prism.PlaceholderGoal.records', index=2,
+      number=3, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -90,7 +128,7 @@ _PLACEHOLDERGOAL = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=79,
-  serialized_end=174,
+  serialized_end=186,
 )
 
 
@@ -120,8 +158,8 @@ _DATARECORD = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=176,
-  serialized_end=203,
+  serialized_start=188,
+  serialized_end=215,
 )
 
 
@@ -151,8 +189,8 @@ _PLACEHOLDER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=205,
-  serialized_end=232,
+  serialized_start=217,
+  serialized_end=244,
 )
 
 
@@ -189,8 +227,8 @@ _OPTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=234,
-  serialized_end=310,
+  serialized_start=246,
+  serialized_end=322,
 )
 
 
@@ -227,8 +265,8 @@ _FLAG = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=312,
-  serialized_end=346,
+  serialized_start=324,
+  serialized_end=358,
 )
 
 
@@ -265,8 +303,8 @@ _INDEXRANGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=348,
-  serialized_end=390,
+  serialized_start=360,
+  serialized_end=402,
 )
 
 
@@ -303,8 +341,8 @@ _EXPLGRAPH = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=392,
-  serialized_end=476,
+  serialized_start=404,
+  serialized_end=488,
 )
 
 
@@ -341,8 +379,8 @@ _EXPLGRAPHGOAL = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=478,
-  serialized_end=566,
+  serialized_start=490,
+  serialized_end=578,
 )
 
 
@@ -361,8 +399,22 @@ _EXPLGRAPHPATH = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='sws', full_name='prism.ExplGraphPath.sws', index=1,
+      name='prob_switches', full_name='prism.ExplGraphPath.prob_switches', index=1,
       number=2, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='tensor_switches', full_name='prism.ExplGraphPath.tensor_switches', index=2,
+      number=3, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='operators', full_name='prism.ExplGraphPath.operators', index=3,
+      number=4, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -379,8 +431,8 @@ _EXPLGRAPHPATH = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=568,
-  serialized_end=647,
+  serialized_start=581,
+  serialized_end=742,
 )
 
 
@@ -424,8 +476,8 @@ _EXPLGRAPHNODE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=649,
-  serialized_end=726,
+  serialized_start=744,
+  serialized_end=821,
 )
 
 
@@ -462,39 +514,8 @@ _GOALTERM = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=728,
-  serialized_end=766,
-)
-
-
-_VALUE = _descriptor.Descriptor(
-  name='Value',
-  full_name='prism.Value',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='list', full_name='prism.Value.list', index=0,
-      number=1, type=9, cpp_type=9, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=768,
-  serialized_end=789,
+  serialized_start=823,
+  serialized_end=861,
 )
 
 
@@ -520,9 +541,23 @@ _SWINS = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='value', full_name='prism.SwIns.value', index=2,
-      number=3, type=11, cpp_type=10, label=1,
-      has_default_value=False, default_value=None,
+      name='values', full_name='prism.SwIns.values', index=2,
+      number=3, type=9, cpp_type=9, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='inside', full_name='prism.SwIns.inside', index=3,
+      number=4, type=2, cpp_type=6, label=1,
+      has_default_value=False, default_value=float(0),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='sw_type', full_name='prism.SwIns.sw_type', index=4,
+      number=5, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
@@ -538,8 +573,8 @@ _SWINS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=791,
-  serialized_end=853,
+  serialized_start=863,
+  serialized_end=960,
 )
 
 
@@ -576,8 +611,8 @@ _ROOT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=855,
-  serialized_end=892,
+  serialized_start=962,
+  serialized_end=999,
 )
 
 
@@ -614,8 +649,8 @@ _RANKROOT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=894,
-  serialized_end=947,
+  serialized_start=1001,
+  serialized_end=1054,
 )
 
 _PLACEHOLDERDATA.fields_by_name['goals'].message_type = _PLACEHOLDERGOAL
@@ -628,9 +663,11 @@ _EXPLGRAPH.fields_by_name['root_list'].message_type = _RANKROOT
 _EXPLGRAPHGOAL.fields_by_name['node'].message_type = _EXPLGRAPHNODE
 _EXPLGRAPHGOAL.fields_by_name['paths'].message_type = _EXPLGRAPHPATH
 _EXPLGRAPHPATH.fields_by_name['nodes'].message_type = _EXPLGRAPHNODE
-_EXPLGRAPHPATH.fields_by_name['sws'].message_type = _SWINS
+_EXPLGRAPHPATH.fields_by_name['prob_switches'].message_type = _SWINS
+_EXPLGRAPHPATH.fields_by_name['tensor_switches'].message_type = _SWINS
+_EXPLGRAPHPATH.fields_by_name['operators'].message_type = _SWINS
 _EXPLGRAPHNODE.fields_by_name['goal'].message_type = _GOALTERM
-_SWINS.fields_by_name['value'].message_type = _VALUE
+_SWINS.fields_by_name['sw_type'].enum_type = _SWTYPE
 _RANKROOT.fields_by_name['roots'].message_type = _ROOT
 DESCRIPTOR.message_types_by_name['PlaceholderData'] = _PLACEHOLDERDATA
 DESCRIPTOR.message_types_by_name['PlaceholderGoal'] = _PLACEHOLDERGOAL
@@ -644,10 +681,10 @@ DESCRIPTOR.message_types_by_name['ExplGraphGoal'] = _EXPLGRAPHGOAL
 DESCRIPTOR.message_types_by_name['ExplGraphPath'] = _EXPLGRAPHPATH
 DESCRIPTOR.message_types_by_name['ExplGraphNode'] = _EXPLGRAPHNODE
 DESCRIPTOR.message_types_by_name['GoalTerm'] = _GOALTERM
-DESCRIPTOR.message_types_by_name['Value'] = _VALUE
 DESCRIPTOR.message_types_by_name['SwIns'] = _SWINS
 DESCRIPTOR.message_types_by_name['Root'] = _ROOT
 DESCRIPTOR.message_types_by_name['RankRoot'] = _RANKROOT
+DESCRIPTOR.enum_types_by_name['SwType'] = _SWTYPE
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 PlaceholderData = _reflection.GeneratedProtocolMessageType('PlaceholderData', (_message.Message,), dict(
@@ -733,13 +770,6 @@ GoalTerm = _reflection.GeneratedProtocolMessageType('GoalTerm', (_message.Messag
   # @@protoc_insertion_point(class_scope:prism.GoalTerm)
   ))
 _sym_db.RegisterMessage(GoalTerm)
-
-Value = _reflection.GeneratedProtocolMessageType('Value', (_message.Message,), dict(
-  DESCRIPTOR = _VALUE,
-  __module__ = 'expl_pb2'
-  # @@protoc_insertion_point(class_scope:prism.Value)
-  ))
-_sym_db.RegisterMessage(Value)
 
 SwIns = _reflection.GeneratedProtocolMessageType('SwIns', (_message.Message,), dict(
   DESCRIPTOR = _SWINS,

@@ -25,13 +25,13 @@ LD          = gcc
 #CFLAGS     = -pg -Wall -I../bp4prism/include -I..
 
 ifeq ($(MATRIX),lapack)
-CFLAGS     = -fomit-frame-pointer -fno-strict-aliasing -Wall -I../bp4prism/include -I.. -I../resource/lapack -I../resource -I../up
-LDFLAGS     = -lm -lpthread -lgfortran  `pkg-config --cflags --libs protobuf`
+CFLAGS     = -fomit-frame-pointer -fno-strict-aliasing -Wall -I../bp4prism/include -I.. -I../resource/lapack -I../resource -I../up  `pkg-config --cflags hdf5-serial --libs` -l hdf5_cpp
+LDFLAGS     = -lm -lpthread -lgfortran  `pkg-config --cflags --libs protobuf`  `pkg-config --cflags hdf5-serial --libs` -l hdf5_cpp
 CXXFLAGS=$(CFLAGS)
 LD         = g++
 else
-CFLAGS     = -fomit-frame-pointer -fno-strict-aliasing -Wall -I../bp4prism/include -I.. -I../resource -I../up
-LDFLAGS    = -lm -lpthread `pkg-config --cflags --libs protobuf`
+CFLAGS     = -fomit-frame-pointer -fno-strict-aliasing -Wall -I../bp4prism/include -I.. -I../resource -I../up `pkg-config --cflags hdf5-serial --libs` -l hdf5_cpp
+LDFLAGS    = -lm -lpthread `pkg-config --cflags --libs protobuf` `pkg-config --cflags hdf5-serial --libs` -l hdf5_cpp
 CXXFLAGS=$(CFLAGS)
 LD         = g++
 endif
@@ -53,7 +53,7 @@ CFLAGS     += -DMPI
 endif
 
 ifeq ($(PLATFORM),linux)
-CFLAGS     += -DMALLOC_TRACE -DLINUX -DPOSIX -Dunix -DM64BITS -m64 -std=c++11 
+CFLAGS     += -DMALLOC_TRACE -DLINUX -DPOSIX -Dunix -DM64BITS -m64 -std=c++11
 LDFLAGS    += -m64
 endif
 

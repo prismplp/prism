@@ -28,6 +28,7 @@
 #include <google/protobuf/message.h>
 #include <google/protobuf/repeated_field.h>  // IWYU pragma: export
 #include <google/protobuf/extension_set.h>  // IWYU pragma: export
+#include <google/protobuf/generated_enum_reflection.h>
 #include <google/protobuf/unknown_field_set.h>
 // @@protoc_insertion_point(includes)
 
@@ -36,7 +37,7 @@ namespace protobuf_expl_2eproto {
 struct TableStruct {
   static const ::google::protobuf::internal::ParseTableField entries[];
   static const ::google::protobuf::internal::AuxillaryParseTableField aux[];
-  static const ::google::protobuf::internal::ParseTable schema[16];
+  static const ::google::protobuf::internal::ParseTable schema[15];
   static const ::google::protobuf::internal::FieldMetadata field_metadata[];
   static const ::google::protobuf::internal::SerializationTable serialization_table[];
   static const ::google::protobuf::uint32 offsets[];
@@ -66,8 +67,6 @@ void InitDefaultsExplGraphNodeImpl();
 void InitDefaultsExplGraphNode();
 void InitDefaultsGoalTermImpl();
 void InitDefaultsGoalTerm();
-void InitDefaultsValueImpl();
-void InitDefaultsValue();
 void InitDefaultsSwInsImpl();
 void InitDefaultsSwIns();
 void InitDefaultsRootImpl();
@@ -87,7 +86,6 @@ inline void InitDefaults() {
   InitDefaultsExplGraphPath();
   InitDefaultsExplGraphNode();
   InitDefaultsGoalTerm();
-  InitDefaultsValue();
   InitDefaultsSwIns();
   InitDefaultsRoot();
   InitDefaultsRankRoot();
@@ -139,12 +137,31 @@ extern RootDefaultTypeInternal _Root_default_instance_;
 class SwIns;
 class SwInsDefaultTypeInternal;
 extern SwInsDefaultTypeInternal _SwIns_default_instance_;
-class Value;
-class ValueDefaultTypeInternal;
-extern ValueDefaultTypeInternal _Value_default_instance_;
 }  // namespace prism
 namespace prism {
 
+enum SwType {
+  Probabilistic = 0,
+  Tensor = 1,
+  Operator = 2,
+  SwType_INT_MIN_SENTINEL_DO_NOT_USE_ = ::google::protobuf::kint32min,
+  SwType_INT_MAX_SENTINEL_DO_NOT_USE_ = ::google::protobuf::kint32max
+};
+bool SwType_IsValid(int value);
+const SwType SwType_MIN = Probabilistic;
+const SwType SwType_MAX = Operator;
+const int SwType_ARRAYSIZE = SwType_MAX + 1;
+
+const ::google::protobuf::EnumDescriptor* SwType_descriptor();
+inline const ::std::string& SwType_Name(SwType value) {
+  return ::google::protobuf::internal::NameOfEnum(
+    SwType_descriptor(), value);
+}
+inline bool SwType_Parse(
+    const ::std::string& name, SwType* value) {
+  return ::google::protobuf::internal::ParseNamedEnum<SwType>(
+    SwType_descriptor(), name, value);
+}
 // ===================================================================
 
 class PlaceholderData : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:prism.PlaceholderData) */ {
@@ -334,10 +351,10 @@ class PlaceholderGoal : public ::google::protobuf::Message /* @@protoc_insertion
 
   // accessors -------------------------------------------------------
 
-  // repeated .prism.Placeholder placeholders = 1;
+  // repeated .prism.Placeholder placeholders = 2;
   int placeholders_size() const;
   void clear_placeholders();
-  static const int kPlaceholdersFieldNumber = 1;
+  static const int kPlaceholdersFieldNumber = 2;
   const ::prism::Placeholder& placeholders(int index) const;
   ::prism::Placeholder* mutable_placeholders(int index);
   ::prism::Placeholder* add_placeholders();
@@ -346,10 +363,10 @@ class PlaceholderGoal : public ::google::protobuf::Message /* @@protoc_insertion
   const ::google::protobuf::RepeatedPtrField< ::prism::Placeholder >&
       placeholders() const;
 
-  // repeated .prism.DataRecord records = 2;
+  // repeated .prism.DataRecord records = 3;
   int records_size() const;
   void clear_records();
-  static const int kRecordsFieldNumber = 2;
+  static const int kRecordsFieldNumber = 3;
   const ::prism::DataRecord& records(int index) const;
   ::prism::DataRecord* mutable_records(int index);
   ::prism::DataRecord* add_records();
@@ -358,12 +375,19 @@ class PlaceholderGoal : public ::google::protobuf::Message /* @@protoc_insertion
   const ::google::protobuf::RepeatedPtrField< ::prism::DataRecord >&
       records() const;
 
+  // int32 id = 1;
+  void clear_id();
+  static const int kIdFieldNumber = 1;
+  ::google::protobuf::int32 id() const;
+  void set_id(::google::protobuf::int32 value);
+
   // @@protoc_insertion_point(class_scope:prism.PlaceholderGoal)
  private:
 
   ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
   ::google::protobuf::RepeatedPtrField< ::prism::Placeholder > placeholders_;
   ::google::protobuf::RepeatedPtrField< ::prism::DataRecord > records_;
+  ::google::protobuf::int32 id_;
   mutable int _cached_size_;
   friend struct ::protobuf_expl_2eproto::TableStruct;
   friend void ::protobuf_expl_2eproto::InitDefaultsPlaceholderGoalImpl();
@@ -1273,24 +1297,50 @@ class ExplGraphPath : public ::google::protobuf::Message /* @@protoc_insertion_p
   const ::google::protobuf::RepeatedPtrField< ::prism::ExplGraphNode >&
       nodes() const;
 
-  // repeated .prism.SwIns sws = 2;
-  int sws_size() const;
-  void clear_sws();
-  static const int kSwsFieldNumber = 2;
-  const ::prism::SwIns& sws(int index) const;
-  ::prism::SwIns* mutable_sws(int index);
-  ::prism::SwIns* add_sws();
+  // repeated .prism.SwIns prob_switches = 2;
+  int prob_switches_size() const;
+  void clear_prob_switches();
+  static const int kProbSwitchesFieldNumber = 2;
+  const ::prism::SwIns& prob_switches(int index) const;
+  ::prism::SwIns* mutable_prob_switches(int index);
+  ::prism::SwIns* add_prob_switches();
   ::google::protobuf::RepeatedPtrField< ::prism::SwIns >*
-      mutable_sws();
+      mutable_prob_switches();
   const ::google::protobuf::RepeatedPtrField< ::prism::SwIns >&
-      sws() const;
+      prob_switches() const;
+
+  // repeated .prism.SwIns tensor_switches = 3;
+  int tensor_switches_size() const;
+  void clear_tensor_switches();
+  static const int kTensorSwitchesFieldNumber = 3;
+  const ::prism::SwIns& tensor_switches(int index) const;
+  ::prism::SwIns* mutable_tensor_switches(int index);
+  ::prism::SwIns* add_tensor_switches();
+  ::google::protobuf::RepeatedPtrField< ::prism::SwIns >*
+      mutable_tensor_switches();
+  const ::google::protobuf::RepeatedPtrField< ::prism::SwIns >&
+      tensor_switches() const;
+
+  // repeated .prism.SwIns operators = 4;
+  int operators_size() const;
+  void clear_operators();
+  static const int kOperatorsFieldNumber = 4;
+  const ::prism::SwIns& operators(int index) const;
+  ::prism::SwIns* mutable_operators(int index);
+  ::prism::SwIns* add_operators();
+  ::google::protobuf::RepeatedPtrField< ::prism::SwIns >*
+      mutable_operators();
+  const ::google::protobuf::RepeatedPtrField< ::prism::SwIns >&
+      operators() const;
 
   // @@protoc_insertion_point(class_scope:prism.ExplGraphPath)
  private:
 
   ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
   ::google::protobuf::RepeatedPtrField< ::prism::ExplGraphNode > nodes_;
-  ::google::protobuf::RepeatedPtrField< ::prism::SwIns > sws_;
+  ::google::protobuf::RepeatedPtrField< ::prism::SwIns > prob_switches_;
+  ::google::protobuf::RepeatedPtrField< ::prism::SwIns > tensor_switches_;
+  ::google::protobuf::RepeatedPtrField< ::prism::SwIns > operators_;
   mutable int _cached_size_;
   friend struct ::protobuf_expl_2eproto::TableStruct;
   friend void ::protobuf_expl_2eproto::InitDefaultsExplGraphPathImpl();
@@ -1543,121 +1593,6 @@ class GoalTerm : public ::google::protobuf::Message /* @@protoc_insertion_point(
 };
 // -------------------------------------------------------------------
 
-class Value : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:prism.Value) */ {
- public:
-  Value();
-  virtual ~Value();
-
-  Value(const Value& from);
-
-  inline Value& operator=(const Value& from) {
-    CopyFrom(from);
-    return *this;
-  }
-  #if LANG_CXX11
-  Value(Value&& from) noexcept
-    : Value() {
-    *this = ::std::move(from);
-  }
-
-  inline Value& operator=(Value&& from) noexcept {
-    if (GetArenaNoVirtual() == from.GetArenaNoVirtual()) {
-      if (this != &from) InternalSwap(&from);
-    } else {
-      CopyFrom(from);
-    }
-    return *this;
-  }
-  #endif
-  static const ::google::protobuf::Descriptor* descriptor();
-  static const Value& default_instance();
-
-  static void InitAsDefaultInstance();  // FOR INTERNAL USE ONLY
-  static inline const Value* internal_default_instance() {
-    return reinterpret_cast<const Value*>(
-               &_Value_default_instance_);
-  }
-  static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
-    12;
-
-  void Swap(Value* other);
-  friend void swap(Value& a, Value& b) {
-    a.Swap(&b);
-  }
-
-  // implements Message ----------------------------------------------
-
-  inline Value* New() const PROTOBUF_FINAL { return New(NULL); }
-
-  Value* New(::google::protobuf::Arena* arena) const PROTOBUF_FINAL;
-  void CopyFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
-  void MergeFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
-  void CopyFrom(const Value& from);
-  void MergeFrom(const Value& from);
-  void Clear() PROTOBUF_FINAL;
-  bool IsInitialized() const PROTOBUF_FINAL;
-
-  size_t ByteSizeLong() const PROTOBUF_FINAL;
-  bool MergePartialFromCodedStream(
-      ::google::protobuf::io::CodedInputStream* input) PROTOBUF_FINAL;
-  void SerializeWithCachedSizes(
-      ::google::protobuf::io::CodedOutputStream* output) const PROTOBUF_FINAL;
-  ::google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
-      bool deterministic, ::google::protobuf::uint8* target) const PROTOBUF_FINAL;
-  int GetCachedSize() const PROTOBUF_FINAL { return _cached_size_; }
-  private:
-  void SharedCtor();
-  void SharedDtor();
-  void SetCachedSize(int size) const PROTOBUF_FINAL;
-  void InternalSwap(Value* other);
-  private:
-  inline ::google::protobuf::Arena* GetArenaNoVirtual() const {
-    return NULL;
-  }
-  inline void* MaybeArenaPtr() const {
-    return NULL;
-  }
-  public:
-
-  ::google::protobuf::Metadata GetMetadata() const PROTOBUF_FINAL;
-
-  // nested types ----------------------------------------------------
-
-  // accessors -------------------------------------------------------
-
-  // repeated string list = 1;
-  int list_size() const;
-  void clear_list();
-  static const int kListFieldNumber = 1;
-  const ::std::string& list(int index) const;
-  ::std::string* mutable_list(int index);
-  void set_list(int index, const ::std::string& value);
-  #if LANG_CXX11
-  void set_list(int index, ::std::string&& value);
-  #endif
-  void set_list(int index, const char* value);
-  void set_list(int index, const char* value, size_t size);
-  ::std::string* add_list();
-  void add_list(const ::std::string& value);
-  #if LANG_CXX11
-  void add_list(::std::string&& value);
-  #endif
-  void add_list(const char* value);
-  void add_list(const char* value, size_t size);
-  const ::google::protobuf::RepeatedPtrField< ::std::string>& list() const;
-  ::google::protobuf::RepeatedPtrField< ::std::string>* mutable_list();
-
-  // @@protoc_insertion_point(class_scope:prism.Value)
- private:
-
-  ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
-  ::google::protobuf::RepeatedPtrField< ::std::string> list_;
-  mutable int _cached_size_;
-  friend struct ::protobuf_expl_2eproto::TableStruct;
-  friend void ::protobuf_expl_2eproto::InitDefaultsValueImpl();
-};
-// -------------------------------------------------------------------
-
 class SwIns : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:prism.SwIns) */ {
  public:
   SwIns();
@@ -1693,7 +1628,7 @@ class SwIns : public ::google::protobuf::Message /* @@protoc_insertion_point(cla
                &_SwIns_default_instance_);
   }
   static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
-    13;
+    12;
 
   void Swap(SwIns* other);
   friend void swap(SwIns& a, SwIns& b) {
@@ -1740,6 +1675,28 @@ class SwIns : public ::google::protobuf::Message /* @@protoc_insertion_point(cla
 
   // accessors -------------------------------------------------------
 
+  // repeated string values = 3;
+  int values_size() const;
+  void clear_values();
+  static const int kValuesFieldNumber = 3;
+  const ::std::string& values(int index) const;
+  ::std::string* mutable_values(int index);
+  void set_values(int index, const ::std::string& value);
+  #if LANG_CXX11
+  void set_values(int index, ::std::string&& value);
+  #endif
+  void set_values(int index, const char* value);
+  void set_values(int index, const char* value, size_t size);
+  ::std::string* add_values();
+  void add_values(const ::std::string& value);
+  #if LANG_CXX11
+  void add_values(::std::string&& value);
+  #endif
+  void add_values(const char* value);
+  void add_values(const char* value, size_t size);
+  const ::google::protobuf::RepeatedPtrField< ::std::string>& values() const;
+  ::google::protobuf::RepeatedPtrField< ::std::string>* mutable_values();
+
   // string name = 2;
   void clear_name();
   static const int kNameFieldNumber = 2;
@@ -1754,28 +1711,33 @@ class SwIns : public ::google::protobuf::Message /* @@protoc_insertion_point(cla
   ::std::string* release_name();
   void set_allocated_name(::std::string* name);
 
-  // .prism.Value value = 3;
-  bool has_value() const;
-  void clear_value();
-  static const int kValueFieldNumber = 3;
-  const ::prism::Value& value() const;
-  ::prism::Value* release_value();
-  ::prism::Value* mutable_value();
-  void set_allocated_value(::prism::Value* value);
-
   // int32 id = 1;
   void clear_id();
   static const int kIdFieldNumber = 1;
   ::google::protobuf::int32 id() const;
   void set_id(::google::protobuf::int32 value);
 
+  // float inside = 4;
+  void clear_inside();
+  static const int kInsideFieldNumber = 4;
+  float inside() const;
+  void set_inside(float value);
+
+  // .prism.SwType sw_type = 5;
+  void clear_sw_type();
+  static const int kSwTypeFieldNumber = 5;
+  ::prism::SwType sw_type() const;
+  void set_sw_type(::prism::SwType value);
+
   // @@protoc_insertion_point(class_scope:prism.SwIns)
  private:
 
   ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
+  ::google::protobuf::RepeatedPtrField< ::std::string> values_;
   ::google::protobuf::internal::ArenaStringPtr name_;
-  ::prism::Value* value_;
   ::google::protobuf::int32 id_;
+  float inside_;
+  int sw_type_;
   mutable int _cached_size_;
   friend struct ::protobuf_expl_2eproto::TableStruct;
   friend void ::protobuf_expl_2eproto::InitDefaultsSwInsImpl();
@@ -1817,7 +1779,7 @@ class Root : public ::google::protobuf::Message /* @@protoc_insertion_point(clas
                &_Root_default_instance_);
   }
   static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
-    14;
+    13;
 
   void Swap(Root* other);
   friend void swap(Root& a, Root& b) {
@@ -1923,7 +1885,7 @@ class RankRoot : public ::google::protobuf::Message /* @@protoc_insertion_point(
                &_RankRoot_default_instance_);
   }
   static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
-    15;
+    14;
 
   void Swap(RankRoot* other);
   friend void swap(RankRoot& a, RankRoot& b) {
@@ -2043,7 +2005,21 @@ PlaceholderData::goals() const {
 
 // PlaceholderGoal
 
-// repeated .prism.Placeholder placeholders = 1;
+// int32 id = 1;
+inline void PlaceholderGoal::clear_id() {
+  id_ = 0;
+}
+inline ::google::protobuf::int32 PlaceholderGoal::id() const {
+  // @@protoc_insertion_point(field_get:prism.PlaceholderGoal.id)
+  return id_;
+}
+inline void PlaceholderGoal::set_id(::google::protobuf::int32 value) {
+  
+  id_ = value;
+  // @@protoc_insertion_point(field_set:prism.PlaceholderGoal.id)
+}
+
+// repeated .prism.Placeholder placeholders = 2;
 inline int PlaceholderGoal::placeholders_size() const {
   return placeholders_.size();
 }
@@ -2073,7 +2049,7 @@ PlaceholderGoal::placeholders() const {
   return placeholders_;
 }
 
-// repeated .prism.DataRecord records = 2;
+// repeated .prism.DataRecord records = 3;
 inline int PlaceholderGoal::records_size() const {
   return records_.size();
 }
@@ -2660,34 +2636,94 @@ ExplGraphPath::nodes() const {
   return nodes_;
 }
 
-// repeated .prism.SwIns sws = 2;
-inline int ExplGraphPath::sws_size() const {
-  return sws_.size();
+// repeated .prism.SwIns prob_switches = 2;
+inline int ExplGraphPath::prob_switches_size() const {
+  return prob_switches_.size();
 }
-inline void ExplGraphPath::clear_sws() {
-  sws_.Clear();
+inline void ExplGraphPath::clear_prob_switches() {
+  prob_switches_.Clear();
 }
-inline const ::prism::SwIns& ExplGraphPath::sws(int index) const {
-  // @@protoc_insertion_point(field_get:prism.ExplGraphPath.sws)
-  return sws_.Get(index);
+inline const ::prism::SwIns& ExplGraphPath::prob_switches(int index) const {
+  // @@protoc_insertion_point(field_get:prism.ExplGraphPath.prob_switches)
+  return prob_switches_.Get(index);
 }
-inline ::prism::SwIns* ExplGraphPath::mutable_sws(int index) {
-  // @@protoc_insertion_point(field_mutable:prism.ExplGraphPath.sws)
-  return sws_.Mutable(index);
+inline ::prism::SwIns* ExplGraphPath::mutable_prob_switches(int index) {
+  // @@protoc_insertion_point(field_mutable:prism.ExplGraphPath.prob_switches)
+  return prob_switches_.Mutable(index);
 }
-inline ::prism::SwIns* ExplGraphPath::add_sws() {
-  // @@protoc_insertion_point(field_add:prism.ExplGraphPath.sws)
-  return sws_.Add();
+inline ::prism::SwIns* ExplGraphPath::add_prob_switches() {
+  // @@protoc_insertion_point(field_add:prism.ExplGraphPath.prob_switches)
+  return prob_switches_.Add();
 }
 inline ::google::protobuf::RepeatedPtrField< ::prism::SwIns >*
-ExplGraphPath::mutable_sws() {
-  // @@protoc_insertion_point(field_mutable_list:prism.ExplGraphPath.sws)
-  return &sws_;
+ExplGraphPath::mutable_prob_switches() {
+  // @@protoc_insertion_point(field_mutable_list:prism.ExplGraphPath.prob_switches)
+  return &prob_switches_;
 }
 inline const ::google::protobuf::RepeatedPtrField< ::prism::SwIns >&
-ExplGraphPath::sws() const {
-  // @@protoc_insertion_point(field_list:prism.ExplGraphPath.sws)
-  return sws_;
+ExplGraphPath::prob_switches() const {
+  // @@protoc_insertion_point(field_list:prism.ExplGraphPath.prob_switches)
+  return prob_switches_;
+}
+
+// repeated .prism.SwIns tensor_switches = 3;
+inline int ExplGraphPath::tensor_switches_size() const {
+  return tensor_switches_.size();
+}
+inline void ExplGraphPath::clear_tensor_switches() {
+  tensor_switches_.Clear();
+}
+inline const ::prism::SwIns& ExplGraphPath::tensor_switches(int index) const {
+  // @@protoc_insertion_point(field_get:prism.ExplGraphPath.tensor_switches)
+  return tensor_switches_.Get(index);
+}
+inline ::prism::SwIns* ExplGraphPath::mutable_tensor_switches(int index) {
+  // @@protoc_insertion_point(field_mutable:prism.ExplGraphPath.tensor_switches)
+  return tensor_switches_.Mutable(index);
+}
+inline ::prism::SwIns* ExplGraphPath::add_tensor_switches() {
+  // @@protoc_insertion_point(field_add:prism.ExplGraphPath.tensor_switches)
+  return tensor_switches_.Add();
+}
+inline ::google::protobuf::RepeatedPtrField< ::prism::SwIns >*
+ExplGraphPath::mutable_tensor_switches() {
+  // @@protoc_insertion_point(field_mutable_list:prism.ExplGraphPath.tensor_switches)
+  return &tensor_switches_;
+}
+inline const ::google::protobuf::RepeatedPtrField< ::prism::SwIns >&
+ExplGraphPath::tensor_switches() const {
+  // @@protoc_insertion_point(field_list:prism.ExplGraphPath.tensor_switches)
+  return tensor_switches_;
+}
+
+// repeated .prism.SwIns operators = 4;
+inline int ExplGraphPath::operators_size() const {
+  return operators_.size();
+}
+inline void ExplGraphPath::clear_operators() {
+  operators_.Clear();
+}
+inline const ::prism::SwIns& ExplGraphPath::operators(int index) const {
+  // @@protoc_insertion_point(field_get:prism.ExplGraphPath.operators)
+  return operators_.Get(index);
+}
+inline ::prism::SwIns* ExplGraphPath::mutable_operators(int index) {
+  // @@protoc_insertion_point(field_mutable:prism.ExplGraphPath.operators)
+  return operators_.Mutable(index);
+}
+inline ::prism::SwIns* ExplGraphPath::add_operators() {
+  // @@protoc_insertion_point(field_add:prism.ExplGraphPath.operators)
+  return operators_.Add();
+}
+inline ::google::protobuf::RepeatedPtrField< ::prism::SwIns >*
+ExplGraphPath::mutable_operators() {
+  // @@protoc_insertion_point(field_mutable_list:prism.ExplGraphPath.operators)
+  return &operators_;
+}
+inline const ::google::protobuf::RepeatedPtrField< ::prism::SwIns >&
+ExplGraphPath::operators() const {
+  // @@protoc_insertion_point(field_list:prism.ExplGraphPath.operators)
+  return operators_;
 }
 
 // -------------------------------------------------------------------
@@ -2900,79 +2936,6 @@ GoalTerm::mutable_args() {
 
 // -------------------------------------------------------------------
 
-// Value
-
-// repeated string list = 1;
-inline int Value::list_size() const {
-  return list_.size();
-}
-inline void Value::clear_list() {
-  list_.Clear();
-}
-inline const ::std::string& Value::list(int index) const {
-  // @@protoc_insertion_point(field_get:prism.Value.list)
-  return list_.Get(index);
-}
-inline ::std::string* Value::mutable_list(int index) {
-  // @@protoc_insertion_point(field_mutable:prism.Value.list)
-  return list_.Mutable(index);
-}
-inline void Value::set_list(int index, const ::std::string& value) {
-  // @@protoc_insertion_point(field_set:prism.Value.list)
-  list_.Mutable(index)->assign(value);
-}
-#if LANG_CXX11
-inline void Value::set_list(int index, ::std::string&& value) {
-  // @@protoc_insertion_point(field_set:prism.Value.list)
-  list_.Mutable(index)->assign(std::move(value));
-}
-#endif
-inline void Value::set_list(int index, const char* value) {
-  GOOGLE_DCHECK(value != NULL);
-  list_.Mutable(index)->assign(value);
-  // @@protoc_insertion_point(field_set_char:prism.Value.list)
-}
-inline void Value::set_list(int index, const char* value, size_t size) {
-  list_.Mutable(index)->assign(
-    reinterpret_cast<const char*>(value), size);
-  // @@protoc_insertion_point(field_set_pointer:prism.Value.list)
-}
-inline ::std::string* Value::add_list() {
-  // @@protoc_insertion_point(field_add_mutable:prism.Value.list)
-  return list_.Add();
-}
-inline void Value::add_list(const ::std::string& value) {
-  list_.Add()->assign(value);
-  // @@protoc_insertion_point(field_add:prism.Value.list)
-}
-#if LANG_CXX11
-inline void Value::add_list(::std::string&& value) {
-  list_.Add(std::move(value));
-  // @@protoc_insertion_point(field_add:prism.Value.list)
-}
-#endif
-inline void Value::add_list(const char* value) {
-  GOOGLE_DCHECK(value != NULL);
-  list_.Add()->assign(value);
-  // @@protoc_insertion_point(field_add_char:prism.Value.list)
-}
-inline void Value::add_list(const char* value, size_t size) {
-  list_.Add()->assign(reinterpret_cast<const char*>(value), size);
-  // @@protoc_insertion_point(field_add_pointer:prism.Value.list)
-}
-inline const ::google::protobuf::RepeatedPtrField< ::std::string>&
-Value::list() const {
-  // @@protoc_insertion_point(field_list:prism.Value.list)
-  return list_;
-}
-inline ::google::protobuf::RepeatedPtrField< ::std::string>*
-Value::mutable_list() {
-  // @@protoc_insertion_point(field_mutable_list:prism.Value.list)
-  return &list_;
-}
-
-// -------------------------------------------------------------------
-
 // SwIns
 
 // int32 id = 1;
@@ -3042,54 +3005,101 @@ inline void SwIns::set_allocated_name(::std::string* name) {
   // @@protoc_insertion_point(field_set_allocated:prism.SwIns.name)
 }
 
-// .prism.Value value = 3;
-inline bool SwIns::has_value() const {
-  return this != internal_default_instance() && value_ != NULL;
+// repeated string values = 3;
+inline int SwIns::values_size() const {
+  return values_.size();
 }
-inline void SwIns::clear_value() {
-  if (GetArenaNoVirtual() == NULL && value_ != NULL) {
-    delete value_;
-  }
-  value_ = NULL;
+inline void SwIns::clear_values() {
+  values_.Clear();
 }
-inline const ::prism::Value& SwIns::value() const {
-  const ::prism::Value* p = value_;
-  // @@protoc_insertion_point(field_get:prism.SwIns.value)
-  return p != NULL ? *p : *reinterpret_cast<const ::prism::Value*>(
-      &::prism::_Value_default_instance_);
+inline const ::std::string& SwIns::values(int index) const {
+  // @@protoc_insertion_point(field_get:prism.SwIns.values)
+  return values_.Get(index);
 }
-inline ::prism::Value* SwIns::release_value() {
-  // @@protoc_insertion_point(field_release:prism.SwIns.value)
+inline ::std::string* SwIns::mutable_values(int index) {
+  // @@protoc_insertion_point(field_mutable:prism.SwIns.values)
+  return values_.Mutable(index);
+}
+inline void SwIns::set_values(int index, const ::std::string& value) {
+  // @@protoc_insertion_point(field_set:prism.SwIns.values)
+  values_.Mutable(index)->assign(value);
+}
+#if LANG_CXX11
+inline void SwIns::set_values(int index, ::std::string&& value) {
+  // @@protoc_insertion_point(field_set:prism.SwIns.values)
+  values_.Mutable(index)->assign(std::move(value));
+}
+#endif
+inline void SwIns::set_values(int index, const char* value) {
+  GOOGLE_DCHECK(value != NULL);
+  values_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:prism.SwIns.values)
+}
+inline void SwIns::set_values(int index, const char* value, size_t size) {
+  values_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:prism.SwIns.values)
+}
+inline ::std::string* SwIns::add_values() {
+  // @@protoc_insertion_point(field_add_mutable:prism.SwIns.values)
+  return values_.Add();
+}
+inline void SwIns::add_values(const ::std::string& value) {
+  values_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:prism.SwIns.values)
+}
+#if LANG_CXX11
+inline void SwIns::add_values(::std::string&& value) {
+  values_.Add(std::move(value));
+  // @@protoc_insertion_point(field_add:prism.SwIns.values)
+}
+#endif
+inline void SwIns::add_values(const char* value) {
+  GOOGLE_DCHECK(value != NULL);
+  values_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:prism.SwIns.values)
+}
+inline void SwIns::add_values(const char* value, size_t size) {
+  values_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:prism.SwIns.values)
+}
+inline const ::google::protobuf::RepeatedPtrField< ::std::string>&
+SwIns::values() const {
+  // @@protoc_insertion_point(field_list:prism.SwIns.values)
+  return values_;
+}
+inline ::google::protobuf::RepeatedPtrField< ::std::string>*
+SwIns::mutable_values() {
+  // @@protoc_insertion_point(field_mutable_list:prism.SwIns.values)
+  return &values_;
+}
+
+// float inside = 4;
+inline void SwIns::clear_inside() {
+  inside_ = 0;
+}
+inline float SwIns::inside() const {
+  // @@protoc_insertion_point(field_get:prism.SwIns.inside)
+  return inside_;
+}
+inline void SwIns::set_inside(float value) {
   
-  ::prism::Value* temp = value_;
-  value_ = NULL;
-  return temp;
+  inside_ = value;
+  // @@protoc_insertion_point(field_set:prism.SwIns.inside)
 }
-inline ::prism::Value* SwIns::mutable_value() {
+
+// .prism.SwType sw_type = 5;
+inline void SwIns::clear_sw_type() {
+  sw_type_ = 0;
+}
+inline ::prism::SwType SwIns::sw_type() const {
+  // @@protoc_insertion_point(field_get:prism.SwIns.sw_type)
+  return static_cast< ::prism::SwType >(sw_type_);
+}
+inline void SwIns::set_sw_type(::prism::SwType value) {
   
-  if (value_ == NULL) {
-    value_ = new ::prism::Value;
-  }
-  // @@protoc_insertion_point(field_mutable:prism.SwIns.value)
-  return value_;
-}
-inline void SwIns::set_allocated_value(::prism::Value* value) {
-  ::google::protobuf::Arena* message_arena = GetArenaNoVirtual();
-  if (message_arena == NULL) {
-    delete value_;
-  }
-  if (value) {
-    ::google::protobuf::Arena* submessage_arena = NULL;
-    if (message_arena != submessage_arena) {
-      value = ::google::protobuf::internal::GetOwnedMessage(
-          message_arena, value, submessage_arena);
-    }
-    
-  } else {
-    
-  }
-  value_ = value;
-  // @@protoc_insertion_point(field_set_allocated:prism.SwIns.value)
+  sw_type_ = value;
+  // @@protoc_insertion_point(field_set:prism.SwIns.sw_type)
 }
 
 // -------------------------------------------------------------------
@@ -3203,12 +3213,22 @@ inline void RankRoot::set_count(::google::protobuf::int32 value) {
 
 // -------------------------------------------------------------------
 
-// -------------------------------------------------------------------
-
 
 // @@protoc_insertion_point(namespace_scope)
 
 }  // namespace prism
+
+namespace google {
+namespace protobuf {
+
+template <> struct is_proto_enum< ::prism::SwType> : ::google::protobuf::internal::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::prism::SwType>() {
+  return ::prism::SwType_descriptor();
+}
+
+}  // namespace protobuf
+}  // namespace google
 
 // @@protoc_insertion_point(global_scope)
 
