@@ -17,9 +17,104 @@ import pickle
 import h5py
 
 import op.base
+import loss.base
    
 
 
+class CycleEmbeddingGenerator():
+	def __init__(self):
+		self.embedding={}
+		self.index_range={}
+	def load(self,options):
+		self.index_range={el.index:el.range for el in options.index_range}
+	##
+	def template2shape(self,template):
+		return [self.index_range[t] for t in template]
+	def is_dataset_embedding(self,vocab_name):
+		return (vocab_name in self.dataset)
+	def get_embedding(self,name,shape,node_id):
+		ph_name=name+"_cyc"
+		if ph_name in self.embedding:
+			return self.embedding[ph_name]["tensor"]
+		else:
+			self.embedding[ph_name]={}
+			self.embedding[ph_name]["tensor"]=tf.placeholder(name=ph_name,shape=shape,dtype=tf.float32)
+			self.embedding[ph_name]["data"]=np.zeros(shape=shape,dtype=np.float32)
+			self.embedding[ph_name]["id"]=node_id
+			return self.embedding[ph_name]["tensor"]
+	def build_feed(self,feed_dict):
+		for ph_name,data in self.embedding.items():
+			#batch_data=data[idx]
+			batch_data=data["data"]
+			ph_var=data["tensor"]
+			feed_dict[ph_var]=batch_data
+		return feed_dict
+	def update(self,out_inside):
+		total_loss=0
+		for ph_name,data in self.embedding.items():
+			node_id=data["id"]
+			##
+			loss=self.embedding[ph_name]["data"]-out_inside[node_id]
+			total_loss+=np.mean(loss**2)	
+			##
+			self.embedding[ph_name]["data"]=out_inside[node_id]
+		return total_loss
+
+
+class EmbeddingGenerator():
+	def __init__(self):
+		self.gather_in_flow=False
+		self.dataset={}
+		self.ph_var={}
+		self.vocabset_ph_var=None
+		self.vocabset_vocab_ph=None
+	def load(self,filename,key="train"):
+		infh = h5py.File(filename, 'r')
+		if key in infh:
+			for vocab_name in infh[key]:
+				rs=infh[key][vocab_name].value
+				self.dataset[vocab_name]=rs
+				print(">>>>>>>>>>",vocab_name)
+		infh.close()
+	def init(self,vocab_ph,ph_var):
+		self.vocabset_ph_var=ph_var
+		self.vocabset_vocab_ph=vocab_ph
+	def is_dataset_embedding(self,vocab_name):
+		return (vocab_name in self.dataset)
+	
+	def get_embedding(self,vocab_name,shape):
+		ph_name=vocab_name+"_ph"
+		if ph_name in self.ph_var:
+			return self.ph_var[ph_name]
+		elif ph_name in self.vocabset_ph_var:
+			return self.vocabset_ph_var[ph_name]
+		else:
+			self.ph_var[ph_name]=tf.placeholder(name=ph_name,
+				shape=shape,dtype=tf.float32)
+			print(">>>",ph_name,":",shape)
+			return self.ph_var[ph_name]
+
+	def build_feed(self,feed_dict):
+		for vocab_name,data in self.dataset.items():
+			ph_name=vocab_name+"_ph"
+			l=list(self.vocabset_vocab_ph[vocab_name])
+			if len(l)>0:
+				idx_ph_name=l[0]
+				print("[INFO]",vocab_name,"=>",idx_ph_name)
+				idx_ph_var=self.vocabset_ph_var[idx_ph_name]
+				idx=feed_dict[idx_ph_var]
+				batch_data=data[idx]
+				if ph_name in self.ph_var:
+					ph_var=self.ph_var[ph_name]
+					feed_dict[ph_var]=batch_data
+			else:
+				if ph_name in self.ph_var:
+					ph_var=self.ph_var[ph_name]
+					feed_dict[ph_var]=data
+				print("[INFO]",vocab_name)
+		return feed_dict
+	def update(self,out_inside):
+		pass
 
 def load_input_data(data_filename_list):
 	input_data_list=[]
@@ -90,19 +185,6 @@ def load_explanation_graph(expl_filename,option_filename):
 		options = json_format.Parse(fp.read(), options)
 	return graph,options
 
-def make_var_name(name):
-	return re.sub(r'[\)\(\'$]+', "_", name)
-
-def get_unique_list(seq):
-	seen = []
-	return [x for x in seq if x not in seen and not seen.append(x)]
-
-
-#[['i'], ['i','l', 'j'], ['j','k']] => ['l','k']
-def compute_output_template(template):
-	counter=collections.Counter(chain.from_iterable(template))
-	out_template=[k for k,cnt in counter.items() if cnt==1 and k!="b"]
-	return out_template
 
 class OperatorLoader:
 	def __init__(self):
@@ -143,13 +225,130 @@ class OperatorLoader:
 				self.operators[op_name]=cls
 		return module
 
-def build_explanation_graph(graph,tensor_provider):
+class LossLoader:
+	def __init__(self):
+		self.module=None
+		self.losses={}
+	# a snake case operator name to class name
+	def to_class_name(self,snake_str):
+		components = snake_str.split('_')
+		return ''.join(x.title() for x in components)
+	# class name to a snake case operator name
+	def to_op_name(self,cls_name):
+		_underscorer1 = re.compile(r'(.)([A-Z][a-z]+)')
+		_underscorer2 = re.compile('([a-z0-9])([A-Z])')
+		subbed = _underscorer1.sub(r'\1_\2', cls_name)
+		return _underscorer2.sub(r'\1_\2', subbed).lower()
+
+	def get_loss(self,name):
+		if name in self.losses:
+			cls=self.losses[name]
+			return cls
+		else:
+			return None
+		
+	def load_all(self,path):
+		for fpath in glob.glob(os.path.join(path, '*.py')):
+			print("[LOAD]",fpath)
+			module_name = os.path.splitext(fpath)[0].replace(os.path.sep, '.')
+			self.load_module(module_name)
+			
+	def load_module(self,module_name):
+		#module_name=self.base_module_name+name
+		module=importlib.import_module(module_name)
+		for cls_name, cls in inspect.getmembers(module, inspect.isclass):
+			if(issubclass(cls,loss.base.BaseLoss)):
+				print("[IMPORT]",cls_name)
+				op_name=self.to_op_name(cls_name)
+				self.losses[op_name]=cls
+		return module
+
+
+
+def get_unique_list(seq):
+	seen = []
+	return [x for x in seq if x not in seen and not seen.append(x)]
+
+
+#[['i'], ['i','l', 'j'], ['j','k']] => ['l','k']
+def compute_output_template(template):
+	counter=collections.Counter(chain.from_iterable(template))
+	out_template=[k for k,cnt in counter.items() if cnt==1 and k!="b"]
+	return out_template
+
+def build_explanation_graph_template(graph,tensor_provider,operator_loader=None,cycle_node=[]):
+	tensor_embedding=tensor_provider.tensor_embedding
+	# checking template
+	goal_template=[None]*len(graph.goals)
+	for i in range(len(graph.goals)):
+		g=graph.goals[i]
+		path_template=[]
+		path_batch_flag=False
+		for path in g.paths:
+			## build template and inside for switches in the path
+			sw_template=[]
+			for sw in path.tensor_switches:
+				ph=tensor_provider.get_placeholder_name(sw.name)
+				if len(ph)>0:
+					sw_template.append(['b']+list(sw.values))
+					path_batch_flag=True
+				else:
+					sw_template.append(list(sw.values))
+			## building template and inside for nodes in the path
+			node_template=[]
+			cycle_detected=False
+			for node in path.nodes:
+				temp_goal=goal_template[node.sorted_id]
+				if temp_goal is None:
+					#cycle
+					if node.sorted_id not in cycle_node:
+						 cycle_node.append(node.sorted_id)
+					cycle_detected=True
+					continue
+				if len(temp_goal["template"])>0:
+					temp_goal_template=temp_goal["template"]
+					if temp_goal["batch_flag"]:
+						path_batch_flag=True
+					node_template.append(temp_goal_template)
+			if cycle_detected:
+				continue
+			sw_node_template=sw_template+node_template
+			#template=[x for x in sorted(sw_node_template)]
+			template=sw_node_template
+			# constructing einsum operation using template and inside
+			out_template=compute_output_template(template)
+			if len(template)>0: # condition for einsum
+				if path_batch_flag:
+					out_template=['b']+out_template
+			## computing operaters
+			for op in path.operators:
+				cls=operator_loader.get_operator(op.name)
+				op_obj=cls(op.values)
+				out_template=op_obj.get_output_template(out_template)
+			path_template.append(out_template)
+			##
+		##
+		path_template_list=get_unique_list(path_template)
+		if len(path_template_list)==0:
+			goal_template[i]={"template":[],"batch_flag":False}
+		else:
+			if len(path_template_list)!=1:
+				print("[ERROR]")
+			goal_template[i]={"template":path_template_list[0],"batch_flag":path_batch_flag}
+	##
+	return goal_template,cycle_node
+	
+
+def build_explanation_graph(graph,tensor_provider,cycle_embedding_generator=None):
 	tensor_embedding=tensor_provider.tensor_embedding
 	operator_loader=OperatorLoader()
 	operator_loader.load_all("op")
+	goal_template,cycle_node=build_explanation_graph_template(graph,tensor_provider,operator_loader)
+	#goal_template
 	# converting explanation graph to computational graph
 	goal_inside=[None]*len(graph.goals)
 	for i in range(len(graph.goals)):
+		print("=== tensor equation (%d) ==="%(i,))
 		g=graph.goals[i]
 		path_inside=[]
 		path_template=[]
@@ -175,21 +374,37 @@ def build_explanation_graph(graph,tensor_provider):
 			## building template and inside for nodes in the path
 			node_template=[]
 			node_inside=[]
+			node_scalar_inside=[]
 			for node in path.nodes:
 				temp_goal=goal_inside[node.sorted_id]
-				if temp_goal is None:
-					print("[ERROR]")
+				
+				if node.sorted_id in cycle_node:
+					name=node.goal.name
+					template=goal_template[node.sorted_id]["template"]
+					shape=cycle_embedding_generator.template2shape(template)
+					temp_goal_inside=cycle_embedding_generator.get_embedding(name,shape,node.sorted_id)
+					temp_goal_template=template
+					node_inside.append(temp_goal_inside)
+					node_template.append(temp_goal_template)
+				elif temp_goal is None:
+					print("  [ERROR] cycle node is detected")
 					temp_goal=goal_inside[node.sorted_id]
 					print(g.node.sorted_id)
+					print(node)
 					print(node.sorted_id)
 					print(temp_goal)
 					quit()
-				temp_goal_inside=temp_goal["inside"]
-				temp_goal_template=temp_goal["template"]
-				if temp_goal["batch_flag"]:
-					path_batch_flag=True
-				node_inside.append(temp_goal_inside)
-				node_template.append(temp_goal_template)
+				elif len(temp_goal["template"])>0:
+					#tensor
+					
+					temp_goal_inside=temp_goal["inside"]
+					temp_goal_template=temp_goal["template"]
+					if temp_goal["batch_flag"]:
+						path_batch_flag=True
+					node_inside.append(temp_goal_inside)
+					node_template.append(temp_goal_template)
+				else:# scalar
+					node_scalar_inside.append(temp_goal["inside"])
 			## building template and inside for all elements (switches and nodes) in the path
 			sw_node_template=sw_template+node_template
 			sw_node_inside=sw_inside+node_inside
@@ -198,16 +413,20 @@ def build_explanation_graph(graph,tensor_provider):
 			inside=[x[1] for x in path_v]
 			# constructing einsum operation using template and inside
 			out_template=compute_output_template(template)
-			print(template,out_template)
-			lhs=",".join(map(lambda x: "".join(x) ,template))
-			rhs="".join(out_template)
-			if path_batch_flag:
-				rhs="b"+rhs
-				out_template=['b']+out_template
-			einsum_eq=lhs+"->"+rhs
-			print(einsum_eq)
-			print(inside)
-			temp_inside=tf.einsum(einsum_eq,*inside)*prob_sw_inside
+			#print(template,out_template)
+			out_inside=prob_sw_inside
+			if len(template)>0: # condition for einsum
+				lhs=",".join(map(lambda x: "".join(x) ,template))
+				rhs="".join(out_template)
+				if path_batch_flag:
+					rhs="b"+rhs
+					out_template=['b']+out_template
+				einsum_eq=lhs+"->"+rhs
+				print("  ",einsum_eq)
+				print("  ",inside)
+				out_inside=tf.einsum(einsum_eq,*inside)*out_inside
+			for scalar_inside in node_scalar_inside:
+				out_inside=scalar_inside*out_inside
 			## computing operaters
 			for op in path.operators:
 				#print(">>>",op.name)
@@ -215,47 +434,31 @@ def build_explanation_graph(graph,tensor_provider):
 				cls=operator_loader.get_operator(op.name)
 				#print(">>>",cls)
 				op_obj=cls(op.values)
-				temp_inside=op_obj.call(temp_inside)
+				out_inside=op_obj.call(out_inside)
 				out_template=op_obj.get_output_template(out_template)
 			##
-			path_inside.append(temp_inside)
+			path_inside.append(out_inside)
 			path_template.append(out_template)
 			##
 		##
 		path_template_list=get_unique_list(path_template)
-		if len(path_template_list)!=1:
-			print("[ERROR]")
-		goal_inside[i]={
-			"template":path_template_list[0],
-			"inside":tf.reduce_sum(tf.stack(path_inside),axis=0),
-			"batch_flag":path_batch_flag
-			}
+		
+		if len(path_template_list)==0:
+			goal_inside[i]={
+				"template":[],
+				"inside":np.array(1),
+				"batch_flag":False
+				}
+		else:
+			if len(path_template_list)!=1:
+				print("[ERROR]")
+			print(path_inside)
+			goal_inside[i]={
+				"template":path_template_list[0],
+				"inside":tf.reduce_sum(tf.stack(path_inside),axis=0),
+				"batch_flag":path_batch_flag
+				}
 	return goal_inside
-
-def build_variables(graph,options):
-	index_range={el.index:el.range for el in options.index_range}
-	tensors={}
-	for g in graph.goals:
-		for path in g.paths:
-			for sw in path.tensor_switches:
-				if sw.name not in tensors:
-					tensors[sw.name]=set([])
-				tensors[sw.name].add(tuple([el for el in sw.values]))
-	# converting PRISM switches to Tensorflow Variables
-	tensor_embedding={}
-	dtype = tf.float32
-	initializer=tf.contrib.layers.xavier_initializer(uniform = True)
-	for sw_name,v in tensors.items():
-		var_name=make_var_name(sw_name)
-		shape_set=set()
-		for e in v:
-			shape=tuple([index_range[i] for i in e])
-			shape_set.add(shape)
-		if len(shape_set)!=1:
-			print("[ERROR] missmatch")
-		tensor_embedding[sw_name]= tf.get_variable(var_name, shape=shape, initializer=initializer, dtype=dtype)
-	return tensor_embedding
-
 
 class SwitchTensor:
 	def __init__(self,sw_name):
@@ -287,6 +490,16 @@ class SwitchTensor:
 
 class VocabSet:
 	def __init__(self):
+		# vocab name => vocab group index
+		self.vocab_group=None
+		# maximum of vocab index
+		self.group_count=None
+		# vocab name => a set of placeholder names
+		self.vocab_ph=None
+		# vocab_group index => a list of values
+		self.vocab_group_values=None
+		# (vocab_group index, value) => value index i
+		self.group_value_index=None
 		pass
 	def build(self,vocab_ph,ph_vocab,ph_values):
 		vocab_group={vocab_name: None for vocab_name,_ in vocab_ph.items()}
@@ -312,13 +525,16 @@ class VocabSet:
 		self.vocab_group=vocab_group
 		self.group_count=group_count
 		self.vocab_ph=vocab_ph
-		self.vocab_group_values=vocab_group_values
+	
+		self.vocab_group_values={k:list(v) for k,v in vocab_group_values.items()}
 		self.group_value_index=self.build_group_value_index()
 	def build_group_value_index(self):
 		group_value_index={}
 		for group,values in self.vocab_group_values.items():
-			for i,v in enumerate(values):
-				group_value_index[(group,v)]=i
+			for i,v in enumerate(sorted(values)):
+				#group_value_index[(group,v)]=i
+				group_value_index[(group,v)]=int(v)
+				#print((group,v,i))
 		return group_value_index
 		
 	def get_values_index(self,vocab_name,value):
@@ -370,7 +586,7 @@ class SwitchTensorProvider:
 				ph_values[placeholders[i]]|=set(item)
 		return ph_values
 
-	def build(self,graph,options,input_data,flags,load_embeddings=False):
+	def build(self,graph,options,input_data,flags,load_embeddings=False,embedding_generator=None):
 		index_range={el.index:el.range for el in options.index_range}
 		# switch name => 
 		sw_info={}
@@ -383,32 +599,39 @@ class SwitchTensorProvider:
 					else:
 						sw_obj=sw_info[sw.name]
 					value_list=[el for el in sw.values]
+					print(value_list)
 					shape=tuple([index_range[i] for i in value_list])
 					sw_obj.add_shape(shape)
 		# build placeholders
-		ph_values=self.build_ph_values(input_data)
-		ph_var={}
-		batch_size=flags.sgd_minibatch_size
-		for ph_name,_ in ph_values.items():
-			ph_var_name=self.get_placeholder_var_name(ph_name)
-			ph_var[ph_name]=tf.placeholder(name=ph_var_name,shape=(batch_size,),dtype=tf.int32)
+		if input_data is not None:
+			ph_values=self.build_ph_values(input_data)
+			ph_var={}
+			batch_size=flags.sgd_minibatch_size
+			for ph_name,_ in ph_values.items():
+				ph_var_name=self.get_placeholder_var_name(ph_name)
+				ph_var[ph_name]=tf.placeholder(name=ph_var_name,shape=(batch_size,),dtype=tf.int32)
+			ph_vocab={ph_name:set() for ph_name,_ in ph_values.items()}
+		else:
+			ph_vocab={}
+			ph_values={}
+			ph_var={}
+		vocab_ph={}
 		# 
 		vocab_shape={}
-		vocab_ph={}
-		ph_vocab={ph_name:set() for ph_name,_ in ph_values.items()}
 		for sw_name,sw in sw_info.items():
 			##
 			## build vocab. shape
 			
 			if sw.vocab_name not in vocab_shape:
 				vocab_shape[sw.vocab_name]=set()
-			shape=list(sw.shape_set)[0]
-			vocab_shape[sw.vocab_name].add(shape)
+			vocab_shape[sw.vocab_name]|=sw.shape_set
 	
+			"""
 			if len(sw.shape_set)!=1:
 				print("[ERROR] missmatch")
 			if len(vocab_shape[sw.vocab_name])!=1:
 				print("[ERROR] missmatch")
+			"""
 			##
 			## build
 			ph_list=sw.placeholder_names
@@ -421,45 +644,82 @@ class SwitchTensorProvider:
 				vocab_ph[sw.vocab_name].add(ph_list[0])
 				ph_vocab[ph_list[0]].add(sw.vocab_name)
 			elif len(ph_list)>1:
-				print("[ERROR] not supprted")
-		for k,el in vocab_shape.items():
-			vocab_shape[k]=list(el)[0]
+				print("[ERROR] not supprted: one placeholder for one term")
 		##
+		if embedding_generator:
+			embedding_generator.init(vocab_ph,ph_var)
 		## build vocab group
 		if load_embeddings:
+			print("[LOAD]",flags.save_embedding)
 			with open(flags.load_embedding, mode="rb") as f:
 				vocab_set = pickle.load(f)
 		else:
 			vocab_set=VocabSet()
 			vocab_set.build(vocab_ph,ph_vocab,ph_values)
+			print("[SAVE]",flags.save_embedding)
 			with open(flags.save_embedding, mode="wb") as f:
 				pickle.dump(vocab_set, f)
 		##
 		vocab_var={}
 		dtype = tf.float32
 		initializer=tf.contrib.layers.xavier_initializer()
-		for vocab_name,shape in vocab_shape.items():
+		for vocab_name,shapes in vocab_shape.items():
 			values=vocab_set.get_values(vocab_name)
-			if values is not None:
-				s=[len(values)]+list(shape)
+			if len(shapes)==1:
+				shape=list(shapes)[0]
+				if values is not None:
+					s=[len(values)]+list(shape)
+				else:
+					s=list(shape)
 			else:
+				shape=sorted(list(shapes),key=lambda x:len(x),reverse=True)[0]
 				s=list(shape)
 			var_name=vocab_name
-			var= tf.get_variable(var_name, shape=s, initializer=initializer, dtype=dtype)
-			vocab_var[vocab_name]=var
+			if embedding_generator and embedding_generator.is_dataset_embedding(vocab_name):
+				print(">> dataset >>",var_name,":",s)
+				pass
+			elif(var_name[:14]=="tensor_onehot_"):
+				print(">> onehot>>",var_name,":",s)
+				m=re.match(r'tensor_onehot_([\d]*)_',var_name)
+				if m:
+					d=int(m.group(1))
+					if len(s)==1:
+						var=tf.one_hot(d,s[0])
+						print(var,d,s[0])
+					else:
+						print("[ERROR]")
+				else:
+					print("[ERROR]")
+				vocab_var[vocab_name]=var
+			else:
+				print(">> variable>>",var_name,":",s)
+				var= tf.get_variable(var_name, shape=s, initializer=initializer, dtype=dtype)
+				vocab_var[vocab_name]=var
 		# converting PRISM switches to Tensorflow Variables
 		tensor_embedding={}
 		for sw_name,sw in sw_info.items():
-			v_name=sw.vocab_name
+			vocab_name=sw.vocab_name
 			var_name=sw.var_name
 			ph_list=sw.placeholder_names
 			if len(ph_list)==0:
-				var=vocab_var[v_name]
-				tensor_embedding[sw_name]= var
+				if embedding_generator and embedding_generator.is_dataset_embedding(vocab_name):
+					shape=list(list(sw.shape_set)[0])
+					var=embedding_generator.get_embedding(vocab_name,shape)
+					tensor_embedding[sw_name]=var
+				else:
+					var=vocab_var[vocab_name]
+					tensor_embedding[sw_name]= var
 			elif len(ph_list)==1:
-				var=vocab_var[v_name]
-				ph=ph_var[ph_list[0]]
-				tensor_embedding[sw_name]=tf.gather(var,ph)
+				print(vocab_name)
+				if embedding_generator and embedding_generator.is_dataset_embedding(vocab_name):
+					shape=[batch_size]+list(list(sw.shape_set)[0])
+					var=embedding_generator.get_embedding(vocab_name,shape)
+					tensor_embedding[sw_name]=var
+				else:
+					var=vocab_var[vocab_name]
+					ph=ph_var[ph_list[0]]
+					tensor_embedding[sw_name]=tf.gather(var,ph)
+					
 		self.vocab_var=vocab_var
 		self.vocab_set=vocab_set
 		self.ph_var=ph_var

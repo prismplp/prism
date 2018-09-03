@@ -1,17 +1,12 @@
 index(v(_),[[i],[j]]).
-%index(r(_),[[i,j]]).
 index(r(_),[[i]]).
-:-set_index_range(i,20).
-:-set_index_range(j,20).
-values(sw,[0,1],fix@[2.5,3.0]).
+:-set_index_range(i,512).
+:-set_index_range(j,512).
 
-%rel(U,V,E):-operator(relu),s(U),vector(v(V),[j]),matrix(r(E),[i,j]).
-%s(X):-msw(sw,_),vector(v(X),[i]).
-%rel(U,E,V):-vector(v(U),[i]),vector(v(V),[j]),matrix(r(E),[i,j]).
 rel(U,E,V):-vector(v(U),[i]),vector(v(V),[i]),vector(r(E),[i]).
 
-candidate(U,E,Goals,L):-findall(V,(member(rel(_,V,E),Goals),not member(rel(U,V,E),Goals)),L).
-random_select_negative(rel(U,V,E),Goals,rel(U,NegativeV,E)):-
+candidate(U,E,Goals,L):-findall(V,(member(rel(_,E,V),Goals),not member(rel(U,E,V),Goals)),L).
+random_select_negative(rel(U,E,V),Goals,rel(U,E,NegativeV)):-
 	candidate(U,E,Goals,L),
 	random_select(L,NegativeV).
 
@@ -43,6 +38,45 @@ prism_main([pl,test]):-
 	save_flags,
 	save_expl_graph(GoalPlaceholder).
 
+prism_main([cora]):-
+	random_set_seed(1234),
+	load_clauses('cora/cora.train.dat',Gs),
+	maplist(X,Z,pair(Z)=X,Gs,GoalPairList),
+	GoalPlaceholder=[[rel(_,0,_),rel(_,0,_)]],
+	save_placeholder_goals('cora_data.h5',GoalPlaceholder,GoalPairList),
+	GoalPlaceholder=[[X,Y]|_],
+	probf(X),
+	save_flags('cora_flags.json'),
+	save_expl_graph('cora_expl.json',GoalPlaceholder).
+prism_main([cora,test]):-
+	random_set_seed(1234),
+	format("... \n"),
+	load_clauses('./cora/cora.test.dat',Gs),
+	format("... building placeholders\n"),
+	GoalPlaceholder=[rel(_,0,_)],
+	save_placeholder_goals('./cora_data.test.h5',GoalPlaceholder,Gs).
+prism_main([cora,test1]):-
+	random_set_seed(1234),
+	format("... \n"),
+	load_clauses('./cora/cora.all1.dat',Gs),
+	format("... building placeholders\n"),
+	GoalPlaceholder=[rel(_,0,_)],
+	save_placeholder_goals('./cora_data.all1.h5',GoalPlaceholder,Gs),
+	format("... saving\n"),
+	save_flags('./cora_flags.all.json'),
+	save_expl_graph('./cora_expl.all.json',GoalPlaceholder).
+prism_main([cora,test2]):-
+	random_set_seed(1234),
+	format("... \n"),
+	load_clauses('./cora/cora.all2.dat',Gs),
+	format("... building placeholders\n"),
+	GoalPlaceholder=[rel(_,0,_)],
+	save_placeholder_goals('./cora_data.all2.h5',GoalPlaceholder,Gs),
+	format("... saving\n"),
+	save_flags('./cora_flags.all.json'),
+	save_expl_graph('./cora_expl.all.json',GoalPlaceholder).
+
+
 
 prism_main([fb15k237]):-
 	random_set_seed(1234),
@@ -57,35 +91,6 @@ prism_main([fb15k237]):-
 	save_flags('./fb15k237_flags.train.json'),
 	save_expl_graph('./fb15k237_expl.train.json',GoalPlaceholder).
 
-prism_main([fb15k]):-
-	random_set_seed(1234),
-	load_clauses('./fb15k/fb15k.train.dat',Gs),
-	maplist(X,Z,pair(Z)=X,Gs,GoalPairList),
-	format("... building placeholders\n"),
-	GoalPlaceholder=[[rel(_,_,_),rel(_,_,_)]],
-	save_placeholder_goals('./fb15k_data.train.h5',GoalPlaceholder,GoalPairList),
-	GoalPlaceholder=[[X,Y]|_],
-	probf(X),
-	format("... saving\n"),
-	save_flags('./fb15k_flags.train.json'),
-	save_expl_graph('./fb15k_expl.train.json',GoalPlaceholder).
-
-
-
-prism_main([fb15k,testxx]):-
-	random_set_seed(1234),
-	load_clauses('./fb15k237/fb15k237.test.dat',Gs),
-	maplist(X,Z,pair(Z)=X,Gs,GoalPairList),
-	format("... building placeholders\n"),
-	GoalPlaceholder=[[rel(_,_,_),rel(_,_,_)]],
-	save_placeholder_goals('./fb15k_data.test.json',GoalPlaceholder,GoalPairList),
-	GoalPlaceholder=[[X,Y]|_],
-	probf(X),
-	format("... saving\n"),
-	save_flags('./fb15k_flags.test.json'),
-	save_expl_graph('./fb15k_expl.test.json',GoalPlaceholder).
-
-
 prism_main([fb15k237,test]):-
 	random_set_seed(1234),
 	format("... \n"),
@@ -97,7 +102,7 @@ prism_main([fb15k237,test]):-
 	save_flags('./fb15k237_flags.all1.json'),
 	save_expl_graph('./fb15k237_expl.all1.json',GoalPlaceholder).
 
-prism_main([fb15k237,test2]):-
+prism_main([fb15k237,test_pos]):-
 	random_set_seed(1234),
 	format("... \n"),
 	load_clauses('./fb15k237/fb15k237.test_pos.dat',Gs),
@@ -106,28 +111,30 @@ prism_main([fb15k237,test2]):-
 	save_placeholder_goals('./fb15k237_data.test.h5',GoalPlaceholder,Gs).
 
 
-
-prism_main([fb15k,test]):-
-	random_set_seed(1234),
-	format("... \n"),
-	load_clauses('./fb15k/fb15k.all1.dat',Gs),
+prism_main([fb15k]):-
 	format("... building placeholders\n"),
-	GoalPlaceholder=[rel(_,_,_)],
-	save_placeholder_goals('./fb15k_data.all1.h5',GoalPlaceholder,Gs),
+	GoalPlaceholder=[[rel('$placeholder1$','$placeholder2$','$placeholder3$'),rel('$placeholder4$','$placeholder5$','$placeholder6$')]],
 	format("... saving\n"),
-	save_flags('./fb15k_flags.all1.json'),
-	save_expl_graph('./fb15k_expl.all1.json',GoalPlaceholder).
-
-prism_main([fb15k,test2]):-
-	random_set_seed(1234),
-	format("... \n"),
-	load_clauses('./fb15k/fb15k.test_pos.dat',Gs),
+	save_flags('./fb15k_flags.train.json'),
+	save_expl_graph('./fb15k_expl.train.json',GoalPlaceholder).
+prism_main([fb15k,test]):-
 	format("... building placeholders\n"),
-	GoalPlaceholder=[rel(_,_,_)],
-	save_placeholder_goals('./fb15k_data.test.h5',GoalPlaceholder,Gs).
+	GoalPlaceholder=[rel('$placeholder1$','$placeholder2$','$placeholder3$')],
+	format("... saving\n"),
+	save_flags('./fb15k_flags.all.json'),
+	save_expl_graph('./fb15k_expl.all.json',GoalPlaceholder).
 
-
-
-
+prism_main([wn18]):-
+	format("... building placeholders\n"),
+	GoalPlaceholder=[[rel('$placeholder1$','$placeholder2$','$placeholder3$'),rel('$placeholder4$','$placeholder5$','$placeholder6$')]],
+	format("... saving\n"),
+	save_flags('./wn18_flags.train.json'),
+	save_expl_graph('./wn18_expl.train.json',GoalPlaceholder).
+prism_main([wn18,test]):-
+	format("... building placeholders\n"),
+	GoalPlaceholder=[rel('$placeholder1$','$placeholder2$','$placeholder3$')],
+	format("... saving\n"),
+	save_flags('./wn18_flags.all.json'),
+	save_expl_graph('./wn18_expl.all.json',GoalPlaceholder).
 
 
