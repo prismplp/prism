@@ -55,9 +55,11 @@ class CycleEmbeddingGenerator():
 			node_id=data["id"]
 			##
 			loss=self.embedding[ph_name]["data"]-out_inside[node_id]
-			total_loss+=np.mean(loss**2)	
+			total_loss+=np.sum(loss**2)	
 			##
 			self.embedding[ph_name]["data"]=out_inside[node_id]
+			#a=0.5
+			#self.embedding[ph_name]["data"]=(1.0-a)*self.embedding[ph_name]["data"]+a*out_inside[node_id]
 		return total_loss
 
 
@@ -85,13 +87,15 @@ class EmbeddingGenerator():
 	def get_embedding(self,vocab_name,shape):
 		ph_name=vocab_name+"_ph"
 		if ph_name in self.ph_var:
+			print("[GET]>",ph_name,":",self.vocabset_ph_var[ph_name])
 			return self.ph_var[ph_name]
 		elif ph_name in self.vocabset_ph_var:
+			print("[GET]>",ph_name,":",self.vocabset_ph_var[ph_name])
 			return self.vocabset_ph_var[ph_name]
 		else:
 			self.ph_var[ph_name]=tf.placeholder(name=ph_name,
 				shape=shape,dtype=tf.float32)
-			print(">>>",ph_name,":",shape)
+			print("[CREATE]>",ph_name,":",shape)
 			return self.ph_var[ph_name]
 
 	def build_feed(self,feed_dict):

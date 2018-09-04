@@ -66,8 +66,10 @@ def optimize_solve(sess,goal_dataset,goal_inside,flags,embedding_generators):
 			if embedding_generator is not None:
 				loss=embedding_generator.update(out_inside)
 		print("step", step, "loss:", loss)
-		if prev_loss is not None and not loss<prev_loss:
+		if loss<1.0e-20:
 			break
+		if prev_loss is not None and not loss<prev_loss:
+			pass
 		prev_loss=loss
 	for a in out_inside:
 		print("~~~~~")
@@ -102,7 +104,6 @@ def optimize_sgd(sess,goal_dataset,loss,flags,embedding_generators):
 def optimize(sess,goal_dataset,loss,flags,embedding_generators):
 	
 	#optimizer = tf.train.GradientDescentOptimizer(flags.sgd_learning_rate)
-	
 	optimizer = tf.train.AdamOptimizer(flags.sgd_learning_rate)
 	#train = [optimizer.minimize(l) for l in loss]
 	train=[]
@@ -117,11 +118,11 @@ def optimize(sess,goal_dataset,loss,flags,embedding_generators):
 	init = tf.global_variables_initializer()
 	sess.run(init)
 	saver = tf.train.Saver()
-	#print("starting at", "loss:", sess.run(total_loss))
 	best_valid_loss=[None for _ in range(len(goal_dataset))]
 	stopping_step=0
 	batch_size=flags.sgd_minibatch_size
 	for step in range(flags.max_iterate):  
+		start_t = time.time()
 		total_train_loss=[0.0 for _ in range(len(goal_dataset))]
 		total_valid_loss=[0.0 for _ in range(len(goal_dataset))]
 		for j,goal in enumerate(goal_dataset):
@@ -135,8 +136,6 @@ def optimize(sess,goal_dataset,loss,flags,embedding_generators):
 			if not flags.no_verb:
 				progbar=tf.keras.utils.Progbar(num_itr)
 			for itr in range(num_itr):
-				a=train_dataset[0,itr*batch_size:(itr+1)*batch_size]
-				#print(a)
 				feed_dict={ph:train_dataset[i,itr*batch_size:(itr+1)*batch_size] for i,ph in enumerate(ph_vars)}
 				for embedding_generator in embedding_generators:
 					if embedding_generator is not None:
@@ -169,6 +168,8 @@ def optimize(sess,goal_dataset,loss,flags,embedding_generators):
 					print("[SAVE]",flags.save_model)
 					saver.save(sess, flags.save_model)
 					return
+		train_time = time.time() - start_t
+		print("time:{0}".format(train_time) + "[sec]")
 	print("[SAVE]",flags.save_model)
 	saver.save(sess, flags.save_model)
 
@@ -239,6 +240,7 @@ def run_training(g,sess,args):
 	graph,options = expl_graph.load_explanation_graph(args.expl_graph,args.flags)
 	flags=Flags(args,options)
 	flags.update()
+	print(flags)
 	##
 	loss_loader=expl_graph.LossLoader()
 	loss_loader.load_all("loss/")
@@ -249,7 +251,8 @@ def run_training(g,sess,args):
 	if flags.embedding:
 		embedding_generator=expl_graph.EmbeddingGenerator()
 		embedding_generator.load(flags.embedding)
-	if True:
+	cycle_embedding_generator=None
+	if flags.cycle:
 		cycle_embedding_generator=expl_graph.CycleEmbeddingGenerator()
 		cycle_embedding_generator.load(options)
 	tensor_embedding = tensor_provider.build(graph,options,input_data,flags,load_embeddings=False,embedding_generator=embedding_generator)
@@ -261,7 +264,11 @@ def run_training(g,sess,args):
 	save_draw_graph(g,"test")
 
 	loss,output=loss_cls().call(graph,goal_inside,tensor_provider)
-
+	
+	with tf.name_scope('summary'):
+		tf.summary.scalar('loss', loss)
+		merged = tf.summary.merge_all()
+		writer = tf.summary.FileWriter('./tf_logs', sess.graph)
 	##	
 	print("traing start") 
 	vars_to_train = tf.trainable_variables()
@@ -269,11 +276,12 @@ def run_training(g,sess,args):
 		print(var,var.shape)
 	##
 	start_t = time.time()
-	if goal_dataset is not None:
+	if flags.cycle:
+		optimize_solve(sess,goal_dataset,goal_inside,flags,[embedding_generator,cycle_embedding_generator])
+	elif goal_dataset is not None:
 		optimize(sess,goal_dataset,loss,flags,[embedding_generator,cycle_embedding_generator])
 	else:
-		optimize_solve(sess,goal_dataset,goal_inside,flags,[embedding_generator,cycle_embedding_generator])
-		#optimize_sgd(sess,goal_dataset,loss,flags,[embedding_generator,cycle_embedding_generator])
+		optimize_sgd(sess,goal_dataset,loss,flags,[embedding_generator,cycle_embedding_generator])
 	train_time = time.time() - start_t
 	print("traing time:{0}".format(train_time) + "[sec]")
 	
@@ -415,7 +423,9 @@ if __name__ == '__main__':
 			default=3,
 			help='[prolog flag] ')
 	
-
+	parser.add_argument('--cycle',
+			action='store_true',
+			help='cycle')
 
 	args=parser.parse_args()
 	# config
