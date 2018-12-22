@@ -1,6 +1,5 @@
 import tensorflow as tf
 import json
-import expl_pb2
 import re
 import numpy as np
 from google.protobuf import json_format
@@ -16,8 +15,9 @@ import re
 import pickle
 import h5py
 
-import op.base
-import loss.base
+import tprism.expl_pb2 as expl_pb2
+import tprism.op.base
+import tprism.loss.base
    
 
 
@@ -193,7 +193,7 @@ def load_explanation_graph(expl_filename,option_filename):
 class OperatorLoader:
 	def __init__(self):
 		self.operators={}
-		self.base_module_name="op."
+		self.base_module_name="tprism.op."
 		self.module=None
 	# a snake case operator name to class name
 	def to_class_name(self,snake_str):
@@ -207,31 +207,31 @@ class OperatorLoader:
 		return _underscorer2.sub(r'\1_\2', subbed).lower()
 
 	def get_operator(self,name):
-		if name in self.operators:
-			cls=self.operators[name]
-			return cls
-		else:
-			return None
+		assert name in self.operators, "%s is not found"%(name)
+		cls=self.operators[name]
+		assert cls is not None, "%s is not found"%(name)
+		return cls
 		
 	def load_all(self,path):
-		for fpath in glob.glob(os.path.join(path, '*.py')):
+		search_path=os.path.dirname(__file__)+"/"+path
+		for fpath in glob.glob(os.path.join(search_path, '*.py')):
 			print("[LOAD]",fpath)
-			module_name = os.path.splitext(fpath)[0].replace(os.path.sep, '.')
-			self.load_module(module_name)
-			
-	def load_module(self,module_name):
-		#module_name=self.base_module_name+name
-		module=importlib.import_module(module_name)
+			name = os.path.basename(os.path.splitext(fpath)[0])
+			module_name=self.base_module_name+name
+			module = importlib.machinery.SourceFileLoader(module_name,fpath).load_module()
+			self.load_module(module)
+				
+	def load_module(self,module):
 		for cls_name, cls in inspect.getmembers(module, inspect.isclass):
-			if(issubclass(cls,op.base.BaseOperator)):
+			if(issubclass(cls,tprism.op.base.BaseOperator)):
 				print("[IMPORT]",cls_name)
 				op_name=self.to_op_name(cls_name)
 				self.operators[op_name]=cls
-		return module
 
 class LossLoader:
 	def __init__(self):
 		self.module=None
+		self.base_module_name="tprism.loss."
 		self.losses={}
 	# a snake case operator name to class name
 	def to_class_name(self,snake_str):
@@ -250,22 +250,22 @@ class LossLoader:
 			return cls
 		else:
 			return None
-		
+	
 	def load_all(self,path):
-		for fpath in glob.glob(os.path.join(path, '*.py')):
+		search_path=os.path.dirname(__file__)+"/"+path
+		for fpath in glob.glob(os.path.join(search_path, '*.py')):
 			print("[LOAD]",fpath)
-			module_name = os.path.splitext(fpath)[0].replace(os.path.sep, '.')
-			self.load_module(module_name)
-			
-	def load_module(self,module_name):
-		#module_name=self.base_module_name+name
-		module=importlib.import_module(module_name)
+			name = os.path.basename(os.path.splitext(fpath)[0])
+			module_name=self.base_module_name+name
+			module = importlib.machinery.SourceFileLoader(module_name,fpath).load_module()
+			self.load_module(module)
+		
+	def load_module(self,module):
 		for cls_name, cls in inspect.getmembers(module, inspect.isclass):
-			if(issubclass(cls,loss.base.BaseLoss)):
+			if(issubclass(cls,tprism.loss.base.BaseLoss)):
 				print("[IMPORT]",cls_name)
 				op_name=self.to_op_name(cls_name)
 				self.losses[op_name]=cls
-		return module
 
 
 

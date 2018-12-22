@@ -1,7 +1,8 @@
+#!/usr/bin/env python
+
 import tensorflow as tf
 import json
 import os
-import expl_pb2
 import re
 import numpy as np
 from google.protobuf import json_format
@@ -10,8 +11,9 @@ import collections
 import argparse
 import time
 
-import expl_graph
-import draw_graph
+import tprism.expl_pb2 as expl_pb2
+import tprism.expl_graph as expl_graph
+import tprism.draw_graph as draw_graph
 
 class Flags(object):
 	def __init__(self, args, options):
