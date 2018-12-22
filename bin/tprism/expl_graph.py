@@ -180,7 +180,7 @@ def merge_input_data(input_data_list):
 def load_explanation_graph(expl_filename,option_filename):
 	graph = expl_pb2.ExplGraph()
 	options = expl_pb2.Option()
-
+	print("[LOAD]",expl_filename)
 	with open(expl_filename, "r") as fp:
 		graph = json_format.Parse(fp.read(), graph)
 	#f = open("expl.bin", "rb")
@@ -654,14 +654,14 @@ class SwitchTensorProvider:
 			embedding_generator.init(vocab_ph,ph_var)
 		## build vocab group
 		if load_embeddings:
-			print("[LOAD]",flags.save_embedding)
-			with open(flags.load_embedding, mode="rb") as f:
+			print("[LOAD]",flags.embedding_param)
+			with open(flags.embedding_param, mode="rb") as f:
 				vocab_set = pickle.load(f)
 		else:
 			vocab_set=VocabSet()
 			vocab_set.build(vocab_ph,ph_vocab,ph_values)
-			print("[SAVE]",flags.save_embedding)
-			with open(flags.save_embedding, mode="wb") as f:
+			print("[SAVE]",flags.embedding_param)
+			with open(flags.embedding_param, mode="wb") as f:
 				pickle.dump(vocab_set, f)
 		##
 		vocab_var={}

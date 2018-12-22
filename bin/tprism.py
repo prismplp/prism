@@ -167,13 +167,13 @@ def optimize(sess,goal_dataset,loss,flags,embedding_generators):
 			else:
 				stopping_step+=1
 				if stopping_step==flags.sgd_patience:
-					print("[SAVE]",flags.save_model)
-					saver.save(sess, flags.save_model)
+					print("[SAVE]",flags.model)
+					saver.save(sess, flags.model)
 					return
 		train_time = time.time() - start_t
 		print("time:{0}".format(train_time) + "[sec]")
-	print("[SAVE]",flags.save_model)
-	saver.save(sess, flags.save_model)
+	print("[SAVE]",flags.model)
+	saver.save(sess, flags.model)
 
 def save_draw_graph(g,base_name):
 	html=draw_graph.show_graph(g)
@@ -308,7 +308,7 @@ def run_test(g,sess,args):
 	save_draw_graph(g,"test")
 	loss,output=loss_cls().call(graph,goal_inside,tensor_provider)
 	saver = tf.train.Saver()
-	saver.restore(sess,flags.load_model)
+	saver.restore(sess,flags.model)
 
 	batch_size=flags.sgd_minibatch_size
 	total_loss=[[] for _ in range(len(goal_dataset))]
@@ -366,30 +366,26 @@ if __name__ == '__main__':
 			help='config json file')
 	
 	parser.add_argument('--data', type=str,
-			#default="data.json",
 			default=None,
 			nargs='+',
 			help='[from prolog] data json file')
+	## internal data
+	parser.add_argument('--internal_data_prefix', type=str,
+			default=None,
+			help='internal data')
 	parser.add_argument('--expl_graph', type=str,
-			default="expl.json",
+			default=None,
 			help='[from prolog] explanation graph json file')
 	parser.add_argument('--flags', type=str,
-			default="flags.json",
+			default=None,
 			help='[from prolog] flags json file')
-	
-	parser.add_argument('--save_model', type=str,
-			default="./model.ckpt",
+	parser.add_argument('--model', type=str,
+			default=None,
 			help='model file')
-	parser.add_argument('--load_model', type=str,
-			default="./model.ckpt",
+	parser.add_argument('--embedding_param', type=str,
+			default=None,
 			help='model file')
-	
-	parser.add_argument('--save_embedding', type=str,
-			default="./embedding.pkl",
-			help='model file')
-	parser.add_argument('--load_embedding', type=str,
-			default="./embedding.pkl",
-			help='model file')
+	## 
 	parser.add_argument('--embedding', type=str,
 			default=None,
 			help='model file')
@@ -443,6 +439,18 @@ if __name__ == '__main__':
 		os.environ['CUDA_VISIBLE_DEVICES'] = ""
 	elif args.gpu is not None:
 		os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
+	
+	#
+	if args.internal_data_prefix is not None:
+		if args.expl_graph is None:
+			args.expl_graph=args.internal_data_prefix+"expl.json"
+		if args.flags is None:
+			args.flags=args.internal_data_prefix+"flags.json"
+		if args.model is None:
+			args.model=args.internal_data_prefix+"model.ckpt"
+		if args.embedding_param is None:
+			args.embedding_param=args.internal_data_prefix+"embedding.pkl"
+	## 
 	# setup
 	g = tf.Graph()
 	with g.as_default():
