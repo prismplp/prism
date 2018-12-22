@@ -40,12 +40,12 @@ target1_set={(item[1],item[2]) for item in test_data}
 target2_set={(item[0],item[1]) for item in test_data}
 all_data1=[(e1,e2[0],e2[1]) for e2 in target1_set for e1 in ent_list]
 all_data2=[(e1[0],e1[1],e2) for e1 in target2_set for e2 in ent_list]
-print('[SAVE] fb15k.all1.dat')
-with open('fb15k.all1.dat', 'w') as fp:
+print('[SAVE] fb15k.all_o.dat')
+with open('fb15k.all_o.dat', 'w') as fp:
 	for item in all_data1:
 		fp.write("rel(%d,%d,%d).\n"%item)
-print('[SAVE] fb15k.all2.dat')
-with open('fb15k.all2.dat', 'w') as fp:
+print('[SAVE] fb15k.all_s.dat')
+with open('fb15k.all_s.dat', 'w') as fp:
 	for item in all_data2:
 		fp.write("rel(%d,%d,%d).\n"%item)
 	
