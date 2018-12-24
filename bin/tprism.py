@@ -44,11 +44,8 @@ class Flags(object):
 		self.sgd_learning_rate=float(self.sgd_learning_rate)
 
 def optimize_solve(sess,goal_dataset,goal_inside,flags,embedding_generators):
-	
-	print("============")
 	inside=[]
 	for goal in goal_inside:
-		print(goal)
 		l1=goal["inside"]
 		inside.append(l1)
 	
@@ -73,11 +70,10 @@ def optimize_solve(sess,goal_dataset,goal_inside,flags,embedding_generators):
 		if prev_loss is not None and not loss<prev_loss:
 			pass
 		prev_loss=loss
-	for a in out_inside:
-		print("~~~~~")
-		print(a)
-		print(np.sum(a>0))
-		#print("step", step, "loss:", sess.run(total_loss,feed_dict=feed_dict))
+	#for a in out_inside:
+	#	print("~~~~~")
+	#	print(a)
+	#	print(np.sum(a>0))
 
 def optimize_sgd(sess,goal_dataset,loss,flags,embedding_generators):
 	total_loss=tf.reduce_sum(loss)
@@ -91,7 +87,6 @@ def optimize_sgd(sess,goal_dataset,loss,flags,embedding_generators):
 	for embedding_generator in embedding_generators:
 		if embedding_generator is not None:
 			feed_dict=embedding_generator.build_feed(feed_dict)
-	print(feed_dict)
 	print("starting at", "loss:", sess.run(loss,feed_dict=feed_dict))
 	for step in range(flags.max_iterate):  
 		feed_dict={}
@@ -244,7 +239,6 @@ def run_training(g,sess,args):
 	graph,options = expl_graph.load_explanation_graph(args.expl_graph,args.flags)
 	flags=Flags(args,options)
 	flags.update()
-	print(flags)
 	##
 	loss_loader=expl_graph.LossLoader()
 	loss_loader.load_all("loss/")
@@ -277,7 +271,7 @@ def run_training(g,sess,args):
 	print("traing start") 
 	vars_to_train = tf.trainable_variables()
 	for var in vars_to_train:
-		print(var,var.shape)
+		print("train var:",var.name,var.shape)
 	##
 	start_t = time.time()
 	if flags.cycle:
@@ -307,8 +301,12 @@ def run_test(g,sess,args):
 	if flags.embedding:
 		embedding_generator=expl_graph.EmbeddingGenerator()
 		embedding_generator.load(flags.embedding,key="test")
+	cycle_embedding_generator=None
+	if flags.cycle:
+		cycle_embedding_generator=expl_graph.CycleEmbeddingGenerator()
+		cycle_embedding_generator.load(options)
 	tensor_embedding = tensor_provider.build(graph,options,input_data,flags,load_embeddings=True,embedding_generator=embedding_generator)
-	goal_inside = expl_graph.build_explanation_graph(graph,tensor_provider)
+	goal_inside = expl_graph.build_explanation_graph(graph,tensor_provider,cycle_embedding_generator)
 	if input_data is not None:
 		goal_dataset=build_goal_dataset(input_data,tensor_provider)
 	else:
@@ -318,7 +316,9 @@ def run_test(g,sess,args):
 	saver = tf.train.Saver()
 	saver.restore(sess,flags.model)
 	
-	if goal_dataset is not None:
+	if flags.cycle:
+		optimize_solve(sess,goal_dataset,goal_inside,flags,[embedding_generator,cycle_embedding_generator])
+	elif goal_dataset is not None:
 		batch_size=flags.sgd_minibatch_size
 		total_loss=[[] for _ in range(len(goal_dataset))]
 		total_output=[[] for _ in range(len(goal_dataset))]

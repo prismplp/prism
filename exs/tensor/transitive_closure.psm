@@ -1,0 +1,27 @@
+index(rel1,[[i,j],[k,j],[i,k],[k,i]]).
+:-set_prism_flag(error_on_cycle,off).
+
+rel2(U,V):-operator(min1),rel2_helper(U,V).
+rel2_helper(U,V):-
+	tensor(rel1,[U,W]),rel2(W,V).
+rel2_helper(U,V):-tensor(rel1,[U,V]).
+
+prism_main([]):-
+	N=100,
+	set_index_range(i,N),
+	set_index_range(j,N),
+	set_index_range(k,N),
+	Gs=[rel2(i,j)],
+	save_expl_graph('transitive_closure_tmp/expl.json',Gs),
+	save_flags('transitive_closure_tmp/flags.json').
+
+prism_main([N]):-
+	parse_atom(N,M),
+	set_index_range(i,M),
+	set_index_range(j,M),
+	set_index_range(k,M),
+	Gs=[rel2(i,j)],
+	save_expl_graph('transitive_closure_tmp/expl.json',Gs),
+	save_flags('transitive_closure_tmp/flags.json').
+	
+

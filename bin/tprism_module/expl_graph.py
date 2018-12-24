@@ -25,6 +25,7 @@ class CycleEmbeddingGenerator():
 	def __init__(self):
 		self.embedding={}
 		self.index_range={}
+		self.feed_verb=False
 	def load(self,options):
 		self.index_range={el.index:el.range for el in options.index_range}
 	##
@@ -35,8 +36,10 @@ class CycleEmbeddingGenerator():
 	def get_embedding(self,name,shape,node_id):
 		ph_name=name+"_cyc"
 		if ph_name in self.embedding:
+			print("[GET]>",ph_name,":",self.embedding[ph_name]["tensor"])
 			return self.embedding[ph_name]["tensor"]
 		else:
+			print("[CREATE]>",ph_name,":",shape)
 			self.embedding[ph_name]={}
 			self.embedding[ph_name]["tensor"]=tf.placeholder(name=ph_name,shape=shape,dtype=tf.float32)
 			self.embedding[ph_name]["data"]=np.zeros(shape=shape,dtype=np.float32)
@@ -47,12 +50,15 @@ class CycleEmbeddingGenerator():
 			#batch_data=data[idx]
 			batch_data=data["data"]
 			ph_var=data["tensor"]
+			if self.feed_verb:
+				print("[INFO: feed]","node_id:",data["id"],"=>",ph_name)
 			feed_dict[ph_var]=batch_data
 		return feed_dict
 	def update(self,out_inside):
 		total_loss=0
 		for ph_name,data in self.embedding.items():
 			node_id=data["id"]
+			print("[INFO: update] node_id:",node_id,"=>",ph_name)
 			##
 			loss=self.embedding[ph_name]["data"]-out_inside[node_id]
 			total_loss+=np.sum(loss**2)	
@@ -65,18 +71,20 @@ class CycleEmbeddingGenerator():
 
 class EmbeddingGenerator():
 	def __init__(self):
+		self.feed_verb=False
 		self.gather_in_flow=False
 		self.dataset={}
 		self.ph_var={}
 		self.vocabset_ph_var=None
 		self.vocabset_vocab_ph=None
 	def load(self,filename,key="train"):
+		print("[LOAD]",filename)
 		infh = h5py.File(filename, 'r')
 		if key in infh:
 			for vocab_name in infh[key]:
 				rs=infh[key][vocab_name].value
 				self.dataset[vocab_name]=rs
-				print(">>>>>>>>>>",vocab_name)
+				print("[LOAD VOCAB]",vocab_name)
 		infh.close()
 	def init(self,vocab_ph,ph_var):
 		self.vocabset_ph_var=ph_var
@@ -104,7 +112,8 @@ class EmbeddingGenerator():
 			l=list(self.vocabset_vocab_ph[vocab_name])
 			if len(l)>0:
 				idx_ph_name=l[0]
-				print("[INFO]",vocab_name,"=>",idx_ph_name)
+				if self.feed_verb:
+					print("[INFO: feed]",vocab_name,"=>",idx_ph_name)
 				idx_ph_var=self.vocabset_ph_var[idx_ph_name]
 				idx=feed_dict[idx_ph_var]
 				batch_data=data[idx]
@@ -115,7 +124,8 @@ class EmbeddingGenerator():
 				if ph_name in self.ph_var:
 					ph_var=self.ph_var[ph_name]
 					feed_dict[ph_var]=data
-				print("[INFO]",vocab_name)
+				if self.feed_verb:
+					print("[INFO: feed]",vocab_name,"=>",ph_name)
 		return feed_dict
 	def update(self,out_inside):
 		pass
@@ -278,7 +288,7 @@ def get_unique_list(seq):
 def compute_output_template(template):
 	counter=collections.Counter(chain.from_iterable(template))
 	out_template=[k for k,cnt in counter.items() if cnt==1 and k!="b"]
-	return out_template
+	return sorted(out_template)
 
 def build_explanation_graph_template(graph,tensor_provider,operator_loader=None,cycle_node=[]):
 	tensor_embedding=tensor_provider.tensor_embedding
@@ -337,7 +347,7 @@ def build_explanation_graph_template(graph,tensor_provider,operator_loader=None,
 			goal_template[i]={"template":[],"batch_flag":False}
 		else:
 			if len(path_template_list)!=1:
-				print("[ERROR]")
+				print("[WARNING] missmatch indices:",path_template_list)
 			goal_template[i]={"template":path_template_list[0],"batch_flag":path_batch_flag}
 	##
 	return goal_template,cycle_node
@@ -352,8 +362,8 @@ def build_explanation_graph(graph,tensor_provider,cycle_embedding_generator=None
 	# converting explanation graph to computational graph
 	goal_inside=[None]*len(graph.goals)
 	for i in range(len(graph.goals)):
-		print("=== tensor equation (%d) ==="%(i,))
 		g=graph.goals[i]
+		print("=== tensor equation (node_id:%d, %s) ==="%(g.node.sorted_id,g.node.goal.name))
 		path_inside=[]
 		path_template=[]
 		path_batch_flag=False
@@ -455,8 +465,7 @@ def build_explanation_graph(graph,tensor_provider,cycle_embedding_generator=None
 				}
 		else:
 			if len(path_template_list)!=1:
-				print("[ERROR]")
-			print(path_inside)
+				print("[WARNING] missmatch indices:",path_template_list)
 			goal_inside[i]={
 				"template":path_template_list[0],
 				"inside":tf.reduce_sum(tf.stack(path_inside),axis=0),
@@ -603,7 +612,6 @@ class SwitchTensorProvider:
 					else:
 						sw_obj=sw_info[sw.name]
 					value_list=[el for el in sw.values]
-					print(value_list)
 					shape=tuple([index_range[i] for i in value_list])
 					sw_obj.add_shape(shape)
 		# build placeholders
@@ -715,7 +723,6 @@ class SwitchTensorProvider:
 					var=vocab_var[vocab_name]
 					tensor_embedding[sw_name]= var
 			elif len(ph_list)==1:
-				print(vocab_name)
 				if embedding_generator and embedding_generator.is_dataset_embedding(vocab_name):
 					shape=[batch_size]+list(list(sw.shape_set)[0])
 					var=embedding_generator.get_embedding(vocab_name,shape)
