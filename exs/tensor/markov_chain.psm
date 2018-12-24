@@ -1,0 +1,29 @@
+index(onehot(_),[[j],[i]]).
+index(tr,[[i,j],[j,i]]).
+:-set_index_range(i,10).
+:-set_index_range(j,10).
+
+mc(S,T,Step):-tensor(onehot(S),[i]),mc_v(i,T,Step).
+mc_v(S,T,0):-tensor(onehot(T),[S]).
+mc_v(S,T,Step):-
+	Step>0,
+	prob_tensor(tr,[Next,S]),
+	NextStep is Step - 1,
+	mc_v(Next,T,NextStep).
+
+prob_tensor(X,Index):-
+	operator(softmax),
+	tensor(X,Index).
+	
+
+prism_main([]):-
+	Gs=[
+		mc(0,1,2),
+		mc(2,5,3),
+		mc(4,0,4),
+		mc(1,3,2)
+		],
+	save_expl_graph('markov_chain_tmp/expl.json',Gs),
+	save_flags('markov_chain_tmp/flags.json').
+	
+
