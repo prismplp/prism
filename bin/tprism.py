@@ -11,9 +11,9 @@ import collections
 import argparse
 import time
 
-import tprism.expl_pb2 as expl_pb2
-import tprism.expl_graph as expl_graph
-import tprism.draw_graph as draw_graph
+import tprism_module.expl_pb2 as expl_pb2
+import tprism_module.expl_graph as expl_graph
+import tprism_module.draw_graph as draw_graph
 
 class Flags(object):
 	def __init__(self, args, options):

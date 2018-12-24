@@ -15,9 +15,9 @@ import re
 import pickle
 import h5py
 
-import tprism.expl_pb2 as expl_pb2
-import tprism.op.base
-import tprism.loss.base
+import tprism_module.expl_pb2 as expl_pb2
+import tprism_module.op.base
+import tprism_module.loss.base
    
 
 
@@ -193,7 +193,7 @@ def load_explanation_graph(expl_filename,option_filename):
 class OperatorLoader:
 	def __init__(self):
 		self.operators={}
-		self.base_module_name="tprism.op."
+		self.base_module_name="tprism_module.op."
 		self.module=None
 	# a snake case operator name to class name
 	def to_class_name(self,snake_str):
@@ -223,7 +223,7 @@ class OperatorLoader:
 				
 	def load_module(self,module):
 		for cls_name, cls in inspect.getmembers(module, inspect.isclass):
-			if(issubclass(cls,tprism.op.base.BaseOperator)):
+			if(issubclass(cls,tprism_module.op.base.BaseOperator)):
 				print("[IMPORT]",cls_name)
 				op_name=self.to_op_name(cls_name)
 				self.operators[op_name]=cls
@@ -231,7 +231,7 @@ class OperatorLoader:
 class LossLoader:
 	def __init__(self):
 		self.module=None
-		self.base_module_name="tprism.loss."
+		self.base_module_name="tprism_module.loss."
 		self.losses={}
 	# a snake case operator name to class name
 	def to_class_name(self,snake_str):
@@ -262,7 +262,7 @@ class LossLoader:
 		
 	def load_module(self,module):
 		for cls_name, cls in inspect.getmembers(module, inspect.isclass):
-			if(issubclass(cls,tprism.loss.base.BaseLoss)):
+			if(issubclass(cls,tprism_module.loss.base.BaseLoss)):
 				print("[IMPORT]",cls_name)
 				op_name=self.to_op_name(cls_name)
 				self.losses[op_name]=cls
@@ -672,7 +672,8 @@ class SwitchTensorProvider:
 			if len(shapes)==1:
 				shape=list(shapes)[0]
 				if values is not None:
-					s=[len(values)]+list(shape)
+					#s=[len(values)]+list(shape)
+					s=[max(values)+1]+list(shape)
 				else:
 					s=list(shape)
 			else:
