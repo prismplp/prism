@@ -1,0 +1,39 @@
+index(v(_),[[i]]).
+index(r(_),[[i]]).
+:-set_index_range(i,20).
+
+rel(U,V,E):-vector(v(U),[i]),vector(v(V),[i]),vector(r(E),[i]).
+
+candidate(U,E,Goals,L):-findall(V,(member(rel(_,V,E),Goals),not member(rel(U,V,E),Goals)),L).
+random_select_negative(rel(U,V,E),Goals,rel(U,NegativeV,E)):-
+	candidate(U,E,Goals,L),
+	random_select(L,NegativeV).
+
+prism_main([]):-
+	random_set_seed(1234),
+	save_flags('distmult_sample_tmp/flags.json'),
+	load_clauses('sample.dat',Gs),
+	maplist(G,NegG,random_select_negative(G,Gs,NegG),Gs,NegGs),
+	maplist(X,Y,Z,Z=[X,Y],Gs,NegGs,GoalPairList),
+	save_expl_graph('distmult_sample_tmp/expl.json',GoalPairList).
+
+prism_main([pl]):-
+	random_set_seed(1234),
+	load_clauses('sample.dat',Gs),
+	maplist(G,NegG,random_select_negative(G,Gs,NegG),Gs,NegGs),
+	maplist(X,Y,Z,Z=[X,Y],Gs,NegGs,GoalPairList),
+	GoalPlaceholder=[[rel(_,_,_),rel(_,_,_)]],
+	save_placeholder_goals(GoalPlaceholder,GoalPairList),
+	GoalPlaceholder=[[X,Y]|_],
+	probf(X),
+	save_flags,
+	save_expl_graph(GoalPlaceholder).
+
+prism_main([pl,test]):-
+	random_set_seed(1234),
+	load_clauses('sample.dat',Gs),
+	GoalPlaceholder=[[rel(_,_,_)]],
+	save_placeholder_goals(GoalPlaceholder,Gs),
+	save_flags,
+	save_expl_graph(GoalPlaceholder).
+

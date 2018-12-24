@@ -86,6 +86,7 @@ def optimize_sgd(sess,goal_dataset,loss,flags,embedding_generators):
 
 	init = tf.global_variables_initializer()
 	sess.run(init)
+	saver = tf.train.Saver()
 	feed_dict={}
 	for embedding_generator in embedding_generators:
 		if embedding_generator is not None:
@@ -99,7 +100,8 @@ def optimize_sgd(sess,goal_dataset,loss,flags,embedding_generators):
 				feed_dict=embedding_generator.build_feed(feed_dict)
 		sess.run(train,feed_dict=feed_dict)
 		print("step", step, "loss:", sess.run(total_loss,feed_dict=feed_dict))
-
+	print("[SAVE]",flags.model)
+	saver.save(sess, flags.model)
 		
 
 
@@ -171,7 +173,7 @@ def optimize(sess,goal_dataset,loss,flags,embedding_generators):
 					saver.save(sess, flags.model)
 					return
 		train_time = time.time() - start_t
-		print("time:{0}".format(train_time) + "[sec]")
+		print("train time:{0}".format(train_time) + "[sec]")
 	print("[SAVE]",flags.model)
 	saver.save(sess, flags.model)
 
@@ -288,7 +290,10 @@ def run_training(g,sess,args):
 	print("traing time:{0}".format(train_time) + "[sec]")
 	
 def run_test(g,sess,args):
-	input_data = expl_graph.load_input_data(args.data)
+	if args.data is not None:
+		input_data = expl_graph.load_input_data(args.data)
+	else:
+		input_data = None
 	graph,options = expl_graph.load_explanation_graph(args.expl_graph,args.flags)
 	flags=Flags(args,options)
 	flags.update()
@@ -304,43 +309,60 @@ def run_test(g,sess,args):
 		embedding_generator.load(flags.embedding,key="test")
 	tensor_embedding = tensor_provider.build(graph,options,input_data,flags,load_embeddings=True,embedding_generator=embedding_generator)
 	goal_inside = expl_graph.build_explanation_graph(graph,tensor_provider)
-	goal_dataset=build_goal_dataset(input_data,tensor_provider)
+	if input_data is not None:
+		goal_dataset=build_goal_dataset(input_data,tensor_provider)
+	else:
+		goal_dataset=None
 	save_draw_graph(g,"test")
 	loss,output=loss_cls().call(graph,goal_inside,tensor_provider)
 	saver = tf.train.Saver()
 	saver.restore(sess,flags.model)
-
-	batch_size=flags.sgd_minibatch_size
-	total_loss=[[] for _ in range(len(goal_dataset))]
-	total_output=[[] for _ in range(len(goal_dataset))]
-	for j,goal in enumerate(goal_dataset):
-		ph_vars=goal["placeholders"]
-		dataset=goal["dataset"]
-		num=dataset.shape[1]
-		num_itr=(num+batch_size-1)//batch_size
-		if not flags.no_verb:
-			progbar=tf.keras.utils.Progbar(num_itr)
-		idx=list(range(num))
-		for itr in range(num_itr):
-			temp_idx=idx[itr*batch_size:(itr+1)*batch_size]
-			if len(temp_idx)<batch_size:
-				padding_idx=np.zeros((batch_size,),dtype=np.int32)
-				padding_idx[:len(temp_idx)]=temp_idx
-				feed_dict={ph:dataset[i,padding_idx] for i,ph in enumerate(ph_vars)}
-			else:
-				feed_dict={ph:dataset[i,temp_idx] for i,ph in enumerate(ph_vars)}
-			
-			if embedding_generator:
-				feed_dict=embedding_generator.build_feed(feed_dict)
-			batch_loss,batch_output=sess.run([loss[j],output[j]],feed_dict=feed_dict)
+	
+	if goal_dataset is not None:
+		batch_size=flags.sgd_minibatch_size
+		total_loss=[[] for _ in range(len(goal_dataset))]
+		total_output=[[] for _ in range(len(goal_dataset))]
+		for j,goal in enumerate(goal_dataset):
+			ph_vars=goal["placeholders"]
+			dataset=goal["dataset"]
+			num=dataset.shape[1]
+			num_itr=(num+batch_size-1)//batch_size
 			if not flags.no_verb:
-				progbar.update(itr)
-			#print(batch_output.shape)
-			#batch_output=np.transpose(batch_output)
-			total_loss[j].extend(batch_loss[:len(temp_idx)])
-			total_output[j].extend(batch_output[:len(temp_idx)])
-		print("loss:", np.mean(total_loss[j]))
-		print("output:", np.array(total_output[j]).shape)
+				progbar=tf.keras.utils.Progbar(num_itr)
+			idx=list(range(num))
+			for itr in range(num_itr):
+				temp_idx=idx[itr*batch_size:(itr+1)*batch_size]
+				if len(temp_idx)<batch_size:
+					padding_idx=np.zeros((batch_size,),dtype=np.int32)
+					padding_idx[:len(temp_idx)]=temp_idx
+					feed_dict={ph:dataset[i,padding_idx] for i,ph in enumerate(ph_vars)}
+				else:
+					feed_dict={ph:dataset[i,temp_idx] for i,ph in enumerate(ph_vars)}
+				
+				if embedding_generator:
+					feed_dict=embedding_generator.build_feed(feed_dict)
+				batch_loss,batch_output=sess.run([loss[j],output[j]],feed_dict=feed_dict)
+				if not flags.no_verb:
+					progbar.update(itr)
+				#print(batch_output.shape)
+				#batch_output=np.transpose(batch_output)
+				total_loss[j].extend(batch_loss[:len(temp_idx)])
+				total_output[j].extend(batch_output[:len(temp_idx)])
+			print("loss:", np.mean(total_loss[j]))
+			print("output:", np.array(total_output[j]).shape)
+	else:
+		feed_dict={}
+		total_loss=[]
+		total_output=[]
+		if embedding_generator:
+			feed_dict=embedding_generator.build_feed(feed_dict)
+		for j in range(len(loss)):
+			j_loss,j_output=sess.run([loss[j],output[j]],feed_dict=feed_dict)
+			total_loss.append(j_loss)
+			total_output.append(j_output)
+		print("loss:", np.mean(total_loss))
+		print("output:", np.array(total_output).shape)
+
 	###
 	"""
 	total_output=np.array(total_output)
@@ -350,6 +372,7 @@ def run_test(g,sess,args):
 	acc=total_output[0,:,0]<=total_output[0,:,1]
 	print(np.sum(acc))
 	"""
+	print("[SAVE]",flags.output)
 	np.save(flags.output,total_output)
 
 
@@ -382,7 +405,7 @@ if __name__ == '__main__':
 	parser.add_argument('--model', type=str,
 			default=None,
 			help='model file')
-	parser.add_argument('--embedding_param', type=str,
+	parser.add_argument('--vocab', type=str,
 			default=None,
 			help='model file')
 	## 
@@ -448,8 +471,8 @@ if __name__ == '__main__':
 			args.flags=args.internal_data_prefix+"flags.json"
 		if args.model is None:
 			args.model=args.internal_data_prefix+"model.ckpt"
-		if args.embedding_param is None:
-			args.embedding_param=args.internal_data_prefix+"embedding.pkl"
+		if args.vocab is None:
+			args.vocab=args.internal_data_prefix+"vocab.pkl"
 	## 
 	# setup
 	g = tf.Graph()

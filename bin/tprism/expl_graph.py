@@ -654,14 +654,14 @@ class SwitchTensorProvider:
 			embedding_generator.init(vocab_ph,ph_var)
 		## build vocab group
 		if load_embeddings:
-			print("[LOAD]",flags.embedding_param)
-			with open(flags.embedding_param, mode="rb") as f:
+			print("[LOAD]",flags.vocab)
+			with open(flags.vocab, mode="rb") as f:
 				vocab_set = pickle.load(f)
 		else:
 			vocab_set=VocabSet()
 			vocab_set.build(vocab_ph,ph_vocab,ph_values)
-			print("[SAVE]",flags.embedding_param)
-			with open(flags.embedding_param, mode="wb") as f:
+			print("[SAVE]",flags.vocab)
+			with open(flags.vocab, mode="wb") as f:
 				pickle.dump(vocab_set, f)
 		##
 		vocab_var={}
