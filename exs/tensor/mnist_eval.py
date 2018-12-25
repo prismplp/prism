@@ -6,7 +6,7 @@ output_file="mnist_output.npy"
 print("[LOAD]",output_file)
 output=np.load(output_file)
 
-in_file = './mnist_data.test.h5'
+in_file = './mnist_tmp/mnist_data.test.h5'
 print("[LOAD]",in_file)
 infh = h5py.File(in_file, 'r')
 
