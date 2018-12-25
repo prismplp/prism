@@ -1,0 +1,6 @@
+#!/bin/sh
+BINDIR=`dirname $0`
+BINARY=$BINDIR/tprism.py
+
+#echo $BINARY ${1+"$@"}
+exec $BINARY  ${1+"$@"}
