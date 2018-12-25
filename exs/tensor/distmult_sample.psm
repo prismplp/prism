@@ -2,7 +2,7 @@ index(v(_),[[i]]).
 index(r(_),[[i]]).
 :-set_index_range(i,20).
 
-rel(U,V,E):-vector(v(U),[i]),vector(v(V),[i]),vector(r(E),[i]).
+rel(U,V,E):-tensor(v(U),[i]),tensor(v(V),[i]),tensor(r(E),[i]).
 
 candidate(U,E,Goals,L):-findall(V,(member(rel(_,V,E),Goals),not member(rel(U,V,E),Goals)),L).
 random_select_negative(rel(U,V,E),Goals,rel(U,NegativeV,E)):-
@@ -26,12 +26,4 @@ prism_main([with_placeholder]):-
 	save_placeholder_goals('distmult_sample_tmp/data.h5',GoalPlaceholder,GoalPairList),
 	save_flags('distmult_sample_tmp/flags.json'),
 	save_expl_graph('distmult_sample_tmp/expl.json',GoalPlaceholder).
-
-prism_main([pl,test]):-
-	random_set_seed(1234),
-	load_clauses('sample.dat',Gs),
-	GoalPlaceholder=[[rel(_,_,_)]],
-	save_placeholder_goals(GoalPlaceholder,Gs),
-	save_flags,
-	save_expl_graph(GoalPlaceholder).
 
