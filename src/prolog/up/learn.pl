@@ -336,6 +336,8 @@ $pp_decode_update_switches_b([sw(_,SwInstances)|Sws]) :-
     assert($pd_hyperexpectations(Sw,Values,Es)),!,
     $pp_decode_update_switches_b(Sws).
 
+$pp_decode_switch_name([sw_ins(Sid)|_SwInstances],Sw) :-
+    $pc_prism_sw_ins_term(Sid,msw(Sw,_)).  % only uses the first element
 $pp_decode_switch_name([sw_ins(Sid,_,_,_)|_SwInstances],Sw) :-
     $pc_prism_sw_ins_term(Sid,msw(Sw,_)).  % only uses the first element
 

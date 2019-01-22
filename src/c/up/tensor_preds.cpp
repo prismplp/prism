@@ -265,10 +265,11 @@ int pc_set_export_flags_1(void) {
 }
 
 extern "C"
-int pc_save_options_2(void) {
+int pc_save_options_3(void) {
 	//char* filename =bpx_term_2_string(bpx_get_call_arg(1,2));
-	const char* filename=bpx_get_name(bpx_get_call_arg(1,2));
-	SaveFormat format = (SaveFormat) bpx_get_integer(bpx_get_call_arg(2,2));
+	const char* filename=bpx_get_name(bpx_get_call_arg(1,3));
+	SaveFormat format = (SaveFormat) bpx_get_integer(bpx_get_call_arg(2,3));
+	TERM sw_list=bpx_get_call_arg(3,3);
 	prism::Option op;
 	// set flags
 	for(auto itr:exported_flags){
@@ -281,6 +282,25 @@ int pc_save_options_2(void) {
 		prism::IndexRange* ir=op.add_index_range();
 		ir->set_index(itr.first);
 		ir->set_range(itr.second);
+	}
+	
+	//
+	while(!bpx_is_nil(sw_list)){
+		prism::TensorShape* ts=op.add_tensor_shape();
+		TERM pair=bpx_get_car(sw_list);
+		TERM tensor_atom=bpx_get_car(pair);
+		string tensor_str= bpx_term_2_string(tensor_atom);
+		TERM shape=bpx_get_car(bpx_get_cdr(pair));
+		tensor_str="tensor("+tensor_str+")";
+		ts->set_tensor_name(tensor_str);
+		cout<<tensor_str<<endl;
+		while(!bpx_is_nil(shape)){
+			int dim=bpx_get_integer(bpx_get_car(shape));
+			ts->add_shape(dim);
+			shape=bpx_get_cdr(shape);
+			cout<<"  "<<dim<<endl;
+		}
+		sw_list=bpx_get_cdr(sw_list);
 	}
 	// save
 	save_message(filename,&op,format);

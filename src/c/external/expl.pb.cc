@@ -55,6 +55,11 @@ class IndexRangeDefaultTypeInternal {
   ::google::protobuf::internal::ExplicitlyConstructed<IndexRange>
       _instance;
 } _IndexRange_default_instance_;
+class TensorShapeDefaultTypeInternal {
+ public:
+  ::google::protobuf::internal::ExplicitlyConstructed<TensorShape>
+      _instance;
+} _TensorShape_default_instance_;
 class ExplGraphDefaultTypeInternal {
  public:
   ::google::protobuf::internal::ExplicitlyConstructed<ExplGraph>
@@ -194,6 +199,7 @@ void InitDefaultsOptionImpl() {
 #endif  // GOOGLE_PROTOBUF_ENFORCE_UNIQUENESS
   protobuf_expl_2eproto::InitDefaultsFlag();
   protobuf_expl_2eproto::InitDefaultsIndexRange();
+  protobuf_expl_2eproto::InitDefaultsTensorShape();
   {
     void* ptr = &::prism::_Option_default_instance_;
     new (ptr) ::prism::Option();
@@ -247,6 +253,27 @@ void InitDefaultsIndexRangeImpl() {
 void InitDefaultsIndexRange() {
   static GOOGLE_PROTOBUF_DECLARE_ONCE(once);
   ::google::protobuf::GoogleOnceInit(&once, &InitDefaultsIndexRangeImpl);
+}
+
+void InitDefaultsTensorShapeImpl() {
+  GOOGLE_PROTOBUF_VERIFY_VERSION;
+
+#ifdef GOOGLE_PROTOBUF_ENFORCE_UNIQUENESS
+  ::google::protobuf::internal::InitProtobufDefaultsForceUnique();
+#else
+  ::google::protobuf::internal::InitProtobufDefaults();
+#endif  // GOOGLE_PROTOBUF_ENFORCE_UNIQUENESS
+  {
+    void* ptr = &::prism::_TensorShape_default_instance_;
+    new (ptr) ::prism::TensorShape();
+    ::google::protobuf::internal::OnShutdownDestroyMessage(ptr);
+  }
+  ::prism::TensorShape::InitAsDefaultInstance();
+}
+
+void InitDefaultsTensorShape() {
+  static GOOGLE_PROTOBUF_DECLARE_ONCE(once);
+  ::google::protobuf::GoogleOnceInit(&once, &InitDefaultsTensorShapeImpl);
 }
 
 void InitDefaultsExplGraphImpl() {
@@ -425,7 +452,7 @@ void InitDefaultsRankRoot() {
   ::google::protobuf::GoogleOnceInit(&once, &InitDefaultsRankRootImpl);
 }
 
-::google::protobuf::Metadata file_level_metadata[15];
+::google::protobuf::Metadata file_level_metadata[16];
 const ::google::protobuf::EnumDescriptor* file_level_enum_descriptors[1];
 
 const ::google::protobuf::uint32 TableStruct::offsets[] GOOGLE_PROTOBUF_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
@@ -462,6 +489,7 @@ const ::google::protobuf::uint32 TableStruct::offsets[] GOOGLE_PROTOBUF_ATTRIBUT
   ~0u,  // no _weak_field_map_
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::prism::Option, flags_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::prism::Option, index_range_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::prism::Option, tensor_shape_),
   ~0u,  // no _has_bits_
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::prism::Flag, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -476,6 +504,13 @@ const ::google::protobuf::uint32 TableStruct::offsets[] GOOGLE_PROTOBUF_ATTRIBUT
   ~0u,  // no _weak_field_map_
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::prism::IndexRange, index_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::prism::IndexRange, range_),
+  ~0u,  // no _has_bits_
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::prism::TensorShape, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::prism::TensorShape, tensor_name_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::prism::TensorShape, shape_),
   ~0u,  // no _has_bits_
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::prism::ExplGraph, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -545,16 +580,17 @@ static const ::google::protobuf::internal::MigrationSchema schemas[] GOOGLE_PROT
   { 14, -1, sizeof(::prism::DataRecord)},
   { 20, -1, sizeof(::prism::Placeholder)},
   { 26, -1, sizeof(::prism::Option)},
-  { 33, -1, sizeof(::prism::Flag)},
-  { 40, -1, sizeof(::prism::IndexRange)},
-  { 47, -1, sizeof(::prism::ExplGraph)},
-  { 54, -1, sizeof(::prism::ExplGraphGoal)},
-  { 61, -1, sizeof(::prism::ExplGraphPath)},
-  { 70, -1, sizeof(::prism::ExplGraphNode)},
-  { 78, -1, sizeof(::prism::GoalTerm)},
-  { 85, -1, sizeof(::prism::SwIns)},
-  { 95, -1, sizeof(::prism::Root)},
-  { 102, -1, sizeof(::prism::RankRoot)},
+  { 34, -1, sizeof(::prism::Flag)},
+  { 41, -1, sizeof(::prism::IndexRange)},
+  { 48, -1, sizeof(::prism::TensorShape)},
+  { 55, -1, sizeof(::prism::ExplGraph)},
+  { 62, -1, sizeof(::prism::ExplGraphGoal)},
+  { 69, -1, sizeof(::prism::ExplGraphPath)},
+  { 78, -1, sizeof(::prism::ExplGraphNode)},
+  { 86, -1, sizeof(::prism::GoalTerm)},
+  { 93, -1, sizeof(::prism::SwIns)},
+  { 103, -1, sizeof(::prism::Root)},
+  { 110, -1, sizeof(::prism::RankRoot)},
 };
 
 static ::google::protobuf::Message const * const file_default_instances[] = {
@@ -565,6 +601,7 @@ static ::google::protobuf::Message const * const file_default_instances[] = {
   reinterpret_cast<const ::google::protobuf::Message*>(&::prism::_Option_default_instance_),
   reinterpret_cast<const ::google::protobuf::Message*>(&::prism::_Flag_default_instance_),
   reinterpret_cast<const ::google::protobuf::Message*>(&::prism::_IndexRange_default_instance_),
+  reinterpret_cast<const ::google::protobuf::Message*>(&::prism::_TensorShape_default_instance_),
   reinterpret_cast<const ::google::protobuf::Message*>(&::prism::_ExplGraph_default_instance_),
   reinterpret_cast<const ::google::protobuf::Message*>(&::prism::_ExplGraphGoal_default_instance_),
   reinterpret_cast<const ::google::protobuf::Message*>(&::prism::_ExplGraphPath_default_instance_),
@@ -591,7 +628,7 @@ void protobuf_AssignDescriptorsOnce() {
 void protobuf_RegisterTypes(const ::std::string&) GOOGLE_PROTOBUF_ATTRIBUTE_COLD;
 void protobuf_RegisterTypes(const ::std::string&) {
   protobuf_AssignDescriptorsOnce();
-  ::google::protobuf::internal::RegisterAllTypes(file_level_metadata, 15);
+  ::google::protobuf::internal::RegisterAllTypes(file_level_metadata, 16);
 }
 
 void AddDescriptorsImpl() {
@@ -603,31 +640,34 @@ void AddDescriptorsImpl() {
       "ders\030\002 \003(\0132\022.prism.Placeholder\022\"\n\007record"
       "s\030\003 \003(\0132\021.prism.DataRecord\"\033\n\nDataRecord"
       "\022\r\n\005items\030\002 \003(\t\"\033\n\013Placeholder\022\014\n\004name\030\001"
-      " \001(\t\"L\n\006Option\022\032\n\005flags\030\001 \003(\0132\013.prism.Fl"
+      " \001(\t\"v\n\006Option\022\032\n\005flags\030\001 \003(\0132\013.prism.Fl"
       "ag\022&\n\013index_range\030\002 \003(\0132\021.prism.IndexRan"
-      "ge\"\"\n\004Flag\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t\"*"
-      "\n\nIndexRange\022\r\n\005index\030\001 \001(\t\022\r\n\005range\030\002 \001"
-      "(\005\"T\n\tExplGraph\022#\n\005goals\030\001 \003(\0132\024.prism.E"
-      "xplGraphGoal\022\"\n\troot_list\030\002 \003(\0132\017.prism."
-      "RankRoot\"X\n\rExplGraphGoal\022\"\n\004node\030\001 \001(\0132"
-      "\024.prism.ExplGraphNode\022#\n\005paths\030\002 \003(\0132\024.p"
-      "rism.ExplGraphPath\"\241\001\n\rExplGraphPath\022#\n\005"
-      "nodes\030\001 \003(\0132\024.prism.ExplGraphNode\022#\n\rpro"
-      "b_switches\030\002 \003(\0132\014.prism.SwIns\022%\n\017tensor"
-      "_switches\030\003 \003(\0132\014.prism.SwIns\022\037\n\toperato"
-      "rs\030\004 \003(\0132\014.prism.SwIns\"M\n\rExplGraphNode\022"
-      "\n\n\002id\030\001 \001(\005\022\021\n\tsorted_id\030\002 \001(\005\022\035\n\004goal\030\003"
-      " \001(\0132\017.prism.GoalTerm\"&\n\010GoalTerm\022\014\n\004nam"
-      "e\030\001 \001(\t\022\014\n\004args\030\002 \003(\t\"a\n\005SwIns\022\n\n\002id\030\001 \001"
-      "(\005\022\014\n\004name\030\002 \001(\t\022\016\n\006values\030\003 \003(\t\022\016\n\006insi"
-      "de\030\004 \001(\002\022\036\n\007sw_type\030\005 \001(\0162\r.prism.SwType"
-      "\"%\n\004Root\022\n\n\002id\030\001 \001(\005\022\021\n\tsorted_id\030\002 \001(\005\""
-      "5\n\010RankRoot\022\032\n\005roots\030\001 \003(\0132\013.prism.Root\022"
-      "\r\n\005count\030\002 \001(\005*5\n\006SwType\022\021\n\rProbabilisti"
-      "c\020\000\022\n\n\006Tensor\020\001\022\014\n\010Operator\020\002b\006proto3"
+      "ge\022(\n\014tensor_shape\030\003 \003(\0132\022.prism.TensorS"
+      "hape\"\"\n\004Flag\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t"
+      "\"*\n\nIndexRange\022\r\n\005index\030\001 \001(\t\022\r\n\005range\030\002"
+      " \001(\005\"1\n\013TensorShape\022\023\n\013tensor_name\030\001 \001(\t"
+      "\022\r\n\005shape\030\002 \003(\005\"T\n\tExplGraph\022#\n\005goals\030\001 "
+      "\003(\0132\024.prism.ExplGraphGoal\022\"\n\troot_list\030\002"
+      " \003(\0132\017.prism.RankRoot\"X\n\rExplGraphGoal\022\""
+      "\n\004node\030\001 \001(\0132\024.prism.ExplGraphNode\022#\n\005pa"
+      "ths\030\002 \003(\0132\024.prism.ExplGraphPath\"\241\001\n\rExpl"
+      "GraphPath\022#\n\005nodes\030\001 \003(\0132\024.prism.ExplGra"
+      "phNode\022#\n\rprob_switches\030\002 \003(\0132\014.prism.Sw"
+      "Ins\022%\n\017tensor_switches\030\003 \003(\0132\014.prism.SwI"
+      "ns\022\037\n\toperators\030\004 \003(\0132\014.prism.SwIns\"M\n\rE"
+      "xplGraphNode\022\n\n\002id\030\001 \001(\005\022\021\n\tsorted_id\030\002 "
+      "\001(\005\022\035\n\004goal\030\003 \001(\0132\017.prism.GoalTerm\"&\n\010Go"
+      "alTerm\022\014\n\004name\030\001 \001(\t\022\014\n\004args\030\002 \003(\t\"a\n\005Sw"
+      "Ins\022\n\n\002id\030\001 \001(\005\022\014\n\004name\030\002 \001(\t\022\016\n\006values\030"
+      "\003 \003(\t\022\016\n\006inside\030\004 \001(\002\022\036\n\007sw_type\030\005 \001(\0162\r"
+      ".prism.SwType\"%\n\004Root\022\n\n\002id\030\001 \001(\005\022\021\n\tsor"
+      "ted_id\030\002 \001(\005\"5\n\010RankRoot\022\032\n\005roots\030\001 \003(\0132"
+      "\013.prism.Root\022\r\n\005count\030\002 \001(\005*5\n\006SwType\022\021\n"
+      "\rProbabilistic\020\000\022\n\n\006Tensor\020\001\022\014\n\010Operator"
+      "\020\002b\006proto3"
   };
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-      descriptor, 1117);
+      descriptor, 1210);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "expl.proto", &protobuf_RegisterTypes);
 }
@@ -1735,6 +1775,7 @@ void Option::InitAsDefaultInstance() {
 #if !defined(_MSC_VER) || _MSC_VER >= 1900
 const int Option::kFlagsFieldNumber;
 const int Option::kIndexRangeFieldNumber;
+const int Option::kTensorShapeFieldNumber;
 #endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
 
 Option::Option()
@@ -1750,6 +1791,7 @@ Option::Option(const Option& from)
       _internal_metadata_(NULL),
       flags_(from.flags_),
       index_range_(from.index_range_),
+      tensor_shape_(from.tensor_shape_),
       _cached_size_(0) {
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   // @@protoc_insertion_point(copy_constructor:prism.Option)
@@ -1798,6 +1840,7 @@ void Option::Clear() {
 
   flags_.Clear();
   index_range_.Clear();
+  tensor_shape_.Clear();
   _internal_metadata_.Clear();
 }
 
@@ -1827,6 +1870,17 @@ bool Option::MergePartialFromCodedStream(
         if (static_cast< ::google::protobuf::uint8>(tag) ==
             static_cast< ::google::protobuf::uint8>(18u /* 18 & 0xFF */)) {
           DO_(::google::protobuf::internal::WireFormatLite::ReadMessage(input, add_index_range()));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // repeated .prism.TensorShape tensor_shape = 3;
+      case 3: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(26u /* 26 & 0xFF */)) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadMessage(input, add_tensor_shape()));
         } else {
           goto handle_unusual;
         }
@@ -1873,6 +1927,13 @@ void Option::SerializeWithCachedSizes(
       2, this->index_range(static_cast<int>(i)), output);
   }
 
+  // repeated .prism.TensorShape tensor_shape = 3;
+  for (unsigned int i = 0,
+      n = static_cast<unsigned int>(this->tensor_shape_size()); i < n; i++) {
+    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
+      3, this->tensor_shape(static_cast<int>(i)), output);
+  }
+
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), output);
@@ -1901,6 +1962,14 @@ void Option::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormatLite::
       InternalWriteMessageToArray(
         2, this->index_range(static_cast<int>(i)), deterministic, target);
+  }
+
+  // repeated .prism.TensorShape tensor_shape = 3;
+  for (unsigned int i = 0,
+      n = static_cast<unsigned int>(this->tensor_shape_size()); i < n; i++) {
+    target = ::google::protobuf::internal::WireFormatLite::
+      InternalWriteMessageToArray(
+        3, this->tensor_shape(static_cast<int>(i)), deterministic, target);
   }
 
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
@@ -1942,6 +2011,17 @@ size_t Option::ByteSizeLong() const {
     }
   }
 
+  // repeated .prism.TensorShape tensor_shape = 3;
+  {
+    unsigned int count = static_cast<unsigned int>(this->tensor_shape_size());
+    total_size += 1UL * count;
+    for (unsigned int i = 0; i < count; i++) {
+      total_size +=
+        ::google::protobuf::internal::WireFormatLite::MessageSize(
+          this->tensor_shape(static_cast<int>(i)));
+    }
+  }
+
   int cached_size = ::google::protobuf::internal::ToCachedSize(total_size);
   GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
   _cached_size_ = cached_size;
@@ -1973,6 +2053,7 @@ void Option::MergeFrom(const Option& from) {
 
   flags_.MergeFrom(from.flags_);
   index_range_.MergeFrom(from.index_range_);
+  tensor_shape_.MergeFrom(from.tensor_shape_);
 }
 
 void Option::CopyFrom(const ::google::protobuf::Message& from) {
@@ -2001,6 +2082,7 @@ void Option::InternalSwap(Option* other) {
   using std::swap;
   flags_.InternalSwap(&other->flags_);
   index_range_.InternalSwap(&other->index_range_);
+  tensor_shape_.InternalSwap(&other->tensor_shape_);
   _internal_metadata_.Swap(&other->_internal_metadata_);
   swap(_cached_size_, other->_cached_size_);
 }
@@ -2614,6 +2696,326 @@ void IndexRange::InternalSwap(IndexRange* other) {
 }
 
 ::google::protobuf::Metadata IndexRange::GetMetadata() const {
+  protobuf_expl_2eproto::protobuf_AssignDescriptorsOnce();
+  return ::protobuf_expl_2eproto::file_level_metadata[kIndexInFileMessages];
+}
+
+
+// ===================================================================
+
+void TensorShape::InitAsDefaultInstance() {
+}
+#if !defined(_MSC_VER) || _MSC_VER >= 1900
+const int TensorShape::kTensorNameFieldNumber;
+const int TensorShape::kShapeFieldNumber;
+#endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
+
+TensorShape::TensorShape()
+  : ::google::protobuf::Message(), _internal_metadata_(NULL) {
+  if (GOOGLE_PREDICT_TRUE(this != internal_default_instance())) {
+    ::protobuf_expl_2eproto::InitDefaultsTensorShape();
+  }
+  SharedCtor();
+  // @@protoc_insertion_point(constructor:prism.TensorShape)
+}
+TensorShape::TensorShape(const TensorShape& from)
+  : ::google::protobuf::Message(),
+      _internal_metadata_(NULL),
+      shape_(from.shape_),
+      _cached_size_(0) {
+  _internal_metadata_.MergeFrom(from._internal_metadata_);
+  tensor_name_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  if (from.tensor_name().size() > 0) {
+    tensor_name_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.tensor_name_);
+  }
+  // @@protoc_insertion_point(copy_constructor:prism.TensorShape)
+}
+
+void TensorShape::SharedCtor() {
+  tensor_name_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  _cached_size_ = 0;
+}
+
+TensorShape::~TensorShape() {
+  // @@protoc_insertion_point(destructor:prism.TensorShape)
+  SharedDtor();
+}
+
+void TensorShape::SharedDtor() {
+  tensor_name_.DestroyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+
+void TensorShape::SetCachedSize(int size) const {
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+}
+const ::google::protobuf::Descriptor* TensorShape::descriptor() {
+  ::protobuf_expl_2eproto::protobuf_AssignDescriptorsOnce();
+  return ::protobuf_expl_2eproto::file_level_metadata[kIndexInFileMessages].descriptor;
+}
+
+const TensorShape& TensorShape::default_instance() {
+  ::protobuf_expl_2eproto::InitDefaultsTensorShape();
+  return *internal_default_instance();
+}
+
+TensorShape* TensorShape::New(::google::protobuf::Arena* arena) const {
+  TensorShape* n = new TensorShape;
+  if (arena != NULL) {
+    arena->Own(n);
+  }
+  return n;
+}
+
+void TensorShape::Clear() {
+// @@protoc_insertion_point(message_clear_start:prism.TensorShape)
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  shape_.Clear();
+  tensor_name_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  _internal_metadata_.Clear();
+}
+
+bool TensorShape::MergePartialFromCodedStream(
+    ::google::protobuf::io::CodedInputStream* input) {
+#define DO_(EXPRESSION) if (!GOOGLE_PREDICT_TRUE(EXPRESSION)) goto failure
+  ::google::protobuf::uint32 tag;
+  // @@protoc_insertion_point(parse_start:prism.TensorShape)
+  for (;;) {
+    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
+    tag = p.first;
+    if (!p.second) goto handle_unusual;
+    switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
+      // string tensor_name = 1;
+      case 1: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(10u /* 10 & 0xFF */)) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_tensor_name()));
+          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+            this->tensor_name().data(), static_cast<int>(this->tensor_name().length()),
+            ::google::protobuf::internal::WireFormatLite::PARSE,
+            "prism.TensorShape.tensor_name"));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // repeated int32 shape = 2;
+      case 2: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(18u /* 18 & 0xFF */)) {
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPackedPrimitive<
+                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
+                 input, this->mutable_shape())));
+        } else if (
+            static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(16u /* 16 & 0xFF */)) {
+          DO_((::google::protobuf::internal::WireFormatLite::ReadRepeatedPrimitiveNoInline<
+                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
+                 1, 18u, input, this->mutable_shape())));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      default: {
+      handle_unusual:
+        if (tag == 0) {
+          goto success;
+        }
+        DO_(::google::protobuf::internal::WireFormat::SkipField(
+              input, tag, _internal_metadata_.mutable_unknown_fields()));
+        break;
+      }
+    }
+  }
+success:
+  // @@protoc_insertion_point(parse_success:prism.TensorShape)
+  return true;
+failure:
+  // @@protoc_insertion_point(parse_failure:prism.TensorShape)
+  return false;
+#undef DO_
+}
+
+void TensorShape::SerializeWithCachedSizes(
+    ::google::protobuf::io::CodedOutputStream* output) const {
+  // @@protoc_insertion_point(serialize_start:prism.TensorShape)
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // string tensor_name = 1;
+  if (this->tensor_name().size() > 0) {
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+      this->tensor_name().data(), static_cast<int>(this->tensor_name().length()),
+      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
+      "prism.TensorShape.tensor_name");
+    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+      1, this->tensor_name(), output);
+  }
+
+  // repeated int32 shape = 2;
+  if (this->shape_size() > 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteTag(2, ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED, output);
+    output->WriteVarint32(static_cast< ::google::protobuf::uint32>(
+        _shape_cached_byte_size_));
+  }
+  for (int i = 0, n = this->shape_size(); i < n; i++) {
+    ::google::protobuf::internal::WireFormatLite::WriteInt32NoTag(
+      this->shape(i), output);
+  }
+
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
+    ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), output);
+  }
+  // @@protoc_insertion_point(serialize_end:prism.TensorShape)
+}
+
+::google::protobuf::uint8* TensorShape::InternalSerializeWithCachedSizesToArray(
+    bool deterministic, ::google::protobuf::uint8* target) const {
+  (void)deterministic; // Unused
+  // @@protoc_insertion_point(serialize_to_array_start:prism.TensorShape)
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // string tensor_name = 1;
+  if (this->tensor_name().size() > 0) {
+    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+      this->tensor_name().data(), static_cast<int>(this->tensor_name().length()),
+      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
+      "prism.TensorShape.tensor_name");
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        1, this->tensor_name(), target);
+  }
+
+  // repeated int32 shape = 2;
+  if (this->shape_size() > 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteTagToArray(
+      2,
+      ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED,
+      target);
+    target = ::google::protobuf::io::CodedOutputStream::WriteVarint32ToArray(
+        static_cast< ::google::protobuf::int32>(
+            _shape_cached_byte_size_), target);
+    target = ::google::protobuf::internal::WireFormatLite::
+      WriteInt32NoTagToArray(this->shape_, target);
+  }
+
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
+    target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), target);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:prism.TensorShape)
+  return target;
+}
+
+size_t TensorShape::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:prism.TensorShape)
+  size_t total_size = 0;
+
+  if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
+    total_size +=
+      ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
+        (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()));
+  }
+  // repeated int32 shape = 2;
+  {
+    size_t data_size = ::google::protobuf::internal::WireFormatLite::
+      Int32Size(this->shape_);
+    if (data_size > 0) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::Int32Size(
+            static_cast< ::google::protobuf::int32>(data_size));
+    }
+    int cached_size = ::google::protobuf::internal::ToCachedSize(data_size);
+    GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+    _shape_cached_byte_size_ = cached_size;
+    GOOGLE_SAFE_CONCURRENT_WRITES_END();
+    total_size += data_size;
+  }
+
+  // string tensor_name = 1;
+  if (this->tensor_name().size() > 0) {
+    total_size += 1 +
+      ::google::protobuf::internal::WireFormatLite::StringSize(
+        this->tensor_name());
+  }
+
+  int cached_size = ::google::protobuf::internal::ToCachedSize(total_size);
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = cached_size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+  return total_size;
+}
+
+void TensorShape::MergeFrom(const ::google::protobuf::Message& from) {
+// @@protoc_insertion_point(generalized_merge_from_start:prism.TensorShape)
+  GOOGLE_DCHECK_NE(&from, this);
+  const TensorShape* source =
+      ::google::protobuf::internal::DynamicCastToGenerated<const TensorShape>(
+          &from);
+  if (source == NULL) {
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:prism.TensorShape)
+    ::google::protobuf::internal::ReflectionOps::Merge(from, this);
+  } else {
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:prism.TensorShape)
+    MergeFrom(*source);
+  }
+}
+
+void TensorShape::MergeFrom(const TensorShape& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:prism.TensorShape)
+  GOOGLE_DCHECK_NE(&from, this);
+  _internal_metadata_.MergeFrom(from._internal_metadata_);
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  shape_.MergeFrom(from.shape_);
+  if (from.tensor_name().size() > 0) {
+
+    tensor_name_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.tensor_name_);
+  }
+}
+
+void TensorShape::CopyFrom(const ::google::protobuf::Message& from) {
+// @@protoc_insertion_point(generalized_copy_from_start:prism.TensorShape)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+void TensorShape::CopyFrom(const TensorShape& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:prism.TensorShape)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool TensorShape::IsInitialized() const {
+  return true;
+}
+
+void TensorShape::Swap(TensorShape* other) {
+  if (other == this) return;
+  InternalSwap(other);
+}
+void TensorShape::InternalSwap(TensorShape* other) {
+  using std::swap;
+  shape_.InternalSwap(&other->shape_);
+  tensor_name_.Swap(&other->tensor_name_);
+  _internal_metadata_.Swap(&other->_internal_metadata_);
+  swap(_cached_size_, other->_cached_size_);
+}
+
+::google::protobuf::Metadata TensorShape::GetMetadata() const {
   protobuf_expl_2eproto::protobuf_AssignDescriptorsOnce();
   return ::protobuf_expl_2eproto::file_level_metadata[kIndexInFileMessages];
 }

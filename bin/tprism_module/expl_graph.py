@@ -25,9 +25,11 @@ class CycleEmbeddingGenerator():
 	def __init__(self):
 		self.embedding={}
 		self.index_range={}
+		self.tensor_shape={}
 		self.feed_verb=False
 	def load(self,options):
 		self.index_range={el.index:el.range for el in options.index_range}
+		self.tensor_shape={el.tensor_name:[d for d in el.shape] for el in options.tensor_shape}
 	##
 	def template2shape(self,template):
 		return [self.index_range[t] for t in template]
@@ -336,6 +338,7 @@ def build_explanation_graph_template(graph,tensor_provider,operator_loader=None,
 					out_template=['b']+out_template
 			## computing operaters
 			for op in path.operators:
+				print(op.name)
 				cls=operator_loader.get_operator(op.name)
 				op_obj=cls(op.values)
 				out_template=op_obj.get_output_template(out_template)
@@ -443,10 +446,10 @@ def build_explanation_graph(graph,tensor_provider,cycle_embedding_generator=None
 				out_inside=scalar_inside*out_inside
 			## computing operaters
 			for op in path.operators:
-				#print(">>>",op.name)
-				#print(">>>",op.values)
+				print(">>>",op.name)
+				print(">>>",op.values)
 				cls=operator_loader.get_operator(op.name)
-				#print(">>>",cls)
+				print(">>>",cls)
 				op_obj=cls(op.values)
 				out_inside=op_obj.call(out_inside)
 				out_template=op_obj.get_output_template(out_template)
@@ -601,6 +604,7 @@ class SwitchTensorProvider:
 
 	def build(self,graph,options,input_data,flags,load_embeddings=False,embedding_generator=None):
 		index_range={el.index:el.range for el in options.index_range}
+		tensor_shape={el.tensor_name:[d for d in el.shape] for el in options.tensor_shape}
 		# switch name => 
 		sw_info={}
 		for g in graph.goals:
@@ -612,7 +616,10 @@ class SwitchTensorProvider:
 					else:
 						sw_obj=sw_info[sw.name]
 					value_list=[el for el in sw.values]
-					shape=tuple([index_range[i] for i in value_list])
+					if sw.name in tensor_shape:
+						shape=tuple(tensor_shape[sw.name])
+					else:
+						shape=tuple([index_range[i] for i in value_list])
 					sw_obj.add_shape(shape)
 		# build placeholders
 		if input_data is not None:

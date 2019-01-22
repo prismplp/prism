@@ -76,12 +76,15 @@ def optimize_solve(sess,goal_dataset,goal_inside,flags,embedding_generators):
 	#	print(np.sum(a>0))
 
 def optimize_sgd(sess,goal_dataset,loss,flags,embedding_generators):
+	print("... training phase")
 	total_loss=tf.reduce_sum(loss)
 	optimizer = tf.train.AdamOptimizer(flags.sgd_learning_rate)
 	train = optimizer.minimize(total_loss)
 
+	print("... initialization")
 	init = tf.global_variables_initializer()
 	sess.run(init)
+	print("... initializing generator")
 	saver = tf.train.Saver()
 	feed_dict={}
 	for embedding_generator in embedding_generators:
@@ -224,13 +227,7 @@ def run_preparing(g,sess,args):
 		embedding_generator=expl_graph.EmbeddingGenerator()
 		embedding_generator.load(flags.embedding)
 	tensor_embedding = tensor_provider.build(graph,options,input_data,flags,load_embeddings=False,embedding_generator=embedding_generator)
-	#goal_inside = expl_graph.build_explanation_graph(graph,tensor_provider)
-	#goal_dataset=build_goal_dataset(input_data,tensor_provider)
-	#save_draw_graph(g,"test")
 	
-	#loss,output=loss_cls().call(graph,goal_inside,tensor_provider)
-	
-
 def run_training(g,sess,args):
 	if args.data is not None:
 		input_data = expl_graph.load_input_data(args.data)
@@ -259,7 +256,9 @@ def run_training(g,sess,args):
 		goal_dataset=build_goal_dataset(input_data,tensor_provider)
 	else:
 		goal_dataset=None
-	save_draw_graph(g,"test")
+	
+	if flags.draw_graph:
+		save_draw_graph(g,"test")
 
 	loss,output=loss_cls().call(graph,goal_inside,tensor_provider)
 	
@@ -311,7 +310,8 @@ def run_test(g,sess,args):
 		goal_dataset=build_goal_dataset(input_data,tensor_provider)
 	else:
 		goal_dataset=None
-	save_draw_graph(g,"test")
+	if flags.draw_graph:
+		save_draw_graph(g,"test")
 	loss,output=loss_cls().call(graph,goal_inside,tensor_provider)
 	saver = tf.train.Saver()
 	saver.restore(sess,flags.model)
@@ -364,14 +364,6 @@ def run_test(g,sess,args):
 		print("output:", np.array(total_output).shape)
 
 	###
-	"""
-	total_output=np.array(total_output)
-	print(total_output)
-	acc=total_output[0,:,0]>total_output[0,:,1]
-	print(np.sum(acc))
-	acc=total_output[0,:,0]<=total_output[0,:,1]
-	print(np.sum(acc))
-	"""
 	print("[SAVE]",flags.output)
 	np.save(flags.output,total_output)
 
@@ -394,7 +386,7 @@ if __name__ == '__main__':
 			help='[from prolog] data json file')
 	## internal data
 	parser.add_argument('--internal_data_prefix', type=str,
-			default=None,
+			default="./",
 			help='internal data')
 	parser.add_argument('--expl_graph', type=str,
 			default=None,
@@ -412,10 +404,13 @@ if __name__ == '__main__':
 	parser.add_argument('--embedding', type=str,
 			default=None,
 			help='model file')
+	parser.add_argument('--draw_graph', type=str,
+			default=None,
+			help='graph file')
 
 	parser.add_argument('--output', type=str,
 			default="./output.npy",
-			help='model file')
+			help='output file')
 
 	parser.add_argument('--gpu', type=str,
 			default=None,

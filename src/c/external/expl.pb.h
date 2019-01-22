@@ -37,7 +37,7 @@ namespace protobuf_expl_2eproto {
 struct TableStruct {
   static const ::google::protobuf::internal::ParseTableField entries[];
   static const ::google::protobuf::internal::AuxillaryParseTableField aux[];
-  static const ::google::protobuf::internal::ParseTable schema[15];
+  static const ::google::protobuf::internal::ParseTable schema[16];
   static const ::google::protobuf::internal::FieldMetadata field_metadata[];
   static const ::google::protobuf::internal::SerializationTable serialization_table[];
   static const ::google::protobuf::uint32 offsets[];
@@ -57,6 +57,8 @@ void InitDefaultsFlagImpl();
 void InitDefaultsFlag();
 void InitDefaultsIndexRangeImpl();
 void InitDefaultsIndexRange();
+void InitDefaultsTensorShapeImpl();
+void InitDefaultsTensorShape();
 void InitDefaultsExplGraphImpl();
 void InitDefaultsExplGraph();
 void InitDefaultsExplGraphGoalImpl();
@@ -81,6 +83,7 @@ inline void InitDefaults() {
   InitDefaultsOption();
   InitDefaultsFlag();
   InitDefaultsIndexRange();
+  InitDefaultsTensorShape();
   InitDefaultsExplGraph();
   InitDefaultsExplGraphGoal();
   InitDefaultsExplGraphPath();
@@ -137,6 +140,9 @@ extern RootDefaultTypeInternal _Root_default_instance_;
 class SwIns;
 class SwInsDefaultTypeInternal;
 extern SwInsDefaultTypeInternal _SwIns_default_instance_;
+class TensorShape;
+class TensorShapeDefaultTypeInternal;
+extern TensorShapeDefaultTypeInternal _TensorShape_default_instance_;
 }  // namespace prism
 namespace prism {
 
@@ -722,12 +728,25 @@ class Option : public ::google::protobuf::Message /* @@protoc_insertion_point(cl
   const ::google::protobuf::RepeatedPtrField< ::prism::IndexRange >&
       index_range() const;
 
+  // repeated .prism.TensorShape tensor_shape = 3;
+  int tensor_shape_size() const;
+  void clear_tensor_shape();
+  static const int kTensorShapeFieldNumber = 3;
+  const ::prism::TensorShape& tensor_shape(int index) const;
+  ::prism::TensorShape* mutable_tensor_shape(int index);
+  ::prism::TensorShape* add_tensor_shape();
+  ::google::protobuf::RepeatedPtrField< ::prism::TensorShape >*
+      mutable_tensor_shape();
+  const ::google::protobuf::RepeatedPtrField< ::prism::TensorShape >&
+      tensor_shape() const;
+
   // @@protoc_insertion_point(class_scope:prism.Option)
  private:
 
   ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
   ::google::protobuf::RepeatedPtrField< ::prism::Flag > flags_;
   ::google::protobuf::RepeatedPtrField< ::prism::IndexRange > index_range_;
+  ::google::protobuf::RepeatedPtrField< ::prism::TensorShape > tensor_shape_;
   mutable int _cached_size_;
   friend struct ::protobuf_expl_2eproto::TableStruct;
   friend void ::protobuf_expl_2eproto::InitDefaultsOptionImpl();
@@ -970,6 +989,127 @@ class IndexRange : public ::google::protobuf::Message /* @@protoc_insertion_poin
 };
 // -------------------------------------------------------------------
 
+class TensorShape : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:prism.TensorShape) */ {
+ public:
+  TensorShape();
+  virtual ~TensorShape();
+
+  TensorShape(const TensorShape& from);
+
+  inline TensorShape& operator=(const TensorShape& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  #if LANG_CXX11
+  TensorShape(TensorShape&& from) noexcept
+    : TensorShape() {
+    *this = ::std::move(from);
+  }
+
+  inline TensorShape& operator=(TensorShape&& from) noexcept {
+    if (GetArenaNoVirtual() == from.GetArenaNoVirtual()) {
+      if (this != &from) InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+  #endif
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const TensorShape& default_instance();
+
+  static void InitAsDefaultInstance();  // FOR INTERNAL USE ONLY
+  static inline const TensorShape* internal_default_instance() {
+    return reinterpret_cast<const TensorShape*>(
+               &_TensorShape_default_instance_);
+  }
+  static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
+    7;
+
+  void Swap(TensorShape* other);
+  friend void swap(TensorShape& a, TensorShape& b) {
+    a.Swap(&b);
+  }
+
+  // implements Message ----------------------------------------------
+
+  inline TensorShape* New() const PROTOBUF_FINAL { return New(NULL); }
+
+  TensorShape* New(::google::protobuf::Arena* arena) const PROTOBUF_FINAL;
+  void CopyFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
+  void MergeFrom(const ::google::protobuf::Message& from) PROTOBUF_FINAL;
+  void CopyFrom(const TensorShape& from);
+  void MergeFrom(const TensorShape& from);
+  void Clear() PROTOBUF_FINAL;
+  bool IsInitialized() const PROTOBUF_FINAL;
+
+  size_t ByteSizeLong() const PROTOBUF_FINAL;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input) PROTOBUF_FINAL;
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const PROTOBUF_FINAL;
+  ::google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
+      bool deterministic, ::google::protobuf::uint8* target) const PROTOBUF_FINAL;
+  int GetCachedSize() const PROTOBUF_FINAL { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const PROTOBUF_FINAL;
+  void InternalSwap(TensorShape* other);
+  private:
+  inline ::google::protobuf::Arena* GetArenaNoVirtual() const {
+    return NULL;
+  }
+  inline void* MaybeArenaPtr() const {
+    return NULL;
+  }
+  public:
+
+  ::google::protobuf::Metadata GetMetadata() const PROTOBUF_FINAL;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // repeated int32 shape = 2;
+  int shape_size() const;
+  void clear_shape();
+  static const int kShapeFieldNumber = 2;
+  ::google::protobuf::int32 shape(int index) const;
+  void set_shape(int index, ::google::protobuf::int32 value);
+  void add_shape(::google::protobuf::int32 value);
+  const ::google::protobuf::RepeatedField< ::google::protobuf::int32 >&
+      shape() const;
+  ::google::protobuf::RepeatedField< ::google::protobuf::int32 >*
+      mutable_shape();
+
+  // string tensor_name = 1;
+  void clear_tensor_name();
+  static const int kTensorNameFieldNumber = 1;
+  const ::std::string& tensor_name() const;
+  void set_tensor_name(const ::std::string& value);
+  #if LANG_CXX11
+  void set_tensor_name(::std::string&& value);
+  #endif
+  void set_tensor_name(const char* value);
+  void set_tensor_name(const char* value, size_t size);
+  ::std::string* mutable_tensor_name();
+  ::std::string* release_tensor_name();
+  void set_allocated_tensor_name(::std::string* tensor_name);
+
+  // @@protoc_insertion_point(class_scope:prism.TensorShape)
+ private:
+
+  ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
+  ::google::protobuf::RepeatedField< ::google::protobuf::int32 > shape_;
+  mutable int _shape_cached_byte_size_;
+  ::google::protobuf::internal::ArenaStringPtr tensor_name_;
+  mutable int _cached_size_;
+  friend struct ::protobuf_expl_2eproto::TableStruct;
+  friend void ::protobuf_expl_2eproto::InitDefaultsTensorShapeImpl();
+};
+// -------------------------------------------------------------------
+
 class ExplGraph : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:prism.ExplGraph) */ {
  public:
   ExplGraph();
@@ -1005,7 +1145,7 @@ class ExplGraph : public ::google::protobuf::Message /* @@protoc_insertion_point
                &_ExplGraph_default_instance_);
   }
   static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
-    7;
+    8;
 
   void Swap(ExplGraph* other);
   friend void swap(ExplGraph& a, ExplGraph& b) {
@@ -1123,7 +1263,7 @@ class ExplGraphGoal : public ::google::protobuf::Message /* @@protoc_insertion_p
                &_ExplGraphGoal_default_instance_);
   }
   static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
-    8;
+    9;
 
   void Swap(ExplGraphGoal* other);
   friend void swap(ExplGraphGoal& a, ExplGraphGoal& b) {
@@ -1238,7 +1378,7 @@ class ExplGraphPath : public ::google::protobuf::Message /* @@protoc_insertion_p
                &_ExplGraphPath_default_instance_);
   }
   static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
-    9;
+    10;
 
   void Swap(ExplGraphPath* other);
   friend void swap(ExplGraphPath& a, ExplGraphPath& b) {
@@ -1382,7 +1522,7 @@ class ExplGraphNode : public ::google::protobuf::Message /* @@protoc_insertion_p
                &_ExplGraphNode_default_instance_);
   }
   static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
-    10;
+    11;
 
   void Swap(ExplGraphNode* other);
   friend void swap(ExplGraphNode& a, ExplGraphNode& b) {
@@ -1498,7 +1638,7 @@ class GoalTerm : public ::google::protobuf::Message /* @@protoc_insertion_point(
                &_GoalTerm_default_instance_);
   }
   static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
-    11;
+    12;
 
   void Swap(GoalTerm* other);
   friend void swap(GoalTerm& a, GoalTerm& b) {
@@ -1628,7 +1768,7 @@ class SwIns : public ::google::protobuf::Message /* @@protoc_insertion_point(cla
                &_SwIns_default_instance_);
   }
   static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
-    12;
+    13;
 
   void Swap(SwIns* other);
   friend void swap(SwIns& a, SwIns& b) {
@@ -1779,7 +1919,7 @@ class Root : public ::google::protobuf::Message /* @@protoc_insertion_point(clas
                &_Root_default_instance_);
   }
   static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
-    13;
+    14;
 
   void Swap(Root* other);
   friend void swap(Root& a, Root& b) {
@@ -1885,7 +2025,7 @@ class RankRoot : public ::google::protobuf::Message /* @@protoc_insertion_point(
                &_RankRoot_default_instance_);
   }
   static PROTOBUF_CONSTEXPR int const kIndexInFileMessages =
-    14;
+    15;
 
   void Swap(RankRoot* other);
   friend void swap(RankRoot& a, RankRoot& b) {
@@ -2273,6 +2413,36 @@ Option::index_range() const {
   return index_range_;
 }
 
+// repeated .prism.TensorShape tensor_shape = 3;
+inline int Option::tensor_shape_size() const {
+  return tensor_shape_.size();
+}
+inline void Option::clear_tensor_shape() {
+  tensor_shape_.Clear();
+}
+inline const ::prism::TensorShape& Option::tensor_shape(int index) const {
+  // @@protoc_insertion_point(field_get:prism.Option.tensor_shape)
+  return tensor_shape_.Get(index);
+}
+inline ::prism::TensorShape* Option::mutable_tensor_shape(int index) {
+  // @@protoc_insertion_point(field_mutable:prism.Option.tensor_shape)
+  return tensor_shape_.Mutable(index);
+}
+inline ::prism::TensorShape* Option::add_tensor_shape() {
+  // @@protoc_insertion_point(field_add:prism.Option.tensor_shape)
+  return tensor_shape_.Add();
+}
+inline ::google::protobuf::RepeatedPtrField< ::prism::TensorShape >*
+Option::mutable_tensor_shape() {
+  // @@protoc_insertion_point(field_mutable_list:prism.Option.tensor_shape)
+  return &tensor_shape_;
+}
+inline const ::google::protobuf::RepeatedPtrField< ::prism::TensorShape >&
+Option::tensor_shape() const {
+  // @@protoc_insertion_point(field_list:prism.Option.tensor_shape)
+  return tensor_shape_;
+}
+
 // -------------------------------------------------------------------
 
 // Flag
@@ -2452,6 +2622,93 @@ inline void IndexRange::set_range(::google::protobuf::int32 value) {
   
   range_ = value;
   // @@protoc_insertion_point(field_set:prism.IndexRange.range)
+}
+
+// -------------------------------------------------------------------
+
+// TensorShape
+
+// string tensor_name = 1;
+inline void TensorShape::clear_tensor_name() {
+  tensor_name_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline const ::std::string& TensorShape::tensor_name() const {
+  // @@protoc_insertion_point(field_get:prism.TensorShape.tensor_name)
+  return tensor_name_.GetNoArena();
+}
+inline void TensorShape::set_tensor_name(const ::std::string& value) {
+  
+  tensor_name_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
+  // @@protoc_insertion_point(field_set:prism.TensorShape.tensor_name)
+}
+#if LANG_CXX11
+inline void TensorShape::set_tensor_name(::std::string&& value) {
+  
+  tensor_name_.SetNoArena(
+    &::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
+  // @@protoc_insertion_point(field_set_rvalue:prism.TensorShape.tensor_name)
+}
+#endif
+inline void TensorShape::set_tensor_name(const char* value) {
+  GOOGLE_DCHECK(value != NULL);
+  
+  tensor_name_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
+  // @@protoc_insertion_point(field_set_char:prism.TensorShape.tensor_name)
+}
+inline void TensorShape::set_tensor_name(const char* value, size_t size) {
+  
+  tensor_name_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      ::std::string(reinterpret_cast<const char*>(value), size));
+  // @@protoc_insertion_point(field_set_pointer:prism.TensorShape.tensor_name)
+}
+inline ::std::string* TensorShape::mutable_tensor_name() {
+  
+  // @@protoc_insertion_point(field_mutable:prism.TensorShape.tensor_name)
+  return tensor_name_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline ::std::string* TensorShape::release_tensor_name() {
+  // @@protoc_insertion_point(field_release:prism.TensorShape.tensor_name)
+  
+  return tensor_name_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline void TensorShape::set_allocated_tensor_name(::std::string* tensor_name) {
+  if (tensor_name != NULL) {
+    
+  } else {
+    
+  }
+  tensor_name_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), tensor_name);
+  // @@protoc_insertion_point(field_set_allocated:prism.TensorShape.tensor_name)
+}
+
+// repeated int32 shape = 2;
+inline int TensorShape::shape_size() const {
+  return shape_.size();
+}
+inline void TensorShape::clear_shape() {
+  shape_.Clear();
+}
+inline ::google::protobuf::int32 TensorShape::shape(int index) const {
+  // @@protoc_insertion_point(field_get:prism.TensorShape.shape)
+  return shape_.Get(index);
+}
+inline void TensorShape::set_shape(int index, ::google::protobuf::int32 value) {
+  shape_.Set(index, value);
+  // @@protoc_insertion_point(field_set:prism.TensorShape.shape)
+}
+inline void TensorShape::add_shape(::google::protobuf::int32 value) {
+  shape_.Add(value);
+  // @@protoc_insertion_point(field_add:prism.TensorShape.shape)
+}
+inline const ::google::protobuf::RepeatedField< ::google::protobuf::int32 >&
+TensorShape::shape() const {
+  // @@protoc_insertion_point(field_list:prism.TensorShape.shape)
+  return shape_;
+}
+inline ::google::protobuf::RepeatedField< ::google::protobuf::int32 >*
+TensorShape::mutable_shape() {
+  // @@protoc_insertion_point(field_mutable_list:prism.TensorShape.shape)
+  return &shape_;
 }
 
 // -------------------------------------------------------------------
@@ -3185,6 +3442,8 @@ inline void RankRoot::set_count(::google::protobuf::int32 value) {
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

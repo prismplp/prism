@@ -244,12 +244,51 @@ int run_save_expl_graph(const string& outfilename,SaveFormat format) {
 	
 	return BP_TRUE;
 }
+int get_occ_switches(TERM p_sw_list) {
+	TERM p_sw_list0,p_sw_list1;
+	TERM p_sw_ins_list0,p_sw_ins_list1,sw,sw_ins;
+	int i;
+	p_sw_list0 = bpx_build_nil();
+	for (i = 0; i < occ_switch_tab_size; i++) {
+		SW_INS_PTR  ptr;
+
+		sw = bpx_build_structure("sw",2);
+		bpx_unify(bpx_get_arg(1,sw), bpx_build_integer(i));
+
+		p_sw_ins_list0 = bpx_build_nil();
+		ptr = occ_switches[i];
+		while (ptr != NULL) {
+			sw_ins = bpx_build_structure("sw_ins",1);
+			bpx_unify(bpx_get_arg(1,sw_ins),bpx_build_integer(ptr->id));
+
+			p_sw_ins_list1 = bpx_build_list();
+			bpx_unify(bpx_get_car(p_sw_ins_list1),sw_ins);
+			bpx_unify(bpx_get_cdr(p_sw_ins_list1),p_sw_ins_list0);
+			p_sw_ins_list0 = p_sw_ins_list1;
+
+			ptr = ptr->next;
+		}
+
+		bpx_unify(bpx_get_arg(2,sw),p_sw_ins_list0);
+
+		p_sw_list1 = bpx_build_list();
+		bpx_unify(bpx_get_car(p_sw_list1),sw);
+		bpx_unify(bpx_get_cdr(p_sw_list1),p_sw_list0);
+		p_sw_list0 = p_sw_list1;
+	}
+	return bpx_unify(p_sw_list,    p_sw_list0);
+	//return bpx_unify(p_sw_list,    p_sw_list0);
+}
+
 
 extern "C"
-int pc_prism_save_expl_graph_2(void) {
-	const char* filename=bpx_get_name(bpx_get_call_arg(1,2));
-	SaveFormat format = (SaveFormat) bpx_get_integer(bpx_get_call_arg(2,2));
+int pc_prism_save_expl_graph_3(void) {
+	TERM p_sw_list;
+	const char* filename=bpx_get_name(bpx_get_call_arg(1,3));
+	SaveFormat format = (SaveFormat) bpx_get_integer(bpx_get_call_arg(2,3));
+	p_sw_list=bpx_get_call_arg(3,3);
 	run_save_expl_graph(filename,format);
+	get_occ_switches(p_sw_list);
 	//return bpx_unify(bpx_get_call_arg(1,1), bpx_build_integer(1));
 	return BP_TRUE;
 }

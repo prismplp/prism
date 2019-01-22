@@ -1,3 +1,10 @@
+$pp_index_get_i1(0,[],_).
+$pp_index_get_i1(N0,[X|G],S):-N0>0,N is N0 -1,index_atoms(As),member(X,As),not member(X,S),$pp_index_get_i1(N,G,[X|S]).
+$pp_index_all_different(N,G):-findall(X,$pp_index_get_i1(N,X,[]),G).
+$pp_index_get_i2(0,[],_).
+$pp_index_get_i2(N0,[X|G],S):-N0>0,N is N0 -1,index_atoms(As),member(X,As),$pp_index_get_i2(N,G,[X|S]).
+$pp_index_all_combination(N,G):-findall(X,$pp_index_get_i2(N,X,[]),G).
+
 %%%%
 %%%% utility
 %%%%
@@ -45,14 +52,16 @@ save_placeholder_data(Filename,Mode,Placeholders,Data):-
 
 save_flags:-save_flags('flags.json',json).
 save_flags(Filename):-save_flags(Filename,json).
-save_flags(Filename,Mode):-findall([X,F],get_prism_flag(X,F),G),
+save_flags(Filename,Mode,[]):-save_flags(Filename,Mode,[]).
+save_flags(Filename,Mode,TensorList):-
+	findall([X,F],get_prism_flag(X,F),G),
 	$pc_set_export_flags(G),
 	(Mode==json ->Mode0=0
 	;Mode==pb   ->Mode0=1
 	;Mode==pbtxt->Mode0=2
 	;Mode==hdf5 ->Mode0=$pp_raise_runtime_error($msg(9806),hdf5_is_not_supportted_for_saving_flags,save_flags/2)
 	;$pp_raise_runtime_error($msg(9804),unknown_save_format,save_flags/2)),
-	$pc_save_options(Filename,Mode0).
+	$pc_save_options(Filename,Mode0,TensorList).
 
 %%%%
 %%%% save explanation graph
@@ -63,7 +72,25 @@ unique([X],[X]).
 unique([H|T],[H|S]) :- not(member(H, T)), unique(T,S).
 unique([H|T],S) :- member(H, T), unique(T,S).
 
+$pp_find_unifiable(X,X,[],[]).
+$pp_find_unifiable(X,Z,[Y|L],L1):-X?=Y,subsumes_term(X,Y)->$pp_find_unifiable(X,Z,L,L1);$pp_find_unifiable(Y,Z,L,L1).
+$pp_find_unifiable(X,Z,[Y|L],[Y|L1]):-not X?=Y,$pp_find_unifiable(X,Z,L,L1).
+unifiable_unique([],[]).
+unifiable_unique([H|T0],[Z|S]) :- $pp_find_unifiable(H,Z,T0,T1),unifiable_unique(T1,S).
+
+
+$pp_tensor_filter_nonground([],[]).
+$pp_tensor_filter_nonground([H|T],[H|S]) :- ground(H), unique(T,S).
+$pp_tensor_filter_nonground([H|T],S) :- not(ground(H)), unique(T,S).
+
+nonground_unique(L,L1):-
+	$pp_tensor_filter_nonground(L,L0),
+	unique(L0,L1).
+
+%CollectLists:
+% data(occured switches,declared index)
 $pp_trans_phase_tensor(Prog0,Prog_tensor,Info):-
+	format(">>=====\n"),
 	maplist(X,Y,CollectList,(
 		X=pred(index,2,A2,A3,A4,Clauses)->
 			($pp_tensor_parse_clauses(Clauses,C,CollectList),
@@ -73,13 +100,46 @@ $pp_trans_phase_tensor(Prog0,Prog_tensor,Info):-
 			Y=pred(A0,A1,A2,A3,A4,C));
 		Y=X,CollectList=[]
 	),Prog0,Prog_tensor0,CollectLists),
+	format(">>=====\n"),
 	flatten(CollectLists,FlatCList),
-	maplist(C,X,C=data(_,X),FlatCList,IndexList),
+	%
+	maplist(C,X,C=data(_,X,_,_),FlatCList,IndexList),
 	flatten(IndexList,IndexAtoms),
-	unique(IndexAtoms,UIndexAtoms),
-	assert(index_atoms(UIndexAtoms)),
+	nonground_unique(IndexAtoms,UIndexAtoms),
+	assert(declared_index_atoms(UIndexAtoms)),
+	%
+	maplist(C,X,C=data(X,_,_,_),FlatCList,TensorList),
+	flatten(TensorList,TensorAtoms),
+	maplist(T,I,T=tensor(_,I),TensorAtoms,TIndexList),
+	flatten(TIndexList,TIndexAtoms),
+	nonground_unique(TIndexAtoms,TUIndexAtoms),
+	assert(occuered_index_atoms(TUIndexAtoms)),
+	%
+	append(UIndexAtoms,TUIndexAtoms,AllIndexAtoms),
+	nonground_unique(AllIndexAtoms,UAllIndexAtoms),
+	assert(index_atoms(UAllIndexAtoms)),
+	%========
+	maplist(C,X,C=data(_,_,X,_),FlatCList,TAList),
+	flatten(TAList,TAL),
+	maplist(TA,Val,(copy_term(TA,TA1),Val=(values(tensor(TA1),G):-tensor_atom(TA1,Shape),length(Shape,N),$pp_index_all_combination(N,G))),TAL,ValPreds),
+	Pred2=pred(values,2,_,_,_,ValPreds),
+	format(">>~w\n",Pred2),
+	format(">>~w\n",Pred2a),
 	Pred1=pred(values,3,_,_,_,[values($operator(_),[$operator],fix@[1.0])]),
-	Prog_tensor=[Pred1|Prog_tensor0].
+	%========
+	maplist(C,X,C=data(_,_,_,X),FlatCList,SGList),
+	flatten(SGList,SG0List),
+	maplist(SG,X,(SG=subgoal(G,_),G=..[F|Args],length(Args,L),X=F/L),SG0List,SG1List),
+	nonground_unique(SG1List,SG2List),
+	maplist(G,Pred,(G=PredName/NArg,length(Arg,NArg),A=..[PredName|Arg],Pred=(subgoal(A,S):-msw($operator($reindex(S)),$operator),A)),SG2List,SGPreds),
+	Pred3=pred(subgoal,2,_,_,_,SGPreds),
+	%========
+	Prog_tensor1=[Pred1|Prog_tensor0],
+	Prog_tensor2=[Pred2|Prog_tensor1],
+	Prog_tensor=[Pred3|Prog_tensor2],
+
+	maplist(X,format("~w\n",X),Prog_tensor),
+	format("=====\n").
 
 $pp_tensor_parse_clauses(Clauses,NewClauses,CollectLists):-
 	maplist(C,NC,CollectList,(
@@ -87,19 +147,33 @@ $pp_tensor_parse_clauses(Clauses,NewClauses,CollectLists):-
 		),Clauses,NewClauses,CollectLists).
 
 $pp_tensor_get_msws(Clause,MswClause,CollectList):-
+	Clause=tensor_atom(_,_) -> (
+		Clause=tensor_atom(TA,_),
+		CollectList=data([],[],TA,[]),
+		MswClause=Clause);
+	Clause=index(_,_) -> (
+		Clause=index(A0,A1),
+		CollectList=data([],A1,[],[]),
+		MswClause=values(tensor(A0),A1));
+	Clause=(index(_,_):-Body) -> (
+		Clause=(index(A0,A1):-Body),
+		CollectList=data([],[],[],[]),
+		MswClause=(values(tensor(A0),A1):-Body));
 	Clause=(H:-Body) -> (
 		Clause=(H:-Body),
 		and_to_list(Body,LBody),
 		$pp_tensor_msw_filter(LBody,MswLBody,VecList),
+		$pp_tensor_subgoal_filter(LBody,Subgoals),
 		list_to_and(MswLBody,MswBody),
-		CollectList=data(VecList,[]),
+		CollectList=data(VecList,[],[],Subgoals),
 		MswClause=(H:-(MswBody)));
-	Clause=index(_,_) -> (
-		Clause=index(A0,A1),
-		CollectList=data([],A1),
-		MswClause=values(tensor(A0),A1));
-	MswClause=Clause,VecList=data([],[]).
-	
+	MswClause=Clause,CollectList=data([],[],[],[]).
+
+$pp_tensor_subgoal_filter([],[]).
+$pp_tensor_subgoal_filter([subgoal(A0,A1)|Atoms],[subgoal(A0,A1)|SGList]):-$pp_tensor_subgoal_filter(Atoms,SGList).
+$pp_tensor_subgoal_filter([_|Atoms],SGList):-$pp_tensor_subgoal_filter(Atoms,SGList).
+
+
 $pp_tensor_msw_filter([],[],[]).
 $pp_tensor_msw_filter([tensor(A0,A1)|Atoms],[msw(tensor(A0),A1)|Msws],[tensor(A0,A1)|VecList]):-$pp_tensor_msw_filter(Atoms,Msws,VecList).
 $pp_tensor_msw_filter([vector(A0,A1)|Atoms],[msw(tensor(A0),A1)|Msws],[tensor(A0,A1)|VecList]):-$pp_tensor_msw_filter(Atoms,Msws,VecList).
@@ -156,17 +230,19 @@ $pp_tensor_conv_args([Arg|Args],[NewArg|NewArgs]):-
 
 %%%%%%%%%%%%
 
-save_expl_graph:-$pp_tensor_core('expl.json',0).
-save_expl_graph(Goals) :-$pp_tensor_core('expl.json',0,Goals).
-save_expl_graph(Filename,Goals) :-$pp_tensor_core(Filename,0,Goals).
-save_expl_graph(Filename,Mode,Goals) :-$pp_tensor_core(Filename,Mode,Goals).
-
-$pp_tensor_core(Filename,Mode) :-
+save_expl_graph:-
 	$pp_learn_data_file(DataName),
 	load_clauses(DataName,Goals,[]),!,
-	$pp_tensor_core(Mode,Goals).
+	save_expl_graph(Goals).
+save_expl_graph(Goals) :-$pp_tensor_core('expl.json','flags.json',json,json,Goals).
+save_expl_graph(Filename,OptionFilename) :-
+	$pp_learn_data_file(DataName),
+	load_clauses(DataName,Goals,[]),!,
+	save_expl_graph(Filename,OptionFilename,Goals).
+save_expl_graph(Filename,OptionFilename,Goals) :-$pp_tensor_core(Filename,OptionFilename,json,json,Goals).
+save_expl_graph(Filename,OptionFilename,Mode,OptionMode,Goals) :-$pp_tensor_core(Filename,OptionFilename,Mode,OptionMode,Goals).
 
-$pp_tensor_core(Filename,Mode,GoalList) :-
+$pp_tensor_core(Filename,OptionFilename,Mode,OptionMode,GoalList) :-
 	flatten(GoalList,Goals),
 	$pp_learn_check_goals(Goals),
 	$pp_learn_message(MsgS,MsgE,MsgT,MsgM),
@@ -189,15 +265,26 @@ $pp_tensor_core(Filename,Mode,GoalList) :-
 	$pc_set_goal_rank(GoalList),
 	$pc_prism_prepare(GidCountPairs,Len,NGoals,FailRootIndex),
 	cputime(StartEM),
-	%$pp_em(Mode,Output),
-	$pc_prism_save_expl_graph(Filename,Mode),
-	%format("=======================\n"),
+	%$pp_em(0,Output),
+	%format("=====***==================\n"),
+	(Mode==json ->Mode0=0
+	;Mode==pb   ->Mode0=1
+	;Mode==pbtxt->Mode0=2
+	;Mode==hdf5 ->Mode0=$pp_raise_runtime_error($msg(9806),hdf5_is_not_supportted_for_saving_flags,save_flags/2)
+	;$pp_raise_runtime_error($msg(9804),unknown_save_format,save_flags/2)),
+	$pc_prism_save_expl_graph(Filename,Mode0,NewSws),
+	format(">>>>~w\n",NewSws),
+	maplist(S,SwName,(S=sw(_,SwIns),$pp_decode_switch_name(SwIns,SwName)),NewSws,Sws),
+	format(">>>>~w\n",Sws),
+	filter(tensor(_),Sws,Sws1),
+	maplist(S,Shape,(S=tensor(X)->(tensor_atom(X,Sh),Shape=[X,Sh]);Shape=unknown),Sws1,SwShape),
 	cputime(EndEM),
-	$pc_import_occ_switches(NewSws,NSwitches,NSwVals),
+	save_flags(OptionFilename,OptionMode,SwShape),
+	cputime(End),!.
+	%$pc_import_occ_switches(NewSws,NSwitches,NSwVals),
+	%format(">>>>~w\n",NewSws),
 	%format("=======================\n"),
 	%$pp_decode_update_switches(Mode,NewSws),
-	$pc_import_graph_stats(NSubgraphs,NGoalNodes,NSwNodes,AvgShared),
-	cputime(End),!.
 	%format("======================\n"),
 	%$pp_assert_graph_stats(NSubgraphs,NGoalNodes,NSwNodes,AvgShared),
 	%$pp_assert_learn_stats(Mode,Output,NSwitches,NSwVals,TableSpace,

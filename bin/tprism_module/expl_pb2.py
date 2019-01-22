@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='expl.proto',
   package='prism',
   syntax='proto3',
-  serialized_pb=_b('\n\nexpl.proto\x12\x05prism\"8\n\x0fPlaceholderData\x12%\n\x05goals\x18\x01 \x03(\x0b\x32\x16.prism.PlaceholderGoal\"k\n\x0fPlaceholderGoal\x12\n\n\x02id\x18\x01 \x01(\x05\x12(\n\x0cplaceholders\x18\x02 \x03(\x0b\x32\x12.prism.Placeholder\x12\"\n\x07records\x18\x03 \x03(\x0b\x32\x11.prism.DataRecord\"\x1b\n\nDataRecord\x12\r\n\x05items\x18\x02 \x03(\t\"\x1b\n\x0bPlaceholder\x12\x0c\n\x04name\x18\x01 \x01(\t\"L\n\x06Option\x12\x1a\n\x05\x66lags\x18\x01 \x03(\x0b\x32\x0b.prism.Flag\x12&\n\x0bindex_range\x18\x02 \x03(\x0b\x32\x11.prism.IndexRange\"\"\n\x04\x46lag\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\"*\n\nIndexRange\x12\r\n\x05index\x18\x01 \x01(\t\x12\r\n\x05range\x18\x02 \x01(\x05\"T\n\tExplGraph\x12#\n\x05goals\x18\x01 \x03(\x0b\x32\x14.prism.ExplGraphGoal\x12\"\n\troot_list\x18\x02 \x03(\x0b\x32\x0f.prism.RankRoot\"X\n\rExplGraphGoal\x12\"\n\x04node\x18\x01 \x01(\x0b\x32\x14.prism.ExplGraphNode\x12#\n\x05paths\x18\x02 \x03(\x0b\x32\x14.prism.ExplGraphPath\"\xa1\x01\n\rExplGraphPath\x12#\n\x05nodes\x18\x01 \x03(\x0b\x32\x14.prism.ExplGraphNode\x12#\n\rprob_switches\x18\x02 \x03(\x0b\x32\x0c.prism.SwIns\x12%\n\x0ftensor_switches\x18\x03 \x03(\x0b\x32\x0c.prism.SwIns\x12\x1f\n\toperators\x18\x04 \x03(\x0b\x32\x0c.prism.SwIns\"M\n\rExplGraphNode\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x11\n\tsorted_id\x18\x02 \x01(\x05\x12\x1d\n\x04goal\x18\x03 \x01(\x0b\x32\x0f.prism.GoalTerm\"&\n\x08GoalTerm\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0c\n\x04\x61rgs\x18\x02 \x03(\t\"a\n\x05SwIns\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x0e\n\x06values\x18\x03 \x03(\t\x12\x0e\n\x06inside\x18\x04 \x01(\x02\x12\x1e\n\x07sw_type\x18\x05 \x01(\x0e\x32\r.prism.SwType\"%\n\x04Root\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x11\n\tsorted_id\x18\x02 \x01(\x05\"5\n\x08RankRoot\x12\x1a\n\x05roots\x18\x01 \x03(\x0b\x32\x0b.prism.Root\x12\r\n\x05\x63ount\x18\x02 \x01(\x05*5\n\x06SwType\x12\x11\n\rProbabilistic\x10\x00\x12\n\n\x06Tensor\x10\x01\x12\x0c\n\x08Operator\x10\x02\x62\x06proto3')
+  serialized_pb=_b('\n\nexpl.proto\x12\x05prism\"8\n\x0fPlaceholderData\x12%\n\x05goals\x18\x01 \x03(\x0b\x32\x16.prism.PlaceholderGoal\"k\n\x0fPlaceholderGoal\x12\n\n\x02id\x18\x01 \x01(\x05\x12(\n\x0cplaceholders\x18\x02 \x03(\x0b\x32\x12.prism.Placeholder\x12\"\n\x07records\x18\x03 \x03(\x0b\x32\x11.prism.DataRecord\"\x1b\n\nDataRecord\x12\r\n\x05items\x18\x02 \x03(\t\"\x1b\n\x0bPlaceholder\x12\x0c\n\x04name\x18\x01 \x01(\t\"v\n\x06Option\x12\x1a\n\x05\x66lags\x18\x01 \x03(\x0b\x32\x0b.prism.Flag\x12&\n\x0bindex_range\x18\x02 \x03(\x0b\x32\x11.prism.IndexRange\x12(\n\x0ctensor_shape\x18\x03 \x03(\x0b\x32\x12.prism.TensorShape\"\"\n\x04\x46lag\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\"*\n\nIndexRange\x12\r\n\x05index\x18\x01 \x01(\t\x12\r\n\x05range\x18\x02 \x01(\x05\"1\n\x0bTensorShape\x12\x13\n\x0btensor_name\x18\x01 \x01(\t\x12\r\n\x05shape\x18\x02 \x03(\x05\"T\n\tExplGraph\x12#\n\x05goals\x18\x01 \x03(\x0b\x32\x14.prism.ExplGraphGoal\x12\"\n\troot_list\x18\x02 \x03(\x0b\x32\x0f.prism.RankRoot\"X\n\rExplGraphGoal\x12\"\n\x04node\x18\x01 \x01(\x0b\x32\x14.prism.ExplGraphNode\x12#\n\x05paths\x18\x02 \x03(\x0b\x32\x14.prism.ExplGraphPath\"\xa1\x01\n\rExplGraphPath\x12#\n\x05nodes\x18\x01 \x03(\x0b\x32\x14.prism.ExplGraphNode\x12#\n\rprob_switches\x18\x02 \x03(\x0b\x32\x0c.prism.SwIns\x12%\n\x0ftensor_switches\x18\x03 \x03(\x0b\x32\x0c.prism.SwIns\x12\x1f\n\toperators\x18\x04 \x03(\x0b\x32\x0c.prism.SwIns\"M\n\rExplGraphNode\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x11\n\tsorted_id\x18\x02 \x01(\x05\x12\x1d\n\x04goal\x18\x03 \x01(\x0b\x32\x0f.prism.GoalTerm\"&\n\x08GoalTerm\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0c\n\x04\x61rgs\x18\x02 \x03(\t\"a\n\x05SwIns\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x0e\n\x06values\x18\x03 \x03(\t\x12\x0e\n\x06inside\x18\x04 \x01(\x02\x12\x1e\n\x07sw_type\x18\x05 \x01(\x0e\x32\r.prism.SwType\"%\n\x04Root\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x11\n\tsorted_id\x18\x02 \x01(\x05\"5\n\x08RankRoot\x12\x1a\n\x05roots\x18\x01 \x03(\x0b\x32\x0b.prism.Root\x12\r\n\x05\x63ount\x18\x02 \x01(\x05*5\n\x06SwType\x12\x11\n\rProbabilistic\x10\x00\x12\n\n\x06Tensor\x10\x01\x12\x0c\n\x08Operator\x10\x02\x62\x06proto3')
 )
 
 _SWTYPE = _descriptor.EnumDescriptor(
@@ -44,8 +44,8 @@ _SWTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=1056,
-  serialized_end=1109,
+  serialized_start=1149,
+  serialized_end=1202,
 )
 _sym_db.RegisterEnumDescriptor(_SWTYPE)
 
@@ -215,6 +215,13 @@ _OPTION = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='tensor_shape', full_name='prism.Option.tensor_shape', index=2,
+      number=3, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -228,7 +235,7 @@ _OPTION = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=246,
-  serialized_end=322,
+  serialized_end=364,
 )
 
 
@@ -265,8 +272,8 @@ _FLAG = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=324,
-  serialized_end=358,
+  serialized_start=366,
+  serialized_end=400,
 )
 
 
@@ -303,8 +310,46 @@ _INDEXRANGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=360,
-  serialized_end=402,
+  serialized_start=402,
+  serialized_end=444,
+)
+
+
+_TENSORSHAPE = _descriptor.Descriptor(
+  name='TensorShape',
+  full_name='prism.TensorShape',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='tensor_name', full_name='prism.TensorShape.tensor_name', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='shape', full_name='prism.TensorShape.shape', index=1,
+      number=2, type=5, cpp_type=1, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=446,
+  serialized_end=495,
 )
 
 
@@ -341,8 +386,8 @@ _EXPLGRAPH = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=404,
-  serialized_end=488,
+  serialized_start=497,
+  serialized_end=581,
 )
 
 
@@ -379,8 +424,8 @@ _EXPLGRAPHGOAL = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=490,
-  serialized_end=578,
+  serialized_start=583,
+  serialized_end=671,
 )
 
 
@@ -431,8 +476,8 @@ _EXPLGRAPHPATH = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=581,
-  serialized_end=742,
+  serialized_start=674,
+  serialized_end=835,
 )
 
 
@@ -476,8 +521,8 @@ _EXPLGRAPHNODE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=744,
-  serialized_end=821,
+  serialized_start=837,
+  serialized_end=914,
 )
 
 
@@ -514,8 +559,8 @@ _GOALTERM = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=823,
-  serialized_end=861,
+  serialized_start=916,
+  serialized_end=954,
 )
 
 
@@ -573,8 +618,8 @@ _SWINS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=863,
-  serialized_end=960,
+  serialized_start=956,
+  serialized_end=1053,
 )
 
 
@@ -611,8 +656,8 @@ _ROOT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=962,
-  serialized_end=999,
+  serialized_start=1055,
+  serialized_end=1092,
 )
 
 
@@ -649,8 +694,8 @@ _RANKROOT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1001,
-  serialized_end=1054,
+  serialized_start=1094,
+  serialized_end=1147,
 )
 
 _PLACEHOLDERDATA.fields_by_name['goals'].message_type = _PLACEHOLDERGOAL
@@ -658,6 +703,7 @@ _PLACEHOLDERGOAL.fields_by_name['placeholders'].message_type = _PLACEHOLDER
 _PLACEHOLDERGOAL.fields_by_name['records'].message_type = _DATARECORD
 _OPTION.fields_by_name['flags'].message_type = _FLAG
 _OPTION.fields_by_name['index_range'].message_type = _INDEXRANGE
+_OPTION.fields_by_name['tensor_shape'].message_type = _TENSORSHAPE
 _EXPLGRAPH.fields_by_name['goals'].message_type = _EXPLGRAPHGOAL
 _EXPLGRAPH.fields_by_name['root_list'].message_type = _RANKROOT
 _EXPLGRAPHGOAL.fields_by_name['node'].message_type = _EXPLGRAPHNODE
@@ -676,6 +722,7 @@ DESCRIPTOR.message_types_by_name['Placeholder'] = _PLACEHOLDER
 DESCRIPTOR.message_types_by_name['Option'] = _OPTION
 DESCRIPTOR.message_types_by_name['Flag'] = _FLAG
 DESCRIPTOR.message_types_by_name['IndexRange'] = _INDEXRANGE
+DESCRIPTOR.message_types_by_name['TensorShape'] = _TENSORSHAPE
 DESCRIPTOR.message_types_by_name['ExplGraph'] = _EXPLGRAPH
 DESCRIPTOR.message_types_by_name['ExplGraphGoal'] = _EXPLGRAPHGOAL
 DESCRIPTOR.message_types_by_name['ExplGraphPath'] = _EXPLGRAPHPATH
@@ -735,6 +782,13 @@ IndexRange = _reflection.GeneratedProtocolMessageType('IndexRange', (_message.Me
   # @@protoc_insertion_point(class_scope:prism.IndexRange)
   ))
 _sym_db.RegisterMessage(IndexRange)
+
+TensorShape = _reflection.GeneratedProtocolMessageType('TensorShape', (_message.Message,), dict(
+  DESCRIPTOR = _TENSORSHAPE,
+  __module__ = 'expl_pb2'
+  # @@protoc_insertion_point(class_scope:prism.TensorShape)
+  ))
+_sym_db.RegisterMessage(TensorShape)
 
 ExplGraph = _reflection.GeneratedProtocolMessageType('ExplGraph', (_message.Message,), dict(
   DESCRIPTOR = _EXPLGRAPH,

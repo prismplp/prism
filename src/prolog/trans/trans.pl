@@ -39,10 +39,15 @@ $pp_compile(PsmFile,DmpFile,OutFile) :-
     new_hashtable(PPredTab),
     Info = $trans_info(_DoTable,TPredTab,_NoDebug,PPredTab),
     $pp_trans_phase_tensor(Prog0,Prog_vec,Info),
+format("--1--\n"),
     $pp_trans_phase1(Prog_vec,Prog1,Info),
+format("--2--\n"),
     $pp_trans_phase2(Prog1,Prog2,Info),
+format("--3--\n"),
     $pp_trans_phase3(Prog2,Prog3,Info),
+format("--4--\n"),
     $pp_trans_phase4(Prog3,Prog4,Info),
+format("--5--\n"),
     $pp_trans_phase5(Prog4,Prog5,Info),
     Prog = Prog5,
     % $pp_dump_program(Prog),   % for debugging
@@ -127,6 +132,7 @@ $pp_add_one_pred_to_hashtable(Pred,TPredTab) :-
 % We do not refer to the information objects here.
 $pp_trans_phase2(Prog0,Prog,_Info) :-
     $pp_trans_values(Prog0,Prog1),
+format("*"),!,
     $pp_replace_values(Prog1,Prog).
 
 % translate the "values" declarations
@@ -164,6 +170,7 @@ $pp_trans_values([P|Preds0],[P|Preds],ValCls,Demon,DemonAux) :- !,
 
 $pp_trans_values_clauses([],[]).
 $pp_trans_values_clauses([Cl0|Cls0],[Cl|Cls]) :-
+format("~w\n",Cl0),
     $pp_trans_values_one_clause(Cl0,Cl),!,
     $pp_trans_values_clauses(Cls0,Cls).
 
@@ -174,6 +181,7 @@ $pp_trans_values_demon_clauses_4([Cl0|Cls0],[Cl|Cls],Demon) :-
       ; Cl0 = (values_x(Sw,Vals0,Demons,Demons0):-Body) -> true
       ; Cl0 = values(Sw,Vals0,Demons,Demons0)           -> Body = true
       ; Cl0 = values_x(Sw,Vals0,Demons,Demons0)         -> Body = true
+; Cl0 = (H:-B)         -> format("H=~w\nB=~w\n",[H,B])
       ),
       $pp_build_expand_values(Vals0,Vals,Expand),
       Cl = ($pu_values(Sw,Vals):-Body,Expand),
@@ -253,6 +261,7 @@ $pp_unexpandable_values1([V|Vals]) :-
 % replace all appearances of values/2 in the clause bodies with get_values/2
 $pp_replace_values([],[]).
 $pp_replace_values([Pred0|Preds0],[Pred|Preds]) :-
+format("*"),
     Pred0 = pred(F,N,Mode,Delay,Tabled,Cls0),
     Pred = pred(F,N,Mode,Delay,Tabled,Cls),
     $pp_replace_values_clauses(Cls0,Cls),!,
