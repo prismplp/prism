@@ -122,7 +122,8 @@ struct ObservedFactNode {
 
 #ifdef LINUX
 #ifndef isfinite
-#define isfinite finite
+//conflicted with std::isfinite std::c+
+//#define isfinite finite
 #endif
 #endif
 
