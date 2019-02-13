@@ -67,6 +67,7 @@
 %%
 %%  ?- prism(jasia_a),go.
 
+prism_main([]):-go.
 go:- chindsight_agg(world([(a,f),(d,t)]),node_4(_,query)).
      % we compute a conditional distribution P(T | A=false, D=true) 
 
