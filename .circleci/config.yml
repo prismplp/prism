@@ -2,25 +2,29 @@ version: 2
 jobs:
   build:
     #machine: true
+    shell: /bin/bash
     docker:
       - image: naegawaprism/prism:1.2
     # working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
     steps:
-      - run:
-          name: ls
-          command: ls -al /
       - checkout
       - run:
-          name: git shas
-          command: git rev-parse HEAD
-      - run:
           name: complile c prism
-          command: make -f Makefile.gmake PLATFORM=linux
-          working_directory: src/c
+          command: cd src/c && make -f Makefile.gmake PLATFORM=linux
+
       - run:
           name: install c prism
           command: make -f Makefile.gmake PLATFORM=linux install
           working_directory: src/c
       - run:
+          name: make prolog prism
+          command: make 
+          working_directory: src/prolog
+      - run:
+          name: install prolog prism
+          command: make  install
+          working_directory: src/prolog
+      - run:
           name: first test
-          command: ./testing/test.sh
+          command: ./test.sh
+          working_directory: testing
