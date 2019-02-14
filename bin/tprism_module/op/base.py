@@ -10,6 +10,20 @@ class BaseOperator:
 	def get_output_template(self,input_template):
 		print("[ERROR] not implemened")
 		return None
+class Reindex(BaseOperator):
+	def __init__(self,parameters):
+		index=parameters[0].strip("[]").split(",")
+		self.out=index
+		pass
+	def call(self,x):
+		return x
+
+	def get_output_template(self,input_template):
+		if input_template[0]=='b':
+			return ['b']+self.out
+		else:
+			return self.out
+
 
 class Sigmoid(BaseOperator):
 	def __init__(self,parameters):

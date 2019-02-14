@@ -131,7 +131,7 @@ $pp_trans_phase_tensor(Prog0,Prog_tensor,Info):-
 	flatten(SGList,SG0List),
 	maplist(SG,X,(SG=subgoal(G,_),G=..[F|Args],length(Args,L),X=F/L),SG0List,SG1List),
 	nonground_unique(SG1List,SG2List),
-	maplist(G,Pred,(G=PredName/NArg,length(Arg,NArg),A=..[PredName|Arg],Pred=(subgoal(A,S):-msw($operator($reindex(S)),$operator),A)),SG2List,SGPreds),
+	maplist(G,Pred,(G=PredName/NArg,length(Arg,NArg),A=..[PredName|Arg],Pred=(subgoal(A,S):-msw($operator(reindex(S)),$operator),A)),SG2List,SGPreds),
 	Pred3=pred(subgoal,2,_,_,_,SGPreds),
 	%========
 	Prog_tensor1=[Pred1|Prog_tensor0],
