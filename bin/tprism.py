@@ -10,6 +10,7 @@ from itertools import chain
 import collections
 import argparse
 import time
+import pickle
 
 import tprism_module.expl_pb2 as expl_pb2
 import tprism_module.expl_graph as expl_graph
@@ -367,6 +368,20 @@ def run_test(g,sess,args):
 	print("[SAVE]",flags.output)
 	np.save(flags.output,total_output)
 
+def run_display(args):
+	#
+	if args.expl_graph is None:
+		args.expl_graph=args.internal_data_prefix+"expl.json"
+	if args.flags is None:
+		args.flags=args.internal_data_prefix+"flags.json"
+	if args.model is None:
+		args.model=args.internal_data_prefix+"model.ckpt"
+	if args.vocab is None:
+		args.vocab=args.internal_data_prefix+"vocab.pkl"
+	fp=open(args.vocab,"rb")
+	obj=pickle.load(fp)
+	print(obj.vocab_group)
+	## 
 
 if __name__ == '__main__':
 	# set random seed
@@ -484,4 +499,6 @@ if __name__ == '__main__':
 				run_test(g,sess,args)
 			elif args.mode=="cv":
 				run_train_cv(g,sess,args)
+			if args.mode=="show":
+				run_display(args)
 

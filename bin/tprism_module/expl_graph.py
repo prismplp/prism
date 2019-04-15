@@ -502,7 +502,7 @@ class SwitchTensor:
 		return self.make_var_name(m)
 
 	def make_var_name(self,name):
-		return re.sub(r'[\)\(\'$]+', "_", name)
+		return re.sub(r'[\[\],\)\(\'$]+', "_", name)
 
 class VocabSet:
 	def __init__(self):

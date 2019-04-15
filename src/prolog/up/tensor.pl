@@ -102,6 +102,10 @@ $pp_trans_phase_tensor(Prog0,Prog_tensor,Info):-
 	),Prog0,Prog_tensor0,CollectLists),
 	format(">>=====\n"),
 	flatten(CollectLists,FlatCList),
+	%=====
+	% declared_index_atoms:
+	% occured_index_atoms:
+	% index_atoms:
 	%
 	maplist(C,X,C=data(_,X,_,_),FlatCList,IndexList),
 	flatten(IndexList,IndexAtoms),
@@ -119,14 +123,14 @@ $pp_trans_phase_tensor(Prog0,Prog_tensor,Info):-
 	nonground_unique(AllIndexAtoms,UAllIndexAtoms),
 	assert(index_atoms(UAllIndexAtoms)),
 	%========
+	% add operator
 	maplist(C,X,C=data(_,_,X,_),FlatCList,TAList),
 	flatten(TAList,TAL),
 	maplist(TA,Val,(copy_term(TA,TA1),Val=(values(tensor(TA1),G):-tensor_atom(TA1,Shape),length(Shape,N),$pp_index_all_combination(N,G))),TAL,ValPreds),
 	Pred2=pred(values,2,_,_,_,ValPreds),
-	format(">>~w\n",Pred2),
-	format(">>~w\n",Pred2a),
 	Pred1=pred(values,3,_,_,_,[values($operator(_),[$operator],fix@[1.0])]),
 	%========
+	% add subgoal
 	maplist(C,X,C=data(_,_,_,X),FlatCList,SGList),
 	flatten(SGList,SG0List),
 	maplist(SG,X,(SG=subgoal(G,_),G=..[F|Args],length(Args,L),X=F/L),SG0List,SG1List),
@@ -134,13 +138,21 @@ $pp_trans_phase_tensor(Prog0,Prog_tensor,Info):-
 	maplist(G,Pred,(G=PredName/NArg,length(Arg,NArg),A=..[PredName|Arg],Pred=(subgoal(A,S):-msw($operator(reindex(S)),$operator),A)),SG2List,SGPreds),
 	Pred3=pred(subgoal,2,_,_,_,SGPreds),
 	%========
-	Prog_tensor1=[Pred1|Prog_tensor0],
-	Prog_tensor2=[Pred2|Prog_tensor1],
-	Prog_tensor=[Pred3|Prog_tensor2],
-
+	$pp_tensor_merge_pred(Prog_tensor0,Pred1,Prog_tensor1),
+	$pp_tensor_merge_pred(Prog_tensor1,Pred2,Prog_tensor2),
+	$pp_tensor_merge_pred(Prog_tensor2,Pred3,Prog_tensor),
+	format(">> T-PRISM before\n"),
+	maplist(X,format("~w\n",X),Prog0),
+	format(">> T-PRISM after\n"),
 	maplist(X,format("~w\n",X),Prog_tensor),
 	format("=====\n").
-
+$pp_tensor_merge_pred([],Pred,NewProg):-NewProg=[Pred].
+$pp_tensor_merge_pred([pred(G,A,A1,A2,A3,Cl)|Rest],pred(G,A,_,_,_,ClPred),NewProg):-
+	append(Cl,ClPred,NewCl),
+	[pred(G,A,A1,A2,A3,NewCl)|Rest]=NewProg.
+$pp_tensor_merge_pred([Prog|Rest],Pred,[Prog|NewProg]):-
+	$pp_tensor_merge_pred(Rest,Pred,NewProg).
+	
 $pp_tensor_parse_clauses(Clauses,NewClauses,CollectLists):-
 	maplist(C,NC,CollectList,(
 		$pp_tensor_get_msws(C,NC,CollectList)

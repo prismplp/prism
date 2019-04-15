@@ -19,7 +19,7 @@ class Reindex(BaseOperator):
 		return x
 
 	def get_output_template(self,input_template):
-		if input_template[0]=='b':
+		if len(input_template)>0 and input_template[0]=='b':
 			return ['b']+self.out
 		else:
 			return self.out
