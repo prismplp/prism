@@ -1,31 +1,26 @@
-index(w(_),[[i,j],[j,k]]).
-index(in(_),[[k]]).
-:-set_index_range(i,10).
-:-set_index_range(j,256).
-:-set_index_range(k,784). % = 28 x 28
+
+tensor_atom(w(0),[10,256]).
+tensor_atom(w(1),[256,784]).
+tensor_atom(in(_),[784]).
 
 output(X,Y):-matrix(w(0),[i,j]),layer1(X,Y).
 layer1(X,Y):-operator(sigmoid), matrix(w(1),[j,k]),layer2(X,Y).
 layer2(X,Y):-vector(in(X),[k]).
 
 prism_main([train]):-
-	save_flags('./mnist_tmp/mnist.flags.json'),
 	
-	% dataset construction %
-	
+	% dataset construction
 	load_clauses('./mnist/mnist.train.dat',Gs),
 	GoalPlaceholder=[output(_,_)],
 	save_placeholder_goals('./mnist_tmp/mnist_data.train.h5',GoalPlaceholder,Gs),
 	
 	% placeholder construction 
-
 	GoalPlaceholder=[X|_],
-	save_expl_graph('./mnist_tmp/mnist.expl.json',GoalPlaceholder).
+	save_expl_graph('./mnist_tmp/mnist.expl.json','./mnist_tmp/mnist.flags.json',GoalPlaceholder).
 
 prism_main([test]):-
 	
 	% dataset construction
-	
 	load_clauses('./mnist/mnist.test.dat',Gs),
 	GoalPlaceholder=[output(_,_)],
 	save_placeholder_goals('./mnist_tmp/mnist_data.test.h5',GoalPlaceholder,Gs).

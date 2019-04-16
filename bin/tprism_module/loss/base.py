@@ -80,6 +80,28 @@ class Nll(BaseLoss):
 			loss.append(ll)
 		return loss,output
 
+class Ce_pl2(BaseLoss):
+	def __init__(self,parameters=None):
+		pass
+	# loss: goal x minibatch
+	def call(self,graph,goal_inside,tensor_provider):
+		loss=[]
+		output=[]
+		gamma=1.00
+		label_ph_var=tensor_provider.ph_var["$placeholder2$"]
+		beta=1.0e-4
+		reg_losses = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
+		reg_loss=beta*tf.reduce_mean(reg_losses)
+		for rank_root in graph.root_list:
+			goal_ids=[el.sorted_id for el in rank_root.roots]
+			for sid in goal_ids:
+				l1=goal_inside[sid]["inside"]
+				lo=tf.nn.sparse_softmax_cross_entropy_with_logits(labels=label_ph_var,logits=l1)
+				loss.append(lo)
+				output.append(l1)
+		return loss,output
+
+
 class Ce(BaseLoss):
 	def __init__(self,parameters=None):
 		pass
@@ -122,9 +144,10 @@ class Ce1(BaseLoss):
 			goal_ids=[el.sorted_id for el in rank_root.roots]
 			for sid in goal_ids:
 				l1=goal_inside[sid]["inside"]
-				l1=tf.clip_by_value(l1,1e-10,1.0-1e-10)
-				#lo=tf.nn.sparse_softmax_cross_entropy_with_logits(labels=label_ph_var,logits=l1)
-				#numerator=tf.gather(l1,label_ph_var,axis=1)
+				#l1=tf.clip_by_value(l1,1e-10,1.0-1e-10)
+				lo=tf.nn.sparse_softmax_cross_entropy_with_logits(labels=label_ph_var,logits=l1)
+				"""
+                                numerator=tf.gather(l1,label_ph_var,axis=1)
 				print(">????>>",l1.shape)
 				print(">????>>",label_ph_var.shape)
 				print(label_ph_var.shape)
@@ -133,6 +156,9 @@ class Ce1(BaseLoss):
 				print(">????>>",numerator.shape)
 				denom=tf.reduce_logsumexp(l1,axis=1)
 				loss.append(-numerator+denom)
+				"""
+				lo=lo+reg_loss
+				loss.append(lo)
 				output.append(l1)
 		return loss,output
 
