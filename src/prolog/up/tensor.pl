@@ -106,7 +106,7 @@ $pp_trans_phase_tensor(Prog0,Prog_tensor,Info):-
 	% declared_index_atoms:
 	% occured_index_atoms:
 	% index_atoms:
-	%
+	%=====
 	maplist(C,X,C=data(_,X,_,_),FlatCList,IndexList),
 	flatten(IndexList,IndexAtoms),
 	nonground_unique(IndexAtoms,UIndexAtoms),
@@ -123,7 +123,8 @@ $pp_trans_phase_tensor(Prog0,Prog_tensor,Info):-
 	nonground_unique(AllIndexAtoms,UAllIndexAtoms),
 	assert(index_atoms(UAllIndexAtoms)),
 	%========
-	% add operator
+	% add tensor atoms and operators
+	%========
 	maplist(C,X,C=data(_,_,X,_),FlatCList,TAList),
 	flatten(TAList,TAL),
 	maplist(TA,Val,(copy_term(TA,TA1),Val=(values(tensor(TA1),G):-tensor_atom(TA1,Shape),length(Shape,N),$pp_index_all_combination(N,G))),TAL,ValPreds),
@@ -131,6 +132,7 @@ $pp_trans_phase_tensor(Prog0,Prog_tensor,Info):-
 	Pred1=pred(values,3,_,_,_,[values($operator(_),[$operator],fix@[1.0])]),
 	%========
 	% add subgoal
+	%========
 	maplist(C,X,C=data(_,_,_,X),FlatCList,SGList),
 	flatten(SGList,SG0List),
 	maplist(SG,X,(SG=subgoal(G,_),G=..[F|Args],length(Args,L),X=F/L),SG0List,SG1List),
@@ -143,7 +145,7 @@ $pp_trans_phase_tensor(Prog0,Prog_tensor,Info):-
 	$pp_tensor_merge_pred(Prog_tensor2,Pred3,Prog_tensor),
 	format(">> T-PRISM before\n"),
 	maplist(X,format("~w\n",X),Prog0),
-	format(">> T-PRISM after\n"),
+	format("\n>> T-PRISM after\n"),
 	maplist(X,format("~w\n",X),Prog_tensor),
 	format("=====\n").
 $pp_tensor_merge_pred([],Pred,NewProg):-NewProg=[Pred].
@@ -161,6 +163,10 @@ $pp_tensor_parse_clauses(Clauses,NewClauses,CollectLists):-
 $pp_tensor_get_msws(Clause,MswClause,CollectList):-
 	Clause=tensor_atom(_,_) -> (
 		Clause=tensor_atom(TA,_),
+		CollectList=data([],[],TA,[]),
+		MswClause=Clause);
+	Clause=(tensor_atom(_,_):-Body) -> (
+		Clause=(tensor_atom(TA,_):-Body),
 		CollectList=data([],[],TA,[]),
 		MswClause=Clause);
 	Clause=index(_,_) -> (

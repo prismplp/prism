@@ -1,27 +1,21 @@
-index(rel1,[[i,j],[k,j],[i,k],[k,i]]).
+tensor_atom(rel1,[N,N]):-dim(N).
 :-set_prism_flag(error_on_cycle,off).
 
-rel2(U,V):-operator(min1),rel2_helper(U,V).
-rel2_helper(U,V):-
-	tensor(rel1,[U,W]),rel2(W,V).
-rel2_helper(U,V):-tensor(rel1,[U,V]).
+rel2(i,j):-operator(min1),rel2_helper(i,j).
+rel2_helper(i,j):-
+	tensor(rel1,[i,k]),subgoal(rel2(i,j),[k,j]).
+rel2_helper(i,j):-tensor(rel1,[i,j]).
 
 prism_main([]):-
-	N=100,
-	set_index_range(i,N),
-	set_index_range(j,N),
-	set_index_range(k,N),
+	assert(dim(100)),
 	Gs=[rel2(i,j)],
-	save_expl_graph('transitive_closure_tmp/expl.json',Gs),
-	save_flags('transitive_closure_tmp/flags.json').
+	save_expl_graph('transitive_closure_tmp/expl.json','transitive_closure_tmp/flags.json',Gs).
+
 
 prism_main([N]):-
 	parse_atom(N,M),
-	set_index_range(i,M),
-	set_index_range(j,M),
-	set_index_range(k,M),
+	assert(dim(M)),
 	Gs=[rel2(i,j)],
-	save_expl_graph('transitive_closure_tmp/expl.json',Gs),
-	save_flags('transitive_closure_tmp/flags.json').
+	save_expl_graph('transitive_closure_tmp/expl.json','transitive_closure_tmp/flags.json',Gs).
 	
 

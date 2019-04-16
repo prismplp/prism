@@ -361,6 +361,8 @@ def build_explanation_graph(graph,tensor_provider,cycle_embedding_generator=None
 	operator_loader=OperatorLoader()
 	operator_loader.load_all("op")
 	goal_template,cycle_node=build_explanation_graph_template(graph,tensor_provider,operator_loader)
+	print(">>",goal_template)
+	print(">>",cycle_node)
 	#goal_template
 	# converting explanation graph to computational graph
 	goal_inside=[None]*len(graph.goals)
