@@ -183,7 +183,7 @@ void save_placeholder_data_hdf5(TERM ph, TERM data, string filename,SaveFormat f
 			// save dataset
 			H5::H5File file( filename, H5F_ACC_TRUNC );
 			{
-				hsize_t     dimsf[1];              // dataset dimensions
+				hsize_t     dimsf[2];              // dataset dimensions
 				dimsf[0] = length;
 				dimsf[1] = placeholders.size();
 				H5::DataSpace dataspace(2, dimsf );
