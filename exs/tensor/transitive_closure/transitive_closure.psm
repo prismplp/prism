@@ -6,15 +6,9 @@ rel2_helper(i,j):-
 	tensor(rel1,[i,k]),subgoal(rel2(i,j),[k,j]).
 rel2_helper(i,j):-tensor(rel1,[i,j]).
 
-prism_main([]):-
-	assert(dim(100)),
-	Gs=[rel2(i,j)],
-	save_expl_graph('transitive_closure_tmp/expl.json','transitive_closure_tmp/flags.json',Gs).
-
-
-prism_main([N]):-
-	parse_atom(N,M),
-	assert(dim(M)),
+prism_main([M]):-
+	parse_atom(M,N),
+	assert(dim(N)),
 	Gs=[rel2(i,j)],
 	save_expl_graph('transitive_closure_tmp/expl.json','transitive_closure_tmp/flags.json',Gs).
 	
