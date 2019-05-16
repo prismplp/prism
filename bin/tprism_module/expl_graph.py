@@ -350,7 +350,7 @@ def build_explanation_graph_template(graph,tensor_provider,operator_loader=None,
 				if len(ph)>0:
 					sw_template.append(['b']+list(sw.values))
 					path_batch_flag=True
-					sw_shape.append([None]+sw_obj.get_shape())
+					sw_shape.append([None]+list(sw_obj.get_shape()))
 				else:
 					sw_template.append(list(sw.values))
 					sw_shape.append(sw_obj.get_shape())

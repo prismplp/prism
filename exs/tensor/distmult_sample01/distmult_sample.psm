@@ -1,0 +1,17 @@
+tensor_atom(v(_),[20]).
+tensor_atom(r(_),[20]).
+
+rel(U,V,E):-tensor(v(U),[i]),tensor(v(V),[i]),tensor(r(E),[i]).
+
+candidate(U,E,Goals,L):-findall(V,(member(rel(_,V,E),Goals),not member(rel(U,V,E),Goals)),L).
+random_select_negative(rel(U,V,E),Goals,rel(U,NegativeV,E)):-
+	candidate(U,E,Goals,L),
+	random_select(L,NegativeV).
+
+prism_main([]):-
+	random_set_seed(1234),
+	load_clauses('sample.dat',Gs),
+	maplist(G,NegG,random_select_negative(G,Gs,NegG),Gs,NegGs),
+	maplist(X,Y,Z,Z=[X,Y],Gs,NegGs,GoalPairList),
+	save_expl_graph('distmult_sample_tmp/expl.json','distmult_sample_tmp/flags.json',GoalPairList).
+

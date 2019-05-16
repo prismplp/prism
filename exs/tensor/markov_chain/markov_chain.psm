@@ -1,20 +1,23 @@
-index(onehot(_),[[j],[i]]).
-index(tr,[[i,j],[j,i]]).
-:-set_index_range(i,10).
-:-set_index_range(j,10).
+% onehot/1 is a keyword for onehot encoded tensor
+tensor_atom(onehot(_),[10]).
+tensor_atom(tr,[10,10]).
+index_atoms([i,j]).
 
-mc(S,T,Step):-tensor(onehot(S),[i]),mc_v(i,T,Step).
-mc_v(S,T,0):-tensor(onehot(T),[S]).
-mc_v(S,T,Step):-
-	Step>0,
-	prob_tensor(tr,[Next,S]),
-	NextStep is Step - 1,
-	mc_v(Next,T,NextStep).
+mc(S,T,N):-observe_state(S,[i]),subgoal(mc(T,N),[i]).
+
+mc(T,0):-observe_state(T,[i]).
+mc(T,N):-
+	N>0,
+	NextN is N - 1,
+	prob_tensor(tr,[i,j]),
+	subgoal(mc(T,NextN),[j]).
 
 prob_tensor(X,Index):-
 	operator(softmax),
 	tensor(X,Index).
-	
+
+observe_state(S,Index):-
+	tensor(onehot(S),Index).
 
 prism_main([]):-
 	Gs=[
@@ -23,7 +26,6 @@ prism_main([]):-
 		mc(4,0,4),
 		mc(1,3,2)
 		],
-	save_expl_graph('markov_chain_tmp/expl.json',Gs),
-	save_flags('markov_chain_tmp/flags.json').
+	save_expl_graph('markov_chain_tmp/expl.json','markov_chain_tmp/flags.json',Gs).
 	
 
