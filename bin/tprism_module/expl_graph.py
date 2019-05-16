@@ -292,6 +292,45 @@ def compute_output_template(template):
 	out_template=[k for k,cnt in counter.items() if cnt==1 and k!="b"]
 	return sorted(out_template)
 
+#[['i'], ['i','l', 'j'], ['j','k']] => ['l','k']
+#[[3], [3, 4, 5], [5,6]] => [4,6]
+def compute_output_shape(out_template,sw_node_template,sw_node_shape):
+	symbol_shape={}
+	for template_list,shape_list in zip(sw_node_template,sw_node_shape):
+		for t,s in zip(template_list,shape_list):
+			if t not in symbol_shape:
+				symbol_shape[t]=s
+			elif symbol_shape[t] is None:
+				symbol_shape[t]=s
+			else:
+				assert symbol_shape[t] == s,"index symbol mismatch:"+str(t)+":"+str(symbol_shape[t])+"!="+str(s)
+	out_shape=[]
+	for symbol in out_template:
+		if symbol in symbol_shape:
+			out_shape.append(symbol_shape[symbol])
+		else:
+			out_shape.append(None)
+	return out_shape
+
+def unify_shapes(path_shapes):
+	n=len(path_shapes)
+	if n==0:
+		return []
+	else:
+		m=len(path_shapes[0])
+		out_shape=[]
+		for j in range(m):
+			dim=None
+			for i in range(n):
+				if path_shapes[i][j] is None:
+					pass
+				elif dim is None:
+					dim= path_shapes[i][j]
+				else:
+					assert path_shapes[i][j] == dim, "shape mismatching"
+			out_shape.append(dim)
+		return out_shape
+
 def build_explanation_graph_template(graph,tensor_provider,operator_loader=None,cycle_node=[]):
 	tensor_embedding=tensor_provider.tensor_embedding
 	# checking template
@@ -299,19 +338,25 @@ def build_explanation_graph_template(graph,tensor_provider,operator_loader=None,
 	for i in range(len(graph.goals)):
 		g=graph.goals[i]
 		path_template=[]
+		path_shape=[]
 		path_batch_flag=False
 		for path in g.paths:
 			## build template and inside for switches in the path
 			sw_template=[]
+			sw_shape=[]
 			for sw in path.tensor_switches:
 				ph=tensor_provider.get_placeholder_name(sw.name)
+				sw_obj=tensor_provider.get_switch(sw.name)
 				if len(ph)>0:
 					sw_template.append(['b']+list(sw.values))
 					path_batch_flag=True
+					sw_shape.append([None]+sw_obj.get_shape())
 				else:
 					sw_template.append(list(sw.values))
+					sw_shape.append(sw_obj.get_shape())
 			## building template and inside for nodes in the path
 			node_template=[]
+			node_shape=[]
 			cycle_detected=False
 			for node in path.nodes:
 				temp_goal=goal_template[node.sorted_id]
@@ -322,18 +367,18 @@ def build_explanation_graph_template(graph,tensor_provider,operator_loader=None,
 					cycle_detected=True
 					continue
 				if len(temp_goal["template"])>0:
-					temp_goal_template=temp_goal["template"]
 					if temp_goal["batch_flag"]:
 						path_batch_flag=True
-					node_template.append(temp_goal_template)
+					node_shape.append(temp_goal["shape"])
+					node_template.append(temp_goal["template"])
 			if cycle_detected:
 				continue
 			sw_node_template=sw_template+node_template
-			#template=[x for x in sorted(sw_node_template)]
-			template=sw_node_template
+			sw_node_shape=sw_shape+node_shape
 			# constructing einsum operation using template and inside
-			out_template=compute_output_template(template)
-			if len(template)>0: # condition for einsum
+			out_template=compute_output_template(sw_node_template)
+			out_shape=compute_output_shape(out_template,sw_node_template,sw_node_shape)
+			if len(sw_node_template)>0: # condition for einsum
 				if path_batch_flag:
 					out_template=['b']+out_template
 			## computing operaters
@@ -343,15 +388,17 @@ def build_explanation_graph_template(graph,tensor_provider,operator_loader=None,
 				op_obj=cls(op.values)
 				out_template=op_obj.get_output_template(out_template)
 			path_template.append(out_template)
+			path_shape.append(out_shape)
 			##
 		##
 		path_template_list=get_unique_list(path_template)
+		path_shape=unify_shapes(path_shape)
 		if len(path_template_list)==0:
-			goal_template[i]={"template":[],"batch_flag":False}
+			goal_template[i]={"template":[],"batch_flag":False,"shape":path_shape}
 		else:
 			if len(path_template_list)!=1:
 				print("[WARNING] missmatch indices:",path_template_list)
-			goal_template[i]={"template":path_template_list[0],"batch_flag":path_batch_flag}
+			goal_template[i]={"template":path_template_list[0],"batch_flag":path_batch_flag,"shape":path_shape}
 	##
 	return goal_template,cycle_node
 	
@@ -361,8 +408,6 @@ def build_explanation_graph(graph,tensor_provider,cycle_embedding_generator=None
 	operator_loader=OperatorLoader()
 	operator_loader.load_all("op")
 	goal_template,cycle_node=build_explanation_graph_template(graph,tensor_provider,operator_loader)
-	print(">>",goal_template)
-	print(">>",cycle_node)
 	#goal_template
 	# converting explanation graph to computational graph
 	goal_inside=[None]*len(graph.goals)
@@ -400,7 +445,8 @@ def build_explanation_graph(graph,tensor_provider,cycle_embedding_generator=None
 				if node.sorted_id in cycle_node:
 					name=node.goal.name
 					template=goal_template[node.sorted_id]["template"]
-					shape=cycle_embedding_generator.template2shape(template)
+					shape=goal_template[node.sorted_id]["shape"]
+					#shape=cycle_embedding_generator.template2shape(template)
 					temp_goal_inside=cycle_embedding_generator.get_embedding(name,shape,node.sorted_id)
 					temp_goal_template=template
 					node_inside.append(temp_goal_inside)
@@ -441,17 +487,17 @@ def build_explanation_graph(graph,tensor_provider,cycle_embedding_generator=None
 					rhs="b"+rhs
 					out_template=['b']+out_template
 				einsum_eq=lhs+"->"+rhs
-				print("  ",einsum_eq)
-				print("  ",inside)
+				print("  index:",einsum_eq)
+				print("  var. :",inside)
 				out_inside=tf.einsum(einsum_eq,*inside)*out_inside
 			for scalar_inside in node_scalar_inside:
 				out_inside=scalar_inside*out_inside
 			## computing operaters
 			for op in path.operators:
-				print(">>>",op.name)
-				print(">>>",op.values)
+				print("  operator:",op.name)
 				cls=operator_loader.get_operator(op.name)
-				print(">>>",cls)
+				#print(">>>",op.values)
+				#print(">>>",cls)
 				op_obj=cls(op.values)
 				out_inside=op_obj.call(out_inside)
 				out_template=op_obj.get_output_template(out_template)
@@ -492,6 +538,10 @@ class SwitchTensor:
 	def add_shape(self,shape):
 		self.shape_set.add(shape)
 		
+	def get_shape(self):
+		assert len(self.shape_set)==1, self.name+": shape is not unique:"+str(self.shape_set)
+		return list(self.shape_set)[0]
+	
 	def get_placeholder_name(self,name):
 		pattern=r'(\$placeholder[0-9]+\$)'
 		m=re.finditer(pattern,name)
@@ -588,6 +638,9 @@ class SwitchTensorProvider:
 
 	def get_placeholder_name(self,name):
 		return self.sw_info[name].placeholder_names
+
+	def get_switch(self,name):
+		return self.sw_info[name]
 
 	def get_placeholder_var_name(self,name):
 		return re.sub(r'\$',"",name)
