@@ -1,0 +1,57 @@
+%%%%
+%%%%  TPRISM-PCFG --- pcfg.psm
+%%%%      
+%%%%  Copyright (C) 2019
+%%%%    Sato Laboratory, Dept. of Computer Science,
+%%%%    Tokyo Institute of Technology
+
+
+tensor_atom(onehot(_),[10]).
+tensor_atom(sw(_),[10]).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Nonterminals and rules %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+nonterminal(s).
+nonterminal(x).
+values(s,[[x]]).          % Rule1: S -> X
+values(x,[[a,x,a],[b]]).  % Rule2: X -> a X a | b
+
+%%%%%%%%%%%%%%%%%%%%%%
+%%   PCFG program   %%
+%%%%%%%%%%%%%%%%%%%%%%
+%% This program uses simulated_msw/2 instead of msw/2 in the standard PCFG program in PRISM 
+pcfg(L):- pcfg(s,L-[]).
+pcfg(LHS,L0-L1):-
+	( nonterminal(LHS) ->
+		simulated_msw(LHS,RHS),proj(RHS,L0-L1)
+		; L0 = [LHS|L1]
+	).
+proj([],L-L).
+proj([X|Xs],L0-L1):-
+	pcfg(X,L0-L2),proj(Xs,L2-L1).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% For PRISM simulation:          %%
+%% simulated_msw/2 works as msw/2 %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+simulated_msw(Sw,Val):-
+	get_values(Sw,Values),     % get candidates
+	nth0(Index, Values, Val),  % choice (non-deterministic)
+	prob_tensor(Sw,[i]),       % distribution vector
+	tensor(onehot(Index),[i]). % P(Sw=Val) = dot(distribution vector, onehot vector)
+
+
+prob_tensor(X,Index):-
+	operator(softmax),
+	tensor(sw(X),Index).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%      Example main program      %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+prism_main([]):-
+	format("... building placeholders\n"),
+	random_set_seed(1234),
+	Gs=[pcfg([a,a,b,a,a]),pcfg([a,b,a])],
+	save_expl_graph('pcfg_tmp/expl.json','pcfg_tmp/flags.json',Gs).
+	

@@ -80,17 +80,17 @@ unifiable_unique([H|T0],[Z|S]) :- $pp_find_unifiable(H,Z,T0,T1),unifiable_unique
 
 
 $pp_tensor_filter_nonground([],[]).
-$pp_tensor_filter_nonground([H|T],[H|S]) :- ground(H), unique(T,S).
-$pp_tensor_filter_nonground([H|T],S) :- not(ground(H)), unique(T,S).
+$pp_tensor_filter_nonground([H|T],[H|S]) :- ground(H), $pp_tensor_filter_nonground(T,S).
+$pp_tensor_filter_nonground([H|T],S) :- not(ground(H)), $pp_tensor_filter_nonground(T,S).
 
 nonground_unique(L,L1):-
 	$pp_tensor_filter_nonground(L,L0),
 	unique(L0,L1).
 
+tprism_debug_level(0).
 %CollectLists:
 % data(occured switches,declared index)
 $pp_trans_phase_tensor(Prog0,Prog_tensor,Info):-
-	format(">>=====\n"),
 	maplist(X,Y,CollectList,(
 		X=pred(index,2,A2,A3,A4,Clauses)->
 			($pp_tensor_parse_clauses(Clauses,C,CollectList),
@@ -100,8 +100,11 @@ $pp_trans_phase_tensor(Prog0,Prog_tensor,Info):-
 			Y=pred(A0,A1,A2,A3,A4,C));
 		Y=X,CollectList=[]
 	),Prog0,Prog_tensor0,CollectLists),
-	format(">>=====\n"),
 	flatten(CollectLists,FlatCList),
+	(tprism_debug_level(1)->(
+		format(">>=====\n"),
+		format(">> Data list\n"),
+		format("~w\n",FlatCList));true),
 	%=====
 	% declared_index_atoms:
 	% occured_index_atoms:
@@ -118,6 +121,12 @@ $pp_trans_phase_tensor(Prog0,Prog_tensor,Info):-
 	flatten(TIndexList,TIndexAtoms),
 	nonground_unique(TIndexAtoms,TUIndexAtoms),
 	assert(occuered_index_atoms(TUIndexAtoms)),
+	%
+	(tprism_debug_level(1)->(
+		format(">> declared index atoms\n"),
+		format("~w\n",UIndexAtoms),
+		format(">> occured index Atoms\n"),
+		format("~w\n",TUIndexAtoms));true),
 	%
 	append(UIndexAtoms,TUIndexAtoms,AllIndexAtoms),
 	nonground_unique(AllIndexAtoms,UAllIndexAtoms),
@@ -143,11 +152,12 @@ $pp_trans_phase_tensor(Prog0,Prog_tensor,Info):-
 	$pp_tensor_merge_pred(Prog_tensor0,Pred1,Prog_tensor1),
 	$pp_tensor_merge_pred(Prog_tensor1,Pred2,Prog_tensor2),
 	$pp_tensor_merge_pred(Prog_tensor2,Pred3,Prog_tensor),
+	(tprism_debug_level(1)->(
 	format(">> T-PRISM before\n"),
 	maplist(X,format("~w\n",X),Prog0),
 	format("\n>> T-PRISM after\n"),
 	maplist(X,format("~w\n",X),Prog_tensor),
-	format("=====\n").
+	format("=====\n"));true).
 $pp_tensor_merge_pred([],Pred,NewProg):-NewProg=[Pred].
 $pp_tensor_merge_pred([pred(G,A,A1,A2,A3,Cl)|Rest],pred(G,A,_,_,_,ClPred),NewProg):-
 	append(Cl,ClPred,NewCl),
@@ -284,23 +294,19 @@ $pp_tensor_core(Filename,OptionFilename,Mode,OptionMode,GoalList) :-
 	$pc_prism_prepare(GidCountPairs,Len,NGoals,FailRootIndex),
 	cputime(StartEM),
 	%$pp_em(0,Output),
-	%format("=====***==================\n"),
 	(Mode==json ->Mode0=0
 	;Mode==pb   ->Mode0=1
 	;Mode==pbtxt->Mode0=2
 	;Mode==hdf5 ->Mode0=$pp_raise_runtime_error($msg(9806),hdf5_is_not_supportted_for_saving_flags,save_flags/2)
 	;$pp_raise_runtime_error($msg(9804),unknown_save_format,save_flags/2)),
 	$pc_prism_save_expl_graph(Filename,Mode0,NewSws),
-	format(">>>>~w\n",NewSws),
 	maplist(S,SwName,(S=sw(_,SwIns),$pp_decode_switch_name(SwIns,SwName)),NewSws,Sws),
-	format(">>>>~w\n",Sws),
 	filter(tensor(_),Sws,Sws1),
 	maplist(S,Shape,(S=tensor(X)->(tensor_atom(X,Sh),Shape=[X,Sh]);Shape=unknown),Sws1,SwShape),
 	cputime(EndEM),
 	save_flags(OptionFilename,OptionMode,SwShape),
 	cputime(End),!.
 	%$pc_import_occ_switches(NewSws,NSwitches,NSwVals),
-	%format(">>>>~w\n",NewSws),
 	%format("=======================\n"),
 	%$pp_decode_update_switches(Mode,NewSws),
 	%format("======================\n"),
