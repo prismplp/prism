@@ -32,6 +32,6 @@ RUN cd ~/ && \
 
 RUN python -V && \
     pip install graphviz tensorflow
-
-RUN cd prism/exs/tensor/mlp/ && \
-    sh -x run_mnist.sh
+RUN python -V && \
+    cd prism/exs/tensor/mlp/ && \
+    ./run_mnist.sh
