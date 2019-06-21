@@ -1,8 +1,8 @@
 FROM ubuntu:18.04
 
 MAINTAINER "" <>
-# SHELL ["/bin/bash", "-c"]
-ENV PATH $PATH:/prism/bin
+ENV PATH $PATH:/prism/bin:~/anaconda3/bin
+SHELL ["/bin/bash", "-c"]
 
 ADD . /prism
 ADD ./anaconda_exp.sh /root/
@@ -10,8 +10,6 @@ ADD ./anaconda_exp.sh /root/
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update -y && \
-    apt install -y python3-pip && \
-    ln -s /usr/bin/python3.6 /usr/bin/python && \
     apt-get install -y curl && \
     apt-get install -y expect && \
     cd prism/ && \
@@ -33,7 +31,7 @@ RUN cd ~/ && \
     sh anaconda_exp.sh
 
 RUN python -V && \
-    pip3 install graphviz tensorflow
-
-RUN cd prism/exs/tensor/mlp/ && \
-    sh -x run_mnist.sh
+    pip install graphviz tensorflow
+RUN python -V && \
+    cd prism/exs/tensor/mlp/ && \
+    ./run_mnist.sh
