@@ -78,23 +78,40 @@ $pp_mps_learn_core(Mode) :-
 
 %%----------------------------------------
 
+$pp_mpm_em(ml,Output) :-
+    $pc_mpm_prism_em(Iterate,LogPost,LogLike,BIC,CS,ModeSmooth),
+    Output = [Iterate,LogPost,LogLike,BIC,CS,ModeSmooth].
+$pp_mpm_em(vb,Output) :-
+    $pc_mpm_prism_em(Iterate,LogPost,LogLike,BIC,CS,ModeSmooth),
+    Output = [Iterate,LogPost,LogLike,BIC,CS,ModeSmooth].
+$pp_mpm_em(both,Output) :-
+    $pc_mpm_prism_both_em(IterateVB,FreeEnergy),
+    Output = [IterateVB,FreeEnergy].
+
+$pp_mps_em(ml) :-
+    $pc_mps_prism_em.
+$pp_mps_em(vb) :-
+    $pc_mps_prism_vbem.
+$pp_mps_em(both) :-
+    $pc_mps_prism_both_em.
+
+
+%%
+%% deprecated Mode
+%%
 $pp_mpm_em(params,Output) :-
     $pc_mpm_prism_em(Iterate,LogPost,LogLike,BIC,CS,ModeSmooth),
     Output = [Iterate,LogPost,LogLike,BIC,CS,ModeSmooth].
 $pp_mpm_em(hparams,Output) :-
     $pc_mpm_prism_vbem(IterateVB,FreeEnergy),
     Output = [IterateVB,FreeEnergy].
-$pp_mpm_em(both,Output) :-
-    $pc_mpm_prism_both_em(IterateVB,FreeEnergy),
-    Output = [IterateVB,FreeEnergy].
 
 $pp_mps_em(params) :-
     $pc_mps_prism_em.
 $pp_mps_em(hparams) :-
     $pc_mps_prism_vbem.
-$pp_mps_em(both) :-
-    $pc_mps_prism_both_em.
-
+%%
+%%
 %%----------------------------------------
 
 $pp_mpm_find_explanations(GoalEqCountPairs,GoalCountPairs) :-
