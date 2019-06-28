@@ -96,7 +96,7 @@ int pc_mp_master_0(void) {
 }
 
 int pc_mp_abort_0(void) {
-	mp_quit(0);
+	mp_quit(1);
 }
 
 int pc_mp_wtime_1(void) {
