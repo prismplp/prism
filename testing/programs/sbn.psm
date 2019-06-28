@@ -128,3 +128,5 @@ sbn_learn(N):-                  % Learn parameters (CPTs) from a list of
    set_params,
    get_samples(N,ask_B(_),Goals),
    learn(Goals).
+
+prism_main:-go.

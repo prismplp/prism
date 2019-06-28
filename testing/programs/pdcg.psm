@@ -87,3 +87,5 @@ pdcg_learn(N):-
    unfix_sw('S'),               % Make parameters of msw('S',.) changable
    learn(Goals).                % Conduct ML estimation by graphical EM learning
 
+prism_main:-go.
+

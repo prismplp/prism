@@ -22,7 +22,7 @@
 %%-------------------------------------
 %%  Quick start : sample session
 %%
-%%  (Preparation: Download the data file `house-votes-84.data' from UCI ML
+%%  (Preparation: Download the data file `house-votes-84.dat' from UCI ML
 %%  repository, and put it `as-is' on the current directly)
 %%
 %%  ?- prism(votes),votes_learn.     % Learn parameters from the whole dataset
@@ -108,5 +108,8 @@ separate_data(Data,K,N,Train,Test):-
 %% Prolog terms
 
 load_data_file(Gs):-
-    load_csv('house-votes-84.data',Gs0),
+    load_csv('house-votes-84.dat',Gs0),
     maplist(csvrow([C|Vs]),nbayes(C,Vs),true,Gs0,Gs).
+
+prism_main:-votes_learn,votes_cv(10).
+

@@ -121,3 +121,13 @@ build_tree1([],[]).
 build_tree1([pcfg(Sym,_)|Gs],[Sym|T]) :- !,build_tree1(Gs,T).
 build_tree1([msw(_,_)|Gs],T) :- !, build_tree1(Gs,T).
 build_tree1([G|Gs],[T0|T]) :- build_tree(G,T0),!,build_tree1(Gs,T).
+
+prism_main:-
+	prob(pcfg([swat,flies,like,ants])),
+	sample(pcfg(_X)),viterbif(pcfg(_X)),
+	get_samples(50,pcfg(X),_Gs),learn(_Gs),show_sw,
+	viterbif(pcfg([swat,flies,like,ants])),
+	n_viterbif(3,pcfg([swat,flies,like,ants])),
+	viterbit(pcfg([swat,flies,like,ants])),
+	viterbit(pcfg([swat,flies,like,ants]),P,E), build_tree(E,T),
+	probfi(pcfg([swat,flies,like,ants])).

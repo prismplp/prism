@@ -70,3 +70,5 @@ dcoin_learn(N) :-
 set_params :-
    set_sw(coin(1),[0.5,0.5]),
    set_sw(coin(2),[0.7,0.3]).
+
+prism_main:-go.

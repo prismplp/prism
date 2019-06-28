@@ -401,3 +401,14 @@ gen_data(N,Gs,Result) :-
    ; Gs = Y,
        N1 is N ),!,
    gen_data(N1,Y,Result).
+
+prism_main:-go0,go1,go2,go3,go4,go5,go6,go7.
+go0:-set_sw,show_board,(sample(success(L)) ; true ),no_show_board.
+go1:-prob(success,Ps),prob(failure,Pf),X is Ps+Pf.
+go2:-prob(success(_),Ps),prob(failure(_),Pf),X is Ps+Pf.
+go3:-sample(success(L)),prob(success(L),Ps),prob(failure(L),Pf),X is Ps+Pf.
+go4:-set_sw,gen_data(100,_Gs,o_win),learn([failure|_Gs]),prob(success).
+go6:-set_sw,gen_data(100,_Gs,o_win),learn(_Gs),prob(success).
+go7:-set_sw,prob(success),fix_mark(x),gen_data(100,_Gs,o_win),learn(_Gs),prob(success).
+
+

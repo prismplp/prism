@@ -213,3 +213,5 @@ values(attach(vp),[attach,project]).
 values(attach(np),[attach,project]).
 values(attach(pp),[attach,project]).
 values(attach(ap),[attach,project]).
+
+prism_main:-go.

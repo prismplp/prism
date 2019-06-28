@@ -44,3 +44,10 @@ direction(D):-
     msw(coin,Face),                     % Make a coin tossing
     ( Face==head -> D=left ; D=right).  % Decide the direction according to
                                         %   the result of coin tossing
+
+prism_main:-
+    show_sw,
+    sample(direction(D)),
+    set_sw(coin,[0.7,0.3]),
+    show_sw,
+    sample(direction(D)).

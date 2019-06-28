@@ -35,7 +35,7 @@
 %%------------------------------------
 %%  Declarations:
 
-:- include('hmm_wc_incl.psm').
+:- include('hmm_wc_incl.pl').
 %:- include('hmm_wc_incl2.psm').  % does not exist
 
 %:- disable_write_call.

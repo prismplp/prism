@@ -63,3 +63,4 @@ set_nor_params(_,[],[]).
 set_nor_params(X,[Y|Pa],[Dist|DistList]):-
    set_sw(cause(X,Y),Dist),!,
    set_nor_params(X,Pa,DistList).
+

@@ -49,7 +49,7 @@
 %%    choices, following the specifications of noisy OR nodes. 
 %%
 %%  The definition of these generic probabilistic predicates are given in
-%%  noisy_or.psm, and we will include noisy_or.psm into this program.
+%%  noisy_or.pl, and we will include noisy_or.pl into this program.
 %%
 
 %%-------------------------------------
@@ -84,7 +84,7 @@
 
 values(_,[yes,no]).
 
-:- include('noisy_or.psm').
+:- include('noisy_or.pl').
       % We include generic probabilistic predicates that can handle
       % noisy-OR.  The following predicates will be available:
       % 
@@ -172,3 +172,17 @@ get_cpt_probf(X,PaVs,V):-
    ( probf(cpt(X,PaVs,V))
    ; format("cpt(~w,~w,~w): always false~n",[X,PaVs,V])
    ),!.
+
+
+prism_main:-
+   print_dist_al,
+   print_expl_al,
+   prob(world(yes,no)),
+   probf(world(yes,no)),
+   viterbif(world(yes,no)),
+   viterbi(world(yes,no)),
+   chindsight(world(yes,no),world(_,_,_,_,_,_)),
+   chindsight_agg(world(yes,no),world(_,_,query,yes,_,no)),
+   alarm_learn(100).
+
+

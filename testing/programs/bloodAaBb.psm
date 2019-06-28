@@ -112,3 +112,5 @@ print_gene :-
    format("P(a) = ~6f~n",[Ga]),
    format("P(B) = ~6f~n",[GB]),
    format("P(b) = ~6f~n",[Gb]).
+
+prism_main:-go.

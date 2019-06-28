@@ -158,3 +158,5 @@ print_expl_al:-
      fail
    ; true
    ).
+
+prism_main:-go.

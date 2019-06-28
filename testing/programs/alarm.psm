@@ -120,3 +120,5 @@ write_world(N,File) :-
 write_world([world(Sm,Re)|Gs]) :-
    write(world(Sm,Re)),write('.'),nl,write_world(Gs).
 write_world([]).
+
+prism_main:-go.

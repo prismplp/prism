@@ -151,3 +151,6 @@ set_params:-
   set_sw(bn(d,[t,f]),[0.70,0.30]),
   set_sw(bn(d,[f,t]),[0.80,0.20]),
   set_sw(bn(d,[f,f]),[0.10,0.90]).
+
+
+prism_main:-go,go2.

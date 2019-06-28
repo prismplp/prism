@@ -18,7 +18,9 @@ set_params:-
 %%  generated samples:
 %%      > upprism hmm 50
 
+prism_main([]):-hmm_learn(10).
 prism_main([Arg]):-
+   format("*****"),
    parse_atom(Arg,N),           % Convert an atom ('50') to a number (50)
    hmm_learn(N).                % Learn with N samples
 
