@@ -82,8 +82,8 @@ $pp_mpm_em(ml,Output) :-
     $pc_mpm_prism_em(Iterate,LogPost,LogLike,BIC,CS,ModeSmooth),
     Output = [Iterate,LogPost,LogLike,BIC,CS,ModeSmooth].
 $pp_mpm_em(vb,Output) :-
-    $pc_mpm_prism_em(Iterate,LogPost,LogLike,BIC,CS,ModeSmooth),
-    Output = [Iterate,LogPost,LogLike,BIC,CS,ModeSmooth].
+    $pc_mpm_prism_vbem(IterateVB,FreeEnergy),
+    Output = [IterateVB,FreeEnergy].
 $pp_mpm_em(both,Output) :-
     $pc_mpm_prism_both_em(IterateVB,FreeEnergy),
     Output = [IterateVB,FreeEnergy].
