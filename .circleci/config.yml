@@ -5,25 +5,28 @@ jobs:
     shell: /bin/bash
     docker:
       - image: naegawaprism/prism:latest
-    # working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
+    working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
     steps:
       - checkout
-      # - run:
-      #     name: complile c prism
-      #     command: cd src/c && make -f Makefile.gmake PLATFORM=linux
+      - run:
+          name: compile c prism
+          command: cd src/c && make -f Makefile.gmake PLATFORM=linux
 
-      # - run:
-      #     name: install c prism
-      #     command: make -f Makefile.gmake PLATFORM=linux install
-      #     working_directory: src/c
-      # - run:
-      #     name: make prolog prism
-      #     command: make 
-      #     working_directory: src/prolog
-      # - run:
-      #     name: install prolog prism
-      #     command: make  install
-      #     working_directory: src/prolog
+      - run:
+          name: install c prism
+          command: make -f Makefile.gmake PLATFORM=linux install
+          working_directory: src/c
+      - run:
+          name: make prolog prism
+          command: make 
+          working_directory: src/prolog
+      - run:
+          name: install prolog prism
+          command: make  install
+          working_directory: src/prolog
+      - run:
+          name: install prolog prism
+          command: echo 'export PATH=/go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}/bin:$PATH' >> $BASH_ENV
       - run:
           name: first test
           command: ./test.sh
