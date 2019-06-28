@@ -271,14 +271,14 @@ $pp_batch :-
     catch($pp_batch_core,Err,$pp_batch_error(Err)).
 
 $pp_batch_error(Err) :-
-    Err == abort,!.
+    Err == $pc_prism_abort,!.
 $pp_batch_error(Err) :-
     Err == interrupt,!,
     format("Aborted by interruption~n",[]),
-    abort.
+    $pc_prism_abort.
 $pp_batch_error(Err) :-
     format("Aborted by exception -- ~w~n",[Err]),
-    abort.
+    $pc_prism_abort.
 
 $pp_batch_core :-
     get_main_args([Arg|Args]),!,

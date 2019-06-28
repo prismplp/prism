@@ -72,4 +72,6 @@ void emit_internal_error(const char *, ...);
 
 /*--------------------------------------------------------------------*/
 
+int pc_prism_abort_0(void);
+
 #endif /* ERROR_H */

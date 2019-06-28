@@ -1,4 +1,5 @@
 #include <stdarg.h>
+#include <stdlib.h>
 #include "bprolog.h"
 #include "core/bpx.h"
 
@@ -107,3 +108,12 @@ void emit_internal_error(const char *fmt, ...) {
 }
 
 /*--------------------------------------------------------------------*/
+
+int pc_prism_abort_0(void){
+#ifdef MPI
+	return pc_mp_abort_0();
+#else
+	exit(1);
+	return 0;
+#endif
+}

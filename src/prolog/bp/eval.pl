@@ -275,7 +275,7 @@ $next_monitor_instruction(Type,Call,Depth,CallNo,AR):-
 #define DG_FLAG_R 0x20
 */
 $process_monitor_instruction(_Type,_Call,_Depth,_CallNo,_AR,0'a) =>
-    abort.                     % abort
+    $pc_prism_abort.                     % abort
 $process_monitor_instruction(_Type,_Call,_Depth,_CallNo,_AR,0'r) =>
     c_set_dg_flag(2'100000).   % repeat
 $process_monitor_instruction(_Type,_Call,_Depth,_CallNo,_AR,0'c) =>

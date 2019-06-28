@@ -43,6 +43,8 @@ void bp4p_quit(int status) {
 #endif
 }
 
+
+
 void bp4p_register_preds(void) {
 	/* core/idtable.c */
 	REGISTER_CPRED(prism_id_table_init,0);
@@ -259,6 +261,7 @@ void bp4p_register_preds(void) {
 #endif
 
 	/* up/error.c; FIXME: There would be a better place to call */
+	REGISTER_CPRED(prism_abort,0);
 	register_prism_errors();
 }
 

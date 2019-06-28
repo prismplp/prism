@@ -3,10 +3,10 @@
 
 $pp_err_msg(Msg) :-
     format("{PRISM ERROR: ",[]),write(Msg),format("}~n",[]),!,
-    abort.
+    $pc_prism_abort.
 $pp_err_msg(Msg,Vars) :-
     format("{PRISM ERROR: ",[]),format(Msg,Vars),format("}~n",[]),!,
-    abort.
+    $pc_prism_abort.
 
 $pp_warn_msg(Msg) :-
     ( get_prism_flag(warn,on) ->
