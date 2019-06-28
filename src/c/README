@@ -76,3 +76,16 @@ respectively.
 
   Lastly, if you prefer to change the settings, modify Makefile.nmake
   and the Makefiles under the `makefiles' directory.
+
+
+[How to compile the C part with MPI (message-passing interface) on Linux]
+  You can copmile codes with MPI by typing:
+
+      make -f Makefile.gmake PROCTYPE=mp
+
+  You can clean up the copmiled code by typing:
+
+      make -f Makefile.gmake PROCTYPE=mp
+
+
+
