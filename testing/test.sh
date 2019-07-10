@@ -14,6 +14,7 @@ for file in `\find ./*.psm -maxdepth 1 -type f`; do
     fi
 done
 echo ""
+echo "================"
 echo "[TEST] irregular_programs/"
 cd ../irregular_programs/
 for file in `\find ./*.psm -maxdepth 1 -type f`; do
@@ -21,7 +22,7 @@ for file in `\find ./*.psm -maxdepth 1 -type f`; do
     upprism $file
     code=$?
     if [ ${code} -ne 0 ]; then
-      echo "[Success]" $file
+      echo "[Success] successfully detected errors:" $file
     else
       exit 1
     fi
