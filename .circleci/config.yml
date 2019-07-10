@@ -9,6 +9,9 @@ jobs:
     steps:
       - checkout
       - run:
+          name: fix protobuf version
+          command: ./src/c/external/generate.sh
+      - run:
           name: compile c prism
           command: cd src/c && make -f Makefile.gmake PLATFORM=linux
 
@@ -31,3 +34,4 @@ jobs:
           name: first test
           command: ./test.sh
           working_directory: testing
+
