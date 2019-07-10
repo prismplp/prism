@@ -5,7 +5,7 @@ ENV PATH $PATH:/prism/bin:~/anaconda3/bin
 SHELL ["/bin/bash", "-c"]
 
 ADD . /prism
-ADD ./anaconda_exp.sh /root/
+ADD ./tools/anaconda_exp.sh /root/
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -14,9 +14,9 @@ RUN apt-get update -y && \
     apt-get install -y expect && \
     cd prism/ && \
     apt-get install -y make build-essential libhdf5-dev pkg-config libprotobuf-dev protobuf-compiler && \
-    cd src/c/external/ && \
     apt-get clean && \
-    protoc --cpp_out=. --python_out=. expl.proto && \
+    cd src/c/external/ && \
+    sh ./generate.sh && \
     cd ../ && \
     make -f Makefile.gmake && \
     make -f Makefile.gmake install && \
