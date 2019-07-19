@@ -1,3 +1,5 @@
+[![CircleCI](https://circleci.com/gh/kojima-r/prism.svg?style=svg&circle-token=b0b44025a6b5939aa2bbb94c4f08cce60bff7318)](https://circleci.com/gh/kojima-r/prism)
+
 ========================== README (top) ==========================
 
 This is a software package of PRISM version 2.3, a logic-based
