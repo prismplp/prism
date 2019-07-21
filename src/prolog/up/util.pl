@@ -739,21 +739,26 @@ $pp_print_graph_paths(_,[],_,_,_).
 $pp_print_graph_paths(_,[path([],[])],_,_,_) :- !.
 $pp_print_graph_paths(S,[path(TNodes,SNodes)|Paths],Conn,And,Or) :-
     write(S,'  '),
-    append(TNodes,SNodes,Nodes),
+    append(TNodes,SNodes,AllNodes),
+    $pp_filter_op_node(AllNodes,OtherNodes,OpNodes),
+    append(OpNodes,OtherNodes,Nodes),
     $pp_print_graph_nodes(S,Nodes,Conn,And),
     nl(S),!,
     $pp_print_graph_paths(S,Paths,Or,And,Or).
 
 $pp_print_graph_nodes(_,[],_,_).
 $pp_print_graph_nodes(S,[Node|Nodes],Conn,And) :-
-    format(S," ~s ~w",[Conn,Node]),!,
+    $pp_convert_print_node(Node,PNode),
+    format(S," ~s ~w",[Conn,PNode]),!,
     $pp_print_graph_nodes(S,Nodes,And,And).
 
 $pp_print_graph_paths_aux(_,[],_,_,_).
 $pp_print_graph_paths_aux(_,[path([],[],_)],_,_,_) :- !.
 $pp_print_graph_paths_aux(S,[path(TNodes,SNodes,V)|Paths],Conn,And,Or) :-
     write(S,'  '),
-    append(TNodes,SNodes,Nodes),
+    append(TNodes,SNodes,AllNodes),
+    $pp_filter_op_node_aux(AllNodes,OtherNodes,OpNodes),
+    append(OpNodes,OtherNodes,Nodes),
     $pp_print_graph_nodes_aux(S,Nodes,Conn,And),
     write(S,'  '),
     ( V = [V1,V2] ->
@@ -766,12 +771,32 @@ $pp_print_graph_paths_aux(S,[path(TNodes,SNodes,V)|Paths],Conn,And,Or) :-
 $pp_print_graph_nodes_aux(_,[],_,_).
 $pp_print_graph_nodes_aux(S,[Node|Nodes],Conn,And) :-
     ( Node = gnode(Label,Value) ; Node = snode(Label,Value) ),
+    $pp_convert_print_node(Label,PLabel),
     ( Value = [Value1,Value2] ->
-      format(S," ~s ~w [~6g,~6g]",[Conn,Label,Value1,Value2])
-    ; format(S," ~s ~w [~6g]",[Conn,Label,Value])
+      format(S," ~s ~w [~6g,~6g]",[Conn,PLabel,Value1,Value2])
+    ; format(S," ~s ~w [~6g]",[Conn,PLabel,Value])
     ),!,
     $pp_print_graph_nodes_aux(S,Nodes,And,And).
 
+$pp_filter_op_node_aux([],[],[]).
+$pp_filter_op_node_aux([N|Nodes],SNodes,[N|OpNodes]):-
+    N=snode(msw($operator(_),$operator),_),!,
+    $pp_filter_op_node_aux(Nodes,SNodes,OpNodes).
+$pp_filter_op_node_aux([N|Nodes],[N|SNodes],OpNodes):-
+    !,$pp_filter_op_node_aux(Nodes,SNodes,OpNodes).
+
+
+$pp_filter_op_node([],[],[]).
+$pp_filter_op_node([N|Nodes],SNodes,[N|OpNodes]):-
+    N=msw($operator(_),$operator),!,
+    $pp_filter_op_node(Nodes,SNodes,OpNodes).
+$pp_filter_op_node([N|Nodes],[N|SNodes],OpNodes):-
+    !,$pp_filter_op_node(Nodes,SNodes,OpNodes).
+
+$pp_convert_print_node(Node,PNode):-
+    (Node=msw($operator(X),$operator),PNode=operator(X)
+    ;Node=msw(tensor(X),Y),PNode=tensor(X,Y)
+    ;Node=PNode).
 
 %%----------------------------------------
 %%  pretty tree printer
