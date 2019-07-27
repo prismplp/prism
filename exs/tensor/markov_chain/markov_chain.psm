@@ -1,16 +1,50 @@
-% onehot/1 is a keyword for onehot encoded tensor
+%%%%
+%%%%  T-PRISM Markov chain -- markov_chain.psm
+%%%%
+%%%%  Copyright (C) 2019 Ryosuke Kojima
+%%%%
+%%
+%%  This example is to compute the N-step transition probabilities in Markov chain using T-PRISM.
+%%  This sample codes corresponds to markov_chain_msw.psm, a sample markov chain program of PRISM.
+%%
+%%-------------------------------------
+%%  Declarations of tensor atoms
+%%
+%% onehot/1 is a keyword for onehot encoded tensor
+%% An atom tr is associated with a transition matrix from a state i to j
+%% Also, using index_atoms/2, i and j are index symbols
+%% index_atoms/2 can be ommited when only the second argument of tensor/2 does not variable.
+%% In this case, tensor/2 occurred in prob_tensor/2 contains a variable Index; hence,
+%% index symbols i and j should be explicitely defined using index_atoms/1. 
+%%
+
 tensor_atom(onehot(_),[10]).
 tensor_atom(tr,[10,10]).
 index_atoms([i,j]).
 
-mc(S,T,N):-observe_state(S,[i]),subgoal(mc(T,N),[i]).
+%%------------------------------------
+%%  Modeling part:
+%%
+%% mc(S,T,N) represents the N-step transition from the state S to T.
+%% mc(T,N) represents the state T is reached with the remaining N steps.
+%%
 
-mc(T,0):-observe_state(T,[i]).
-mc(T,N):-
+mc(S,T,N):-observe_state(S,[i]),subgoal(transition(T,N),[i]).
+transition(T,0):-observe_state(T,[i]).
+transition(T,N):-
 	N>0,
 	NextN is N - 1,
 	prob_tensor(tr,[i,j]),
-	subgoal(mc(T,NextN),[j]).
+	subgoal(transition(T,NextN),[j]).
+
+%%------------------------------------
+%%  Utility part:
+%%
+%% prob_tensor/2 can be used in place of tensor/2 to represent matrices with probability as elements.
+%% observe_state/1 shows that the probability of observing a specific state is extracted
+%% from a vector containing probability as an element. It is realized by the inner product
+%% of a probability vector and the one-hot vector.
+%%
 
 prob_tensor(X,Index):-
 	operator(softmax),
@@ -18,6 +52,10 @@ prob_tensor(X,Index):-
 
 observe_state(S,Index):-
 	tensor(onehot(S),Index).
+
+%%------------------------------------
+%%  Main:
+%%
 
 prism_main([]):-
 	Gs=[

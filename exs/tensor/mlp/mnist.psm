@@ -1,14 +1,32 @@
+%%%%
+%%%%  T-PRISM Multi-layer perceptron -- mnist.psm
+%%%%
+%%%%  Copyright (C) 2019 Ryosuke Kojima
+%%%%
+%%
+%%  This example is to compute a neural network with one hidden layer using T-PRISM.
+%%  This sample codes uses the MNIST dataset containing 28x28 images.
+%%
 
-tensor_atom(w(0),[10,256]).
-tensor_atom(w(1),[256,784]).
-tensor_atom(in(_),[784]).
+%%-------------------------------------
+%%  Declarations of tensor atoms
+%%
 
+tensor_atom(w(0),[10,256]).   % 10 output class (from 0 to 9)
+tensor_atom(w(1),[256,784]).  % 256 nodes in the hidden layer
+tensor_atom(in(_),[784]).     % 28x28 input image
+
+%%------------------------------------
+%%  Modeling part:
+%%
 output(X,Y):-matrix(w(0),[i,j]),layer1(X,Y).
 layer1(X,Y):-operator(sigmoid), matrix(w(1),[j,k]),layer2(X,Y).
 layer2(X,Y):-vector(in(X),[k]).
 
+%%------------------------------------
+%%  Main:
+%%
 prism_main([train]):-
-	
 	% dataset construction
 	load_clauses('./mnist/mnist.train.dat',Gs),
 	GoalPlaceholder=[output(_,_)],
