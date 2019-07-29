@@ -35,6 +35,7 @@ extern "C" {
 #include <google/protobuf/util/json_util.h>
 
 #include <H5Cpp.h>
+#include <regex>
 
 using namespace std;
 using namespace google::protobuf;
@@ -241,6 +242,112 @@ void save_placeholder_data(TERM ph, TERM data, string filename,SaveFormat format
 		}
 		save_message(filename+std::to_string(file_count),&ph_data,format);
 	}
+}
+
+string get_dataset_name(string term_name){
+	std::string r = std::regex_replace(term_name, std::regex("[\\[\\],\\)\\(\\'$]+"), "_");
+	return r;
+}
+void save_embedding_matrix_hdf5(const string filename, const string group_name, const string dataset_name, TERM term_list, TERM shape){
+	TERM el   = bpx_get_car(term_list);
+	TERM next = bpx_get_cdr(term_list);
+	if(!bpx_is_list(term_list) || !bpx_is_list(shape)){
+		return;	
+	}
+	// shape=[n1,n2]
+	TERM term_n1 = bpx_get_car(shape);
+	int n1=bpx_get_integer(term_n1);
+	TERM shape1 = bpx_get_cdr(shape);
+	TERM term_n2 = bpx_get_car(shape1);
+	int n2=bpx_get_integer(term_n2);
+	float* data_table=new float[n1*n2]();
+	while(!bpx_is_nil(term_list)){
+		TERM el = bpx_get_car(term_list);
+		term_list = bpx_get_cdr(term_list);
+		//el=[index1,index2]
+		TERM term_index1 = bpx_get_car(el);
+		int index1=bpx_get_integer(term_index1);
+		TERM el2 = bpx_get_cdr(el);
+		TERM term_index2 = bpx_get_car(el2);
+		int index2=bpx_get_integer(term_index2);
+		data_table[n1*index1+index2]=1.0f;
+	}
+	// save dataset
+	H5::H5File file( filename, H5F_ACC_TRUNC );
+	{
+		hsize_t dimsf[2];   // dataset dimensions
+		dimsf[0] = n1;
+		dimsf[1] = n2;
+		H5::DataSpace dataspace(2, dimsf );
+		H5::FloatType datatype( H5::PredType::NATIVE_FLOAT );
+		datatype.setOrder( H5T_ORDER_LE );
+		file.createGroup( group_name);
+		H5::DataSet dataset = file.createDataSet( group_name+"/"+dataset_name, datatype, dataspace );
+		dataset.write( data_table, H5::PredType::NATIVE_FLOAT );
+	}
+}
+void save_embedding_vector_hdf5(const string filename, const string group_name, const string dataset_name, TERM term_list, TERM shape){
+	TERM el   = bpx_get_car(term_list);
+	TERM next = bpx_get_cdr(term_list);
+	if(!bpx_is_list(term_list) || !bpx_is_list(shape)){
+		return;	
+	}
+	// shape=[n1,n2]
+	TERM term_n1 = bpx_get_car(shape);
+	int n1=bpx_get_integer(term_n1);
+	float* data_table=new float[n1]();
+	while(!bpx_is_nil(term_list)){
+		TERM el = bpx_get_car(term_list);
+		term_list = bpx_get_cdr(term_list);
+		//el=[index1,index2]
+		TERM term_index1 = bpx_get_car(el);
+		int index1=bpx_get_integer(term_index1);
+		data_table[index1]=1.0f;
+	}
+	// save dataset
+	H5::H5File file( filename, H5F_ACC_TRUNC );
+	{
+		hsize_t dimsf[1];   // dataset dimensions
+		dimsf[0] = n1;
+		H5::DataSpace dataspace(1, dimsf );
+		H5::FloatType datatype( H5::PredType::NATIVE_FLOAT );
+		datatype.setOrder( H5T_ORDER_LE );
+		file.createGroup( group_name);
+		H5::DataSet dataset = file.createDataSet( group_name+"/"+dataset_name, datatype, dataspace );
+		dataset.write( data_table, H5::PredType::NATIVE_FLOAT );
+	}
+}
+extern "C"
+int pc_save_embedding_tensor_5(void) {
+	const char* filename=bpx_get_name(bpx_get_call_arg(1,5));
+	const char* group=bpx_get_name(bpx_get_call_arg(2,5));
+	const char* term_name=bpx_term_2_string(bpx_get_call_arg(3,5));
+	TERM term_list =bpx_get_call_arg(4,5);
+	TERM shape=bpx_get_call_arg(5,5);
+	
+	// 
+	string dataset_name = get_dataset_name(term_name);
+	
+	printf("[SAVE] %s\n",filename);
+	printf("[INFO] %s\n",group);
+	printf("[INFO] %s -> %s\n",term_name,dataset_name.c_str());
+	
+	// compute length
+	int length=0;
+	TERM temp_data_term=shape;
+	while(!bpx_is_nil(temp_data_term)){
+		temp_data_term = bpx_get_cdr(temp_data_term);
+		length++;
+	}
+	// only supported matrix and FormatHDF5
+	if(length==1){
+		save_embedding_vector_hdf5(filename, group, dataset_name, term_list, shape);
+	}else if(length==2){
+		save_embedding_matrix_hdf5(filename, group, dataset_name, term_list, shape);
+	}else{
+		return BP_FALSE;
+	}
+	return BP_TRUE;
 }
 
 extern "C"

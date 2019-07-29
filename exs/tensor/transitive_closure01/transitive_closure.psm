@@ -1,0 +1,55 @@
+%%%%
+%%%%  T-PRISM transitive closure -- transitive_closure.psm
+%%%%
+%%%%  Copyright (C) 2019 Ryosuke Kojima
+%%%%
+%%
+%%  This example is to compute a transitive closure r2(X, Z) of a base relation r1(X, Y) using T-PRISM.
+%%  r2(X,Y) <- r1(X,Y)
+%%  r2(X,Z) <- r1(X,Y) & r2(Y,Z)
+%%
+
+%%-------------------------------------
+%%  Declarations of tensor atoms
+%%
+tensor_atom(rel1,[7,7]).
+%
+% for cyclic relation
+%
+:-set_prism_flag(error_on_cycle,off).
+
+rel1(a,a).
+rel1(b,b).
+rel1(c,c).
+rel1(d,d).
+rel1(e,e).
+rel1(f,f).
+rel1(g,g).
+
+rel1(a,b).
+rel1(b,c).
+rel1(c,a).
+
+rel1(d,e).
+rel1(e,f).
+rel1(f,g).
+rel1(g,d).
+
+%%------------------------------------
+%%  Modeling part:
+%%
+rel2:-operator(min1),rel2_helper.
+rel2_helper:-
+	tensor(rel1,[i,j]),subgoal(rel2,[j,k]).
+rel2_helper:-tensor(rel1,[j,k]).
+
+
+%%------------------------------------
+%%  Main:
+%%
+prism_main([]):-
+	save_embedding_from_pattern([X,Y],rel1(X,Y),tensor(rel1),'transitive_closure_tmp/embedding'),
+	Gs=[rel2],
+	save_expl_graph('transitive_closure_tmp/expl.json','transitive_closure_tmp/flags.json',Gs).
+	
+

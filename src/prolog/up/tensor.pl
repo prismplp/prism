@@ -6,7 +6,55 @@ $pp_index_get_i2(N0,[X|G],S):-N0>0,N is N0 -1,index_atoms(As),member(X,As),$pp_i
 $pp_index_all_combination(N,G):-findall(X,$pp_index_get_i2(N,X,[]),G).
 
 %%%%
-%%%% utility
+%%%% utility: to save ternsors
+%%%%
+transpose([[]|_], []).
+transpose(Matrix, [Row|Rows]):-
+	$pp_transpose_1st_col(Matrix, Row, RestMatrix),
+	transpose(RestMatrix, Rows).
+$pp_transpose_1st_col([], [], []).
+$pp_transpose_1st_col([[H|T]|Rows], [H|Hs], [T|Ts]) :- $pp_transpose_1st_col(Rows, Hs, Ts).
+
+save_embedding_from_pattern(Vars,Pattern,Target,FileNameBase):-
+	atom_concat(FileNameBase,'.h5',FileName),
+	atom_concat(FileNameBase,'.txt',FileNameSymbol),
+	$pp_save_embedding_from_pattern(Vars,Pattern,Target,train,FileName,FileNameSymbol).
+
+$pp_save_embedding_from_pattern(Vars,Pattern,Target,Group,FileName,FileNameSymbol):-
+	findall(Vars,Pattern,Pairs),
+	transpose(Pairs,PairsT),
+	maplist(X,Y,(unique(X,A),sort(A,Y)),PairsT,SymbolList),
+	%format("~w\n",SymbolList),
+	maplist(Symbols,Table,
+		(new_hashtable(Table),
+		length(Symbols,L),
+		foreach((A,I) in (Symbols,0..L-1), hashtable_register(Table,A,I))),SymbolList,TableList),
+	maplist(P,E,$pp_encode_embedding(TableList,P,E),Pairs,EncPairs),
+	%format("~w\n",EncPairs),
+	maplist(S,L,length(S,L),SymbolList,Shape),
+	$pc_save_embedding_tensor(FileName,Group,Target,EncPairs,Shape),
+	%format("~w",SymbolList),
+	format("[SAVE] ~w\n",FileNameSymbol),
+	$pp_save_symbol_list(SymbolList,FileNameSymbol).
+	
+$pp_encode_embedding([],[],[]).
+$pp_encode_embedding([T0|TableList],[P0|P],[E0|E]):-
+	hashtable_get(T0,P0,E0),
+	$pp_encode_embedding(TableList,P,E).
+
+$pp_save_symbol_list(SymbolList,FileName):-
+	open(FileName,write,Stream),
+	format(Stream,"axis,index,label\n",[]),
+	length(SymbolList,M),
+	foreach((Symbols,I) in (SymbolList,0..M-1),
+		(length(Symbols,N),
+		(foreach((S,J) in (Symbols,0..N-1),
+			format(Stream,"~w,~w,~w\n",[I,J,S])
+		)))),
+	close(Stream).
+	
+%%%%
+%%%% utility: to save placeholders
 %%%%
 
 set_index_range(Index,R):-

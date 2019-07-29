@@ -223,6 +223,7 @@ void bp4p_register_preds(void) {
 	REGISTER_CPRED(save_options,3);
 	REGISTER_CPRED(set_export_flags,1);
 	REGISTER_CPRED(save_placeholder_data,5);
+	REGISTER_CPRED(save_embedding_tensor,5);
 	
 #ifdef MPI
 	/* mp/mp_preds.c */
