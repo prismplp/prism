@@ -12,17 +12,16 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update -y && \
     apt-get install -y curl && \
     apt-get install -y expect && \
-    cd prism/ && \
     apt-get install -y make build-essential libhdf5-dev pkg-config libprotobuf-dev protobuf-compiler && \
-    apt-get clean && \
-    cd src/c/external/ && \
-    sh ./generate.sh && \
-    cd ../ && \
-    make -f Makefile.gmake && \
-    make -f Makefile.gmake install && \
-    cd ../prolog/ && \
-    make && \
-    make install
+    apt-get clean
+    # cd src/c/external/ && \
+    # sh ./generate.sh && \
+    # cd ../ && \
+    # make -f Makefile.gmake && \
+    # make -f Makefile.gmake install && \
+    # cd ../prolog/ && \
+    # make && \
+    # make install
 
 RUN cd ~/ && \
     # echo "export PATH=/prism/bin:$PATH" >> .bashrc && \
@@ -34,6 +33,6 @@ RUN python -V && \
     echo  $PATH && \
     ls -al ~/anaconda3/bin && \
     pip install graphviz tensorflow
-RUN python -V && \
-    cd prism/exs/tensor/mlp/ && \
-    ./run_mnist.sh
+# RUN python -V && \
+#     cd prism/exs/tensor/mlp/ && \
+#     ./run_mnist.sh
