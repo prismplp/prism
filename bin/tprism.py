@@ -262,11 +262,11 @@ def run_training(g,sess,args):
 		save_draw_graph(g,"test")
 
 	loss,output=loss_cls().call(graph,goal_inside,tensor_provider)
-	
-	with tf.name_scope('summary'):
-		tf.summary.scalar('loss', loss)
-		merged = tf.summary.merge_all()
-		writer = tf.summary.FileWriter('./tf_logs', sess.graph)
+	if loss:
+            with tf.name_scope('summary'):
+                    tf.summary.scalar('loss', loss)
+                    merged = tf.summary.merge_all()
+                    writer = tf.summary.FileWriter('./tf_logs', sess.graph)
 	##	
 	print("traing start") 
 	vars_to_train = tf.trainable_variables()
@@ -448,7 +448,7 @@ if __name__ == '__main__':
 			default=0.01,
 			help='[prolog flag]')
 	parser.add_argument('--sgd_loss', type=str,
-			default="preference_pair",
+			default="base_loss",
 			help='[prolog flag] nll/preference_pair')
 	parser.add_argument('--sgd_patience', type=int,
 			default=3,

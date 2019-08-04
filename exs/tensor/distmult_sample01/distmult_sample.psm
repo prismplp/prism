@@ -25,6 +25,9 @@ candidate(U,E,Goals,L):-findall(V,(member(rel(_,V,E),Goals),not member(rel(U,V,E
 random_select_negative(rel(U,V,E),Goals,rel(U,NegativeV,E)):-
 	candidate(U,E,Goals,L),
 	random_select(L,NegativeV).
+generate_preference_pair(Gs,GoalPairList):-
+        maplist(G,NegG,random_select_negative(G,Gs,NegG),Gs,NegGs),
+        maplist(X,Y,Z,Z=[X,Y],Gs,NegGs,GoalPairList).
 
 %%------------------------------------
 %%  Main:
@@ -32,7 +35,6 @@ random_select_negative(rel(U,V,E),Goals,rel(U,NegativeV,E)):-
 prism_main([]):-
 	random_set_seed(1234),
 	load_clauses('sample.dat',Gs),
-	maplist(G,NegG,random_select_negative(G,Gs,NegG),Gs,NegGs),
-	maplist(X,Y,Z,Z=[X,Y],Gs,NegGs,GoalPairList),
+	generate_preference_pair(Gs,GoalPairList),
 	save_expl_graph('distmult_sample_tmp/expl.json','distmult_sample_tmp/flags.json',GoalPairList).
 
