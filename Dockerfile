@@ -31,8 +31,6 @@ RUN cd ~/ && \
     sh anaconda_exp.sh
 
 RUN python -V && \
-    echo  $PATH && \
-    ls -al ~/anaconda3/bin && \
     pip install graphviz tensorflow
 RUN python -V && \
     cd prism/exs/tensor/mlp/ && \

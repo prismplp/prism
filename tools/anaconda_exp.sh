@@ -1,7 +1,7 @@
 #!/bin/bash
 
 expect -c "
-set timeout 180
+set timeout 600
 spawn sh /root/Anaconda3-2019.03-Linux-x86_64.sh
 expect \">>>\"
 send \"\n\"
