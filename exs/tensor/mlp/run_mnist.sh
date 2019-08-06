@@ -56,7 +56,7 @@ upprism mnist.psm test
 ##         contains predcted class scores for each test sample.
 ##
 
-python /prism/bin/tprism.py train \
+tprism train \
     --internal_data_prefix ./mnist_tmp/mnist. \
     --data ./mnist_tmp/mnist_data.train.h5    \
     --embedding ./mnist/mnist.h5 \
@@ -64,12 +64,14 @@ python /prism/bin/tprism.py train \
     --max_iterate 300            \
     --sgd_minibatch_size 1000    \
     --sgd_learning_rate 0.01
-python /prism/bin/tprism.py test \
+
+tprism test \
     --internal_data_prefix ./mnist_tmp/mnist. \
     --data ./mnist_tmp/mnist_data.test.h5     \
     --embedding ./mnist/mnist.h5 \
     --sgd_loss ce_pl2            \
     --output mnist_output.npy
+
 ##
 ## Displaying accuracy
 ## Input: mnist_output.npy: prediction scores (the number of samples x the number of classes)
