@@ -9,13 +9,12 @@ the source code of the PRISM part is included in the released
 package.  Please use PRISM based on the agreement described in
 LICENSE and LICENSE.src.
 
-  LICENSE     ... license agreement of PRISM
-  LICENSE.src ... additional license agreement on the source
-                  code of PRISM
-  bin/        ... executables
-  doc/        ... documents
-  src/        ... source code
-  exs/        ... example programs
+- LICENSE     ... license agreement of PRISM
+- LICENSE.src ... additional license agreement on the source code of PRISM
+- bin/        ... executables
+- doc/        ... documents
+- src/        ... source code
+- exs/        ... example programs
 
 For the files under each directory, please read the README file
 in the directory.  For the papers or additional information
