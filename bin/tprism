@@ -3,4 +3,4 @@ BINDIR=`dirname $0`
 BINARY=$BINDIR/tprism.py
 
 #echo $BINARY ${1+"$@"}
-exec $BINARY  ${1+"$@"}
+python $BINARY  ${1+"$@"}
