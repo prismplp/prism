@@ -1,7 +1,7 @@
 FROM ubuntu:18.04
 
 MAINTAINER "" <>
-ENV PATH $PATH:/prism/bin:~/anaconda3/bin
+ENV PATH $PATH:/prism/bin:/root/anaconda3/bin
 SHELL ["/bin/bash", "-c"]
 
 ADD . /prism
