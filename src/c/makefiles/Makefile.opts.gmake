@@ -25,7 +25,7 @@ LD          = gcc
 #CFLAGS     = -pg -Wall -I../bp4prism/include -I..
 
 ifeq ($(MATRIX),lapack)
-CFLAGS     = -fomit-frame-pointer -fno-strict-aliasing -Wall -I../bp4prism/include -I.. -I../resource/lapack -I../resource -I../up  `pkg-config --cflags hdf5-serial --libs` -l hdf5_cpp
+CFLAGS     = -O3 -fomit-frame-pointer -fno-strict-aliasing -Wall -I../bp4prism/include -I.. -I../resource/lapack -I../resource -I../up  `pkg-config --cflags hdf5-serial --libs` -l hdf5_cpp
 LDFLAGS     = -lm -lpthread -lgfortran  `pkg-config --cflags --libs protobuf`  `pkg-config --cflags hdf5-serial --libs` -l hdf5_cpp
 CXXFLAGS=$(CFLAGS)
 LD         = g++
