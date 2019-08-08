@@ -6,7 +6,7 @@ mkdir -p distmult_sample_tmp
 upprism distmult_sample.psm 
 
 tprism.py train \
-    --internal_data_prefix ./distmult_sample_tmp/ \
+    --intermediate_data_prefix ./distmult_sample_tmp/ \
     --sgd_loss preference_pair            \
     --data ./distmult_sample_tmp/data.h5     \
     --max_iterate 10            \

@@ -64,6 +64,8 @@ save_placeholder_goals(PlaceholderGoals,Goals):-save_placeholder_goals('data.h5'
 save_placeholder_goals(Filename,PlaceholderGoals,Goals):-save_placeholder_goals(Filename,hdf5,PlaceholderGoals,Goals).
 save_placeholder_goals(Filename,Mode,PlaceholderGoals,Goals):-
 	$pp_generate_placeholder_goals(PlaceholderGoals,Goals,0,GG,Var),
+format("~w\n",[Var]),
+format("~w\n\n",[GG]),
 	save_placeholder_data(Filename,Mode,Var,GG).
 
 $pp_generate_placeholder([],N,N).

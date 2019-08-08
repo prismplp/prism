@@ -371,13 +371,13 @@ def run_test(g,sess,args):
 def run_display(args):
 	#
 	if args.expl_graph is None:
-		args.expl_graph=args.internal_data_prefix+"expl.json"
+		args.expl_graph=args.intermediate_data_prefix+"expl.json"
 	if args.flags is None:
-		args.flags=args.internal_data_prefix+"flags.json"
+		args.flags=args.intermediate_data_prefix+"flags.json"
 	if args.model is None:
-		args.model=args.internal_data_prefix+"model.ckpt"
+		args.model=args.intermediate_data_prefix+"model.ckpt"
 	if args.vocab is None:
-		args.vocab=args.internal_data_prefix+"vocab.pkl"
+		args.vocab=args.intermediate_data_prefix+"vocab.pkl"
 	fp=open(args.vocab,"rb")
 	obj=pickle.load(fp)
 	print(obj.vocab_group)
@@ -399,10 +399,10 @@ if __name__ == '__main__':
 			default=None,
 			nargs='+',
 			help='[from prolog] data json file')
-	## internal data
-	parser.add_argument('--internal_data_prefix', type=str,
+	## intermediate data
+	parser.add_argument('--intermediate_data_prefix','-I', type=str,
 			default="./",
-			help='internal data')
+			help='intermediate data')
 	parser.add_argument('--expl_graph', type=str,
 			default=None,
 			help='[from prolog] explanation graph json file')
@@ -444,6 +444,9 @@ if __name__ == '__main__':
 	parser.add_argument('--max_iterate', type=str,
 			default=None,
 			help='[prolog flag]')
+	parser.add_argument('--epoch', type=str,
+			default=None,
+			help='[prolog flag]')
 	parser.add_argument('--sgd_learning_rate', type=float,
 			default=0.01,
 			help='[prolog flag]')
@@ -474,15 +477,15 @@ if __name__ == '__main__':
 		os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
 	
 	#
-	if args.internal_data_prefix is not None:
+	if args.intermediate_data_prefix is not None:
 		if args.expl_graph is None:
-			args.expl_graph=args.internal_data_prefix+"expl.json"
+			args.expl_graph=args.intermediate_data_prefix+"expl.json"
 		if args.flags is None:
-			args.flags=args.internal_data_prefix+"flags.json"
+			args.flags=args.intermediate_data_prefix+"flags.json"
 		if args.model is None:
-			args.model=args.internal_data_prefix+"model.ckpt"
+			args.model=args.intermediate_data_prefix+"model.ckpt"
 		if args.vocab is None:
-			args.vocab=args.internal_data_prefix+"vocab.pkl"
+			args.vocab=args.intermediate_data_prefix+"vocab.pkl"
 	## 
 	# setup
 	g = tf.Graph()

@@ -24,7 +24,7 @@ python build_dataset.py
 ##
 ## Construction of explanation graph
 ##
-## These two programs make internal data files beteen prolog (T-PRISM program) and python program.
+## These two programs make intermediatel data files beteen prolog (T-PRISM program) and python program.
 ## (explanation graph, flags, placeholderd and values to replace the placeholders)
 ## Input: mnist/mnist.train.dat: A list of goals to construct arrays to replace placeholders in the
 ##        explanation graph. This replacement is done in the training phase data.
@@ -56,7 +56,7 @@ upprism mnist.psm test
 ##         contains predcted class scores for each test sample.
 ##
 tprism.py train \
-    --internal_data_prefix ./mnist_tmp/mnist. \
+    --intermediate_data_prefix ./mnist_tmp/mnist. \
     --data ./mnist_tmp/mnist_data.train.h5    \
     --embedding ./mnist/mnist.h5 \
     --sgd_loss ce_pl2            \
@@ -64,7 +64,7 @@ tprism.py train \
     --sgd_minibatch_size 1000    \
     --sgd_learning_rate 0.01
 tprism.py test \
-    --internal_data_prefix ./mnist_tmp/mnist. \
+    --intermediate_data_prefix ./mnist_tmp/mnist. \
     --data ./mnist_tmp/mnist_data.test.h5     \
     --embedding ./mnist/mnist.h5 \
     --sgd_loss ce_pl2            \
