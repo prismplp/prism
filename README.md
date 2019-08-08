@@ -32,7 +32,7 @@ Installing python(Recommendation: Anaconda) and Tensorflow(Recommendation: v1.13
 - Anaconda: https://www.anaconda.com/
 - Tensorflow: https://www.tensorflow.org/
 
-Download `prism_tprism_pre_linux.tar.gz` from release page
+Download `prism_tprism_pre_linux.tar.gz` from [release page](https://github.com/prismplp/prism/releases)
 ```
 wget "https://github.com/prismplp/prism/releases/download/v2.4(T-PRISM)-prerelease/prism_tprism_pre_linux.tar.gz"
 ```
