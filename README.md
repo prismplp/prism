@@ -45,7 +45,7 @@ tar xvf prism_tprism_pre_linux.tar.gz
 
 Setting the proper environmental variable: 
 ```
-export PATH=<current directory>/prism:${PATH}
+export PATH=<current directory>/prism/bin:${PATH}
 ```
 
 Try!
