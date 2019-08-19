@@ -25,7 +25,7 @@ upprism pcfg.psm
 ## size (--sgd_minibatch_size 10), and learning rate (--sgd_learning_rate 0.01).
 ##
 tprism.py train \
-    --internal_data_prefix ./pcfg_tmp/ \
+    --intermediate_data_prefix ./pcfg_tmp/ \
     --sgd_loss nll            \
     --max_iterate 10          \
     --sgd_minibatch_size 10   \

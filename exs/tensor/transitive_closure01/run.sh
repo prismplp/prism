@@ -15,7 +15,7 @@ mkdir -p ./transitive_closure_tmp
 upprism transitive_closure.psm
 
 tprism train \
-	--internal_data_prefix transitive_closure_tmp/ \
+	--intermediate_data_prefix transitive_closure_tmp/ \
 	--embedding transitive_closure_tmp/embedding.h5 \
 	--sgd_loss nll \
 	--cycle \

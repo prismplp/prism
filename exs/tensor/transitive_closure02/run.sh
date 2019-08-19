@@ -31,7 +31,7 @@ upprism transitive_closure.psm ${N}
 
 
 tprism train \
-	--internal_data_prefix transitive_closure_tmp/ \
+	--intermediate_data_prefix transitive_closure_tmp/ \
 	--embedding ./random_graph/tc_${N}_${p}.h5 \
 	--sgd_loss nll \
 	--cycle \
