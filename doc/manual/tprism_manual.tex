@@ -122,13 +122,13 @@
 \section*{Preface}
 
 PRISM is a declarative probabilistic logic programming language which can perform efficient probability calculation by probabilistic propositional calculation based on distribution semantics.
-On the other hand, deep learning frameworks such as Tensorflow attracts attention in recent years with the development of deep learning techniques.
+In recent years, deep learning frameworks such as Tensorflow attract attention with the development of deep learning techniques.
 Also, by using these frameworks, it is easy to calculate multidimensional array (tensor) including high-speed matrix calculation using GPGPU.
-That is why that introducing calculation using Tensorflow and deep learning techniques to PRISM is expected to improve the current PRISM system.
-
+T-PRISM  can be expected to improve the conventional PRISM system by introducing calculation using Tensorflow and deep learning techniques.
 
 \section*{Installation}
-The following packages are required to compile T-PRISM system.
+We assume an environment where PRISM is installed (See the PRISM manual).
+The following packages are required to compile/install T-PRISM system.
 \begin{itemize}
 	\item protobuf   $\geq$ 3.0
 	\item libhdf5    
@@ -138,7 +138,7 @@ The following packages are required to compile T-PRISM system.
 
 In Ubuntu 18.04 or later, you can prepare the protobuf and libhdf5 by the following procedure.
 \begin{verbatim}
-$ apt-get install -y libhdf5-dev libprotobuf-dev protobuf-compiler 
+$ apt-get install -y curl libhdf5-dev libprotobuf-dev protobuf-compiler 
 \end{verbatim}
 
 To install Python3.7, we recommend using Anaconda, a Python platform for data science.
@@ -153,17 +153,51 @@ Then, you can execute the downloaded scripts and follow the instructions. In man
 $ sh Anaconda3-2019.03-Linux-x86_64.sh
 \end{verbatim}
 
-After installing Python, tensorflow is required to install as the following commands according to your environment:
+After installing Python, TensorFlow is required to install as the following commands according to your environment:
 \begin{itemize}
 	\item tensorflow (with CPU) for python3
 	\begin{verbatim}
-$ pip install tensorflow
+$ conda install tensorflow
 	\end{verbatim}
 	\item  tensorflow (with GPU) for python3
 	\begin{verbatim}
-$ pip install tensorflow-gpu
+$ conda install tensorflow-gpu
 	\end{verbatim}
+	Note that this tensorflow-gpu will not work in environments that do not have GPUs supported by TensorFlow.
 \end{itemize}
+Additional python packages should be installed as follows:
+\begin{verbatim}
+$ conda install graphviz
+\end{verbatim}
+
+You can check whether the installation was successful by the following command:
+\begin{verbatim}
+$ tprism -h
+\end{verbatim}
+
+If it is successful, the usage will be displayed as:
+\begin{verbatim}
+usage: tprism.py [-h] [--config CONFIG] [--data DATA [DATA ...]]
+[--intermediate_data_prefix INTERMEDIATE_DATA_PREFIX]
+[--expl_graph EXPL_GRAPH] [--flags FLAGS] [--model MODEL]
+[--vocab VOCAB] [--embedding EMBEDDING]
+[--draw_graph DRAW_GRAPH] [--output OUTPUT] [--gpu GPU]
+[--cpu] [--no_verb] [--sgd_minibatch_size SGD_MINIBATCH_SIZE]
+[--max_iterate MAX_ITERATE] [--epoch EPOCH]
+[--sgd_learning_rate SGD_LEARNING_RATE] [--sgd_loss SGD_LOSS]
+[--sgd_patience SGD_PATIENCE] [--cycle]
+mode
+
+positional arguments:
+mode                  train/test
+
+optional arguments:
+-h, --help            show this help message and exit
+
+......
+\end{verbatim}
+
+
 
 
 \subsection*{Manual install: protobuf}
@@ -580,11 +614,11 @@ Concrete method to implementation of simulating PRISM is described in \prettyref
 
 
 The architecture of the T-PRISM system is shown in \prettyref{fig:tprismsystem}.
-The T-PRISM system consists of three layers: programming layer, intermediate data layer, and calculation layer.
+The T-PRISM system consists of three layers: programming layer, intermediate-data layer, and calculation layer.
 
 Although users directly operate the programming layer, they should understand the entire flow.
 First, a T-PRISM program is converted into intermediate data using the {\it upprism} command, a command for batch execution of a PRISM program
-(see the PRISM manual for details of upprism).
+(see the PRISM manual for details of the upprism command).
 Then, learning and probability calculation is performed from the intermediate data using the {\it tprism} command, a special command for T-PRISM.
 In a standard procedure consisting of training and test phases, the commands are executed in the following order.
 
@@ -608,7 +642,7 @@ Next, Python codes of the programming layer are mainly used to define operations
 For these definitions, it is necessary to define the class according to the prescribed format and place the Python source codes in a predetermined place (those are placed in {\tt prism/bin/tprism/loss} for the custom loss functions, and the custom operations are placed in {\tt prism/bin/tprism/op}).
 Python scripts also can be used for data handling.
 Although it is possible to generate intermediate data with the T-PRISM program,
-some utility predicates implemented in Prolog; therefore, Python scripts provides faster data handling.
+some utility predicates implemented in Prolog; therefore, Python scripts provide faster data handling.
 In particular, since a generation of input data is often a simple conversion of data formats, Script languages like Python are suitable for data processing.
 Concrete examples are shown in \prettyref{chap:tprism_sample}.
 
@@ -619,7 +653,7 @@ Some parameters can also be set using flags of the T-PRISM program.
 If they are specified at the same time, the arguments take precedence over the flags.
 Details of flags added for T-PRISM are described in \prettyref{sec:tprism_predicate}.
 
-The intermediate data layer contains the following five files:
+The intermediate-data layer contains the following five files:
 \begin{description}
 	\item[Explanation graph] generated from a T-PRISM program is stored in a JSON file or a protocol buffer file.
 	\item[Flags] specified in a T-PRISM program are stored in a JSON file or a protocol buffer file.
@@ -634,9 +668,9 @@ A backend engine to save JSON files is the google protocol buffer; hence, these 
 \section{Special utilities in T-PRISM programs}
 \label{sec:tprism_predicate}
 
-In addition to PRISM's utilities, T-PRISM includes special utilities for passing data to the intermediate data layer.
+In addition to PRISM's utilities, T-PRISM includes special utilities for passing data to the intermediate-data layer.
 
-\subsection*{Transport an explanation graph and flags from programming layer to intermediets layer}
+\subsection*{Transporting an explanation graph from programming layer to intermediate-data layer}
 
 The following predicates save the explanation graph constructed from a goal list {\it Goals}
 as {\it ExplFilename}(default:expl.json) with {\it ExplMode} format (default:json) and the flags as {\it FlagFilename} (default:flag.json) with {\it FlagMode} format (default:json).
@@ -678,7 +712,7 @@ prism_main([]):-save_flags('sample.flags.json').
 The batched explanation graph described in \prettyref{sec:concepts} is an efficient method to handle isomorphic explanation graphs built independently of inputs.
 The concrete example is shown in \prettyref{sec:distmult02} and \prettyref{sec:nn}.
 
-To use placeholder, we need to separate a template of explanation graphs, i.e., a explanation graph containing placeholders, from input data, and then construct a correspondence table of the placeholders in as an input data file. 
+To use placeholders, we need to separate a template of explanation graphs, i.e., an explanation graph containing placeholders, from input data, and then construct a correspondence table of the placeholders in as an input data file. 
 Now, special predicates to save the correspondence table are described.
 The following predicates use pattern matching between a goal and a pattern to determine a placeholder and its substitution value.
 More concretely, the following predicates find a matched goal and a pattern from the ground goal list {\it Goals} and a list of patterns {\it PlaceholderGoals} including variables; therefore,
@@ -748,22 +782,17 @@ The relationship between placeholder atoms and associated vectors is as follows:
 	\hline 
 	\verb|$placeholder1$|& $(1,2,3)$ \\ 
 	\hline 
-	\verb|$placeholder1$|& $(4,3,2)$ \\ 
+	\verb|$placeholder2$|& $(4,3,2)$ \\ 
 	\hline 
-	\verb|$placeholder1$|& $(5,8)$ \\ 
+	\verb|$placeholder3$|& $(5,8)$ \\ 
 	\hline 
-	\verb|$placeholder1$|& $(1,0)$ \\ 
+	\verb|$placeholder4$|& $(1,0)$ \\ 
 	\hline 
 \end{tabular} 
 
 Using the low-level predicate, the same placeholders can be created by {\tt save\_placeholder\_data({\it Placeholders},{\it Data})} with
 {\it Placeholder}={\tt [[\$placeholder1\$,\$placeholder2\$],[\$placeholder3\$,\$placeholder4\$]]}
 and {\it Data} = {\tt [[[1,4],[2,3],[3,2]],[[5,1],[8,0]]]}.
-
-
-
-
-
 
 \subsection{Special flags}
 In the T-PRISM system, parameters and behaviors of learning and calculation are controlled using the tprism command.
@@ -780,10 +809,13 @@ A list of additional flags in the T-PRISM system is shown below.
 \end{itemize}
 
 
+
+
+
 \section{tprism command}
 \label{sec:tprism_command}
 
-This section explains the tprism command, a command to read files in the intermediate data layer and to perform learning and calculation.
+This section explains the tprism command, a command to read files in the intermediate-data layer and to perform learning and calculation.
 The tprism command is executed in the following format.
 \begin{verbatim}
 tprism <mode> [options...]
@@ -802,19 +834,19 @@ specifies a directory where intermediate files, except for input data and embedd
 	\end{verbatim}
 \end{itemize}
 
-Intermediate  data
+Intermediate data
 \begin{itemize}
-	\item \verb|--expl_graph | specifies an explanation graph file name in intermediate data layer.	
-	\item \verb|--flags | specifies a flags file name in intermediate data layer.	
+	\item \verb|--expl_graph | specifies an explanation graph file name in intermediate-data layer.	
+	\item \verb|--flags | specifies a flags file name in intermediate-data layer.	
 	\item \verb|--model | specifies a file name of the model saved in the training phase and loaded in the test phase.
-	\item \verb|--vocab | specifies a vocabulary file name in intermediate data layer.
+	\item \verb|--vocab | specifies a vocabulary file name in intermediate-data layer.
 	If the specified file does not exist, it is automatically generated at the time of learning.
 \end{itemize}
 
 Additional intermediate data
 \begin{itemize}
-	\item \verb|--embedding | specifies an embeddings file name in intermediate data layer.
-	\item \verb|--data | specifies an input data file name in intermediate data layer.	
+	\item \verb|--embedding | specifies an embeddings file name in intermediate-data layer.
+	\item \verb|--data | specifies an input data file name in intermediate-data layer.	
 \end{itemize}
 
 Learning
@@ -851,12 +883,12 @@ The other options:
 
 
 
-\section{Intermediate data format}
+\section{Intermediate-data format}
 \label{sec:intermediate_data}
 
 This section describes the data format of the intermediate data.
 Usually, the beginners do not directly refer to intermediate data.
-It is also possible to perform data handling efficiently by directly operating with Python script or the other scripts.
+It is also possible to perform data handling efficiently by directly operating with Python script or the other programming languages.
 
 \subsection{Explanation graph / Flags files}
 The protocol buffer files to define data structure is written in 
@@ -918,7 +950,7 @@ and {\tt tensor\_atom(onehot(1),[5])} is associated with a vector (0,1,0,0,0).
 Sample programs using {\tt onehot/1} are shown in \prettyref{sec:markov_chain} and \prettyref{sec:simulated_msw}.
 
 The continued two ways are related to an embedding file.
-An embedding file in intermediate data layer can be generated by {\tt save\_embedding\_from\_pattern}.
+An embedding file in intermediate-data layer can be generated by {\tt save\_embedding\_from\_pattern}.
 {\tt save\_embedding\_from\_pattern({\it Vars},{\it Pattern},{\it Target},{\it FileNameBase})}
 constructs a fixed binary matrix, whose axes corresponds to {\it Vars}, from facts with a specific pattern {\it Pattern}. Furthermore, the constructed matrix is associated with a target tensor atom {\it Target} and this information is stored in {\it FileNameBase}.h5 and {\it FileNameBase}.csv files.
 Note that the matrix size is automatically determined from pattern.
