@@ -24,8 +24,8 @@ python build_dataset.py
 ##
 ## Construction of explanation graph
 ##
-## These two programs make intermediatel data files beteen prolog (T-PRISM program) and python program.
-## (explanation graph, flags, placeholderd and values to replace the placeholders)
+## These two programs make intermediate data files between the T-PRISM (Prolog) and the python program.
+## (explanation graph, flags, placeholders and values to replace the placeholders)
 ## Input: mnist/mnist.train.dat: A list of goals to construct arrays to replace placeholders in the
 ##        explanation graph. This replacement is done in the training phase data.
 ## Input: mnist/mnist.test.dat: A list of goals to construct arrays to replace placeholders in the
