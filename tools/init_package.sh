@@ -2,8 +2,9 @@ src=../bin
 dest=./prism/bin
 project=./prism
 
+rm -rf prism
 echo "... exporting git project"
-git clone ssh://kameya_lab/root/prism.git ./prism
+git clone https://github.com/prismplp/prism.git ./prism
 
 rm -rf $project/.git
 

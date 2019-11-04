@@ -614,66 +614,80 @@ Concrete method to implementation of simulating PRISM is described in \prettyref
 
 
 The architecture of the T-PRISM system is shown in \prettyref{fig:tprismsystem}.
-The T-PRISM system consists of three layers: programming layer, intermediate-data layer, and calculation layer.
+The T-PRISM system consists of three layers: programming layer, intermediate-data layer, and computation layer.
 
 Although users directly operate the programming layer, they should understand the entire flow.
-First, a T-PRISM program is converted into intermediate data using the {\it upprism} command, a command for batch execution of a PRISM program
-(see the PRISM manual for details of the upprism command).
-Then, learning and probability calculation is performed from the intermediate data using the {\it tprism} command, a special command for T-PRISM.
-In a standard procedure consisting of training and test phases, the commands are executed in the following order.
-
+First, a T-PRISM program written by a user is converted into intermediate data using the {\it upprism} command, a basic command for batch execution of a PRISM program
+(see the PRISM manual for details of this command).
+This intermediate data is used for numerical computation and parameter training.
+These computations are carried out by the {\it tprism} command, a special command for T-PRISM.
+A standard procedure of the T-PRISM system is conducted in training and test phases, the commands are executed in the following order:
 
 \begin{verbatim}
 $ upprism <tprism program>
-$ tprism train <internal data options> <other options>
-$ tprism test <internal data options> <other options>
+$ tprism train [options ...]
+$ tprism test [options ...]
 \end{verbatim}
-\verb|<tprism program>|, \verb|<internal data options>|, and \verb|<other options>| need to be properly replaced according to each case.
-Usage of the tprism command is explained in \prettyref{sec:tprism_command}.
+
+where \verb|<tprism program>|, and \verb|[options ...]| need to be properly replaced according to each case.
+The usage of the tprism command is explained in \prettyref{sec:tprism_command}.
 
 
 
-The programming layer contains three elements: T-PRISM program, Python code, tprism command-line argument.
-The T-PRISM programs are written by combining Prolog programs and extended features such as tensor atoms, operator atoms, and placeholders by the following chapter (\prettyref{chap:tprism_semantics}).
-In addition to these functions, T-PRISM system provides utility predicates for generating intermediate data.
+The programming layer contains three elements: T-PRISM program, Python code, tprism command-line arguments.
+A T-PRISM program is written by combining features in PRISM and extended features for  T-PRISM such as tensor atoms, operator atoms, and placeholders explained in the previous chapter and also described in the next section.
+In addition to these features, the T-PRISM system provides utility predicates to generate intermediate data.
 These special predicates are described in \prettyref{sec:tprism_predicate}.
 
-Next, Python codes of the programming layer are mainly used to define operations corresponding to user-defined loss function and operator atoms.
-For these definitions, it is necessary to define the class according to the prescribed format and place the Python source codes in a predetermined place (those are placed in {\tt prism/bin/tprism/loss} for the custom loss functions, and the custom operations are placed in {\tt prism/bin/tprism/op}).
+Python codes in the programming layer are mainly used to define concrete operations corresponding to user-defined loss functions and operator atoms.
+For these definitions, it is necessary to define the class according to the prescribed formats and put the Python source files in the predetermined directories:
+\begin{itemize}
+	\item {\tt prism/bin/tprism/loss}: Python codes for the custom loss functions are located.
+	\item {\tt prism/bin/tprism/op}:  Python codes for the custom operations are located.
+\end{itemize}
+The T-PRISM system provides default Python programs in these directories.
+These sample programs might be useful if you write your own custom programs.
+
 Python scripts also can be used for data handling.
 Although it is possible to generate intermediate data with the T-PRISM program,
-some utility predicates implemented in Prolog; therefore, Python scripts provide faster data handling.
-In particular, since a generation of input data is often a simple conversion of data formats, Script languages like Python are suitable for data processing.
+these utility predicates require overhead costs for the Prolog interface; therefore, Python scripts might provide faster data handling.
+In particular, since generation of the intermediate data can be achieved by often simple conversion of data formats, script languages like Python are suitable.
 Concrete examples are shown in \prettyref{chap:tprism_sample}.
 
 
-After the generation of intermediate data has been completed, learning and calculation can be performed from the intermediate data using the tprism command.
-When executing the command, you can specify command-line arguments as \verb|<options>| in the above example to  set parameters for learning and calculation.
-Some parameters can also be set using flags of the T-PRISM program.
-If they are specified at the same time, the arguments take precedence over the flags.
-Details of flags added for T-PRISM are described in \prettyref{sec:tprism_predicate}.
+After the generation of intermediate data has been completed,
+numerical computation and parameter training can be performed from the intermediate data using the tprism command.
+When executing this command, a user can specify command-line arguments as \verb|[options ...]| in the above example to  set options for numerical computation and parameter training.
+Some options can also be set using flags in the T-PRISM program using {\tt set\_prism\_flag/2} (see the PRISM manual).
+If options and flags are specified at the same time, the arguments take precedence over the flags in the program.
+The details of additional flags for T-PRISM are described in \prettyref{sec:tprism_predicate}.
 
 The intermediate-data layer contains the following five files:
 \begin{description}
 	\item[Explanation graph] generated from a T-PRISM program is stored in a JSON file or a protocol buffer file.
 	\item[Flags] specified in a T-PRISM program are stored in a JSON file or a protocol buffer file.
 	\item[Input data] for placeholders is stored in an HDF5 file.
-	\item[Embeddings] for tensor atoms and their embedded tensors are stored in an HDF5 file
-	\item[Vocabulary] to associate a tensor atom with a multidimensional array is stored in a file. This file is automatically generated by tprism command at the time of training.
+	\item[Embeddings] representing mapping from a tensor atom and its embedded tensor are stored in an HDF5 file
+	\item[Vocabulary] to associate a tensor atom with a slice of a multidimensional array is stored in a file. This file is automatically generated by the tprism command at the time of training.
 \end{description}
-To save intermediate data, JSON (extension: .json) is mainly for structured data, and HDF5 (extension: .h5) format is mainly used for multidimensional array data.
-A backend engine to save JSON files is the google protocol buffer; hence, these data can be saved as a protocol buffer format, and the protocol buffer engine provides the interface for the other programming languages.
+To save intermediate data, JSON (extension: .json) is mainly used for structured data.
+In addition to the JSON format,
+the google protocol buffer is adopted for a backend engine to save JSON files; hence, the structured data can be saved as a protocol buffer format, and the protocol buffer engine provides the interface for the other programming languages.
+Contrastingly, HDF5 (extension: .h5) format is mainly used for multidimensional array data.
 
 
 \section{Special utilities in T-PRISM programs}
 \label{sec:tprism_predicate}
 
-In addition to PRISM's utilities, T-PRISM includes special utilities for passing data to the intermediate-data layer.
+In addition to PRISM's utilities, the T-PRISM system provides special utilities to handle and transport from the programming layer to the intermediate-data layer.
 
-\subsection*{Transporting an explanation graph from programming layer to intermediate-data layer}
+\subsection{Transporting an explanation graph from programming layer to intermediate-data layer}
 
 The following predicates save the explanation graph constructed from a goal list {\it Goals}
-as {\it ExplFilename}(default:expl.json) with {\it ExplMode} format (default:json) and the flags as {\it FlagFilename} (default:flag.json) with {\it FlagMode} format (default:json).
+as {\it ExplFilename} (default:expl.json) and the flags as {\it FlagFilename} (default:flag.json).
+File formats of the explanation graph and the flags can be determined with  
+ {\it ExplMode} (default:json) and {\it FlagMode} format (default:json), respectively.
+
 \begin{itemize}
 	\item {\tt save\_expl\_graph}
 	\item {\tt save\_expl\_graph({\it Goals})}
@@ -684,7 +698,7 @@ as {\it ExplFilename}(default:expl.json) with {\it ExplMode} format (default:jso
 where this system supports {\tt json}, {\tt pb} (protocol buffer binary file), and {\tt pbtxt}(protocol buffer text file) as {\it ExplMode} and {\it FlagMode}.
 
 Using these predicates, for example, the following description saves the explanation graph as {\tt sample.expl.json} and the flags as {\tt sample.flag.json}
-by using {\tt save\_expl\_graph} with a goal list {\tt Gs}, restored from  {\tt sample.dat}.
+by using {\tt save\_expl\_graph} with a goal list {\tt Gs} restored from  {\tt sample.dat}.
 \begin{verbatim}
 prism_main([]):-
   load_clauses('sample.dat',Gs),
@@ -697,10 +711,10 @@ The following predicates only save the current state of flags as a file name {\i
 	\item {\tt save\_flags({\it FlagFilename})}
 	\item {\tt save\_flags({\it FlagFilename},{\it FlagMode})}
 \end{itemize}
-Since these predicates only save the flag, goals are not required.
+Since these predicates only save the flags, goals to build an explanation graph are not required.
 
 
-When executing with the upprism command, for example, the following description should be added to a T-PRISM program in addition to the model description.
+By executing the following description with the upprism command, the current state of flags is saved in {\tt sample.flags.json}.
 \begin{verbatim}
 prism_main([]):-save_flags('sample.flags.json').
 \end{verbatim}
@@ -712,11 +726,12 @@ prism_main([]):-save_flags('sample.flags.json').
 The batched explanation graph described in \prettyref{sec:concepts} is an efficient method to handle isomorphic explanation graphs built independently of inputs.
 The concrete example is shown in \prettyref{sec:distmult02} and \prettyref{sec:nn}.
 
-To use placeholders, we need to separate a template of explanation graphs, i.e., an explanation graph containing placeholders, from input data, and then construct a correspondence table of the placeholders in as an input data file. 
-Now, special predicates to save the correspondence table are described.
-The following predicates use pattern matching between a goal and a pattern to determine a placeholder and its substitution value.
+To use placeholders, we need to build a template of explanation graphs, i.e., an explanation graph containing placeholders, from input data.
+Also, a correspondence table of the placeholders and their substitution values is required. 
+The T-PRISM system provides special predicates to construct and save the correspondence table.
+Pattern matching between a goal and a pattern is used to determine a placeholder and its substitution value.
 More concretely, the following predicates find a matched goal and a pattern from the ground goal list {\it Goals} and a list of patterns {\it PlaceholderGoals} including variables; therefore,
-a pair of a variable and its substitution value is regarded as a placeholder and its realized value and saved as {\it Filename} (default: data.h5) with {\it Mode} format (default: h5fs).
+a pair of a variable and its substitution value is regarded as a placeholder and its realized value. This correspondence table is saved as {\it Filename} (default: data.h5) with {\it Mode} format (default: h5fs).
 
 \begin{itemize}
 	\item {\tt save\_placeholder\_goals({\it PlaceholderGoals},{\it Goals})}
@@ -731,13 +746,13 @@ prism_main([]):-
   PlaceholderGoals=[pred(_)],
   save_placeholder_goals('data.h5',PlaceholderGoals,Goals).
 \end{verbatim}
-where information related to placeholder is saved in {\tt data.h5}.
+where the information related to placeholders is saved in {\tt data.h5}.
 Note that only the integer values are possible for the realization values of a placeholder in the current version T-PRISM system.
 
 Now, let me consider another example.
-The following program saves an explanation graph with placeholders using {\it PlaceholderGoals}
-because {\tt save\_placeholder\_goal/3} predicate yields unification of all variables in {\it PlaceholderGoals} with special atom, or {\it placeholder atom}, to represent a placeholder.
-Suppose that the goals are matched with a pattern{\tt rel(\_,\_)} in this example.
+The following program saves an explanation graph with placeholders.
+The {\tt save\_placeholder\_goal/3} predicate conducts unification of all variables in {\it PlaceholderGoals} with a special atom, named {\it placeholder atom}, to represent a placeholder.
+Suppose that the goals are matched with a pattern {\tt rel(\_,\_)} in this example.
 \begin{verbatim}
 prism_main([]):-
   Goals=[rel(0,1),rel(1,2),rel(2,3)],
@@ -746,20 +761,20 @@ prism_main([]):-
   save_expl_graph('sample.expl.json','sample.flag.json',PlaceholderGoals).
 \end{verbatim}
 
-In this case, \verb|PlaceholderGoals = [rel($placeholder1$,$placeholder2$)]| holds.
-This is because in this system, placeholder atoms \verb|$placeholder1$, $placeholder2$, ...| are automatically assigned and unified to variables in order of appearance.
-Information related to placeholders are saved in {\tt data.h5}, i.e., 
+In this case, \verb|PlaceholderGoals = [rel($placeholder1$,$placeholder2$)]| holds where placeholder atoms \verb|$placeholder1$, $placeholder2$, ...| are automatically assigned and unified to variables in order of appearance.
+Information related to placeholders is saved in {\tt data.h5} where
 \verb|$placeholder1$| is associated with (0,1,2), and \verb|$placeholder2$| is associated with (1,2,3).
 
-Finally, we describe lower-level predicates for creating an Input data file, i.e.,
-predicates that directly stores a list of placeholders and their data as {\it Filename}.
+Finally, we describe lower-level predicates to handle placeholders.
+The following predicates directly stores a list of placeholders and their substitution values without pattern matching.
 \begin{itemize}
 	\item {\tt save\_placeholder\_data({\it Placeholders},{\it Data})}
-	\item {\tt save\_placeholder\_data({\it Filename},{\it Placeholders},{\it Data})}
-	\item {\tt save\_placeholder\_data({\it Filename},{\it Mode},{\it Placeholders},{\it Data})}
+	saves a list of placeholders {\it Placeholders} and their substitution values {\it Data}.
+	\item {\tt save\_placeholder\_data({\it Filename},{\it Placeholders},{\it Data})} saves a list of placeholders {\it Placeholders} and their substitution values {\it Data} as {\it Filename}.
+	\item {\tt save\_placeholder\_data({\it Filename},{\it Mode},{\it Placeholders},{\it Data})} saves a list of placeholders {\it Placeholders} and their substitution values {\it Data} as {\it Filename} with {\it Mode}.
 \end{itemize}
 
-{\it Placeholders} is a list of placeholders associated with each goal.
+A list of placeholders, {\it Placeholders}, associated with each goal.
 Let {\it Goals} be \verb|[pred(1),pred(2),pred(3),pred(5),pred(8)]|
 and {\it PlaceholderGoals} be \verb|[pred(_)]|.
 {\tt save\_placeholder\_goals({\it PlaceholderGoals},{\it Goals})}
@@ -803,9 +818,9 @@ The way of handling flags is the same with PRISM, i.e, {\tt set\_prism\_flag} an
 
 A list of additional flags in the T-PRISM system is shown below.
 \begin{itemize}
-\item \verb|sgd_minibatch_size|(range: integer) determines the number of data in a minibatch for minibatch training.
-\item \verb|epoch| or \verb|max_iterate|(range: integer) determines the maximum number of epochs for training.
-\item \verb|sgd_learning_rate|(range: real value) determines the learning rate for the stochastic gradient decent method.
+\item \verb|sgd_minibatch_size| (range: integer) determines the number of data in a minibatch for minibatch training.
+\item \verb|epoch| or \verb|max_iterate| (range: integer) determines the maximum number of epochs for training.
+\item \verb|sgd_learning_rate| (range: real value) determines the learning rate for the stochastic gradient decent method.
 \end{itemize}
 
 
@@ -821,7 +836,7 @@ The tprism command is executed in the following format.
 tprism <mode> [options...]
 \end{verbatim}
 For \verb|<mode>|, either train or test should be specified.
-The options are as follows:
+The options can be specified as follows:
 \begin{itemize}
 	\item \verb|--intermediate_data_prefix|
 specifies a directory where intermediate files, except for input data and embeddings files, are placed or a prefix of paths of intermediate files.
@@ -837,7 +852,7 @@ specifies a directory where intermediate files, except for input data and embedd
 Intermediate data
 \begin{itemize}
 	\item \verb|--expl_graph | specifies an explanation graph file name in intermediate-data layer.	
-	\item \verb|--flags | specifies a flags file name in intermediate-data layer.	
+	\item \verb|--flags | specifies a file name for the flags in the intermediate-data layer.	
 	\item \verb|--model | specifies a file name of the model saved in the training phase and loaded in the test phase.
 	\item \verb|--vocab | specifies a vocabulary file name in intermediate-data layer.
 	If the specified file does not exist, it is automatically generated at the time of learning.
@@ -865,7 +880,7 @@ Learning
 Also, flag settings can be changed with options with the same name as flags.
 \begin{itemize}
 	\item \verb|--sgd_minibatch_size| 
-	\item \verb|epoch| or \verb|--max_iterate|
+	\item \verb|--epoch| or \verb|--max_iterate|
 	\item \verb|--sgd_learning_rate|
 \end{itemize}
 
@@ -888,7 +903,7 @@ The other options:
 
 This section describes the data format of the intermediate data.
 Usually, the beginners do not directly refer to intermediate data.
-It is also possible to perform data handling efficiently by directly operating with Python script or the other programming languages.
+It is also possible to perform data handling efficiently by directly operating the intermediate data with Python scripts or the other programming languages.
 
 \subsection{Explanation graph / Flags files}
 The protocol buffer files to define data structure is written in 
@@ -896,11 +911,11 @@ The protocol buffer files to define data structure is written in
 
 \subsection{Input data file}
 
-An H5FS file, a general-purpose format, contains multiple {\it Groups}.
-Named {\it datasets} can be stored for each Group, and dataset can include {\it attributes} and a {\it value}, which allows a multidimensional array as a value.
+An H5FS file, a general-purpose format, contains multiple {\it groups}.
+Furthermore, multiple {\it datasets} can be stored for each group, and a dataset contains multiple {\it attributes} and a {\it value}, which allows a multidimensional array as a value.
 
-An input data file has groups corresponds to goal\_id, an identifier of a goal.
-Dataset named as "data" contains a list of placeholders as an attribute
+In the T-PRISM system, an input H5FS file contains groups corresponds to identifiers of goals, {\tt goal\_id}.
+A dataset named as "data" contains a list of placeholders as an attribute
 and their associated integer matrix ($\#$data $\times$  $\#$placeholders) as  a value.
 Then, for example, an input data file can be read by the following Python script: 
 \begin{verbatim}
@@ -913,6 +928,7 @@ with h5py.File("data.h5", 'r') as f:
     print("data size:",f[goal_id]["data"].value.shape)
 \end{verbatim}
 
+where {\tt data.h5} contains placeholders and is generated by the predicates described in \prettyref{sec:tprism_predicate}.
 The output of this program execution is as follows:
 \begin{verbatim}
 goal_id: 0
@@ -923,8 +939,8 @@ data size: (100, 2)
 
 \subsection{Embedding file}
 
-An embedding file contains two groups: "train" and "test".
-Each group has datasets named as \verb|"tensor\_<tensor atom name>\_"|, and a dataset in this file is associated with a multidimensional array as its value.
+An embedding file with the H5FS format contains two groups: ``train'' and ``test''.
+Each group has datasets named as \verb|"tensor_<tensor atom name>\_"|, and a dataset in this file is associated with a multidimensional array as its value.
 \verb|<tensor atom name>| corresponds to a name of a tensor atom in a T-PRISM program.
 
 
@@ -941,19 +957,19 @@ The ways to associate a tensor atom with a tensor are provided as the following 
  \item The other tensor atoms are associated with randomly initialized tensors regarded as trainable parameters.
 \end{itemize}
 
-Specific names of tensor atoms are associated with fixed vectors.
-The current version of T-PRISM supports one-hot encoding {\tt onehot/1}.
-{\tt tensor\_atom(onehot(X),[Y])} is associated with a Y-dimension vector whose X-th element is one and the other elements are zero.
+Special names of tensor atoms are associated with specific-type vectors.
+The current version of T-PRISM supports one-hot encoding vectors.
+A special tensor atom {\tt tensor\_atom(onehot(X),[Y])} is associated with a Y-dimensional vector whose X-th element is one and the other elements are zero.
 For example,
 {\tt tensor\_atom(onehot(0),[3])} is associated with a vector (1,0,0),
 and {\tt tensor\_atom(onehot(1),[5])} is associated with a vector (0,1,0,0,0).
 Sample programs using {\tt onehot/1} are shown in \prettyref{sec:markov_chain} and \prettyref{sec:simulated_msw}.
 
 The continued two ways are related to an embedding file.
-An embedding file in intermediate-data layer can be generated by {\tt save\_embedding\_from\_pattern}.
+An embedding file in the intermediate-data layer can be generated by {\tt save\_embedding\_from\_pattern}.
 {\tt save\_embedding\_from\_pattern({\it Vars},{\it Pattern},{\it Target},{\it FileNameBase})}
 constructs a fixed binary matrix, whose axes corresponds to {\it Vars}, from facts with a specific pattern {\it Pattern}. Furthermore, the constructed matrix is associated with a target tensor atom {\it Target} and this information is stored in {\it FileNameBase}.h5 and {\it FileNameBase}.csv files.
-Note that the matrix size is automatically determined from pattern.
+Note that the matrix size is automatically determined from a given pattern.
 The example and details are described in \prettyref{sec:transitive_closure01}.
 Another way to create embedding files is using Python scripts.
 The sample is shown in \prettyref{sec:transitive_closure02}.
@@ -979,8 +995,8 @@ These sample programs are available in \verb|exs/tensor| in the PRISM directory.
 \label{sec:distmult01}
 
 This sample program is available in \verb|prism/exs/tensor/distmult_sample01|.
-Please also see README.md in this directory that explain how to run  this program.
-This section describes the essential ideas and background of this scripts. 
+Please also see README.md in this directory  for instructions on how to run this program.
+This section describes the essential ideas and background of this script. 
 
 \subsection*{Modeling}
 
@@ -1056,7 +1072,7 @@ For  comparison, we  show  a PRISM  program  for DistMult-like  model
 (PRISM-DistMult)
 in \prettyref{fig:prism-distmult} \cite{kojima2018ijar}.  It encodes a
 probabilistic binary  relation over pairs  of entities: a  subject $S$
-and an object $O$ and the probability of $r(s,o)$ is computed by:
+and an object $O$ and the probability of $(s,r,o)$ is computed by:
 %P(C_S=i|S=s)P(C_O=i|O=o)P(R=1|C_O=i,C_S=i).
 \begin{align}\nonumber
 f'(s,r,o)=\sum_i & P(C_S=i \mid S=s) \\ \nonumber
@@ -1094,6 +1110,7 @@ parameters set to $\lambda=1.0e-5$ and $\gamma=1$.
 
 \subsection*{Program execution}
 A sample program \verb|distmult_sample.psm| consists of a Distmult model like \prettyref{fig:tprism-distmult}, utility functions, and a batch script as follows: 
+
 \begin{figure}[h]
 	%\rule{24em}{0.10mm}\\[0.6em]
 	\rule{0.85\textwidth}{0.10mm}\\ [-1em]
@@ -1108,19 +1125,21 @@ A sample program \verb|distmult_sample.psm| consists of a Distmult model like \p
 \end{verbatim}
 \rule{0.85\textwidth}{0.10mm}\\ [-1em]
 \end{figure}
-This \verb|prism_main| is called using upprism command and save an explanation graph constructed from sample.dat.
-A predicate \verb|generate_preference_pair| in this script performs sampling negative data at random to compute the loss function.
-Finally, \verb|save_expl_graph/3| store the explanation graph and flags in \verb|distmult_sample_tmp/|.
+
+This \verb|prism_main| is called using the upprism command and saves an explanation graph constructed from sample.dat.
+The predicate \verb|generate_preference_pair| in this script performs sampling negative data at random to compute the loss function.
+Finally, \verb|save_expl_graph/3| stores the explanation graph and flags in \verb|distmult_sample_tmp/|.
 
 By executing the following commands using this program, learning parameters and computation of link score using {\tt sample.dat} can be performed.
 \begin{enumerate}
-\item the following command constructs an explanation graph using {\tt sample.dat} and model written in {\tt distmult\_sample.psm} and saves it in \verb|distmult_sample_tmp/| with the other intermediate data.
+\item The following commands construct an explanation graph using {\tt sample.dat} and the model written in {\tt distmult\_sample.psm}. The explanation graph and the flags are saved  in \verb|distmult_sample_tmp/| with the other intermediate data.
+
 \begin{verbatim}
 $ cd prism/exs/tensor/
 $ upprism distmult_sample.psm
 \end{verbatim}
 	
-\item The following tprism command trains the parameter (tensors associated with tensor atoms) using a loss function {\tt preference\_pair} using the intermediate data in {\tt distmult\_sample}.
+\item The following tprism command trains the parameters (tensors associated with tensor atoms) using the loss function {\tt preference\_pair} using the intermediate data in {\tt distmult\_sample}.
 \begin{verbatim}
 $ tprism train --intermediate_data_prefix distmult_sample_tmp/ --sgd_loss preference_pair
 \end{verbatim}
@@ -1139,8 +1158,8 @@ To split a dataset into train and test datasets, intermediate data for train and
 \label{sec:distmult02}
 
 This sample program is available in \verb|prism/exs/tensor/distmult_sample02|.
-Please also see README.md in this directory that explain how to run  this program.
-This section describes the essential ideas and background of this scripts. 
+Please also see README.md in this directory for instructions on how to run this program.
+This section describes the essential ideas and background of this script. 
 
 
 Let us consider the explanation graph used in the previous section.
@@ -1163,13 +1182,17 @@ rel(5,2,0)
 \end{figure}
 
 Note that the two explanation graphs are isomorphic.
-The program in the previous section deals with such isomorphic explanation graphs separately, so redundant graphs are constructed.
-This section describes a method of efficiently handling such isomorphic explanation graphs built independent of inputs.
+The program in the previous section deals with such isomorphic explanation graphs separately, i.e., redundant explanation graphs are constructed.
+This section describes a method of efficiently handling such isomorphic explanation graphs constructed independently of the inputs.
+%%%
+%%%TODO: more descriptions
+%%%
+
 
 \subsection*{Program execution}
 
-Now, the same model as that of previous section can be used, and this section describe the efficient execution using {\it placeholders} (), which can reduce the redundant repetition of patterns in the explanation graph.
-This section also describes mini-batch method, an efficient learning method, that is also realized by using placeholders.
+Now, using the same model as that of the previous section, this section describes the efficient execution using {\it placeholders}, which can reduce the redundant repetition of patterns in the explanation graph.
+This section also describes the mini-batch method, an efficient learning method, that is also realized by using placeholders.
 The following code in the sample program {\tt distmult\_sample.psm} is a main predicate where lines for the placeholders are added into that of the previous section.
 
 \begin{figure}[h]
@@ -1206,9 +1229,9 @@ Using this program, the following command carries out mini-batch SGD using place
 The modified points are \verb|--data distmult_sample_tmp/data.h5| options that specify data file storing the instances to replace placeholders.
 \begin{verbatim}
 $ upprism distmult_sample.psm
-$ tprism train --internal_data_prefix distmult_sample_tmp/ \
+$ tprism train --intermediate_data_prefix distmult_sample_tmp/ \
                --sgd_loss preference_pair --data distmult_sample_tmp/data.h5 
-$ tprism test --internal_data_prefix distmult_sample_tmp/ \
+$ tprism test --intermediate_data_prefix distmult_sample_tmp/ \
                --sgd_loss preference_pair --data distmult_sample_tmp/data.h5 
 \end{verbatim}
 
@@ -1216,8 +1239,8 @@ $ tprism test --internal_data_prefix distmult_sample_tmp/ \
 \label{sec:markov_chain}
 
 This sample program is available in \verb|prism/exs/tensor/markov_chain|.
-Please also see README.md in this directory that explain how to run this program.
-This section describes the essential ideas and background of this scripts. 
+Please also see README.md in this directory for instructions on how to run this program.
+This section describes the essential ideas and background of this script. 
 
 \subsection*{Modeling}
 
@@ -1303,7 +1326,7 @@ More precise correspondence of PRISM and T-PRISM is described in \prettyref{sec:
 
 A sample program {\tt prism/exs/tensor/markov\_chain.psm} is added the following main script into \prettyref{fig:mc}.
 When upprism command is launched, a list of four goals, {\tt Gs}, is given.
-Then, internal data including an explanation graph is saved in {markov\_chain\_tmp/}.
+Then, intermediate data including an explanation graph is saved in {markov\_chain\_tmp/}.
 
 \begin{figure}[h]
 	%\rule{24em}{0.10mm}\\[0.6em]
@@ -1320,16 +1343,16 @@ Then, internal data including an explanation graph is saved in {markov\_chain\_t
 The follwing command realize the training parameters or transition matrix and computation of negative log likelihood.
 \begin{verbatim}
 $ upprism markov_chain.psm
-$ tprism train --internal_data_prefix markov_chain_tmp/ --sgd_loss nll
-$ tprism test --internal_data_prefix markov_chain_tmp/ --sgd_loss nll
+$ tprism train --intermediate_data_prefix markov_chain_tmp/ --sgd_loss nll
+$ tprism test --intermediate_data_prefix markov_chain_tmp/ --sgd_loss nll
 \end{verbatim}
 
 \section{Recursive programs with cyclic explanation graph for transitive closure}
 \label{sec:transitive_closure01}
 
 This sample program is available in \verb|prism/exs/tensor/transitive_closure01|.
-Please also see README.md in this directory that explain how to run  this program.
-This section describes the essential ideas and background of this scripts. 
+Please also see README.md in this directory for instructions on how to run this program.
+This section describes the essential ideas and background of this script. 
 
 
 \subsection*{Modeling}
@@ -1403,7 +1426,7 @@ automatic inference.
 
 A sample program {\tt prism/exs/tensor/transitive\_closure01/transitive\_closure.psm} is to compute transitive closure of a given adjacency matrix.
 When this script is launched with upprism command, the first argument can specify the  number of dimensions.
-Then, internal data including an explanation graph is saved in {\tt transitive\_closure\_tmp}.
+Then, intermediate data including an explanation graph is saved in {\tt transitive\_closure\_tmp}.
 
 \begin{figure}[h]
 	%\rule{24em}{0.10mm}\\[0.6em]
@@ -1454,7 +1477,7 @@ $ upprism transitive_closure.psm
 Next, in the actual computation of transitive closure, the tprism command is executed such that it is given by {\tt --embedding}  {\tt --cycle} option:
 \begin{verbatim}
 $ tprism train \
-    --internal_data_prefix transitive_closure_tmp/ \
+    --intermediate_data_prefix transitive_closure_tmp/ \
     --embedding ./transitive_closure/tc_${N}_${p}.h5 \
     --cycle --cpu
 \end{verbatim}
@@ -1470,8 +1493,8 @@ The previous section describe the basic transitive closure computation using
 This processing is often able to replace with simpler and faster scripts using Python (or other programming language).
 Now, this section describes the way to build an embedding file using a Python script and use this file with a tprism program.
 This sample program is available in \verb|prism/exs/tensor/transitive_closure02|.
-Please also see README.md in this directory that explain how to run  this program.
-This section describes the essential ideas and background of this scripts. 
+Please also see README.md in this directory for instructions on how to run this program.
+This section describes the essential ideas and background of this script. 
 
 In this section, we address {\tt N}$\times${\tt N} adjacency matrix is generated at random with probability P.
 This procedure is written in {\tt run\_transitive\_closure.sh}:
@@ -1487,7 +1510,7 @@ The latter part of this scripts is the same with the previous section scripts:
 \begin{verbatim}
 $ upprism transitive_closure.psm ${N}
 $ tprism train \
-    --internal_data_prefix transitive_closure_tmp/ \
+    --intermediate_data_prefix transitive_closure_tmp/ \
     --embedding ./transitive_closure/tc_${N}_${p}.h5 \
     --cycle --cpu
 \end{verbatim}
@@ -1526,17 +1549,17 @@ We use the MNIST dataset, a hand-written digit image dataset, as a test-bed.
 \end{figure}
 
 In  T-PRISM,  one  rule  is  made  up  of  non-linear  operations  and
-sum-product  operations.  Then,  a  three-layer multilayer  perceptron
+sum-product  operations.  Then,  a  three-layer perceptron
 (one input layer,  one hidden layer, and one output  layer) is written
-as \prettyref{fig:nn}.   We train this  neural network using  the loss
-function with cross-entropy loss.
+as \prettyref{fig:nn}.   We train this  neural network using  the cross-entropy loss
+function.
 Note  that  a singleton  variable  {\tt  Y} in  \prettyref{fig:nn}  is
 instantiated as a label to compute this loss function.  
 
 
-Because placeholder of current T-PRISM only handles integer values, {\tt in(X)} is actually a placeholder X that is replaced by an integer value.
-Here, X is a data number, and embedding of an image vector is performed to the tensor atom after the replacement.
-For example, the vector of the first image is embedded in in(1), and the vector of the fifth image is embedded in in(5).
+In the current version of T-PRISM, because placeholders only handles integer values, {\tt in(X)} contains a placeholder X that is replaced by an integer value.
+Here, X is an index of data samples, and the embedding vector of this tensor atom {\tt in(X)} after the replacement represents an image vector.
+For example, the vector of the first image is embedded in {\tt in(1)}, and the vector of the fifth image is embedded in {\tt in(5)}.
 
 \subsection*{Program execution}
 
@@ -1560,40 +1583,39 @@ A sample program {\tt prism/exs/tensor/mlp/mnist.psm} is added the following mai
 	\rule{0.85\textwidth}{0.10mm}\\ [-1em]
 \end{figure}
 
-Two {prism\_main} predicates are defined for train and test dataset.
-These internal datasets are separated and stored in 
-\verb|mnist_tmp/|.
+The two {prism\_main} predicates are defined for training and test datasets.
+These datasets are stored in different files in \verb|mnist_tmp/|.
 The placeholder and its associated values are generated {\tt ./mnist/mnist.train.dat} and {\tt ./mnist/mnist.test.dat}
-These two .dat files are generated by the following command:
+These two .dat files are generated by the following commands:
 \begin{verbatim}
 $ cd prism/exs/tensor/mnist
 $ python mnist/build_mnist.py
 \end{verbatim}
-This dat files contain the goals in the form of output(X,Y), which means that the X-th image is annotated a label Y.
-This command also generate a dataset {\tt mnist/mnist.h5} containing all images.
+These .dat files contain the goals in the form of output(X,Y), which means that the X-th image is annotated a label Y.
+This command also generates a dataset {\tt mnist/mnist.h5} containing all images.
 
-Next, to build train and test datasets and internal data including the explanation graph. 
+Next, a training dataset, a test dataset, and intermediate data including the explanation graph are constructed by the following command: 
 \begin{verbatim}
 $ upprism mnist.psm train
 $ upprism mnist.psm test
 \end{verbatim}
  
-Then, the following commands carry out training and testing:
+Then, the following commands carry out training and test:
 \begin{verbatim}
-$ tprism train --internal_data_prefix ./mnist_tmp/mnist. \
+$ tprism train --intermediate_data_prefix ./mnist_tmp/mnist. \
     --data ./mnist_data.train.h5  --embedding ./mnist/mnist.h5 --sgd_loss ce \
     --max_iterate 300 --sgd_minibatch_size 1000 --sgd_learning_rate 0.01
   
-$ tprism test --internal_data_prefix ./mnist_tmp/mnist. \
+$ tprism test --intermediate_data_prefix ./mnist_tmp/mnist. \
     --data ./mnist_data.test.h5 --embedding ./mnist/mnist.h5 --sgd_loss ce  
     --output mnist_output.npy
 \end{verbatim}
 
 Note that \verb|--data ./mnist_data.test.h5|
- specifies replaced values for the placeholder and 
+specifies replaced values for the placeholder and 
 \verb|--embedding ./mnist/mnist.h5| specifies embedding vectors for {\tt in(\_)}.
-The train and test phases uses cross entropy loss \verb|--sgd_loss ce|.
-The result of test prediction is stored as {\tt mnist\_output.npy}.
+The train and test phases use the cross-entropy loss \verb|--sgd_loss ce|.
+The result of the test prediction is stored as {\tt mnist\_output.npy}.
 This result file can be loaded by the python script like \verb|eval_mnist.py|.
 \verb|eval_mnist.py| shows the accuracy as the following command:
 \begin{verbatim}
@@ -1605,16 +1627,9 @@ $ python eval_mnist.py
 \label{sec:simulated_msw}
 
 This sample program is available in \verb|prism/exs/tensor/simulating_prism|.
-Please also see README.md in this directory that explain how to run  this program.
-This section describes the essential ideas and background of this scripts. 
+Please also see README.md in this directory for instructions on how to run this program.
+This section describes the essential ideas and background of this script.
 
-\prettyref{fig:simulated_msw} defines {\tt simulated\_msw/2}, which can be used as {msw/2} for probability computation in PRISM.
-{\tt get\_values} at line 2  is a special predicate in PRISM (see PRISM manual) to get the domain of {\tt values/2}.
-At line 3, a given atom Val is converted into an index, whose type is an integer value. 
-A discrete probability distribution can be represented as a vector, and the constraint of probability can be realized using the softmax function.
-This vector is associated with {\tt prob\_tensor/2}  at line 4.
-Because {\tt msw/2} represents a probabilistic choice,
-{\tt simulated\_msw/2} extracts one element from this vector using inner product with a onehot vector at line 5.
 
 \begin{figure}[tb]
 	%\rule{24em}{0.10mm}\\[0.6em]
@@ -1636,6 +1651,10 @@ Because {\tt msw/2} represents a probabilistic choice,
 	\label{fig:simulated_msw}
 \end{figure}
 
+\prettyref{fig:simulated_msw} defines {\tt simulated\_msw/2}, which can be used as {msw/2} for probability computation in PRISM.
+%% TODO:
+%{\tt get\_values} at line 2  is a special predicate in PRISM (see PRISM manual) to get the domain of {\tt values/2}.
+%At line 3, a given atom
 In {\tt simulating\_prism/pcfg.psm}, an example of probabilistic context-free grammar (PCFG) is implemented using {\tt simulated\_msw}.
 This program corresponds to {\tt prism/exs/base/pdcg\_c.psm}.
 This program carries out parameter learning using MLE with SGD. 
