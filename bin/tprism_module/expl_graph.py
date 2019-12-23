@@ -598,9 +598,7 @@ class SwitchTensor:
         self.shape_set.add(shape)
 
     def get_shape(self):
-        assert len(self.shape_set) == 1, (
-            self.name + ": shape is not unique:" + str(self.shape_set)
-        )
+        assert len(self.shape_set) == 1, (self.name + ": shape is not unique:" + str(self.shape_set))
         return list(self.shape_set)[0]
 
     def get_placeholder_name(self, name):
@@ -617,8 +615,8 @@ class SwitchTensor:
     def make_var_name(self, name):
         return re.sub(r"[\[\],\)\(\'$]+", "_", name)
 
-
-class VocabSet:
+# Deprecated
+class VocabGroupSet:
     def __init__(self):
         # vocab name => vocab group index
         self.vocab_group = None
@@ -697,6 +695,47 @@ class VocabSet:
         vocabs = self.get_vocabs(group)
         return [self.vocab_ph[v] for v in vocabs]
 
+class VocabSet:
+    def __init__(self):
+        # vocab name => vocab group index
+        self.vocab_values = None
+        # vocab name => a set of placeholder names
+        self.vocab_ph = None
+        # vocab_group index => a list of values
+        self.vocab_group_values = None
+        # (vocab_group index, value) => value index i
+        self.group_value_index = None
+        pass
+
+    def build(self, vocab_ph, ph_values):
+        vocab_values = {}
+        for vocab_name, phs in vocab_ph.items():
+            for ph in phs:
+                if vocab_name not in vocab_values:
+                    vocab_values[vocab_name] = set()
+                vocab_values[vocab_name] |= ph_values[ph]
+        self.vocab_values = {k: list(v) for k, v in vocab_values.items()}
+        self.value_index = self.build_value_index()
+
+    def build_value_index(self):
+        value_index = {}
+        for vocab_name, values in self.vocab_values.items():
+            for i, v in enumerate(sorted(values)):
+                value_index[(vocab_name, v)] = i
+        return value_index
+
+    def get_values_index(self, vocab_name, value):
+        key = (vocab_name, value)
+        if key in self.value_index:
+            return self.value_index[key]
+        else:
+            return 0
+
+    def get_values(self, vocab_name):
+        v = self.vocab_values[vocab_name]
+        return v
+
+
 
 class SwitchTensorProvider:
     def __init__(self):
@@ -723,20 +762,10 @@ class SwitchTensorProvider:
                 ph_values[placeholders[i]] |= set(item)
         return ph_values
 
-    def build(
-        self,
-        graph,
-        options,
-        input_data,
-        flags,
-        load_embeddings=False,
-        embedding_generator=None,
-    ):
-        index_range = {el.index: el.range for el in options.index_range}
+    def _build_sw_info(self,graph,options):
         tensor_shape = {
             el.tensor_name: [d for d in el.shape] for el in options.tensor_shape
         }
-        # switch name =>
         sw_info = {}
         for g in graph.goals:
             for path in g.paths:
@@ -749,50 +778,50 @@ class SwitchTensorProvider:
                     value_list = [el for el in sw.values]
                     if sw.name in tensor_shape:
                         shape = tuple(tensor_shape[sw.name])
-                    else:
-                        shape = tuple([index_range[i] for i in value_list])
                     sw_obj.add_shape(shape)
+        return sw_info
+    def build(
+        self,
+        graph,
+        options,
+        input_data,
+        flags,
+        load_embeddings=False,
+        embedding_generator=None,
+    ):
+        # sw_info: switch name =>SwitchTensor
+        sw_info = self._build_sw_info(graph,options)
+        
         # build placeholders
+        #ph_values : ph_name => values
+        #ph_var    : ph_name => placeholder
         if input_data is not None:
             ph_values = self.build_ph_values(input_data)
             ph_var = {}
             batch_size = flags.sgd_minibatch_size
-            for ph_name, _ in ph_values.items():
+            for ph_name in ph_values.keys():
                 ph_var_name = self.get_placeholder_var_name(ph_name)
                 ph_var[ph_name] = tf.placeholder(
                     name=ph_var_name, shape=(batch_size,), dtype=tf.int32
                 )
-            ph_vocab = {ph_name: set() for ph_name, _ in ph_values.items()}
         else:
-            ph_vocab = {}
             ph_values = {}
             ph_var = {}
-        vocab_ph = {}
         #
-        vocab_shape = {}
+        # ph_vocab/vocab_ph: ph_name <==> vocab_name
+        # vocab_shape: vocab_name => shape
+        ph_vocab = {ph_name: set() for ph_name in ph_values.keys()}
+        vocab_ph = {sw.vocab_name: set() for sw in sw_info.values()}
+        print([sw.vocab_name for sw in sw_info.values()])
+        vocab_shape = {sw.vocab_name: set() for sw in sw_info.values()}
         for sw_name, sw in sw_info.items():
-            ##
             ## build vocab. shape
-
             if sw.vocab_name not in vocab_shape:
                 vocab_shape[sw.vocab_name] = set()
             vocab_shape[sw.vocab_name] |= sw.shape_set
-
-            """
-			if len(sw.shape_set)!=1:
-				print("[ERROR] missmatch")
-			if len(vocab_shape[sw.vocab_name])!=1:
-				print("[ERROR] missmatch")
-			"""
-            ##
-            ## build
+            ## build ph_vocab/vocab_ph
             ph_list = sw.placeholder_names
-            if len(ph_list) == 0:
-                if sw.vocab_name not in vocab_ph:
-                    vocab_ph[sw.vocab_name] = set()
-            elif len(ph_list) == 1:
-                if sw.vocab_name not in vocab_ph:
-                    vocab_ph[sw.vocab_name] = set()
+            if len(ph_list) == 1:
                 vocab_ph[sw.vocab_name].add(ph_list[0])
                 ph_vocab[ph_list[0]].add(sw.vocab_name)
             elif len(ph_list) > 1:
@@ -807,11 +836,13 @@ class SwitchTensorProvider:
                 vocab_set = pickle.load(f)
         else:
             vocab_set = VocabSet()
-            vocab_set.build(vocab_ph, ph_vocab, ph_values)
+            vocab_set.build(vocab_ph, ph_values)
             print("[SAVE]", flags.vocab)
             with open(flags.vocab, mode="wb") as f:
                 pickle.dump(vocab_set, f)
         ##
+        ## assigning tensor variable
+        ## vocab_var: vocab_name => variable
         vocab_var = {}
         dtype = tf.float32
         initializer = tf.contrib.layers.xavier_initializer()
@@ -828,9 +859,7 @@ class SwitchTensorProvider:
                 shape = sorted(list(shapes), key=lambda x: len(x), reverse=True)[0]
                 s = list(shape)
             var_name = vocab_name
-            if embedding_generator and embedding_generator.is_dataset_embedding(
-                vocab_name
-            ):
+            if embedding_generator and embedding_generator.is_dataset_embedding(vocab_name):
                 print(">> dataset >>", var_name, ":", s)
                 pass
             elif var_name[:14] == "tensor_onehot_":
@@ -853,29 +882,30 @@ class SwitchTensorProvider:
                 )
                 vocab_var[vocab_name] = var
         # converting PRISM switches to Tensorflow Variables
+        # tensor_embedding: sw_name => tensor
         tensor_embedding = {}
         for sw_name, sw in sw_info.items():
             vocab_name = sw.vocab_name
             var_name = sw.var_name
             ph_list = sw.placeholder_names
             if len(ph_list) == 0:
-                if embedding_generator and embedding_generator.is_dataset_embedding(
-                    vocab_name
-                ):
+                if embedding_generator and embedding_generator.is_dataset_embedding(vocab_name):
+                    # dataset without placeholder
                     shape = list(list(sw.shape_set)[0])
                     var = embedding_generator.get_embedding(vocab_name, shape)
                     tensor_embedding[sw_name] = var
                 else:
+                    # trainig variable without placeholder
                     var = vocab_var[vocab_name]
                     tensor_embedding[sw_name] = var
             elif len(ph_list) == 1:
-                if embedding_generator and embedding_generator.is_dataset_embedding(
-                    vocab_name
-                ):
+                if embedding_generator and embedding_generator.is_dataset_embedding(vocab_name):
+                    # dataset with placeholder
                     shape = [batch_size] + list(list(sw.shape_set)[0])
                     var = embedding_generator.get_embedding(vocab_name, shape)
                     tensor_embedding[sw_name] = var
                 else:
+                    # trainig variable with placeholder
                     var = vocab_var[vocab_name]
                     ph = ph_var[ph_list[0]]
                     tensor_embedding[sw_name] = tf.gather(var, ph)
