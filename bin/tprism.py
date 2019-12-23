@@ -16,492 +16,567 @@ import tprism_module.expl_pb2 as expl_pb2
 import tprism_module.expl_graph as expl_graph
 import tprism_module.draw_graph as draw_graph
 
+
 class Flags(object):
-	def __init__(self, args, options):
-		self.internal_config = dict()
-		self.args = args
-		self.flags = {f.key:f.value for f in options.flags}
-	def __getattr__(self, k):
-		return dict.get(self.internal_config, k) \
-			or getattr(self.args, k, None) \
-			or dict.get(self.flags, k)
-	def add(self, k, v):
-		self.internal_config[k]=v
-	def update(self):
-		##
-		batch_size=10
-		if self.sgd_minibatch_size=="default":
-			pass
-		else:
-			batch_size=int(self.sgd_minibatch_size)
-		self.sgd_minibatch_size=batch_size
-		self.add("sgd_minibatch_size",batch_size)
-		##
-		if self.max_iterate=="default":
-			self.max_iterate=100
-		else:
-			self.max_iterate=int(self.max_iterate)
-		##
-		self.sgd_learning_rate=float(self.sgd_learning_rate)
+    def __init__(self, args, options):
+        self.internal_config = dict()
+        self.args = args
+        self.flags = {f.key: f.value for f in options.flags}
 
-def optimize_solve(sess,goal_dataset,goal_inside,flags,embedding_generators):
-	inside=[]
-	for goal in goal_inside:
-		l1=goal["inside"]
-		inside.append(l1)
-	
-	init = tf.global_variables_initializer()
-	sess.run(init)
-	feed_dict={}
-	prev_loss=None
-	for step in range(flags.max_iterate):  
-		feed_dict={}
-		for embedding_generator in embedding_generators:
-			if embedding_generator is not None:
-				feed_dict=embedding_generator.build_feed(feed_dict)
-		out_inside=sess.run(inside,feed_dict=feed_dict)
-		
-		loss=0
-		for embedding_generator in embedding_generators:
-			if embedding_generator is not None:
-				loss=embedding_generator.update(out_inside)
-		print("step", step, "loss:", loss)
-		if loss<1.0e-20:
-			break
-		if prev_loss is not None and not loss<prev_loss:
-			pass
-		prev_loss=loss
-	#for a in out_inside:
-	#	print("~~~~~")
-	#	print(a)
-	#	print(np.sum(a>0))
+    def __getattr__(self, k):
+        return (
+            dict.get(self.internal_config, k)
+            or getattr(self.args, k, None)
+            or dict.get(self.flags, k)
+        )
 
-def optimize_sgd(sess,goal_dataset,loss,flags,embedding_generators):
-	print("... training phase")
-	total_loss=tf.reduce_sum(loss)
-	optimizer = tf.train.AdamOptimizer(flags.sgd_learning_rate)
-	train = optimizer.minimize(total_loss)
+    def add(self, k, v):
+        self.internal_config[k] = v
 
-	print("... initialization")
-	init = tf.global_variables_initializer()
-	sess.run(init)
-	print("... initializing generator")
-	saver = tf.train.Saver()
-	feed_dict={}
-	for embedding_generator in embedding_generators:
-		if embedding_generator is not None:
-			feed_dict=embedding_generator.build_feed(feed_dict)
-	print("starting at", "loss:", sess.run(loss,feed_dict=feed_dict))
-	for step in range(flags.max_iterate):  
-		feed_dict={}
-		for embedding_generator in embedding_generators:
-			if embedding_generator is not None:
-				feed_dict=embedding_generator.build_feed(feed_dict)
-		sess.run(train,feed_dict=feed_dict)
-		print("step", step, "loss:", sess.run(total_loss,feed_dict=feed_dict))
-	print("[SAVE]",flags.model)
-	saver.save(sess, flags.model)
-		
+    def update(self):
+        ##
+        batch_size = 10
+        if self.sgd_minibatch_size == "default":
+            pass
+        else:
+            batch_size = int(self.sgd_minibatch_size)
+        self.sgd_minibatch_size = batch_size
+        self.add("sgd_minibatch_size", batch_size)
+        ##
+        if self.max_iterate == "default":
+            self.max_iterate = 100
+        else:
+            self.max_iterate = int(self.max_iterate)
+        ##
+        self.sgd_learning_rate = float(self.sgd_learning_rate)
 
 
-def optimize(sess,goal_dataset,loss,flags,embedding_generators):
-	
-	#optimizer = tf.train.GradientDescentOptimizer(flags.sgd_learning_rate)
-	optimizer = tf.train.AdamOptimizer(flags.sgd_learning_rate)
-	#train = [optimizer.minimize(l) for l in loss]
-	train=[]
-	for l in loss:
-		gradients, variables = zip(*optimizer.compute_gradients(l))
-		gradients = [
-		    None if gradient is None else tf.clip_by_norm(gradient, 5.0)
-		    for gradient in gradients]
-		optimize = optimizer.apply_gradients(zip(gradients, variables))
-		train.append(optimize)
-	
-	init = tf.global_variables_initializer()
-	sess.run(init)
-	saver = tf.train.Saver()
-	best_valid_loss=[None for _ in range(len(goal_dataset))]
-	stopping_step=0
-	batch_size=flags.sgd_minibatch_size
-	for step in range(flags.max_iterate):  
-		start_t = time.time()
-		total_train_loss=[0.0 for _ in range(len(goal_dataset))]
-		total_valid_loss=[0.0 for _ in range(len(goal_dataset))]
-		for j,goal in enumerate(goal_dataset):
-			ph_vars=goal["placeholders"]
-			valid_ratio=0.1
-			all_num=goal["dataset"].shape[1]
-			train_num=int(all_num-valid_ratio*all_num)
-			train_dataset=goal["dataset"][:,:train_num]
-			num=train_dataset.shape[1]
-			num_itr=num//batch_size
-			if not flags.no_verb:
-				progbar=tf.keras.utils.Progbar(num_itr)
-			for itr in range(num_itr):
-				feed_dict={ph:train_dataset[i,itr*batch_size:(itr+1)*batch_size] for i,ph in enumerate(ph_vars)}
-				for embedding_generator in embedding_generators:
-					if embedding_generator is not None:
-						feed_dict=embedding_generator.build_feed(feed_dict)
-				batch_loss,_=sess.run([loss[j],train[j]], feed_dict=feed_dict)
-				if not flags.no_verb:
-					bl=np.mean(batch_loss)
-					progbar.update(itr,values=[("loss",bl)])
-				total_train_loss[j]+=np.mean(batch_loss)/num_itr
-			# valid
-			valid_dataset=goal["dataset"][:,train_num:]
-			num=valid_dataset.shape[1]
-			num_itr=num//batch_size
-			for itr in range(num_itr):
-				feed_dict={ph:valid_dataset[i,itr*batch_size:(itr+1)*batch_size] for i,ph in enumerate(ph_vars)}
-				for embedding_generator in embedding_generators:
-					if embedding_generator is not None:
-						feed_dict=embedding_generator.build_feed(feed_dict)
-				batch_loss,_=sess.run([loss[j],train[j]], feed_dict=feed_dict)
-				total_valid_loss[j]+=np.mean(batch_loss)/num_itr
-			#
-			print(": step", step, "train loss:", total_train_loss[j],"valid loss:", total_valid_loss[j])
-			#
-			if best_valid_loss[j] is None or best_valid_loss[j] > total_valid_loss[j]:
-				best_valid_loss[j]=total_valid_loss[j]
-				stopping_step=0
-			else:
-				stopping_step+=1
-				if stopping_step==flags.sgd_patience:
-					print("[SAVE]",flags.model)
-					saver.save(sess, flags.model)
-					return
-		train_time = time.time() - start_t
-		print("train time:{0}".format(train_time) + "[sec]")
-	print("[SAVE]",flags.model)
-	saver.save(sess, flags.model)
+def optimize_solve(sess, goal_dataset, goal_inside, flags, embedding_generators):
+    inside = []
+    for goal in goal_inside:
+        l1 = goal["inside"]
+        inside.append(l1)
 
-def save_draw_graph(g,base_name):
-	html=draw_graph.show_graph(g)
-	fp=open(base_name+".html","w")
-	fp.write(html)
-	dot=draw_graph.tf_to_dot(g)
-	dot.render(base_name)
-	
-def build_goal_dataset(input_data,tensor_provider):
-	goal_dataset=[]
-	def to_index(item,ph_name):
-		vocab_name=tensor_provider.ph_vocab[ph_name]
-		vocab_name=list(vocab_name)[0]
-		index=tensor_provider.vocab_set.get_values_index(vocab_name,item)
-		return index
-	to_index_func=np.vectorize(to_index)
-	for d in input_data:
-		ph_names=d["placeholders"]
-		# TODO: multiple with different placeholders
-		ph_vars=[tensor_provider.ph_var[ph_name] for ph_name in ph_names]
-		dataset=[None for _ in ph_names]
-		goal_data={"placeholders":ph_vars,"dataset":dataset}
-		goal_dataset.append(goal_data)
-		for i,ph_name in enumerate(ph_names):
-			rec = d["records"]
-			if 0<len(tensor_provider.ph_vocab[ph_name]):
-				dataset[i]=to_index_func(rec[:,i],ph_name)
-			else: # goal placeholder
-				dataset[i]=rec[:,i]
-				print("goal_placeholder?")
-				print(rec.shape)
-				print(ph_name)
-			print("*")
-	for obj in goal_dataset:
-		obj["dataset"]=np.array(obj["dataset"])
-	return goal_dataset
-	
-def run_preparing(g,sess,args):
-	input_data = expl_graph.load_input_data(args.data)
-	graph,options = expl_graph.load_explanation_graph(args.expl_graph,args.flags)
-	flags=Flags(args,options)
-	flags.update()
-	##
-	loss_loader=expl_graph.LossLoader()
-	loss_loader.load_all("loss/")
-	loss_cls=loss_loader.get_loss(flags.sgd_loss)
-	##
-	tensor_provider=expl_graph.SwitchTensorProvider()
-	embedding_generator=None
-	if flags.embedding:
-		embedding_generator=expl_graph.EmbeddingGenerator()
-		embedding_generator.load(flags.embedding)
-	tensor_embedding = tensor_provider.build(graph,options,input_data,flags,load_embeddings=False,embedding_generator=embedding_generator)
-	
-def run_training(g,sess,args):
-	if args.data is not None:
-		input_data = expl_graph.load_input_data(args.data)
-	else:
-		input_data = None
-	graph,options = expl_graph.load_explanation_graph(args.expl_graph,args.flags)
-	flags=Flags(args,options)
-	flags.update()
-	##
-	loss_loader=expl_graph.LossLoader()
-	loss_loader.load_all("loss/")
-	loss_cls=loss_loader.get_loss(flags.sgd_loss)
-	##
-	tensor_provider=expl_graph.SwitchTensorProvider()
-	embedding_generator=None
-	if flags.embedding:
-		embedding_generator=expl_graph.EmbeddingGenerator()
-		embedding_generator.load(flags.embedding)
-	cycle_embedding_generator=None
-	if flags.cycle:
-		cycle_embedding_generator=expl_graph.CycleEmbeddingGenerator()
-		cycle_embedding_generator.load(options)
-	tensor_embedding = tensor_provider.build(graph,options,input_data,flags,load_embeddings=False,embedding_generator=embedding_generator)
-	goal_inside = expl_graph.build_explanation_graph(graph,tensor_provider,cycle_embedding_generator)
-	if input_data is not None:
-		goal_dataset=build_goal_dataset(input_data,tensor_provider)
-	else:
-		goal_dataset=None
-	
-	if flags.draw_graph:
-		save_draw_graph(g,"test")
+    init = tf.global_variables_initializer()
+    sess.run(init)
+    feed_dict = {}
+    prev_loss = None
+    for step in range(flags.max_iterate):
+        feed_dict = {}
+        for embedding_generator in embedding_generators:
+            if embedding_generator is not None:
+                feed_dict = embedding_generator.build_feed(feed_dict)
+        out_inside = sess.run(inside, feed_dict=feed_dict)
 
-	loss,output=loss_cls().call(graph,goal_inside,tensor_provider)
-	if loss:
-            with tf.name_scope('summary'):
-                    tf.summary.scalar('loss', loss)
-                    merged = tf.summary.merge_all()
-                    writer = tf.summary.FileWriter('./tf_logs', sess.graph)
-	##	
-	print("traing start") 
-	vars_to_train = tf.trainable_variables()
-	for var in vars_to_train:
-		print("train var:",var.name,var.shape)
-	##
-	start_t = time.time()
-	if flags.cycle:
-		optimize_solve(sess,goal_dataset,goal_inside,flags,[embedding_generator,cycle_embedding_generator])
-	elif goal_dataset is not None:
-		optimize(sess,goal_dataset,loss,flags,[embedding_generator,cycle_embedding_generator])
-	else:
-		optimize_sgd(sess,goal_dataset,loss,flags,[embedding_generator,cycle_embedding_generator])
-	train_time = time.time() - start_t
-	print("traing time:{0}".format(train_time) + "[sec]")
-	
-def run_test(g,sess,args):
-	if args.data is not None:
-		input_data = expl_graph.load_input_data(args.data)
-	else:
-		input_data = None
-	graph,options = expl_graph.load_explanation_graph(args.expl_graph,args.flags)
-	flags=Flags(args,options)
-	flags.update()
-	##
-	loss_loader=expl_graph.LossLoader()
-	loss_loader.load_all("loss/")
-	loss_cls=loss_loader.get_loss(flags.sgd_loss)
-	##
-	tensor_provider=expl_graph.SwitchTensorProvider()
-	embedding_generator=None
-	if flags.embedding:
-		embedding_generator=expl_graph.EmbeddingGenerator()
-		embedding_generator.load(flags.embedding,key="test")
-	cycle_embedding_generator=None
-	if flags.cycle:
-		cycle_embedding_generator=expl_graph.CycleEmbeddingGenerator()
-		cycle_embedding_generator.load(options)
-	tensor_embedding = tensor_provider.build(graph,options,input_data,flags,load_embeddings=True,embedding_generator=embedding_generator)
-	goal_inside = expl_graph.build_explanation_graph(graph,tensor_provider,cycle_embedding_generator)
-	if input_data is not None:
-		goal_dataset=build_goal_dataset(input_data,tensor_provider)
-	else:
-		goal_dataset=None
-	if flags.draw_graph:
-		save_draw_graph(g,"test")
-	loss,output=loss_cls().call(graph,goal_inside,tensor_provider)
-	saver = tf.train.Saver()
-	saver.restore(sess,flags.model)
-	
-	if flags.cycle:
-		optimize_solve(sess,goal_dataset,goal_inside,flags,[embedding_generator,cycle_embedding_generator])
-	elif goal_dataset is not None:
-		batch_size=flags.sgd_minibatch_size
-		total_loss=[[] for _ in range(len(goal_dataset))]
-		total_output=[[] for _ in range(len(goal_dataset))]
-		for j,goal in enumerate(goal_dataset):
-			ph_vars=goal["placeholders"]
-			dataset=goal["dataset"]
-			num=dataset.shape[1]
-			num_itr=(num+batch_size-1)//batch_size
-			if not flags.no_verb:
-				progbar=tf.keras.utils.Progbar(num_itr)
-			idx=list(range(num))
-			for itr in range(num_itr):
-				temp_idx=idx[itr*batch_size:(itr+1)*batch_size]
-				if len(temp_idx)<batch_size:
-					padding_idx=np.zeros((batch_size,),dtype=np.int32)
-					padding_idx[:len(temp_idx)]=temp_idx
-					feed_dict={ph:dataset[i,padding_idx] for i,ph in enumerate(ph_vars)}
-				else:
-					feed_dict={ph:dataset[i,temp_idx] for i,ph in enumerate(ph_vars)}
-				
-				if embedding_generator:
-					feed_dict=embedding_generator.build_feed(feed_dict)
-				batch_loss,batch_output=sess.run([loss[j],output[j]],feed_dict=feed_dict)
-				if not flags.no_verb:
-					progbar.update(itr)
-				#print(batch_output.shape)
-				#batch_output=np.transpose(batch_output)
-				total_loss[j].extend(batch_loss[:len(temp_idx)])
-				total_output[j].extend(batch_output[:len(temp_idx)])
-			print("loss:", np.mean(total_loss[j]))
-			print("output:", np.array(total_output[j]).shape)
-	else:
-		feed_dict={}
-		total_loss=[]
-		total_output=[]
-		if embedding_generator:
-			feed_dict=embedding_generator.build_feed(feed_dict)
-		for j in range(len(loss)):
-			j_loss,j_output=sess.run([loss[j],output[j]],feed_dict=feed_dict)
-			total_loss.append(j_loss)
-			total_output.append(j_output)
-		print("loss:", np.mean(total_loss))
-		print("output:", np.array(total_output).shape)
+        loss = 0
+        for embedding_generator in embedding_generators:
+            if embedding_generator is not None:
+                loss = embedding_generator.update(out_inside)
+        print("step", step, "loss:", loss)
+        if loss < 1.0e-20:
+            break
+        if prev_loss is not None and not loss < prev_loss:
+            pass
+        prev_loss = loss
+    # for a in out_inside:
+    # 	print("~~~~~")
+    # 	print(a)
+    # 	print(np.sum(a>0))
 
-	###
-	print("[SAVE]",flags.output)
-	np.save(flags.output,total_output)
+
+def optimize_sgd(sess, goal_dataset, loss, flags, embedding_generators):
+    print("... training phase")
+    total_loss = tf.reduce_sum(loss)
+    optimizer = tf.train.AdamOptimizer(flags.sgd_learning_rate)
+    train = optimizer.minimize(total_loss)
+
+    print("... initialization")
+    init = tf.global_variables_initializer()
+    sess.run(init)
+    print("... initializing generator")
+    saver = tf.train.Saver()
+    feed_dict = {}
+    for embedding_generator in embedding_generators:
+        if embedding_generator is not None:
+            feed_dict = embedding_generator.build_feed(feed_dict)
+    print("starting at", "loss:", sess.run(loss, feed_dict=feed_dict))
+    for step in range(flags.max_iterate):
+        feed_dict = {}
+        for embedding_generator in embedding_generators:
+            if embedding_generator is not None:
+                feed_dict = embedding_generator.build_feed(feed_dict)
+        sess.run(train, feed_dict=feed_dict)
+        print("step", step, "loss:", sess.run(total_loss, feed_dict=feed_dict))
+    print("[SAVE]", flags.model)
+    saver.save(sess, flags.model)
+
+
+def optimize(sess, goal_dataset, loss, flags, embedding_generators):
+
+    # optimizer = tf.train.GradientDescentOptimizer(flags.sgd_learning_rate)
+    optimizer = tf.train.AdamOptimizer(flags.sgd_learning_rate)
+    # train = [optimizer.minimize(l) for l in loss]
+    train = []
+    for l in loss:
+        gradients, variables = zip(*optimizer.compute_gradients(l))
+        gradients = [
+            None if gradient is None else tf.clip_by_norm(gradient, 5.0)
+            for gradient in gradients
+        ]
+        optimize = optimizer.apply_gradients(zip(gradients, variables))
+        train.append(optimize)
+
+    init = tf.global_variables_initializer()
+    sess.run(init)
+    saver = tf.train.Saver()
+    best_valid_loss = [None for _ in range(len(goal_dataset))]
+    stopping_step = 0
+    batch_size = flags.sgd_minibatch_size
+    for step in range(flags.max_iterate):
+        start_t = time.time()
+        total_train_loss = [0.0 for _ in range(len(goal_dataset))]
+        total_valid_loss = [0.0 for _ in range(len(goal_dataset))]
+        for j, goal in enumerate(goal_dataset):
+            ph_vars = goal["placeholders"]
+            valid_ratio = 0.1
+            all_num = goal["dataset"].shape[1]
+            train_num = int(all_num - valid_ratio * all_num)
+            train_dataset = goal["dataset"][:, :train_num]
+            num = train_dataset.shape[1]
+            num_itr = num // batch_size
+            if not flags.no_verb:
+                progbar = tf.keras.utils.Progbar(num_itr)
+            for itr in range(num_itr):
+                feed_dict = {
+                    ph: train_dataset[i, itr * batch_size : (itr + 1) * batch_size]
+                    for i, ph in enumerate(ph_vars)
+                }
+                for embedding_generator in embedding_generators:
+                    if embedding_generator is not None:
+                        feed_dict = embedding_generator.build_feed(feed_dict)
+                batch_loss, _ = sess.run([loss[j], train[j]], feed_dict=feed_dict)
+                if not flags.no_verb:
+                    bl = np.mean(batch_loss)
+                    progbar.update(itr, values=[("loss", bl)])
+                total_train_loss[j] += np.mean(batch_loss) / num_itr
+            # valid
+            valid_dataset = goal["dataset"][:, train_num:]
+            num = valid_dataset.shape[1]
+            num_itr = num // batch_size
+            for itr in range(num_itr):
+                feed_dict = {
+                    ph: valid_dataset[i, itr * batch_size : (itr + 1) * batch_size]
+                    for i, ph in enumerate(ph_vars)
+                }
+                for embedding_generator in embedding_generators:
+                    if embedding_generator is not None:
+                        feed_dict = embedding_generator.build_feed(feed_dict)
+                batch_loss, _ = sess.run([loss[j], train[j]], feed_dict=feed_dict)
+                total_valid_loss[j] += np.mean(batch_loss) / num_itr
+            #
+            print(
+                ": step",
+                step,
+                "train loss:",
+                total_train_loss[j],
+                "valid loss:",
+                total_valid_loss[j],
+            )
+            #
+            if best_valid_loss[j] is None or best_valid_loss[j] > total_valid_loss[j]:
+                best_valid_loss[j] = total_valid_loss[j]
+                stopping_step = 0
+            else:
+                stopping_step += 1
+                if stopping_step == flags.sgd_patience:
+                    print("[SAVE]", flags.model)
+                    saver.save(sess, flags.model)
+                    return
+        train_time = time.time() - start_t
+        print("train time:{0}".format(train_time) + "[sec]")
+    print("[SAVE]", flags.model)
+    saver.save(sess, flags.model)
+
+
+def save_draw_graph(g, base_name):
+    html = draw_graph.show_graph(g)
+    fp = open(base_name + ".html", "w")
+    fp.write(html)
+    dot = draw_graph.tf_to_dot(g)
+    dot.render(base_name)
+
+
+def build_goal_dataset(input_data, tensor_provider):
+    goal_dataset = []
+
+    def to_index(item, ph_name):
+        vocab_name = tensor_provider.ph_vocab[ph_name]
+        vocab_name = list(vocab_name)[0]
+        index = tensor_provider.vocab_set.get_values_index(vocab_name, item)
+        return index
+
+    to_index_func = np.vectorize(to_index)
+    for d in input_data:
+        ph_names = d["placeholders"]
+        # TODO: multiple with different placeholders
+        ph_vars = [tensor_provider.ph_var[ph_name] for ph_name in ph_names]
+        dataset = [None for _ in ph_names]
+        goal_data = {"placeholders": ph_vars, "dataset": dataset}
+        goal_dataset.append(goal_data)
+        for i, ph_name in enumerate(ph_names):
+            rec = d["records"]
+            if 0 < len(tensor_provider.ph_vocab[ph_name]):
+                dataset[i] = to_index_func(rec[:, i], ph_name)
+            else:  # goal placeholder
+                dataset[i] = rec[:, i]
+                print("goal_placeholder?")
+                print(rec.shape)
+                print(ph_name)
+            print("*")
+    for obj in goal_dataset:
+        obj["dataset"] = np.array(obj["dataset"])
+    return goal_dataset
+
+
+def run_preparing(g, sess, args):
+    input_data = expl_graph.load_input_data(args.data)
+    graph, options = expl_graph.load_explanation_graph(args.expl_graph, args.flags)
+    flags = Flags(args, options)
+    flags.update()
+    ##
+    loss_loader = expl_graph.LossLoader()
+    loss_loader.load_all("loss/")
+    loss_cls = loss_loader.get_loss(flags.sgd_loss)
+    ##
+    tensor_provider = expl_graph.SwitchTensorProvider()
+    embedding_generator = None
+    if flags.embedding:
+        embedding_generator = expl_graph.EmbeddingGenerator()
+        embedding_generator.load(flags.embedding)
+    tensor_embedding = tensor_provider.build(
+        graph,
+        options,
+        input_data,
+        flags,
+        load_embeddings=False,
+        embedding_generator=embedding_generator,
+    )
+
+
+def run_training(g, sess, args):
+    if args.data is not None:
+        input_data = expl_graph.load_input_data(args.data)
+    else:
+        input_data = None
+    graph, options = expl_graph.load_explanation_graph(args.expl_graph, args.flags)
+    flags = Flags(args, options)
+    flags.update()
+    ##
+    loss_loader = expl_graph.LossLoader()
+    loss_loader.load_all("loss/")
+    loss_cls = loss_loader.get_loss(flags.sgd_loss)
+    ##
+    tensor_provider = expl_graph.SwitchTensorProvider()
+    embedding_generator = None
+    if flags.embedding:
+        embedding_generator = expl_graph.EmbeddingGenerator()
+        embedding_generator.load(flags.embedding)
+    cycle_embedding_generator = None
+    if flags.cycle:
+        cycle_embedding_generator = expl_graph.CycleEmbeddingGenerator()
+        cycle_embedding_generator.load(options)
+    tensor_embedding = tensor_provider.build(
+        graph,
+        options,
+        input_data,
+        flags,
+        load_embeddings=False,
+        embedding_generator=embedding_generator,
+    )
+    goal_inside = expl_graph.build_explanation_graph(
+        graph, tensor_provider, cycle_embedding_generator
+    )
+    if input_data is not None:
+        goal_dataset = build_goal_dataset(input_data, tensor_provider)
+    else:
+        goal_dataset = None
+
+    if flags.draw_graph:
+        save_draw_graph(g, "test")
+
+    loss, output = loss_cls().call(graph, goal_inside, tensor_provider)
+    if loss:
+        with tf.name_scope("summary"):
+            tf.summary.scalar("loss", loss)
+            merged = tf.summary.merge_all()
+            writer = tf.summary.FileWriter("./tf_logs", sess.graph)
+    ##
+    print("traing start")
+    vars_to_train = tf.trainable_variables()
+    for var in vars_to_train:
+        print("train var:", var.name, var.shape)
+    ##
+    start_t = time.time()
+    if flags.cycle:
+        optimize_solve(
+            sess,
+            goal_dataset,
+            goal_inside,
+            flags,
+            [embedding_generator, cycle_embedding_generator],
+        )
+    elif goal_dataset is not None:
+        optimize(
+            sess,
+            goal_dataset,
+            loss,
+            flags,
+            [embedding_generator, cycle_embedding_generator],
+        )
+    else:
+        optimize_sgd(
+            sess,
+            goal_dataset,
+            loss,
+            flags,
+            [embedding_generator, cycle_embedding_generator],
+        )
+    train_time = time.time() - start_t
+    print("traing time:{0}".format(train_time) + "[sec]")
+
+
+def run_test(g, sess, args):
+    if args.data is not None:
+        input_data = expl_graph.load_input_data(args.data)
+    else:
+        input_data = None
+    graph, options = expl_graph.load_explanation_graph(args.expl_graph, args.flags)
+    flags = Flags(args, options)
+    flags.update()
+    ##
+    loss_loader = expl_graph.LossLoader()
+    loss_loader.load_all("loss/")
+    loss_cls = loss_loader.get_loss(flags.sgd_loss)
+    ##
+    tensor_provider = expl_graph.SwitchTensorProvider()
+    embedding_generator = None
+    if flags.embedding:
+        embedding_generator = expl_graph.EmbeddingGenerator()
+        embedding_generator.load(flags.embedding, key="test")
+    cycle_embedding_generator = None
+    if flags.cycle:
+        cycle_embedding_generator = expl_graph.CycleEmbeddingGenerator()
+        cycle_embedding_generator.load(options)
+    tensor_embedding = tensor_provider.build(
+        graph,
+        options,
+        input_data,
+        flags,
+        load_embeddings=True,
+        embedding_generator=embedding_generator,
+    )
+    goal_inside = expl_graph.build_explanation_graph(
+        graph, tensor_provider, cycle_embedding_generator
+    )
+    if input_data is not None:
+        goal_dataset = build_goal_dataset(input_data, tensor_provider)
+    else:
+        goal_dataset = None
+    if flags.draw_graph:
+        save_draw_graph(g, "test")
+    loss, output = loss_cls().call(graph, goal_inside, tensor_provider)
+    saver = tf.train.Saver()
+    saver.restore(sess, flags.model)
+
+    if flags.cycle:
+        optimize_solve(
+            sess,
+            goal_dataset,
+            goal_inside,
+            flags,
+            [embedding_generator, cycle_embedding_generator],
+        )
+    elif goal_dataset is not None:
+        batch_size = flags.sgd_minibatch_size
+        total_loss = [[] for _ in range(len(goal_dataset))]
+        total_output = [[] for _ in range(len(goal_dataset))]
+        for j, goal in enumerate(goal_dataset):
+            ph_vars = goal["placeholders"]
+            dataset = goal["dataset"]
+            num = dataset.shape[1]
+            num_itr = (num + batch_size - 1) // batch_size
+            if not flags.no_verb:
+                progbar = tf.keras.utils.Progbar(num_itr)
+            idx = list(range(num))
+            for itr in range(num_itr):
+                temp_idx = idx[itr * batch_size : (itr + 1) * batch_size]
+                if len(temp_idx) < batch_size:
+                    padding_idx = np.zeros((batch_size,), dtype=np.int32)
+                    padding_idx[: len(temp_idx)] = temp_idx
+                    feed_dict = {
+                        ph: dataset[i, padding_idx] for i, ph in enumerate(ph_vars)
+                    }
+                else:
+                    feed_dict = {
+                        ph: dataset[i, temp_idx] for i, ph in enumerate(ph_vars)
+                    }
+
+                if embedding_generator:
+                    feed_dict = embedding_generator.build_feed(feed_dict)
+                batch_loss, batch_output = sess.run(
+                    [loss[j], output[j]], feed_dict=feed_dict
+                )
+                if not flags.no_verb:
+                    progbar.update(itr)
+                # print(batch_output.shape)
+                # batch_output=np.transpose(batch_output)
+                total_loss[j].extend(batch_loss[: len(temp_idx)])
+                total_output[j].extend(batch_output[: len(temp_idx)])
+            print("loss:", np.mean(total_loss[j]))
+            print("output:", np.array(total_output[j]).shape)
+    else:
+        feed_dict = {}
+        total_loss = []
+        total_output = []
+        if embedding_generator:
+            feed_dict = embedding_generator.build_feed(feed_dict)
+        for j in range(len(loss)):
+            j_loss, j_output = sess.run([loss[j], output[j]], feed_dict=feed_dict)
+            total_loss.append(j_loss)
+            total_output.append(j_output)
+        print("loss:", np.mean(total_loss))
+        print("output:", np.array(total_output).shape)
+
+    ###
+    print("[SAVE]", flags.output)
+    np.save(flags.output, total_output)
+
 
 def run_display(args):
-	#
-	if args.expl_graph is None:
-		args.expl_graph=args.intermediate_data_prefix+"expl.json"
-	if args.flags is None:
-		args.flags=args.intermediate_data_prefix+"flags.json"
-	if args.model is None:
-		args.model=args.intermediate_data_prefix+"model.ckpt"
-	if args.vocab is None:
-		args.vocab=args.intermediate_data_prefix+"vocab.pkl"
-	fp=open(args.vocab,"rb")
-	obj=pickle.load(fp)
-	print(obj.vocab_group)
-	## 
+    #
+    if args.expl_graph is None:
+        args.expl_graph = args.intermediate_data_prefix + "expl.json"
+    if args.flags is None:
+        args.flags = args.intermediate_data_prefix + "flags.json"
+    if args.model is None:
+        args.model = args.intermediate_data_prefix + "model.ckpt"
+    if args.vocab is None:
+        args.vocab = args.intermediate_data_prefix + "vocab.pkl"
+    fp = open(args.vocab, "rb")
+    obj = pickle.load(fp)
+    print(obj.vocab_group)
+    ##
 
-if __name__ == '__main__':
-	# set random seed
-	seed = 1234
-	np.random.seed(seed)
-	
-	parser = argparse.ArgumentParser()
-	parser.add_argument('mode', type=str,
-			help='train/test')
-	parser.add_argument('--config', type=str,
-			default=None,
-			help='config json file')
-	
-	parser.add_argument('--data', type=str,
-			default=None,
-			nargs='+',
-			help='[from prolog] data json file')
-	## intermediate data
-	parser.add_argument('--intermediate_data_prefix','-I', type=str,
-			default="./",
-			help='intermediate data')
-	parser.add_argument('--expl_graph', type=str,
-			default=None,
-			help='[from prolog] explanation graph json file')
-	parser.add_argument('--flags', type=str,
-			default=None,
-			help='[from prolog] flags json file')
-	parser.add_argument('--model', type=str,
-			default=None,
-			help='model file')
-	parser.add_argument('--vocab', type=str,
-			default=None,
-			help='model file')
-	## 
-	parser.add_argument('--embedding', type=str,
-			default=None,
-			help='model file')
-	parser.add_argument('--draw_graph', type=str,
-			default=None,
-			help='graph file')
 
-	parser.add_argument('--output', type=str,
-			default="./output.npy",
-			help='output file')
+if __name__ == "__main__":
+    # set random seed
+    seed = 1234
+    np.random.seed(seed)
 
-	parser.add_argument('--gpu', type=str,
-			default=None,
-			help='constraint gpus (default: all) (e.g. --gpu 0,2)')
-	parser.add_argument('--cpu',
-			action='store_true',
-			help='cpu mode (calcuration only with cpu)')
+    parser = argparse.ArgumentParser()
+    parser.add_argument("mode", type=str, help="train/test")
+    parser.add_argument("--config", type=str, default=None, help="config json file")
 
-	parser.add_argument('--no_verb',
-			action='store_true',
-			help='verb')
-	
-	parser.add_argument('--sgd_minibatch_size', type=str,
-			default=None,
-			help='[prolog flag]')
-	parser.add_argument('--max_iterate', type=str,
-			default=None,
-			help='[prolog flag]')
-	parser.add_argument('--epoch', type=str,
-			default=None,
-			help='[prolog flag]')
-	parser.add_argument('--sgd_learning_rate', type=float,
-			default=0.01,
-			help='[prolog flag]')
-	parser.add_argument('--sgd_loss', type=str,
-			default="base_loss",
-			help='[prolog flag] nll/preference_pair')
-	parser.add_argument('--sgd_patience', type=int,
-			default=3,
-			help='[prolog flag] ')
-	
-	parser.add_argument('--cycle',
-			action='store_true',
-			help='cycle')
+    parser.add_argument(
+        "--data", type=str, default=None, nargs="+", help="[from prolog] data json file"
+    )
+    ## intermediate data
+    parser.add_argument(
+        "--intermediate_data_prefix",
+        "-I",
+        type=str,
+        default="./",
+        help="intermediate data",
+    )
+    parser.add_argument(
+        "--expl_graph",
+        type=str,
+        default=None,
+        help="[from prolog] explanation graph json file",
+    )
+    parser.add_argument(
+        "--flags", type=str, default=None, help="[from prolog] flags json file"
+    )
+    parser.add_argument("--model", type=str, default=None, help="model file")
+    parser.add_argument("--vocab", type=str, default=None, help="model file")
+    ##
+    parser.add_argument("--embedding", type=str, default=None, help="model file")
+    parser.add_argument("--draw_graph", type=str, default=None, help="graph file")
 
-	args=parser.parse_args()
-	# config
-	if args.config is None:
-		pass
-	else:
-		print("[LOAD] ",args.config)
-		fp = open(args.config, 'r')
-		config.update(json.load(fp))
-	
-	# gpu/cpu
-	if args.cpu:
-		os.environ['CUDA_VISIBLE_DEVICES'] = ""
-	elif args.gpu is not None:
-		os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
-	
-	#
-	if args.intermediate_data_prefix is not None:
-		if args.expl_graph is None:
-			args.expl_graph=args.intermediate_data_prefix+"expl.json"
-		if args.flags is None:
-			args.flags=args.intermediate_data_prefix+"flags.json"
-		if args.model is None:
-			args.model=args.intermediate_data_prefix+"model.ckpt"
-		if args.vocab is None:
-			args.vocab=args.intermediate_data_prefix+"vocab.pkl"
-	## 
-	# setup
-	g = tf.Graph()
-	with g.as_default():
-		seed = 1234
-		tf.set_random_seed(seed)
-		with tf.Session(config=tf.ConfigProto(log_device_placement=False)) as sess:
-			# mode
-			if args.mode=="train":
-				run_training(g,sess,args)
-			if args.mode=="prepare":
-				run_preparing(g,sess,args)
-			if args.mode=="test":
-				run_test(g,sess,args)
-			elif args.mode=="cv":
-				run_train_cv(g,sess,args)
-			if args.mode=="show":
-				run_display(args)
+    parser.add_argument(
+        "--output", type=str, default="./output.npy", help="output file"
+    )
 
+    parser.add_argument(
+        "--gpu",
+        type=str,
+        default=None,
+        help="constraint gpus (default: all) (e.g. --gpu 0,2)",
+    )
+    parser.add_argument(
+        "--cpu", action="store_true", help="cpu mode (calcuration only with cpu)"
+    )
+
+    parser.add_argument("--no_verb", action="store_true", help="verb")
+
+    parser.add_argument(
+        "--sgd_minibatch_size", type=str, default=None, help="[prolog flag]"
+    )
+    parser.add_argument("--max_iterate", type=str, default=None, help="[prolog flag]")
+    parser.add_argument("--epoch", type=str, default=None, help="[prolog flag]")
+    parser.add_argument(
+        "--sgd_learning_rate", type=float, default=0.01, help="[prolog flag]"
+    )
+    parser.add_argument(
+        "--sgd_loss",
+        type=str,
+        default="base_loss",
+        help="[prolog flag] nll/preference_pair",
+    )
+    parser.add_argument("--sgd_patience", type=int, default=3, help="[prolog flag] ")
+
+    parser.add_argument("--cycle", action="store_true", help="cycle")
+
+    args = parser.parse_args()
+    # config
+    if args.config is None:
+        pass
+    else:
+        print("[LOAD] ", args.config)
+        fp = open(args.config, "r")
+        config.update(json.load(fp))
+
+    # gpu/cpu
+    if args.cpu:
+        os.environ["CUDA_VISIBLE_DEVICES"] = ""
+    elif args.gpu is not None:
+        os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
+
+    #
+    if args.intermediate_data_prefix is not None:
+        if args.expl_graph is None:
+            args.expl_graph = args.intermediate_data_prefix + "expl.json"
+        if args.flags is None:
+            args.flags = args.intermediate_data_prefix + "flags.json"
+        if args.model is None:
+            args.model = args.intermediate_data_prefix + "model.ckpt"
+        if args.vocab is None:
+            args.vocab = args.intermediate_data_prefix + "vocab.pkl"
+    ##
+    # setup
+    g = tf.Graph()
+    with g.as_default():
+        seed = 1234
+        tf.set_random_seed(seed)
+        with tf.Session(config=tf.ConfigProto(log_device_placement=False)) as sess:
+            # mode
+            if args.mode == "train":
+                run_training(g, sess, args)
+            if args.mode == "prepare":
+                run_preparing(g, sess, args)
+            if args.mode == "test":
+                run_test(g, sess, args)
+            elif args.mode == "cv":
+                run_train_cv(g, sess, args)
+            if args.mode == "show":
+                run_display(args)
