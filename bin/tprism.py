@@ -16,6 +16,17 @@ import tprism_module.expl_pb2 as expl_pb2
 import tprism_module.expl_graph as expl_graph
 import tprism_module.draw_graph as draw_graph
 
+def to_string_goal(goal):
+    """
+    s=goal.name
+    s+="("
+    s+=",".join([str(arg) for arg in goal.args])
+    s+=")"
+    """
+    s=goal.name
+    s+=","
+    s+=",".join([str(arg) for arg in goal.args])
+    return s
 
 class Flags(object):
     def __init__(self, args, options):
@@ -293,7 +304,8 @@ def run_training(g, sess, args):
         load_embeddings=False,
         embedding_generator=embedding_generator,
     )
-    goal_inside = expl_graph.build_explanation_graph(
+    comp_expl_graph=expl_graph.ComputationalExplGraph()
+    goal_inside = comp_expl_graph.build_explanation_graph(
         graph, tensor_provider, cycle_embedding_generator
     )
     if input_data is not None:
@@ -375,7 +387,8 @@ def run_test(g, sess, args):
         load_embeddings=True,
         embedding_generator=embedding_generator,
     )
-    goal_inside = expl_graph.build_explanation_graph(
+    comp_expl_graph=expl_graph.ComputationalExplGraph()
+    goal_inside = comp_expl_graph.build_explanation_graph(
         graph, tensor_provider, cycle_embedding_generator
     )
     if input_data is not None:
@@ -397,6 +410,7 @@ def run_test(g, sess, args):
             [embedding_generator, cycle_embedding_generator],
         )
     elif goal_dataset is not None:
+        ### dataset is given (minibatch)
         batch_size = flags.sgd_minibatch_size
         total_loss = [[] for _ in range(len(goal_dataset))]
         total_output = [[] for _ in range(len(goal_dataset))]
@@ -444,13 +458,24 @@ def run_test(g, sess, args):
             j_loss, j_output = sess.run([loss[j], output[j]], feed_dict=feed_dict)
             total_loss.append(j_loss)
             total_output.append(j_output)
+            ###
         print("loss:", np.mean(total_loss))
         print("output:", np.array(total_output).shape)
+        total_goal_inside = []
+        for g in goal_inside:
+            g_inside = sess.run([g['inside']], feed_dict=feed_dict)
+            total_goal_inside.append(g_inside[0])
 
     ###
     print("[SAVE]", flags.output)
     np.save(flags.output, total_output)
-
+    data={}
+    for g_info,g in zip(graph.goals, total_goal_inside):
+        gg=g_info.node.goal
+        name=to_string_goal(gg)
+        data[g_info.node.id]={"name":name,"data":g}
+    fp = open('output.pkl','wb')
+    pickle.dump(data,fp)
 
 def run_display(args):
     #

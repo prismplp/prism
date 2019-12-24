@@ -40,6 +40,9 @@ class CycleEmbeddingGenerator:
     def is_dataset_embedding(self, vocab_name):
         return vocab_name in self.dataset
 
+    def get_dataset_shape(self, vocab_name):
+        return self.dataset[vocab_name].shape
+
     def get_embedding(self, name, shape, node_id):
         ph_name = name + "_cyc"
         if ph_name in self.embedding:
@@ -79,13 +82,13 @@ class CycleEmbeddingGenerator:
             # self.embedding[ph_name]["data"]=(1.0-a)*self.embedding[ph_name]["data"]+a*out_inside[node_id]
         return total_loss
 
-
+# embedding data from data
 class EmbeddingGenerator:
     def __init__(self):
         self.feed_verb = False
         self.gather_in_flow = False
         self.dataset = {}
-        self.ph_var = {}
+        self.created_ph_var = {}
         self.vocabset_ph_var = None
         self.vocabset_vocab_ph = None
 
@@ -106,38 +109,46 @@ class EmbeddingGenerator:
     def is_dataset_embedding(self, vocab_name):
         return vocab_name in self.dataset
 
-    def get_embedding(self, vocab_name, shape):
+    def get_dataset_shape(self, vocab_name):
+        return self.dataset[vocab_name].shape
+
+    def get_embedding(self, vocab_name, shape=None):
         ph_name = vocab_name + "_ph"
-        if ph_name in self.ph_var:
-            print("[GET]>", ph_name, ":", self.vocabset_ph_var[ph_name])
-            return self.ph_var[ph_name]
+        if ph_name in self.created_ph_var:
+            print("[GET]>", ph_name, ":", self.created_ph_var[ph_name])
+            return self.created_ph_var[ph_name]
         elif ph_name in self.vocabset_ph_var:
             print("[GET]>", ph_name, ":", self.vocabset_ph_var[ph_name])
             return self.vocabset_ph_var[ph_name]
         else:
-            self.ph_var[ph_name] = tf.placeholder(
+            if shape is None:
+                shape=self.dataset[vocab_name].shape
+            self.created_ph_var[ph_name] = tf.placeholder(
                 name=ph_name, shape=shape, dtype=tf.float32
             )
             print("[CREATE]>", ph_name, ":", shape)
-            return self.ph_var[ph_name]
+            return self.created_ph_var[ph_name]
 
     def build_feed(self, feed_dict):
         for vocab_name, data in self.dataset.items():
             ph_name = vocab_name + "_ph"
             l = list(self.vocabset_vocab_ph[vocab_name])
             if len(l) > 0:
+                # There exists placeholders in the vocabrary
                 idx_ph_name = l[0]
                 if self.feed_verb:
                     print("[INFO: feed]", vocab_name, "=>", idx_ph_name)
                 idx_ph_var = self.vocabset_ph_var[idx_ph_name]
                 idx = feed_dict[idx_ph_var]
                 batch_data = data[idx]
-                if ph_name in self.ph_var:
-                    ph_var = self.ph_var[ph_name]
+                if ph_name in self.created_ph_var:
+                    ph_var = self.created_ph_var[ph_name]
                     feed_dict[ph_var] = batch_data
             else:
-                if ph_name in self.ph_var:
-                    ph_var = self.ph_var[ph_name]
+                # There exists no-placeholders in the vocabrary
+                # This placeholder is connected to the atom directory
+                if ph_name in self.created_ph_var:
+                    ph_var = self.created_ph_var[ph_name]
                     feed_dict[ph_var] = data
                 if self.feed_verb:
                     print("[INFO: feed]", vocab_name, "=>", ph_name)
@@ -308,288 +319,289 @@ class LossLoader:
                 self.losses[op_name] = cls
 
 
-def get_unique_list(seq):
-    seen = []
-    return [x for x in seq if x not in seen and not seen.append(x)]
+class ComputationalExplGraph:
+    def __init__(self):
+        self.path_inside = None
+        self.path_template = None
+
+    def get_unique_list(self,seq):
+        seen = []
+        return [x for x in seq if x not in seen and not seen.append(x)]
+
+    # [['i'], ['i','l', 'j'], ['j','k']] => ['l','k']
+    def compute_output_template(self,template):
+        counter = collections.Counter(chain.from_iterable(template))
+        out_template = [k for k, cnt in counter.items() if cnt == 1 and k != "b"]
+        return sorted(out_template)
 
 
-# [['i'], ['i','l', 'j'], ['j','k']] => ['l','k']
-def compute_output_template(template):
-    counter = collections.Counter(chain.from_iterable(template))
-    out_template = [k for k, cnt in counter.items() if cnt == 1 and k != "b"]
-    return sorted(out_template)
-
-
-# [['i'], ['i','l', 'j'], ['j','k']] => ['l','k']
-# [[3], [3, 4, 5], [5,6]] => [4,6]
-def compute_output_shape(out_template, sw_node_template, sw_node_shape):
-    symbol_shape = {}
-    for template_list, shape_list in zip(sw_node_template, sw_node_shape):
-        for t, s in zip(template_list, shape_list):
-            if t not in symbol_shape:
-                symbol_shape[t] = s
-            elif symbol_shape[t] is None:
-                symbol_shape[t] = s
-            else:
-                assert symbol_shape[t] == s, (
-                    "index symbol mismatch:"
-                    + str(t)
-                    + ":"
-                    + str(symbol_shape[t])
-                    + "!="
-                    + str(s)
-                )
-    out_shape = []
-    for symbol in out_template:
-        if symbol in symbol_shape:
-            out_shape.append(symbol_shape[symbol])
-        else:
-            out_shape.append(None)
-    return out_shape
-
-
-def unify_shapes(path_shapes):
-    n = len(path_shapes)
-    if n == 0:
-        return []
-    else:
-        m = len(path_shapes[0])
-        out_shape = []
-        for j in range(m):
-            dim = None
-            for i in range(n):
-                if path_shapes[i][j] is None:
-                    pass
-                elif dim is None:
-                    dim = path_shapes[i][j]
+    # [['i'], ['i','l', 'j'], ['j','k']] => ['l','k']
+    # [[3], [3, 4, 5], [5,6]] => [4,6]
+    def compute_output_shape(self,out_template, sw_node_template, sw_node_shape):
+        symbol_shape = {}
+        for template_list, shape_list in zip(sw_node_template, sw_node_shape):
+            for t, s in zip(template_list, shape_list):
+                if t not in symbol_shape:
+                    symbol_shape[t] = s
+                elif symbol_shape[t] is None:
+                    symbol_shape[t] = s
                 else:
-                    assert path_shapes[i][j] == dim, "shape mismatching"
-            out_shape.append(dim)
+                    assert symbol_shape[t] == s, (
+                        "index symbol mismatch:"
+                        + str(t)
+                        + ":"
+                        + str(symbol_shape[t])
+                        + "!="
+                        + str(s)
+                    )
+        out_shape = []
+        for symbol in out_template:
+            if symbol in symbol_shape:
+                out_shape.append(symbol_shape[symbol])
+            else:
+                out_shape.append(None)
         return out_shape
 
 
-def build_explanation_graph_template(
-    graph, tensor_provider, operator_loader=None, cycle_node=[]
-):
-    tensor_embedding = tensor_provider.tensor_embedding
-    # checking template
-    goal_template = [None] * len(graph.goals)
-    for i in range(len(graph.goals)):
-        g = graph.goals[i]
-        path_template = []
-        path_shape = []
-        path_batch_flag = False
-        for path in g.paths:
-            ## build template and inside for switches in the path
-            sw_template = []
-            sw_shape = []
-            for sw in path.tensor_switches:
-                ph = tensor_provider.get_placeholder_name(sw.name)
-                sw_obj = tensor_provider.get_switch(sw.name)
-                if len(ph) > 0:
-                    sw_template.append(["b"] + list(sw.values))
-                    path_batch_flag = True
-                    sw_shape.append([None] + list(sw_obj.get_shape()))
-                else:
-                    sw_template.append(list(sw.values))
-                    sw_shape.append(sw_obj.get_shape())
-            ## building template and inside for nodes in the path
-            node_template = []
-            node_shape = []
-            cycle_detected = False
-            for node in path.nodes:
-                temp_goal = goal_template[node.sorted_id]
-                if temp_goal is None:
-                    # cycle
-                    if node.sorted_id not in cycle_node:
-                        cycle_node.append(node.sorted_id)
-                    cycle_detected = True
+    def unify_shapes(self,path_shapes):
+        n = len(path_shapes)
+        if n == 0:
+            return []
+        else:
+            m = len(path_shapes[0])
+            out_shape = []
+            for j in range(m):
+                dim = None
+                for i in range(n):
+                    if path_shapes[i][j] is None:
+                        pass
+                    elif dim is None:
+                        dim = path_shapes[i][j]
+                    else:
+                        assert path_shapes[i][j] == dim, "shape mismatching"
+                out_shape.append(dim)
+            return out_shape
+
+
+    def build_explanation_graph_template(self, graph, tensor_provider, operator_loader=None, cycle_node=[]):
+        tensor_embedding = tensor_provider.tensor_embedding
+        # checking template
+        goal_template = [None] * len(graph.goals)
+        for i in range(len(graph.goals)):
+            g = graph.goals[i]
+            path_template = []
+            path_shape = []
+            path_batch_flag = False
+            for path in g.paths:
+                ## build template and inside for switches in the path
+                sw_template = []
+                sw_shape = []
+                for sw in path.tensor_switches:
+                    ph = tensor_provider.get_placeholder_name(sw.name)
+                    sw_obj = tensor_provider.get_switch(sw.name)
+                    if len(ph) > 0:
+                        sw_template.append(["b"] + list(sw.values))
+                        path_batch_flag = True
+                        sw_shape.append([None] + list(sw_obj.get_shape()))
+                    else:
+                        sw_template.append(list(sw.values))
+                        sw_shape.append(sw_obj.get_shape())
+                ## building template and inside for nodes in the path
+                node_template = []
+                node_shape = []
+                cycle_detected = False
+                for node in path.nodes:
+                    temp_goal = goal_template[node.sorted_id]
+                    if temp_goal is None:
+                        # cycle
+                        if node.sorted_id not in cycle_node:
+                            cycle_node.append(node.sorted_id)
+                        cycle_detected = True
+                        continue
+                    if len(temp_goal["template"]) > 0:
+                        if temp_goal["batch_flag"]:
+                            path_batch_flag = True
+                        node_shape.append(temp_goal["shape"])
+                        node_template.append(temp_goal["template"])
+                if cycle_detected:
                     continue
-                if len(temp_goal["template"]) > 0:
-                    if temp_goal["batch_flag"]:
-                        path_batch_flag = True
-                    node_shape.append(temp_goal["shape"])
-                    node_template.append(temp_goal["template"])
-            if cycle_detected:
-                continue
-            sw_node_template = sw_template + node_template
-            sw_node_shape = sw_shape + node_shape
-            # constructing einsum operation using template and inside
-            out_template = compute_output_template(sw_node_template)
-            out_shape = compute_output_shape(
-                out_template, sw_node_template, sw_node_shape
-            )
-            if len(sw_node_template) > 0:  # condition for einsum
-                if path_batch_flag:
-                    out_template = ["b"] + out_template
-            ## computing operaters
-            for op in path.operators:
-                print(op.name)
-                cls = operator_loader.get_operator(op.name)
-                op_obj = cls(op.values)
-                out_template = op_obj.get_output_template(out_template)
-            path_template.append(out_template)
-            path_shape.append(out_shape)
-            ##
-        ##
-        path_template_list = get_unique_list(path_template)
-        path_shape = unify_shapes(path_shape)
-        if len(path_template_list) == 0:
-            goal_template[i] = {
-                "template": [],
-                "batch_flag": False,
-                "shape": path_shape,
-            }
-        else:
-            if len(path_template_list) != 1:
-                print("[WARNING] missmatch indices:", path_template_list)
-            goal_template[i] = {
-                "template": path_template_list[0],
-                "batch_flag": path_batch_flag,
-                "shape": path_shape,
-            }
-    ##
-    return goal_template, cycle_node
-
-
-def build_explanation_graph(graph, tensor_provider, cycle_embedding_generator=None):
-    tensor_embedding = tensor_provider.tensor_embedding
-    operator_loader = OperatorLoader()
-    operator_loader.load_all("op")
-    goal_template, cycle_node = build_explanation_graph_template(
-        graph, tensor_provider, operator_loader
-    )
-    # goal_template
-    # converting explanation graph to computational graph
-    goal_inside = [None] * len(graph.goals)
-    for i in range(len(graph.goals)):
-        g = graph.goals[i]
-        print(
-            "=== tensor equation (node_id:%d, %s) ==="
-            % (g.node.sorted_id, g.node.goal.name)
-        )
-        path_inside = []
-        path_template = []
-        path_batch_flag = False
-        for path in g.paths:
-            ## build template and inside for switches in the path
-            sw_template = []
-            sw_inside = []
-            for sw in path.tensor_switches:
-                ph = tensor_provider.get_placeholder_name(sw.name)
-                if len(ph) > 0:
-                    sw_template.append(["b"] + list(sw.values))
-                    path_batch_flag = True
-                else:
-                    sw_template.append(list(sw.values))
-                sw_var = tensor_embedding[sw.name]
-                sw_inside.append(sw_var)
-                tf.add_to_collection(
-                    tf.GraphKeys.REGULARIZATION_LOSSES, tf.nn.l2_loss(sw_var)
+                sw_node_template = sw_template + node_template
+                sw_node_shape = sw_shape + node_shape
+                # constructing einsum operation using template and inside
+                out_template = self.compute_output_template(sw_node_template)
+                out_shape = self.compute_output_shape(
+                    out_template, sw_node_template, sw_node_shape
                 )
-            prob_sw_inside = 1.0
-            for sw in path.prob_switches:
-                prob_sw_inside *= sw.inside
-
-            ## building template and inside for nodes in the path
-            node_template = []
-            node_inside = []
-            node_scalar_inside = []
-            for node in path.nodes:
-                temp_goal = goal_inside[node.sorted_id]
-
-                if node.sorted_id in cycle_node:
-                    name = node.goal.name
-                    template = goal_template[node.sorted_id]["template"]
-                    shape = goal_template[node.sorted_id]["shape"]
-                    # shape=cycle_embedding_generator.template2shape(template)
-                    temp_goal_inside = cycle_embedding_generator.get_embedding(
-                        name, shape, node.sorted_id
-                    )
-                    temp_goal_template = template
-                    node_inside.append(temp_goal_inside)
-                    node_template.append(temp_goal_template)
-                elif temp_goal is None:
-                    print("  [ERROR] cycle node is detected")
-                    temp_goal = goal_inside[node.sorted_id]
-                    print(g.node.sorted_id)
-                    print(node)
-                    print(node.sorted_id)
-                    print(temp_goal)
-                    quit()
-                elif len(temp_goal["template"]) > 0:
-                    # tensor
-
-                    temp_goal_inside = temp_goal["inside"]
-                    temp_goal_template = temp_goal["template"]
-                    if temp_goal["batch_flag"]:
-                        path_batch_flag = True
-                    node_inside.append(temp_goal_inside)
-                    node_template.append(temp_goal_template)
-                else:  # scalar
-                    node_scalar_inside.append(temp_goal["inside"])
-            ## building template and inside for all elements (switches and nodes) in the path
-            sw_node_template = sw_template + node_template
-            sw_node_inside = sw_inside + node_inside
-            path_v = sorted(zip(sw_node_template, sw_node_inside), key=lambda x: x[0])
-            template = [x[0] for x in path_v]
-            inside = [x[1] for x in path_v]
-            # constructing einsum operation using template and inside
-            out_template = compute_output_template(template)
-            # print(template,out_template)
-            out_inside = prob_sw_inside
-            if len(template) > 0:  # condition for einsum
-                lhs = ",".join(map(lambda x: "".join(x), template))
-                rhs = "".join(out_template)
-                if path_batch_flag:
-                    rhs = "b" + rhs
-                    out_template = ["b"] + out_template
-                einsum_eq = lhs + "->" + rhs
-                print("  index:", einsum_eq)
-                print("  var. :", inside)
-                out_inside = tf.einsum(einsum_eq, *inside) * out_inside
-            for scalar_inside in node_scalar_inside:
-                out_inside = scalar_inside * out_inside
-            ## computing operaters
-            for op in path.operators:
-                print("  operator:", op.name)
-                cls = operator_loader.get_operator(op.name)
-                # print(">>>",op.values)
-                # print(">>>",cls)
-                op_obj = cls(op.values)
-                out_inside = op_obj.call(out_inside)
-                out_template = op_obj.get_output_template(out_template)
+                if len(sw_node_template) > 0:  # condition for einsum
+                    if path_batch_flag:
+                        out_template = ["b"] + out_template
+                ## computing operaters
+                for op in path.operators:
+                    cls = operator_loader.get_operator(op.name)
+                    op_obj = cls(op.values)
+                    out_template = op_obj.get_output_template(out_template)
+                path_template.append(out_template)
+                path_shape.append(out_shape)
+                ##
             ##
-            path_inside.append(out_inside)
-            path_template.append(out_template)
-            ##
+            path_template_list = self.get_unique_list(path_template)
+            path_shape = self.unify_shapes(path_shape)
+            if len(path_template_list) == 0:
+                goal_template[i] = {
+                    "template": [],
+                    "batch_flag": False,
+                    "shape": path_shape,
+                }
+            else:
+                if len(path_template_list) != 1:
+                    print("[WARNING] missmatch indices:", path_template_list)
+                goal_template[i] = {
+                    "template": path_template_list[0],
+                    "batch_flag": path_batch_flag,
+                    "shape": path_shape,
+                }
         ##
-        path_template_list = get_unique_list(path_template)
+        return goal_template, cycle_node
 
-        if len(path_template_list) == 0:
-            goal_inside[i] = {
-                "template": [],
-                "inside": np.array(1),
-                "batch_flag": False,
-            }
-        else:
-            if len(path_template_list) != 1:
-                print("[WARNING] missmatch indices:", path_template_list)
-            goal_inside[i] = {
-                "template": path_template_list[0],
-                "inside": tf.reduce_sum(tf.stack(path_inside), axis=0),
-                "batch_flag": path_batch_flag,
-            }
-    return goal_inside
+
+    def build_explanation_graph(self, graph, tensor_provider, cycle_embedding_generator=None):
+        tensor_embedding = tensor_provider.tensor_embedding
+        operator_loader = OperatorLoader()
+        operator_loader.load_all("op")
+        goal_template, cycle_node = self.build_explanation_graph_template(
+            graph, tensor_provider, operator_loader
+        )
+        # goal_template
+        # converting explanation graph to computational graph
+        goal_inside = [None] * len(graph.goals)
+        for i in range(len(graph.goals)):
+            g = graph.goals[i]
+            print(
+                "=== tensor equation (node_id:%d, %s) ==="
+                % (g.node.sorted_id, g.node.goal.name)
+            )
+            self.path_inside = []
+            self.path_template = []
+            path_batch_flag = False
+            for path in g.paths:
+                ## build template and inside for switches in the path
+                sw_template = []
+                sw_inside = []
+                for sw in path.tensor_switches:
+                    ph = tensor_provider.get_placeholder_name(sw.name)
+                    if len(ph) > 0:
+                        sw_template.append(["b"] + list(sw.values))
+                        path_batch_flag = True
+                    else:
+                        sw_template.append(list(sw.values))
+                    sw_var = tensor_embedding[sw.name]
+                    sw_inside.append(sw_var)
+                    tf.add_to_collection(
+                        tf.GraphKeys.REGULARIZATION_LOSSES, tf.nn.l2_loss(sw_var)
+                    )
+                prob_sw_inside = 1.0
+                for sw in path.prob_switches:
+                    prob_sw_inside *= sw.inside
+
+                ## building template and inside for nodes in the path
+                node_template = []
+                node_inside = []
+                node_scalar_inside = []
+                for node in path.nodes:
+                    temp_goal = goal_inside[node.sorted_id]
+
+                    if node.sorted_id in cycle_node:
+                        name = node.goal.name
+                        template = goal_template[node.sorted_id]["template"]
+                        shape = goal_template[node.sorted_id]["shape"]
+                        # shape=cycle_embedding_generator.template2shape(template)
+                        temp_goal_inside = cycle_embedding_generator.get_embedding(
+                            name, shape, node.sorted_id
+                        )
+                        temp_goal_template = template
+                        node_inside.append(temp_goal_inside)
+                        node_template.append(temp_goal_template)
+                    elif temp_goal is None:
+                        print("  [ERROR] cycle node is detected")
+                        temp_goal = goal_inside[node.sorted_id]
+                        print(g.node.sorted_id)
+                        print(node)
+                        print(node.sorted_id)
+                        print(temp_goal)
+                        quit()
+                    elif len(temp_goal["template"]) > 0:
+                        # tensor
+                        temp_goal_inside = temp_goal["inside"]
+                        temp_goal_template = temp_goal["template"]
+                        if temp_goal["batch_flag"]:
+                            path_batch_flag = True
+                        node_inside.append(temp_goal_inside)
+                        node_template.append(temp_goal_template)
+                    else:  # scalar
+                        node_scalar_inside.append(temp_goal["inside"])
+                ## building template and inside for all elements (switches and nodes) in the path
+                sw_node_template = sw_template + node_template
+                sw_node_inside = sw_inside + node_inside
+                path_v = sorted(zip(sw_node_template, sw_node_inside), key=lambda x: x[0])
+                template = [x[0] for x in path_v]
+                inside = [x[1] for x in path_v]
+                # constructing einsum operation using template and inside
+                out_template = self.compute_output_template(template)
+                # print(template,out_template)
+                out_inside = prob_sw_inside
+                if len(template) > 0:  # condition for einsum
+                    lhs = ",".join(map(lambda x: "".join(x), template))
+                    rhs = "".join(out_template)
+                    if path_batch_flag:
+                        rhs = "b" + rhs
+                        out_template = ["b"] + out_template
+                    einsum_eq = lhs + "->" + rhs
+                    print("  index:", einsum_eq)
+                    print("  var. :", inside)
+                    out_inside = tf.einsum(einsum_eq, *inside) * out_inside
+                for scalar_inside in node_scalar_inside:
+                    out_inside = scalar_inside * out_inside
+                ## computing operaters
+                for op in path.operators:
+                    print("  operator:", op.name)
+                    cls = operator_loader.get_operator(op.name)
+                    # print(">>>",op.values)
+                    # print(">>>",cls)
+                    op_obj = cls(op.values)
+                    out_inside = op_obj.call(out_inside)
+                    out_template = op_obj.get_output_template(out_template)
+                ##
+                self.path_inside.append(out_inside)
+                self.path_template.append(out_template)
+                ##
+            ##
+            path_template_list = self.get_unique_list(self.path_template)
+
+            if len(path_template_list) == 0:
+                goal_inside[i] = {
+                    "template": [],
+                    "inside": np.array(1),
+                    "batch_flag": False,
+                }
+            else:
+                if len(path_template_list) != 1:
+                    print("[WARNING] missmatch indices:", path_template_list)
+                goal_inside[i] = {
+                    "template": path_template_list[0],
+                    "inside": tf.reduce_sum(tf.stack(self.path_inside), axis=0),
+                    "batch_flag": path_batch_flag,
+                }
+        return goal_inside
 
 
 class SwitchTensor:
     def __init__(self, sw_name):
         self.name = sw_name
-        self.placeholder_names = self.get_placeholder_name(sw_name)
-        self.vocab_name = self.get_vocab_name(sw_name)
-        self.var_name = self.make_var_name(sw_name)
         self.shape_set = set([])
+        self.value =None
+        self.placeholder_names = self.get_placeholder_name(sw_name)
+        self.vocab_name = self.make_vocab_name(sw_name)
+        self.var_name = self.make_var_name(sw_name)
 
     def enabled_placeholder(self):
         return len(self.placeholder_names) == 0
@@ -607,7 +619,11 @@ class SwitchTensor:
         names = [el.group(1) for el in m]
         return names
 
-    def get_vocab_name(self, name):
+    def make_vocab_name(self, name):
+        m=re.match(r'^tensor\(get\((.*),([0-9]*)\)\)$',name)
+        if m:
+            name="tensor("+m.group(1)+")"
+            self.value =int(m.group(2))
         pattern = r"\$(placeholder[0-9]+)\$"
         m = re.sub(pattern, "", name)
         return self.make_var_name(m)
@@ -700,12 +716,7 @@ class VocabSet:
         # vocab name => vocab group index
         self.vocab_values = None
         # vocab name => a set of placeholder names
-        self.vocab_ph = None
-        # vocab_group index => a list of values
-        self.vocab_group_values = None
-        # (vocab_group index, value) => value index i
-        self.group_value_index = None
-        pass
+        self.vocab_index = None
 
     def build(self, vocab_ph, ph_values):
         vocab_values = {}
@@ -732,14 +743,18 @@ class VocabSet:
             return 0
 
     def get_values(self, vocab_name):
-        v = self.vocab_values[vocab_name]
-        return v
+        if vocab_name not in self.vocab_values:
+            return None
+        return self.vocab_values[vocab_name]
 
 
 
 class SwitchTensorProvider:
     def __init__(self):
         pass
+
+    def get_tensor_embedding(self):
+        return self.tensor_embedding
 
     def get_placeholder_name(self, name):
         return self.sw_info[name].placeholder_names
@@ -812,7 +827,6 @@ class SwitchTensorProvider:
         # vocab_shape: vocab_name => shape
         ph_vocab = {ph_name: set() for ph_name in ph_values.keys()}
         vocab_ph = {sw.vocab_name: set() for sw in sw_info.values()}
-        print([sw.vocab_name for sw in sw_info.values()])
         vocab_shape = {sw.vocab_name: set() for sw in sw_info.values()}
         for sw_name, sw in sw_info.items():
             ## build vocab. shape
@@ -848,6 +862,7 @@ class SwitchTensorProvider:
         initializer = tf.contrib.layers.xavier_initializer()
         for vocab_name, shapes in vocab_shape.items():
             values = vocab_set.get_values(vocab_name)
+            ## 
             if len(shapes) == 1:
                 shape = list(shapes)[0]
                 if values is not None:
@@ -858,13 +873,13 @@ class SwitchTensorProvider:
             else:
                 shape = sorted(list(shapes), key=lambda x: len(x), reverse=True)[0]
                 s = list(shape)
-            var_name = vocab_name
+            ##
             if embedding_generator and embedding_generator.is_dataset_embedding(vocab_name):
-                print(">> dataset >>", var_name, ":", s)
-                pass
-            elif var_name[:14] == "tensor_onehot_":
-                print(">> onehot>>", var_name, ":", s)
-                m = re.match(r"tensor_onehot_([\d]*)_", var_name)
+                dataset_shape=embedding_generator.get_dataset_shape(vocab_name)
+                print(">> dataset >>", vocab_name, ":",dataset_shape,"=>", s)
+            elif vocab_name[:14] == "tensor_onehot_":
+                print(">> onehot>>", vocab_name, ":", s)
+                m = re.match(r"tensor_onehot_([\d]*)_", vocab_name)
                 if m:
                     d = int(m.group(1))
                     if len(s) == 1:
@@ -876,9 +891,9 @@ class SwitchTensorProvider:
                     print("[ERROR]")
                 vocab_var[vocab_name] = var
             else:
-                print(">> variable>>", var_name, ":", s)
+                print(">> variable>>", vocab_name, ":", s)
                 var = tf.get_variable(
-                    var_name, shape=s, initializer=initializer, dtype=dtype
+                    vocab_name, shape=s, initializer=initializer, dtype=dtype
                 )
                 vocab_var[vocab_name] = var
         # converting PRISM switches to Tensorflow Variables
@@ -892,8 +907,15 @@ class SwitchTensorProvider:
                 if embedding_generator and embedding_generator.is_dataset_embedding(vocab_name):
                     # dataset without placeholder
                     shape = list(list(sw.shape_set)[0])
-                    var = embedding_generator.get_embedding(vocab_name, shape)
-                    tensor_embedding[sw_name] = var
+                    if sw.value is None:
+                        var = embedding_generator.get_embedding(vocab_name, shape)
+                        tensor_embedding[sw_name] = var
+                    else:
+                        var = embedding_generator.get_embedding(vocab_name)
+                        print((vocab_name,":", var.shape,"=>",shape))
+                        index=vocab_set.get_values_index(vocab_name, sw.value)
+                        print(index,sw.value)
+                        tensor_embedding[sw_name] = var[sw.value] # TODO
                 else:
                     # trainig variable without placeholder
                     var = vocab_var[vocab_name]

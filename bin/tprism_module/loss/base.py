@@ -78,9 +78,8 @@ class Nll(BaseLoss):
         output = []
         gamma = 1.00
 
-        beta = 1.0
+        beta = 1.0e-4
         reg_losses = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
-        print(reg_losses)
         reg_loss = beta * tf.reduce_mean(reg_losses)
         for rank_root in graph.root_list:
             goal_ids = [el.sorted_id for el in rank_root.roots]
@@ -136,7 +135,7 @@ class Ce(BaseLoss):
             for sid in goal_ids:
                 # print(graph.expl[sid])
                 label = int(graph.goals[sid].node.goal.args[0])
-                l1 = goal_inside[sid]["inside"]
+                l1 = goal_inside[sid]["inside"]+1.0e-5
                 lo = tf.nn.sparse_softmax_cross_entropy_with_logits(
                     labels=label, logits=l1
                 )
