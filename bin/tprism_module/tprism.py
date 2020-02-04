@@ -538,8 +538,7 @@ def run_display(args):
     print(obj.vocab_group)
     ##
 
-
-if __name__ == "__main__":
+def main():
     # set random seed
     seed = 1234
     np.random.seed(seed)
@@ -652,3 +651,5 @@ if __name__ == "__main__":
                 run_train_cv(g, sess, args)
             if args.mode == "show":
                 run_display(args)
+if __name__ == "__main__":
+    main()

@@ -247,7 +247,6 @@ class ComputationalExplGraph:
 
 
     def build_explanation_graph_template(self, graph, tensor_provider, operator_loader=None, cycle_node=[]):
-        tensor_embedding = tensor_provider.tensor_embedding
         # checking template
         goal_template = [None] * len(graph.goals)
         for i in range(len(graph.goals)):
@@ -328,7 +327,6 @@ class ComputationalExplGraph:
 
 
     def build_explanation_graph(self, graph, tensor_provider, cycle_embedding_generator=None):
-        tensor_embedding = tensor_provider.tensor_embedding
         operator_loader = OperatorLoader()
         operator_loader.load_all("op")
         goal_template, cycle_node = self.build_explanation_graph_template(
@@ -336,6 +334,7 @@ class ComputationalExplGraph:
         )
         # goal_template
         # converting explanation graph to computational graph
+        tensor_embedding = tensor_provider.tensor_embedding
         goal_inside = [None] * len(graph.goals)
         for i in range(len(graph.goals)):
             g = graph.goals[i]
@@ -496,10 +495,10 @@ class SwitchTensor:
 
 class VocabSet:
     def __init__(self):
-        # vocab name => vocab group index
+        # vocab name => a list of values
         self.vocab_values = None
-        # vocab name => a set of placeholder names
-        self.vocab_index = None
+        # vocab name, value => index
+        self.value_index = None
 
     def build_from_ph(self, ph_graph):
         vocab_ph=ph_graph.vocab_ph
