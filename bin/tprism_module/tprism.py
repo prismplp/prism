@@ -307,10 +307,11 @@ def build_goal_dataset(input_data, tensor_provider):
         for i, ph_name in enumerate(ph_names):
             rec = d["records"]
             if tensor_provider.is_convertable_value(ph_name):
+                print("[INFO]",ph_name,"converted!!")
                 dataset[i] = to_index_func(rec[:, i], ph_name)
             else:  # goal placeholder
                 dataset[i] = rec[:, i]
-                print("[WARN] no conversion from values to indices")
+                print("[WARN] no conversion from values to indices:", ph_name)
                 print("goal_placeholder?")
                 print(rec.shape)
                 print(ph_name)
