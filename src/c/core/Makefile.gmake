@@ -16,6 +16,6 @@ clean:
 
 include Makefile.files
 
-.PHONY: all install cloean
+.PHONY: all install clean
 
 ##----------------------------------------------------------------------
