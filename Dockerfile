@@ -14,12 +14,19 @@ RUN apt-get update -y && \
     apt-get install -y expect && \
     cd prism/ && \
     apt-get install -y make build-essential libhdf5-dev pkg-config libprotobuf-dev protobuf-compiler && \
+    apt-get install -y cmake && \
     apt-get clean && \
     cd src/c/external/ && \
     sh ./generate.sh && \
     cd ../ && \
-    make -f Makefile.gmake && \
-    make -f Makefile.gmake install && \
+    # make -f Makefile.gmake && \
+    # make -f Makefile.gmake install && \
+    mkdir cmake && \
+    cd cmake && \
+    cmake .. && \
+    cmake --build . && \
+    cmake --build . --target install && \
+    cd ../ && \
     cd ../prolog/ && \
     make && \
     make install
@@ -32,4 +39,3 @@ RUN cd ~/ && \
 
 RUN python -V && \
     pip install graphviz tensorflow
-
