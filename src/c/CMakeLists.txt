@@ -17,15 +17,58 @@ pkg_check_modules(PROTOBUF protobuf REQUIRED)
 link_directories(${PROTOBUF_LIBRARY_DIRS})
 include_directories(${PROTOBUF_INCLUDE_DIRS})
 
-add_executable(prism_up_linux.bin core/glue.c core/bpx.c core/idtable.c
- core/idtable_preds.c core/termpool.c core/vector.c core/random.c core/gamma.c
- core/xmalloc.c core/fputil.c core/error.c up/graph.c up/graph_aux.c up/em_preds.c
- up/em_ml.c up/em_vb.c up/em_aux.c up/em_aux_ml.c up/em_aux_vb.c up/vt_preds.c
- up/vt_ml.c up/vt_vb.c up/vt_aux_ml.c up/vt_aux_vb.c up/mcmc_preds.c
- up/mcmc_sample.c up/mcmc_eml.c up/mcmc_predict.c up/mcmc_exact.c up/viterbi.c
- up/hindsight.c up/flags.c up/crf_learn.c up/crf_viterbi.c up/crf_rank.c up/util.c
- up/linear_eq.cpp up/lbfgs.c up/scc.cpp up/nonlinear_eq.cpp up/cyc_em.cpp up/cyc_vt_preds.c
-up/cyc_vt_ml.cpp up/rank.cpp up/save_expl_graph.cpp external/expl.pb.cc up/tensor_preds.cpp up/sgd.cpp bp4prism/lib/bp4prism-linux.a)
+add_executable(prism_up_linux.bin
+  core/glue.c
+  core/bpx.c
+  core/idtable.c
+  core/idtable_preds.c
+  core/termpool.c
+  core/vector.c
+  core/random.c
+  core/gamma.c
+  core/xmalloc.c
+  core/fputil.c
+  core/error.c
+
+  up/graph.c
+  up/graph_aux.c
+  up/em_preds.c
+  up/em_ml.c
+  up/em_vb.c
+  up/em_aux.c
+  up/em_aux_ml.c
+  up/em_aux_vb.c
+  up/vt_preds.c
+  up/vt_ml.c
+  up/vt_vb.c
+  up/vt_aux_ml.c
+  up/vt_aux_vb.c
+  up/mcmc_preds.c
+  up/mcmc_sample.c
+  up/mcmc_eml.c
+  up/mcmc_predict.c
+  up/mcmc_exact.c
+  up/viterbi.c
+  up/hindsight.c
+  up/flags.c
+  up/crf_learn.c
+  up/crf_viterbi.c
+  up/crf_rank.c
+  up/util.c
+  up/linear_eq.cpp
+  up/lbfgs.c
+  up/scc.cpp
+  up/nonlinear_eq.cpp
+  up/cyc_em.cpp
+  up/cyc_vt_preds.c
+  up/cyc_vt_ml.cpp
+  up/rank.cpp
+  up/save_expl_graph.cpp
+  up/tensor_preds.cpp
+  up/sgd.cpp
+
+  external/expl.pb.cc
+)
 
 # set_property(TARGET prism_up_linux.bin PROPERTY POSITION_INDEPENDENT_CODE FALSE)
 target_compile_options(prism_up_linux.bin PUBLIC -fomit-frame-pointer -fno-strict-aliasing -Wall -DMALLOC_TRACE -DLINUX -DPOSIX -Dunix -DM64BITS -m64)
