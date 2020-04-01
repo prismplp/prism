@@ -10,12 +10,13 @@ project(prism_up_linux.bin)
 # check_pie_supported()
 
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(HDF5 hdf5-serial REQUIRED)
+find_package(HDF5 REQUIRED)
+# pkg_check_modules(HDF5 hdf5-serial REQUIRED)
 link_directories(${HDF5_LIBRARY_DIRS})
 include_directories(${HDF5_INCLUDE_DIRS})
 pkg_check_modules(PROTOBUF protobuf REQUIRED)
-# link_directories(${PROTOBUF_LIBRARY_DIRS})
-# include_directories(${PROTOBUF_INCLUDE_DIRS})
+link_directories(${PROTOBUF_LIBRARY_DIRS})
+include_directories(${PROTOBUF_INCLUDE_DIRS})
 
 add_executable(prism_up_linux.bin
   core/glue.c
@@ -71,9 +72,11 @@ add_executable(prism_up_linux.bin
 )
 
 # set_property(TARGET prism_up_linux.bin PROPERTY POSITION_INDEPENDENT_CODE FALSE)
-target_compile_options(prism_up_linux.bin PUBLIC -fomit-frame-pointer -fno-strict-aliasing -Wall -m64)
+# target_compile_options(prism_up_linux.bin PUBLIC -fomit-frame-pointer -fno-strict-aliasing -Wall -m64)
+target_compile_options(prism_up_linux.bin PUBLIC -fomit-frame-pointer -fno-strict-aliasing -Wall -arch x86_64 -mmacosx-version-min=10.4)
 target_compile_features(prism_up_linux.bin PUBLIC cxx_std_11)
-target_compile_definitions(prism_up_linux.bin PUBLIC MALLOC_TRACE LINUX POSIX unix M64BITS)
+# target_compile_definitions(prism_up_linux.bin PUBLIC MALLOC_TRACE LINUX POSIX unix M64BITS)
+target_compile_definitions(prism_up_linux.bin PUBLIC DARWIN)
 
 target_include_directories(prism_up_linux.bin
   PUBLIC
@@ -83,6 +86,10 @@ target_include_directories(prism_up_linux.bin
   ./up
   )
 
-target_link_libraries(prism_up_linux.bin PUBLIC m pthread hdf5_cpp ${HDF5_LIBRARIES} ${PROTOBUF_LIBRARIES} /prism/src/c/bp4prism/lib/bp4prism-linux.a -m64 -no-pie)
+message(${PROTOBUF_LIBRARIES})
+message(${PROTOBUF_LIBRARY_DIRS})
+message(${PROTOBUF_INCLUDE_DIRS})
+# target_link_libraries(prism_up_linux.bin PUBLIC m pthread hdf5_cpp ${HDF5_LIBRARIES} ${PROTOBUF_LIBRARIES} /prism/src/c/bp4prism/lib/bp4prism-linux.a -m64 -no-pie)
+target_link_libraries(prism_up_linux.bin PUBLIC m pthread hdf5_cpp ${HDF5_LIBRARIES} ${PROTOBUF_LIBRARIES} /prism/src/c/bp4prism/lib/bp4prism-linux.a -arch x86_64 -mmacosx-version-min=10.4)
 
 install(TARGETS prism_up_linux.bin RUNTIME DESTINATION /prism/bin)
