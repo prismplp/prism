@@ -72,7 +72,8 @@ add_executable(prism_up_linux.bin
 
 # set_property(TARGET prism_up_linux.bin PROPERTY POSITION_INDEPENDENT_CODE FALSE)
 target_compile_options(prism_up_linux.bin PUBLIC -fomit-frame-pointer -fno-strict-aliasing -Wall -m64)
-target_compile_features(prism_up_linux.bin PUBLIC cxx_std_11)
+# target_compile_features(prism_up_linux.bin PUBLIC cxx_std_11)
+set(CMAKE_CXX_STANDARD 11)
 target_compile_definitions(prism_up_linux.bin PUBLIC MALLOC_TRACE LINUX POSIX unix M64BITS)
 
 target_include_directories(prism_up_linux.bin
@@ -83,6 +84,7 @@ target_include_directories(prism_up_linux.bin
   ./up
   )
 
-target_link_libraries(prism_up_linux.bin PUBLIC m pthread hdf5_cpp ${HDF5_LIBRARIES} ${PROTOBUF_LIBRARIES} /prism/src/c/bp4prism/lib/bp4prism-linux.a -m64 -no-pie)
+set(BP4PRISM_LINUX ${CMAKE_SOURCE_DIR}/bp4prism/lib/bp4prism-linux.a)
+target_link_libraries(prism_up_linux.bin PUBLIC m pthread hdf5_cpp ${HDF5_LIBRARIES} ${PROTOBUF_LIBRARIES} ${BP4PRISM_LINUX} -m64 -no-pie)
 
-install(TARGETS prism_up_linux.bin RUNTIME DESTINATION /prism/bin)
+install(TARGETS prism_up_linux.bin RUNTIME DESTINATION ${CMAKE_SOURCE_DIR}/../../bin)
