@@ -4,7 +4,12 @@
 
 cmake_minimum_required(VERSION 2.8)
 
-project(prism_up_linux.bin)
+# set(CMAKE_CXX_COMPILER "clang++")
+# set(CMAKE_C_COMPILER "clang")
+set(CMAKE_CXX_FLAGS "-stdlib=libc++ -std=c++11 -DGOOGLE_PROTOBUF_NO_THREADLOCAL -Wno-c++11-narrowing")
+
+# project(prism_up_linux.bin)
+project(prism_up_darwin.bin)
 
 # include(CheckPIESupported)
 # check_pie_supported()
@@ -18,7 +23,7 @@ pkg_check_modules(PROTOBUF protobuf REQUIRED)
 link_directories(${PROTOBUF_LIBRARY_DIRS})
 include_directories(${PROTOBUF_INCLUDE_DIRS})
 
-add_executable(prism_up_linux.bin
+add_executable(prism_up_darwin.bin
   core/glue.c
   core/bpx.c
   core/idtable.c
@@ -73,23 +78,24 @@ add_executable(prism_up_linux.bin
 
 # set_property(TARGET prism_up_linux.bin PROPERTY POSITION_INDEPENDENT_CODE FALSE)
 # target_compile_options(prism_up_linux.bin PUBLIC -fomit-frame-pointer -fno-strict-aliasing -Wall -m64)
-target_compile_options(prism_up_linux.bin PUBLIC -fomit-frame-pointer -fno-strict-aliasing -Wall -arch x86_64 -mmacosx-version-min=10.4)
-target_compile_features(prism_up_linux.bin PUBLIC cxx_std_11)
+target_compile_options(prism_up_darwin.bin PUBLIC -fomit-frame-pointer -fno-strict-aliasing -Wall -arch x86_64 -mmacosx-version-min=10.7)
+# target_compile_features(prism_up_linux.bin PUBLIC cxx_std_11)
 # target_compile_definitions(prism_up_linux.bin PUBLIC MALLOC_TRACE LINUX POSIX unix M64BITS)
-target_compile_definitions(prism_up_linux.bin PUBLIC DARWIN)
+target_compile_definitions(prism_up_darwin.bin PUBLIC DARWIN)
+target_link_options(prism_up_darwin.bin PUBLIC -arch x86_64)
 
-target_include_directories(prism_up_linux.bin
+target_include_directories(prism_up_darwin.bin
   PUBLIC
   ./bp4prism/include
   ./
   ./resource
   ./up
+  # /Library/Developer/CommandLineTools/usr/include/c++/v1
   )
 
-message(${PROTOBUF_LIBRARIES})
-message(${PROTOBUF_LIBRARY_DIRS})
-message(${PROTOBUF_INCLUDE_DIRS})
 # target_link_libraries(prism_up_linux.bin PUBLIC m pthread hdf5_cpp ${HDF5_LIBRARIES} ${PROTOBUF_LIBRARIES} /prism/src/c/bp4prism/lib/bp4prism-linux.a -m64 -no-pie)
-target_link_libraries(prism_up_linux.bin PUBLIC m pthread hdf5_cpp ${HDF5_LIBRARIES} ${PROTOBUF_LIBRARIES} /prism/src/c/bp4prism/lib/bp4prism-linux.a -arch x86_64 -mmacosx-version-min=10.4)
+# set(BP4PRISM_LINUX ${CMAKE_SOURCE_DIR}/bp4prism/lib/bp4prism-linux.a)
+set(BP4PRISM_LINUX ${CMAKE_SOURCE_DIR}/bp4prism/lib/bp4prism-darwin.a)
+target_link_libraries(prism_up_darwin.bin PUBLIC m pthread hdf5_cpp ${HDF5_LIBRARIES} ${PROTOBUF_LIBRARIES} ${BP4PRISM_LINUX} -mmacosx-version-min=10.7)
 
-install(TARGETS prism_up_linux.bin RUNTIME DESTINATION /prism/bin)
+install(TARGETS prism_up_darwin.bin RUNTIME DESTINATION ${CMAKE_SOURCE_DIR}/../../bin)
