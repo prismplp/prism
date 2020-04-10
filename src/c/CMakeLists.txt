@@ -6,7 +6,8 @@ cmake_minimum_required(VERSION 2.8)
 
 # set(CMAKE_CXX_COMPILER "clang++")
 # set(CMAKE_C_COMPILER "clang")
-set(CMAKE_CXX_FLAGS "-stdlib=libc++ -std=c++11 -Wno-c++11-narrowing")
+set(CMAKE_CXX_FLAGS "-stdlib=libc++")
+set (CMAKE_CXX_STANDARD 11)
 
 # project(prism_up_linux.bin)
 project(prism_up_darwin.bin)
@@ -78,7 +79,7 @@ add_executable(prism_up_darwin.bin
 
 # set_property(TARGET prism_up_linux.bin PROPERTY POSITION_INDEPENDENT_CODE FALSE)
 # target_compile_options(prism_up_linux.bin PUBLIC -fomit-frame-pointer -fno-strict-aliasing -Wall -m64)
-target_compile_options(prism_up_darwin.bin PUBLIC -fomit-frame-pointer -fno-strict-aliasing -Wall -arch x86_64 -mmacosx-version-min=10.7)
+target_compile_options(prism_up_darwin.bin PUBLIC -fomit-frame-pointer -fno-strict-aliasing -Wall -arch x86_64 -Wno-c++11-narrowing -mmacosx-version-min=10.7)
 # target_compile_features(prism_up_linux.bin PUBLIC cxx_std_11)
 # target_compile_definitions(prism_up_linux.bin PUBLIC MALLOC_TRACE LINUX POSIX unix M64BITS)
 target_compile_definitions(prism_up_darwin.bin PUBLIC DARWIN)
