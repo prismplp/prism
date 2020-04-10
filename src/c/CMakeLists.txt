@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 2.8)
 
 # set(CMAKE_CXX_COMPILER "clang++")
 # set(CMAKE_C_COMPILER "clang")
-set(CMAKE_CXX_FLAGS "-stdlib=libc++ -std=c++11 -DGOOGLE_PROTOBUF_NO_THREADLOCAL -Wno-c++11-narrowing")
+set(CMAKE_CXX_FLAGS "-stdlib=libc++ -std=c++11 -Wno-c++11-narrowing")
 
 # project(prism_up_linux.bin)
 project(prism_up_darwin.bin)
