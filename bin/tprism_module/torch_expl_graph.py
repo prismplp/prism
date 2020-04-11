@@ -36,8 +36,15 @@ class TorchComputationalExplGraph(ComputationalExplGraph):
         self.operator_loader=operator_loader
         self.goal_template=goal_template
         self.cycle_node=cycle_node
+        self.graph=graph
+        self.tensor_provider=tensor_provider
+        self.cycle_embedding_generator=cycle_embedding_generator
         
-    def forward(self, graph, tensor_provider, cycle_embedding_generator=None):
+    def forward(self):
+        verbose=False
+        graph=self.graph
+        tensor_provider=self.tensor_provider
+        cycle_embedding_generator=self.cycle_embedding_generator
         goal_template=self.goal_template
         cycle_node=self.cycle_node
         operator_loader=self.operator_loader
@@ -46,7 +53,7 @@ class TorchComputationalExplGraph(ComputationalExplGraph):
         goal_inside = [None] * len(graph.goals)
         for i in range(len(graph.goals)):
             g = graph.goals[i]
-            if False:
+            if verbose:
                 print(
                     "=== tensor equation (node_id:%d, %s) ==="
                     % (g.node.sorted_id, g.node.goal.name)
@@ -67,11 +74,6 @@ class TorchComputationalExplGraph(ComputationalExplGraph):
                         sw_template.append(list(sw.values))
                     sw_var = tensor_provider.get_embedding(sw.name)
                     sw_inside.append(sw_var)
-                    """
-                    tf.add_to_collection(
-                        tf.GraphKeys.REGULARIZATION_LOSSES, tf.nn.l2_loss(sw_var)
-                    )
-                    """
                 prob_sw_inside = 1.0
                 for sw in path.prob_switches:
                     prob_sw_inside *= sw.inside
@@ -129,7 +131,7 @@ class TorchComputationalExplGraph(ComputationalExplGraph):
                         rhs = "b" + rhs
                         out_template = ["b"] + out_template
                     einsum_eq = lhs + "->" + rhs
-                    if False:
+                    if verbose:
                         print("  index:", einsum_eq)
                         print("  var. :", inside)
                     out_inside = torch.einsum(einsum_eq, *inside) * out_inside
@@ -137,7 +139,7 @@ class TorchComputationalExplGraph(ComputationalExplGraph):
                     out_inside = scalar_inside * out_inside
                 ## computing operaters
                 for op in path.operators:
-                    if False:
+                    if verbose:
                         print("  operator:", op.name)
                     cls = operator_loader.get_operator(op.name)
                     # print(">>>",op.values)
@@ -172,19 +174,29 @@ class TorchSwitchTensorProvider(SwitchTensorProvider):
     def __init__(self):
         super().__init__()
 
+    # forward
     def get_embedding(self,name):
+        verbose=False
+        if verbose:
+            print("[INFO] get embedding:",name)
+        out=None
         if self.input_feed_dict is None:
-            return self.tensor_embedding[name]
+            out=self.tensor_embedding[name]
         elif type(name) is str:
             key=self.tensor_embedding[name]
             if type(key) is PlaceholderData:
-                return torch.tensor(self.input_feed_dict[key])
+                if verbose:
+                    print("==>",key.name)
+                out=torch.tensor(self.input_feed_dict[key])
             else:
-                return key
+                out=key
         elif type(name) is PlaceholderData:
-            return torch.tensor(self.input_feed_dict[name])
+            out=torch.tensor(self.input_feed_dict[name])
         else:
             raise Exception('Unknoen embedding', name)
+        if verbose:
+            print(out)
+        return out
 
 
 
@@ -249,12 +261,7 @@ class TorchSwitchTensorProvider(SwitchTensorProvider):
                 vocab_var[vocab_name] = var
             else:
                 print(">> variable>>", vocab_name, ":", var_type["shape"])
-                """
-                var = torch.Tensor(
-                    vocab_name, shape=var_type["shape"], initializer=initializer, dtype=dtype
-                )
-                """
-                var = torch.tensor(np.zeros(var_type["shape"],dtype=np.float32), requires_grad=True,dtype=dtype)
+                var = torch.tensor(np.random.normal(0,1,var_type["shape"]), requires_grad=True,dtype=dtype)
                 vocab_var[vocab_name] = var
         # converting PRISM switches to Tensorflow Variables
         # tensor_embedding: sw_name => tensor
@@ -277,9 +284,11 @@ class TorchSwitchTensorProvider(SwitchTensorProvider):
                         else:
                             print("ph_list==0 and value enbabled")
                             var = eg.get_embedding(vocab_name)
-                            print((vocab_name,":", var.shape,"=>",shape))
+                            if verbose:
+                                print((vocab_name,":", var.shape,"=>",shape))
                             index=vocab_set.get_values_index(vocab_name, sw.value)
-                            print(index,sw.value)
+                            if verbose:
+                                print(index,sw.value)
                             tensor_embedding[sw_name] = var[sw.value] # TODO
                 if not dataset_flag:
                     print("ph_list==0 and no dataset")
@@ -294,7 +303,9 @@ class TorchSwitchTensorProvider(SwitchTensorProvider):
                         # dataset with placeholder
                         print("ph_list==1 and dataset enabled")
                         shape = [batch_size] + list(list(sw.shape_set)[0])
-                        var = eg.get_embedding(vocab_name, shape)
+                        var = eg.get_embedding(vocab_name)
+                        #print(var)
+                        #var = eg.get_embedding(vocab_name, shape)
                         tensor_embedding[sw_name] = var
                 if not dataset_flag:
                     print("ph_list==1 and dataset disabled")

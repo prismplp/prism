@@ -55,7 +55,7 @@ upprism mnist.psm test
 ## Output: a numpy array file (the number of samples x the number of classes), mnist_output.npy, that 
 ##         contains predcted class scores for each test sample.
 ##
-tprism.py train \
+tprism train \
     --intermediate_data_prefix ./mnist_tmp/mnist. \
     --data ./mnist_tmp/mnist_data.train.h5    \
     --embedding ./mnist/mnist.h5 \
@@ -64,7 +64,7 @@ tprism.py train \
     --sgd_minibatch_size 1000    \
     --sgd_learning_rate 0.01
 
-tprism.py test \
+tprism test \
     --intermediate_data_prefix ./mnist_tmp/mnist. \
     --data ./mnist_tmp/mnist_data.test.h5     \
     --embedding ./mnist/mnist.h5 \

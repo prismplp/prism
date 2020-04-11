@@ -98,9 +98,9 @@ class DatasetEmbeddingGenerator(BaseEmbeddingGenerator):
         infh = h5py.File(filename, "r")
         if key in infh:
             for vocab_name in infh[key]:
-                rs = infh[key][vocab_name].value
+                rs = infh[key][vocab_name][()]
                 self.dataset[vocab_name] = rs
-                print("[LOAD VOCAB]", vocab_name)
+                print("[LOAD DatasetEmbedding]", vocab_name)
         infh.close()
 
     def is_embedding(self, vocab_name):
@@ -121,9 +121,9 @@ class DatasetEmbeddingGenerator(BaseEmbeddingGenerator):
             if shape is None:
                 shape=self.dataset[vocab_name].shape
             self.created_ph_var[ph_name] = PlaceholderData(
-                name=ph_name, shape=shape, dtype=torch.float32
+                name=ph_name, shape=shape, dtype=torch.float32, ref=vocab_name
             )
-            print("[CREATE]>", ph_name, ":", shape)
+            print("[CREATE]>", ph_name, ":", shape,"ref:",vocab_name)
             return self.created_ph_var[ph_name]
 
     def build_feed(self, feed_dict, idx):
@@ -132,7 +132,7 @@ class DatasetEmbeddingGenerator(BaseEmbeddingGenerator):
             batch_data = data[idx]
             if ph_name in self.created_ph_var:
                 ph_var = self.created_ph_var[ph_name]
-                feed_dict[ph_var] = batch_data
+                feed_dict[ph_var] = torch.Tensor(batch_data)
         return feed_dict
 
 # embedding data from data
@@ -149,7 +149,7 @@ class ConstEmbeddingGenerator(BaseEmbeddingGenerator):
             for vocab_name in infh[key]:
                 rs = infh[key][vocab_name].value
                 self.dataset[vocab_name] = rs
-                print("[LOAD VOCAB]", vocab_name)
+                print("[LOAD ConstEmbedding]", vocab_name)
         infh.close()
 
     def is_embedding(self, vocab_name):

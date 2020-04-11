@@ -19,8 +19,9 @@ import tprism_module.op.base
 import tprism_module.loss.base
 
 class PlaceholderData():
-    def __init__(self,name,shape=(),dtype=None):
+    def __init__(self,name,shape=(),dtype=None,ref=None):
         self.name=name
+        self.reference=ref
         self.shape=shape
         self.dtype=dtype
 
@@ -552,7 +553,7 @@ class SwitchTensorProvider:
                 if m:
                     d = int(m.group(1))
                     if len(s) == 1:
-                        var_type["type"]="onthot"
+                        var_type["type"]="onehot"
                         var_type["value"]=d
                         var_type["shape"]=s
                     else:

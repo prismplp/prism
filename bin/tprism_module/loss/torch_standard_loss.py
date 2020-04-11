@@ -14,19 +14,21 @@ class Nll(BaseLoss):
         output = []
         gamma = 1.00
 
-        beta = 1.0e-4
+        #beta = 1.0e-4
         #reg_losses = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
-        reg_loss = beta * torch.mean(reg_losses)
+        #reg_loss = beta * torch.mean(reg_losses)
         for rank_root in graph.root_list:
             goal_ids = [el.sorted_id for el in rank_root.roots]
+            o=[]
             for sid in goal_ids:
                 l1 = goal_inside[sid]["inside"]
                 nll = -1.0 * torch.log(l1 + 1.0e-10)
-                output.append(l1)
-            ll = torch.mean(output, dim=0)# + reg_loss
+                o.append(l1)
+            o=torch.stack(o)
+            ll = torch.mean(o, dim=0)
             loss.append(ll)
-        return loss, output
-
+            output.append(o)
+        return loss, output, None
 
 class Ce_pl2(BaseLoss):
     def __init__(self, parameters=None):
@@ -36,6 +38,7 @@ class Ce_pl2(BaseLoss):
     def call(self, graph, goal_inside, tensor_provider):
         loss = []
         output = []
+        label = []
         gamma = 1.00
         label_ph = tensor_provider.ph_var["$placeholder2$"]
         label_ph_var =tensor_provider.get_embedding(label_ph)
@@ -46,9 +49,12 @@ class Ce_pl2(BaseLoss):
             goal_ids = [el.sorted_id for el in rank_root.roots]
             for sid in goal_ids:
                 l1 = goal_inside[sid]["inside"]
-                lo = F.nll_loss(F.softmax(l1), label_ph_var)
+                #print(F.softmax(l1,dim=1).shape, label_ph_var.shape)
+                #lo = F.nll_loss(F.softmax(l1,dim=1), label_ph_var)
+                lo = F.nll_loss(F.log_softmax(l1,dim=1), label_ph_var)
                 loss.append(lo)
                 output.append(l1)
-        return loss, output
+                label.append(label_ph_var)
+        return loss, output, label
 
 

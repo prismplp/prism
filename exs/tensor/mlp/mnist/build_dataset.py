@@ -21,10 +21,10 @@ print(y_test.shape)
 
 with h5py.File("mnist.h5", 'w') as fp:
 	fp.create_group('train')
-	fp['train'].create_dataset('tensor_in_',data=X_train)
+	fp['train'].create_dataset('tensor_in_',data=X_train+0.1)
 	#fp['train'].create_dataset('label',data=y_train)
 	fp.create_group('test')
-	fp['test'].create_dataset('tensor_in_',data=X_test)
+	fp['test'].create_dataset('tensor_in_',data=X_test+0.1)
 	#fp['test'].create_dataset('label',data=y_test)
 
 fp=open("mnist.train.dat","w")

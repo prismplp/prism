@@ -18,6 +18,86 @@ import tprism_module.torch_expl_graph as torch_expl_graph
 #import tprism_module.draw_graph as draw_graph
 import tprism_module.torch_embedding_generator as embed_gen
 from  tprism_module.util import  to_string_goal, Flags, build_goal_dataset, split_goal_dataset
+from graphviz import Digraph
+import re
+import numpy as np
+import torch
+import torch.nn.functional as F
+import sklearn.metrics
+
+def make_dot(var, params):
+    """ Produces Graphviz representation of PyTorch autograd graph
+
+    Blue nodes are the Variables that require grad, orange are Tensors
+    saved for backward in torch.autograd.Function
+    Args:
+        var: output Variable
+        params: dict of (name, Variable) to add names to node that
+            require grad (TODO: make optional)
+    """
+    param_map = {id(v): k for k, v in params.items()}
+    print(param_map)
+
+    node_attr = dict(style='filled',
+                     shape='box',
+                     align='left',
+                     fontsize='12',
+                     ranksep='0.1',
+                     height='0.2')
+    dot = Digraph(node_attr=node_attr, graph_attr=dict(size="12,12"))
+    seen = set()
+
+    def size_to_str(size):
+        return '('+(', ').join(['%d'% v for v in size])+')'
+
+    def add_nodes(var):
+        if var not in seen:
+            if torch.is_tensor(var):
+                dot.node(str(id(var)), size_to_str(var.size()), fillcolor='orange')
+            elif hasattr(var, 'variable'):
+                u = var.variable
+                node_name = '%s\n %s' % (param_map.get(id(u)), size_to_str(u.size()))
+                dot.node(str(id(var)), node_name, fillcolor='lightblue')
+            else:
+                dot.node(str(id(var)), str(type(var).__name__))
+            seen.add(var)
+            if hasattr(var, 'next_functions'):
+                for u in var.next_functions:
+                    if u[0] is not None:
+                        dot.edge(str(id(u[0])), str(id(var)))
+                        add_nodes(u[0])
+            if hasattr(var, 'saved_tensors'):
+                for t in var.saved_tensors:
+                    dot.edge(str(id(t)), str(id(var)))
+                    add_nodes(t)
+    add_nodes(var.grad_fn)
+    return dot
+
+  
+def display_graph(y,name):
+  s=make_dot(y,{})
+  s.format = 'png'
+  s.render(name)
+
+class TprismEvaluator():
+    def __init__(self, goal_dataset):
+        self.total_loss = [0.0 for _ in range(len(goal_dataset))]
+    def init_batch(self):
+        self.all_output=[]
+        self.all_label=[]
+    def eval_batch(self,loss,output,label,j,num_itr):
+        """
+            This function is called the last of batch iteration
+              loss,output, label: return values of forward
+              j: goal index of iteration
+              num_itr:: number of iterations
+        """
+        v=loss[j].detach().numpy()
+        oo=torch.argmax(output[j],dim=1).detach().numpy()
+        ll=label[j].detach().numpy()
+        self.all_output.extend(oo)
+        self.all_label.extend(ll)
+        self.total_loss[j] += np.mean(v) / num_itr
 
 class TprismModel():
     def __init__(self, flags, options, graph, loss_cls):
@@ -85,34 +165,52 @@ class TprismModel():
                 pass
             prev_loss = loss
     
-    def fit_sgd(self):
-        loss=self.loss
+    def fit(self, input_data=None, verbose=False):
+        if input_data is None:
+            return self._fit_no_data()
+        else:
+            return self._fit(input_data, verbose)
+
+    def _fit_no_data(self):
         print("... training phase")
-        total_loss = tf.reduce_sum(loss)
-        optimizer = tf.train.AdamOptimizer(self.flags.sgd_learning_rate)
-        train = optimizer.minimize(total_loss)
-
+        params=self.tensor_provider.vocab_var.values()
+        for param in params:
+            print(param.name,param.shape)
+        optimizer=optim.Adam(params, self.flags.sgd_learning_rate, weight_decay=0.01)
         print("... initialization")
-        init = tf.global_variables_initializer()
-        self.sess.run(init)
-
-        print("... initializing generator")
-        saver = tf.train.Saver()
-        feed_dict = {}
-        for embedding_generator in self.embedding_generators:
-            if embedding_generator is not None:
-                feed_dict = embedding_generator.build_feed(feed_dict)
-        print("starting at", "loss:", self.sess.run(loss, feed_dict=feed_dict))
+        loss_cls = self.loss_cls()
+        print("... building explanation graph")
+        goal_inside = self.comp_expl_graph.build_explanation_graph(
+            self.graph, self.tensor_provider, self.cycle_embedding_generator
+        )
         for step in range(self.flags.max_iterate):
-            feed_dict = {}
-            for embedding_generator in self.embedding_generators:
-                if embedding_generator is not None:
-                    feed_dict = embedding_generator.build_feed(feed_dict)
-            self.sess.run(train, feed_dict=feed_dict)
-            print("step", step, "loss:", self.sess.run(total_loss, feed_dict=feed_dict))
-        print("[SAVE]", self.flags.model)
-        saver.save(self.sess, self.flags.model)
+            start_t = time.time()
+            # train
+            #print("... iteration")
+            goal_inside = self.comp_expl_graph.forward()
+            loss, output, label = loss_cls.call(self.graph, goal_inside, self.tensor_provider)
+            optimizer.zero_grad()
+            total_loss=torch.sum(torch.stack(loss),dim=0)
+            total_loss.backward()
+            optimizer.step()
 
+            #display_graph(output[j],'graph_pytorch')
+            total_loss_v=total_loss.detach().numpy()
+            if label is not None:
+                oo=torch.argmax(output,dim=1).detach().numpy()
+                ll=label[j].detach().numpy()
+
+            #train_acc=sklearn.metrics.accuracy_score(all_label,all_output)
+            train_time = time.time() - start_t
+            print(
+                ": step",
+                step,
+                "loss:",
+                total_loss_v,
+                #"train acc:",
+                #train_acc,
+            )
+            print("train time:{0}".format(train_time) + "[sec]")
 
     def _build_feed(self,ph_vars,dataset,idx):
         feed_dict = {
@@ -120,77 +218,84 @@ class TprismModel():
             for i, ph in enumerate(ph_vars)
             }
         return feed_dict
-
-    def fit(self, input_data):
+    
+    def _set_batch_input(self, goal, train_idx, j, itr):
+        batch_size = self.flags.sgd_minibatch_size
+        ph_vars = goal["placeholders"]
+        dataset = goal["dataset"]
+        feed_dict = self._build_feed(ph_vars,dataset,train_idx[j][itr * batch_size : (itr + 1) * batch_size])
+        #for k,v in feed_dict.items():
+        #    print(k,v.shape)
+        for embedding_generator in self.embedding_generators:
+            if embedding_generator is not None:
+                feed_dict = embedding_generator.build_feed(feed_dict,train_idx[j][itr * batch_size : (itr + 1) * batch_size])
+        self.tensor_provider.set_input(feed_dict)
         
+    def _fit(self, input_data, verbose):
         if input_data is not None:
             goal_dataset = build_goal_dataset(input_data, self.tensor_provider)
         else:
             goal_dataset = None
         print("... training phase")
         params=self.tensor_provider.vocab_var.values()
-        print([a.shape  for a in params])
-        optimizer=optim.Adam(params, 0.01)
+        for param in params:
+            print(param.name,param.shape)
+        optimizer=optim.Adam(params, self.flags.sgd_learning_rate, weight_decay=0.01)
         print("... initialization")
         best_valid_loss = [None for _ in range(len(goal_dataset))]
         stopping_step = 0
         batch_size = self.flags.sgd_minibatch_size
         train_idx,valid_idx=split_goal_dataset(goal_dataset)
         loss_cls = self.loss_cls()
+        print("... building explanation graph")
         goal_inside = self.comp_expl_graph.build_explanation_graph(
             self.graph, self.tensor_provider, self.cycle_embedding_generator
         )
         for step in range(self.flags.max_iterate):
             start_t = time.time()
-            total_train_loss = [0.0 for _ in range(len(goal_dataset))]
-            total_valid_loss = [0.0 for _ in range(len(goal_dataset))]
+            train_evaluator=TprismEvaluator(goal_dataset)
+            valid_evaluator=TprismEvaluator(goal_dataset)
             for j, goal in enumerate(goal_dataset):
                 # train
-                ph_vars = goal["placeholders"]
                 np.random.shuffle(train_idx[j])
                 num_itr = len(train_idx[j]) // batch_size
+                train_evaluator.init_batch()
                 ## one epoch
                 for itr in range(num_itr):
-                    feed_dict = self._build_feed(ph_vars,goal["dataset"],train_idx[j][itr * batch_size : (itr + 1) * batch_size])
-                    for embedding_generator in self.embedding_generators:
-                        if embedding_generator is not None:
-                            feed_dict = embedding_generator.build_feed(feed_dict,train_idx[j][itr * batch_size : (itr + 1) * batch_size])
-                    self.tensor_provider.set_input(feed_dict)
-                    goal_inside = self.comp_expl_graph.forward(
-                        self.graph, self.tensor_provider, self.cycle_embedding_generator
-                    )
-                    loss, output = loss_cls.call(self.graph, goal_inside, self.tensor_provider)
+                    self._set_batch_input(goal,train_idx, j, itr)
+                    goal_inside = self.comp_expl_graph.forward()
+                    loss, output, label = loss_cls.call(self.graph, goal_inside, self.tensor_provider)
+                    #display_graph(output[j],'graph_pytorch')
                     optimizer.zero_grad()
                     loss[j].backward()
                     optimizer.step()
-                    v=loss[j].detach().numpy()
-                    total_train_loss[j] += np.mean(v) / num_itr
+                    train_evaluator.eval_batch(loss,output,label,j,num_itr)
+                train_acc=sklearn.metrics.accuracy_score(train_evaluator.all_label,train_evaluator.all_output)
                 # valid
                 num_itr = len(valid_idx[j]) // batch_size
+                valid_evaluator.init_batch()
                 for itr in range(num_itr):
-                    feed_dict = self._build_feed(ph_vars,goal["dataset"],valid_idx[j][itr * batch_size : (itr + 1) * batch_size])
-                    for embedding_generator in self.embedding_generators:
-                        if embedding_generator is not None:
-                            feed_dict = embedding_generator.build_feed(feed_dict,valid_idx[j][itr * batch_size : (itr + 1) * batch_size])
-                    self.tensor_provider.set_input(feed_dict)
-                    goal_inside = self.comp_expl_graph.forward(
-                        self.graph, self.tensor_provider, self.cycle_embedding_generator
-                    )
-                    loss, output = loss_cls.call(self.graph, goal_inside, self.tensor_provider)
-                    v=loss[j].detach().numpy()
-                    total_valid_loss[j] += np.mean(v) / num_itr
-                #
+                    self._set_batch_input(goal,valid_idx, j, itr)
+                    goal_inside = self.comp_expl_graph.forward()
+                    loss, output,label = loss_cls.call(self.graph, goal_inside, self.tensor_provider)
+                    valid_evaluator.eval_batch(loss,output,label,j,num_itr)
+                ##
+                valid_acc=sklearn.metrics.accuracy_score(valid_evaluator.all_label,valid_evaluator.all_output)
                 print(
                     ": step",
                     step,
                     "train loss:",
-                    total_train_loss[j],
+                    train_evaluator.total_loss[j],
                     "valid loss:",
-                    total_valid_loss[j],
+                    valid_evaluator.total_loss[j],
+                    "train acc:",
+                    train_acc,
+                    "valid acc:",
+                    valid_acc,
                 )
                 #
-                if best_valid_loss[j] is None or best_valid_loss[j] > total_valid_loss[j]:
-                    best_valid_loss[j] = total_valid_loss[j]
+                if best_valid_loss[j] is None or best_valid_loss[j] > valid_evaluator.total_loss[j]:
+                    best_valid_loss[j] = valid_evaluator.total_loss[j]
                     stopping_step = 0
                 else:
                     stopping_step += 1
@@ -203,67 +308,51 @@ class TprismModel():
             print("train time:{0}".format(train_time) + "[sec]")
         print("[SAVE]", self.flags.model)
         #saver.save(self.sess, self.flags.model)
-
-    def pred(self, goal_dataset, loss, output):
-        total_goal_inside=None
-        start_t = time.time()
-        if goal_dataset is not None:
-            ### dataset is given (minibatch)
-            batch_size = self.flags.sgd_minibatch_size
-            total_loss = [[] for _ in range(len(goal_dataset))]
-            total_output = [[] for _ in range(len(goal_dataset))]
-            for j, goal in enumerate(goal_dataset):
-                ph_vars = goal["placeholders"]
-                dataset = goal["dataset"]
-                num = dataset.shape[1]
-                num_itr = (num + batch_size - 1) // batch_size
-                if not self.flags.no_verb:
-                    progbar = tf.keras.utils.Progbar(num_itr)
-                idx = list(range(num))
-                for itr in range(num_itr):
-                    temp_idx = idx[itr * batch_size : (itr + 1) * batch_size]
-                    if len(temp_idx) < batch_size:
-                        padding_idx = np.zeros((batch_size,), dtype=np.int32)
-                        padding_idx[: len(temp_idx)] = temp_idx
-                        temp_idx=padding_idx
-                    feed_dict = self._build_feed(ph_vars,dataset,temp_idx)
-                    for embedding_generator in self.embedding_generators:
-                        if embedding_generator is not None:
-                            feed_dict = embedding_generator.build_feed(feed_dict,temp_idx)
-                    batch_loss, batch_output = self.sess.run(
-                        [loss[j], output[j]], feed_dict=feed_dict
-                    )
-                    if not self.flags.no_verb:
-                        progbar.update(itr)
-                    # print(batch_output.shape)
-                    # batch_output=np.transpose(batch_output)
-                    total_loss[j].extend(batch_loss[: len(temp_idx)])
-                    total_output[j].extend(batch_output[: len(temp_idx)])
-                print("loss:", np.mean(total_loss[j]))
-                print("output:", np.array(total_output[j]).shape)
+    
+    def pred(self, input_data, verbose=False):
+        if input_data is not None:
+            goal_dataset = build_goal_dataset(input_data, self.tensor_provider)
         else:
-            total_loss = []
-            total_output = []
-            print("... initializing generator")
-            for j in range(len(loss)):
-                feed_dict = {}
-                for embedding_generator in self.embedding_generators:
-                    if embedding_generator is not None:
-                        feed_dict = embedding_generator.build_feed(feed_dict)
-                j_loss, j_output = self.sess.run([loss[j], output[j]], feed_dict=feed_dict)
-
-                total_loss.append(j_loss)
-                total_output.append(j_output)
-                ###
-            print("loss:", np.mean(total_loss))
-            print("output:", np.array(total_output).shape)
-            total_goal_inside = []
-            for g in goal_inside:
-                g_inside = self.sess.run([g['inside']], feed_dict=feed_dict)
-                total_goal_inside.append(g_inside[0])
-        test_time = time.time() - start_t
-        print("test time:{0}".format(test_time) + "[sec]")
-        return total_output, total_loss, total_goal_inside
+            goal_dataset = None
+        print("... training phase")
+        params=self.tensor_provider.vocab_var.values()
+        for param in params:
+            print(param.name,param.shape)
+        optimizer=optim.Adam(params, self.flags.sgd_learning_rate, weight_decay=0.01)
+        print("... initialization")
+        best_valid_loss = [None for _ in range(len(goal_dataset))]
+        stopping_step = 0
+        batch_size = self.flags.sgd_minibatch_size
+        train_idx,valid_idx=split_goal_dataset(goal_dataset)
+        loss_cls = self.loss_cls()
+        print("... building explanation graph")
+        goal_inside = self.comp_expl_graph.build_explanation_graph(
+            self.graph, self.tensor_provider, self.cycle_embedding_generator
+        )
+        print("... predicting")
+        start_t = time.time()
+        evaluator=TprismEvaluator(goal_dataset)
+        for j, goal in enumerate(goal_dataset):
+            # valid
+            num_itr = len(valid_idx[j]) // batch_size
+            evaluator.init_batch()
+            for itr in range(num_itr):
+                self._set_batch_input(goal,valid_idx, j, itr)
+                goal_inside = self.comp_expl_graph.forward()
+                loss, output,label = loss_cls.call(self.graph, goal_inside, self.tensor_provider)
+                evaluator.eval_batch(loss,output,label,j,num_itr)
+            ##
+            test_acc=sklearn.metrics.accuracy_score(evaluator.all_label,evaluator.all_output)
+            print(
+                "loss:",
+                evaluator.total_loss[j],
+                "acc:",
+                test_acc,
+            )
+        train_time = time.time() - start_t
+        print("train time:{0}".format(train_time) + "[sec]")
+        print("[SAVE]", self.flags.model)
+        #saver.save(self.sess, self.flags.model)
 
     def save_draw_graph(self, g, base_name):
         html = draw_graph.show_graph(g)
@@ -324,20 +413,19 @@ def run_training(args):
     model.build()
     model._set_data(input_data)
     start_t = time.time()
-    model.fit(input_data)
-    """
+    print("... fit")
     if flags.cycle:
         model.solve(goal_dataset)
-    elif goal_dataset is not None:
+    elif input_data is not None:
         model.fit(input_data)
+        model.pred(input_data)
     else:
-        model.fit_sgd()
-    """
+        model.fit()
+    
     train_time = time.time() - start_t
-    print("traing time:{0}".format(train_time) + "[sec]")
+    print("total training time:{0}".format(train_time) + "[sec]")
 
-
-def run_test(g, sess, args):
+def run_test(args):
     if args.data is not None:
         input_data = expl_graph.load_input_data(args.data)
     else:
@@ -347,46 +435,25 @@ def run_test(g, sess, args):
     flags.update()
     ##
     loss_loader = expl_graph.LossLoader()
-    loss_loader.load_all("loss/")
+    loss_loader.load_all("loss/torch*")
     loss_cls = loss_loader.get_loss(flags.sgd_loss)
     ##
-    tensor_provider = tf_expl_graph.TFSwitchTensorProvider()
-    embedding_generators = []
-    if flags.embedding:
-        eg = embed_gen.DatasetEmbeddingGenerator()
-        eg.load(flags.embedding, key="test")
-        embedding_generators.append(eg)
-    if flags.const_embedding:
-        eg = embed_gen.ConstEmbeddingGenerator()
-        eg.load(flags.const_embedding, key="test")
-        embedding_generators.append(eg)
-    cycle_embedding_generator = None
+    print("... computational graph")
+    model = TprismModel(flags,options,graph, loss_cls)
+    model.build()
+    model._set_data(input_data)
+    start_t = time.time()
+    print("... pred")
     if flags.cycle:
-        cycle_embedding_generator.load(options)
-        embedding_generators.append(cycle_embedding_generator)
-    tensor_provider.build(
-        graph,
-        options,
-        input_data,
-        flags,
-        load_embeddings=True,
-        embedding_generators=embedding_generators,
-    )
-    comp_expl_graph=tf_expl_graph.TFComputationalExplGraph()
-    goal_inside = comp_expl_graph.build_explanation_graph(
-        graph, tensor_provider, cycle_embedding_generator
-    )
-    if input_data is not None:
-        goal_dataset = build_goal_dataset(input_data, tensor_provider)
+        model.solve(goal_dataset)
+    elif input_data is not None:
+        model.pred(input_data)
     else:
-        goal_dataset = None
-    if flags.draw_graph:
-        save_draw_graph(g, "test")
-    loss, output = loss_cls().call(graph, goal_inside, tensor_provider)
-    model = PRISM_Model(sess, flags, embedding_generators)
-    model.load(self.flags.model)
-    if flags.cycle:
-        model.solve(goal_dataset,goal_inside)
+        model.pred()
+    
+    train_time = time.time() - start_t
+    print("total training time:{0}".format(train_time) + "[sec]")
+    """
     total_output,total_loss,total_goal_inside=model.pred(goal_dataset, loss, output)
     print("[SAVE]", flags.output)
     np.save(flags.output, total_output)
@@ -398,9 +465,6 @@ def run_test(g, sess, args):
             data[g_info.node.id]={"name":name,"data":g}
         fp = open('output.pkl','wb')
         pickle.dump(data,fp)
-
-
-    """
     ###
     print("[SAVE]", flags.output)
     np.save(flags.output, total_output)
@@ -532,7 +596,7 @@ def main():
         run_training(args)
     if args.mode == "prepare":
         run_preparing(args)
-    if args.mode == "test":
+    if args.mode == "test" or args.mode == "pred":
         run_test(args)
     elif args.mode == "cv":
         run_train_cv(args)

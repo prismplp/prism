@@ -45,7 +45,7 @@ class Softmax(BaseOperator):
         pass
 
     def call(self, x):
-        return torch.softmax(x)
+        return torch.softmax(x,dim=-1)
 
     def get_output_template(self, input_template):
         return input_template
