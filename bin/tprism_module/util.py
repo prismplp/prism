@@ -59,6 +59,14 @@ class Flags(object):
         ##
         self.sgd_learning_rate = float(self.sgd_learning_rate)
 
+def get_goal_dataset(goal_dataset):
+    out_idx=[]
+    for j, goal in enumerate(goal_dataset):
+        all_num = goal["dataset"].shape[1]
+        all_idx=np.array(list(range(all_num)))
+        out_idx.append(all_idx)
+    return out_idx
+
 
 def split_goal_dataset(goal_dataset,valid_ratio = 0.1):
     train_idx=[]

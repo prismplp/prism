@@ -462,11 +462,8 @@ class SwitchTensorProvider:
         self.sw_info=None
         self.ph_graph=None
         self.input_feed_dict=None
+        self.params={}
 
-    """
-    def get_tensor_embedding(self):
-        return self.tensor_embedding
-    """
     def get_embedding(self,name):
         if self.input_feed_dict is None:
             return self.tensor_embedding[name]
@@ -488,6 +485,11 @@ class SwitchTensorProvider:
 
     def get_placeholder_var_name(self, name):
         return re.sub(r"\$", "", name)
+
+    def add_param(self, name, param):
+        self.params[name]=param
+    def get_param(self, name):
+        return self.params[name]
 
     def convert_value_to_index(self, value, ph_name):
         ph_vocab=self.ph_graph.ph_vocab
@@ -566,4 +568,120 @@ class SwitchTensorProvider:
             vocab_var_type[vocab_name]=var_type
         return vocab_var_type
 
+    def build(
+        self,
+        graph,
+        options,
+        input_data,
+        flags,
+        load_embeddings=False,
+        embedding_generators=[],
+    ):
+        # sw_info: switch name =>SwitchTensor
+        sw_info = self._build_sw_info(graph,options)
+        # 
+        ph_graph=PlaceholderGraph()
+        ph_graph.build(input_data,sw_info)
+        
+        ## build vocab group
+        if load_embeddings:
+            print("[LOAD]", flags.vocab)
+            with open(flags.vocab, mode="rb") as f:
+                vocab_set = pickle.load(f)
+        else:
+            vocab_set = VocabSet()
+            vocab_set.build_from_ph(ph_graph)
+            print("[SAVE]", flags.vocab)
+            with open(flags.vocab, mode="wb") as f:
+                pickle.dump(vocab_set, f)
+        ##
+        self.vocab_var_type=self._build_vocab_var_type(ph_graph,vocab_set,embedding_generators)
+        self.vocab_set = vocab_set
+        self.ph_graph=ph_graph
+        self.sw_info = sw_info
+        ##
+        # build placeholders
+        #ph_var    : ph_name => placeholder
+        ph_var = {}
+        batch_size = flags.sgd_minibatch_size
+        for ph_name in ph_graph.ph_values.keys():
+            ph_var_name = self.get_placeholder_var_name(ph_name)
+            ph_var[ph_name] = PlaceholderData(
+                name=ph_var_name, shape=(batch_size,), dtype=self.integer_dtype
+            )
+        #
+        ## assigning tensor variable
+        ## vocab_var: vocab_name => variable
+        ##
+        vocab_var={}
+        #initializer = tf.contrib.layers.xavier_initializer()
+        for vocab_name, var_type in self.vocab_var_type.items():
+            values = vocab_set.get_values(vocab_name)
+            if var_type["type"]=="dataset":
+                print(">> dataset >>", vocab_name, ":",var_type["dataset_shape"],"=>", var_type["shape"])
+            elif var_type["type"]=="onehot":
+                print(">> onehot  >>", vocab_name, ":", var_type["shape"])
+                d=var_type["value"]
+                var = self.tensor_onehot_class(self,var_type["shape"][0],d)
+                vocab_var[vocab_name] = var
+            else:
+                print(">> variable>>", vocab_name, ":", var_type["shape"])
+                var = self.tensor_class(self,vocab_name,var_type["shape"])
+                vocab_var[vocab_name] = var
+        # converting PRISM switches to Tensorflow Variables
+        # tensor_embedding: sw_name => tensor
+        tensor_embedding = {}
+        for sw_name, sw in sw_info.items():
+            vocab_name = sw.vocab_name
+            var_name = sw.var_name
+            ph_list = sw.ph_names
+            if len(ph_list) == 0:
+                dataset_flag=False
+                for eg in embedding_generators:
+                    if eg.is_embedding(vocab_name):
+                        dataset_flag=True
+                        # dataset without placeholder
+                        shape = list(list(sw.shape_set)[0])
+                        if sw.value is None:
+                            print("ph_list==0 and value==none")
+                            var = eg.get_embedding(vocab_name, shape)
+                            tensor_embedding[sw_name] = var
+                        else:
+                            print("ph_list==0 and value enbabled")
+                            var = eg.get_embedding(vocab_name)
+                            if verbose:
+                                print((vocab_name,":", var.shape,"=>",shape))
+                            index=vocab_set.get_values_index(vocab_name, sw.value)
+                            if verbose:
+                                print(index,sw.value)
+                            tensor_embedding[sw_name] = var[sw.value] # TODO
+                if not dataset_flag:
+                    print("ph_list==0 and no dataset")
+                    # trainig variable without placeholder
+                    var = vocab_var[vocab_name]
+                    tensor_embedding[sw_name] = var
+            elif len(ph_list) == 1:
+                dataset_flag=False
+                for eg in embedding_generators:
+                    if eg.is_embedding(vocab_name):
+                        dataset_flag=True
+                        # dataset with placeholder
+                        print("ph_list==1 and dataset enabled")
+                        shape = [batch_size] + list(list(sw.shape_set)[0])
+                        var = eg.get_embedding(vocab_name)
+                        #print(var)
+                        #var = eg.get_embedding(vocab_name, shape)
+                        tensor_embedding[sw_name] = var
+                if not dataset_flag:
+                    print("ph_list==1 and dataset disabled")
+                    # trainig variable with placeholder
+                    var = vocab_var[vocab_name]
+                    ph = ph_var[ph_list[0]]
+                    tensor_embedding[sw_name] = self.tensor_gather(self,var, ph)
+            else:
+                print("[WARM] unknown embedding:",sw_name)
+        self.vocab_var = vocab_var
+        self.ph_var = ph_var
+        self.tensor_embedding = tensor_embedding
+        return tensor_embedding
 

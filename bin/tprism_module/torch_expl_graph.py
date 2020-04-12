@@ -14,6 +14,7 @@ import os
 import re
 import pickle
 import h5py
+import math
 
 import tprism_module.expl_pb2 as expl_pb2
 import tprism_module.op.base
@@ -23,11 +24,10 @@ from tprism_module.expl_graph import ComputationalExplGraph,SwitchTensorProvider
 from tprism_module.expl_graph import PlaceholderGraph,VocabSet,OperatorLoader
 from tprism_module.expl_graph import PlaceholderData
 
-class TorchComputationalExplGraph(ComputationalExplGraph):
-    def __init__(self):
-        super().__init__()
+class TorchComputationalExplGraph(ComputationalExplGraph,torch.nn.Module):
+    def __init__(self, graph, tensor_provider, cycle_embedding_generator=None):
+        torch.nn.Module.__init__(self)
 
-    def build_explanation_graph(self, graph, tensor_provider, cycle_embedding_generator=None):
         operator_loader = OperatorLoader()
         operator_loader.load_all("op/torch_")
         goal_template, cycle_node = self.build_explanation_graph_template(
@@ -39,9 +39,11 @@ class TorchComputationalExplGraph(ComputationalExplGraph):
         self.graph=graph
         self.tensor_provider=tensor_provider
         self.cycle_embedding_generator=cycle_embedding_generator
+
+        for name, val in tensor_provider.params.items():
+            self.register_parameter(name, val)
         
-    def forward(self):
-        verbose=False
+    def forward(self,verbose=False):
         graph=self.graph
         tensor_provider=self.tensor_provider
         cycle_embedding_generator=self.cycle_embedding_generator
@@ -72,7 +74,7 @@ class TorchComputationalExplGraph(ComputationalExplGraph):
                         path_batch_flag = True
                     else:
                         sw_template.append(list(sw.values))
-                    sw_var = tensor_provider.get_embedding(sw.name)
+                    sw_var = tensor_provider.get_embedding(sw.name,verbose)
                     sw_inside.append(sw_var)
                 prob_sw_inside = 1.0
                 for sw in path.prob_switches:
@@ -170,27 +172,83 @@ class TorchComputationalExplGraph(ComputationalExplGraph):
                 }
         return goal_inside
 
+
+class TorchTensorBase():
+    def __init__(self):
+        pass
+
+class TorchTensorOnehot(TorchTensorBase):
+    def __init__(self,provider,shape,value):
+        self.shape=shape
+        self.value=value
+    
+    def __call__(self):
+        v = torch.eye(self.shape)[self.value]
+        return v
+
+class TorchTensor(TorchTensorBase):
+    def __init__(self,provider,name,shape,dtype=torch.float32):
+        self.shape=shape
+        self.dtype=dtype
+        if name is None:
+            self.name="tensor%04d"%(np.random.randint(0,10000),)
+        else:
+            self.name=name
+        self.provider=provider
+        #(np.random.normal(0,1,self.shape), requires_grad=True,dtype=self.dtype)
+        param=torch.nn.Parameter(torch.Tensor(*shape),requires_grad=True)
+        self.param=param
+        provider.add_param(self.name,param)
+        self.reset_parameters()
+
+    def reset_parameters(self):
+        torch.nn.init.kaiming_uniform_(self.param, a=math.sqrt(5))
+    
+    def __call__(self):
+        return self.param
+
+class TorchGather(TorchTensorBase):
+    def __init__(self,provider,var,idx):
+        self.var=var
+        self.idx=idx
+
+    def __call__(self):
+        v = torch.gather(self.var,self.idx)
+        return v
+
+
 class TorchSwitchTensorProvider(SwitchTensorProvider):
     def __init__(self):
+        self.tensor_onehot_class=TorchTensorOnehot
+        self.tensor_class=TorchTensor
+        self.tensor_gather_class=TorchGather
+
+        self.integer_dtype=torch.int32
         super().__init__()
 
     # forward
-    def get_embedding(self,name):
-        verbose=False
-        if verbose:
-            print("[INFO] get embedding:",name)
+    def get_embedding(self,name,verbose=False):
+        if verbose: print("[INFO] get embedding:",name)
         out=None
         if self.input_feed_dict is None:
-            out=self.tensor_embedding[name]
+            if verbose: print("[INFO] from tensor_embedding",name)
+            obj=self.tensor_embedding[name]
+            if isinstance(obj,TorchTensorBase):
+                out=obj()
+            else:
+                raise Exception('Unknoen embedding type', name,key)
         elif type(name) is str:
             key=self.tensor_embedding[name]
             if type(key) is PlaceholderData:
-                if verbose:
-                    print("==>",key.name)
+                if verbose: print("[INFO] from PlaceholderData",name,"==>",key.name)
                 out=torch.tensor(self.input_feed_dict[key])
+            elif isinstance(key,TorchTensorBase):
+                if verbose: print("[INFO] from Tensor",name,"==>")
+                out=key()
             else:
-                out=key
+                raise Exception('Unknoen embedding type', name,key)
         elif type(name) is PlaceholderData:
+            if verbose: print("[INFO] from PlaceholderData",name)
             out=torch.tensor(self.input_feed_dict[name])
         else:
             raise Exception('Unknoen embedding', name)
@@ -198,124 +256,3 @@ class TorchSwitchTensorProvider(SwitchTensorProvider):
             print(out)
         return out
 
-
-
-    def build(
-        self,
-        graph,
-        options,
-        input_data,
-        flags,
-        load_embeddings=False,
-        embedding_generators=[],
-    ):
-        # sw_info: switch name =>SwitchTensor
-        sw_info = self._build_sw_info(graph,options)
-        # 
-        ph_graph=PlaceholderGraph()
-        ph_graph.build(input_data,sw_info)
-        
-        ## build vocab group
-        if load_embeddings:
-            print("[LOAD]", flags.vocab)
-            with open(flags.vocab, mode="rb") as f:
-                vocab_set = pickle.load(f)
-        else:
-            vocab_set = VocabSet()
-            vocab_set.build_from_ph(ph_graph)
-            print("[SAVE]", flags.vocab)
-            with open(flags.vocab, mode="wb") as f:
-                pickle.dump(vocab_set, f)
-        ##
-        self.vocab_var_type=self._build_vocab_var_type(ph_graph,vocab_set,embedding_generators)
-        self.vocab_set = vocab_set
-        self.ph_graph=ph_graph
-        self.sw_info = sw_info
-        ##
-        ## Forward
-        ##
-        # build placeholders
-        #ph_var    : ph_name => placeholder
-        ph_var = {}
-        batch_size = flags.sgd_minibatch_size
-        for ph_name in ph_graph.ph_values.keys():
-            ph_var_name = self.get_placeholder_var_name(ph_name)
-            ph_var[ph_name] = PlaceholderData(
-                name=ph_var_name, shape=(batch_size,), dtype=torch.int32
-            )
-        #
-        ## assigning tensor variable
-        ## vocab_var: vocab_name => variable
-        ##
-        vocab_var={}
-        dtype = torch.float32
-        #initializer = tf.contrib.layers.xavier_initializer()
-        for vocab_name, var_type in self.vocab_var_type.items():
-            values = vocab_set.get_values(vocab_name)
-            if var_type["type"]=="dataset":
-                print(">> dataset >>", vocab_name, ":",var_type["dataset_shape"],"=>", var_type["shape"])
-            elif var_type["type"]=="onehot":
-                print(">> onehot  >>", vocab_name, ":", var_type["shape"])
-                d=var_type["value"]
-                var = torch.eye(var_type["shape"][0])[d]
-                vocab_var[vocab_name] = var
-            else:
-                print(">> variable>>", vocab_name, ":", var_type["shape"])
-                var = torch.tensor(np.random.normal(0,1,var_type["shape"]), requires_grad=True,dtype=dtype)
-                vocab_var[vocab_name] = var
-        # converting PRISM switches to Tensorflow Variables
-        # tensor_embedding: sw_name => tensor
-        tensor_embedding = {}
-        for sw_name, sw in sw_info.items():
-            vocab_name = sw.vocab_name
-            var_name = sw.var_name
-            ph_list = sw.ph_names
-            if len(ph_list) == 0:
-                dataset_flag=False
-                for eg in embedding_generators:
-                    if eg.is_embedding(vocab_name):
-                        dataset_flag=True
-                        # dataset without placeholder
-                        shape = list(list(sw.shape_set)[0])
-                        if sw.value is None:
-                            print("ph_list==0 and value==none")
-                            var = eg.get_embedding(vocab_name, shape)
-                            tensor_embedding[sw_name] = var
-                        else:
-                            print("ph_list==0 and value enbabled")
-                            var = eg.get_embedding(vocab_name)
-                            if verbose:
-                                print((vocab_name,":", var.shape,"=>",shape))
-                            index=vocab_set.get_values_index(vocab_name, sw.value)
-                            if verbose:
-                                print(index,sw.value)
-                            tensor_embedding[sw_name] = var[sw.value] # TODO
-                if not dataset_flag:
-                    print("ph_list==0 and no dataset")
-                    # trainig variable without placeholder
-                    var = vocab_var[vocab_name]
-                    tensor_embedding[sw_name] = var
-            elif len(ph_list) == 1:
-                dataset_flag=False
-                for eg in embedding_generators:
-                    if eg.is_embedding(vocab_name):
-                        dataset_flag=True
-                        # dataset with placeholder
-                        print("ph_list==1 and dataset enabled")
-                        shape = [batch_size] + list(list(sw.shape_set)[0])
-                        var = eg.get_embedding(vocab_name)
-                        #print(var)
-                        #var = eg.get_embedding(vocab_name, shape)
-                        tensor_embedding[sw_name] = var
-                if not dataset_flag:
-                    print("ph_list==1 and dataset disabled")
-                    # trainig variable with placeholder
-                    var = vocab_var[vocab_name]
-                    ph = ph_var[ph_list[0]]
-                    tensor_embedding[sw_name] = torch.gather(var, ph)
-            else:
-                print("[WARM] unknown embedding:",sw_name)
-        self.vocab_var = vocab_var
-        self.ph_var = ph_var
-        self.tensor_embedding = tensor_embedding
-        return tensor_embedding
