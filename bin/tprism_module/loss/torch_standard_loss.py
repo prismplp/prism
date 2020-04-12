@@ -58,3 +58,28 @@ class Ce_pl2(BaseLoss):
         return loss, output, label
 
 
+class PreferencePair(BaseLoss):
+    def __init__(self, parameters=None):
+        pass
+
+    # loss: goal x minibatch
+    def call(self, graph, goal_inside, tensor_provider):
+        loss = []
+        output = []
+        gamma = 1.00
+
+        for rank_root in graph.root_list:
+            goal_ids = [el.sorted_id for el in rank_root.roots]
+            l1 = goal_inside[goal_ids[0]]["inside"]
+            l2 = goal_inside[goal_ids[1]]["inside"]
+            l = torch.nn.functional.relu(l2 - l1 + gamma)
+            # l=tf.exp(l2-l1)
+            # l=- 1.0/(tf.exp(l2-l1)+1)+reg_loss
+            # l=tf.log(tf.exp(l2-l1)+1)+reg_loss
+            # l = tf.nn.softplus(1 * l2)+tf.nn.softplus(-1 * l1) + reg_loss
+            loss.append(torch.sum(l))
+            output.append([l1, l2])
+        return loss, output, None
+
+
+

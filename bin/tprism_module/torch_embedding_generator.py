@@ -48,10 +48,13 @@ class CycleEmbeddingGenerator(BaseEmbeddingGenerator):
         return [self.index_range[t] for t in template]
 
     def get_embedding(self, name, shape, node_id):
+        return None
+
+    def forward(self, name, shape, node_id):
         ph_name = name + "_cyc"
         if ph_name in self.embedding:
             print("[GET]>", ph_name, ":", self.embedding[ph_name]["tensor"])
-            return self.embedding[ph_name]["tensor"]
+            return torch.tensor(self.embedding[ph_name]["data"])
         else:
             print("[CREATE]>", ph_name, ":", shape)
             self.embedding[ph_name] = {}
@@ -60,9 +63,9 @@ class CycleEmbeddingGenerator(BaseEmbeddingGenerator):
             )
             self.embedding[ph_name]["data"] = np.zeros(shape=shape, dtype=np.float32)
             self.embedding[ph_name]["id"] = node_id
-            return self.embedding[ph_name]["tensor"]
+            return torch.tensor(self.embedding[ph_name]["data"])
 
-    def build_feed(self, feed_dict):
+    def build_feed(self, feed_dict, idx=None): ## idx is not used
         for ph_name, data in self.embedding.items():
             batch_data = data["data"]
             ph_var = data["tensor"]
@@ -126,7 +129,7 @@ class DatasetEmbeddingGenerator(BaseEmbeddingGenerator):
             print("[CREATE]>", ph_name, ":", shape,"ref:",vocab_name)
             return self.created_ph_var[ph_name]
 
-    def build_feed(self, feed_dict, idx):
+    def build_feed(self, feed_dict, idx=None):
         for vocab_name, data in self.dataset.items():
             ph_name = vocab_name + "_ph"
             batch_data = data[idx]

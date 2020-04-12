@@ -39,14 +39,17 @@ class TprismEvaluator():
               num_itr:: number of iterations
         """
         _loss=loss[j].detach().numpy()
-        _o=output[j].detach().numpy()
-        if len(output[j].shape)>=2:
-            _pred_y=torch.argmax(output[j],dim=1).detach().numpy()
-            self.pred_y.extend(_pred_y)
+        if type(output[j])==list: # preference
+            _o=[o.detach().numpy() for o in output[j]]
+        else:
+            _o=output[j].detach().numpy()
+            if len(output[j].shape)>=2: # classification
+                _pred_y=torch.argmax(output[j],dim=1).detach().numpy()
+                self.pred_y.extend(_pred_y)
+        self.output.extend(_o)
         if label is not None:
             _true_y=label[j].detach().numpy()
             self.true_y.extend(_true_y)
-        self.output.extend(_o)
         self.total_loss[j] += np.mean(_loss) / num_itr
     def eval(self,loss,output,label):
         self.total_loss = []
@@ -55,9 +58,13 @@ class TprismEvaluator():
         self.pred_y=[]
         for j in range(len(loss)):
             _loss=loss[j].detach().numpy()
-            self.output.append(output[j].detach().numpy())
-            if len(output[j].shape)>=2:
-                self.pred_y.append(torch.argmax(output[j],dim=1).detach().numpy())
+            if type(output[j])==list: # preference
+                _o=[o.detach().numpy() for o in output[j]]
+            else:
+                _o=output[j].detach().numpy()
+                if len(output[j].shape)>=2: # classification
+                    self.pred_y.append(torch.argmax(output[j],dim=1).detach().numpy())
+            self.output.append(_o)
             if label is not None:
                 self.true_y.append(label[j].detach().numpy())
             self.total_loss.append(np.mean(_loss))
@@ -108,24 +115,28 @@ class TprismModel():
         self.comp_expl_graph=torch_expl_graph.TorchComputationalExplGraph(
             self.graph, self.tensor_provider, self.cycle_embedding_generator
         )
-    def solve(self,goal_dataset):
-        goal_inside=self.goal_inside
-        inside = []
-        for goal in goal_inside:
-            l1 = goal["inside"]
-            inside.append(l1)
+    def solve(self,input_data=None):
+        if input_data is None:
+            self._solve_no_data()
 
-        init = tf.global_variables_initializer()
-        self.sess.run(init)
-        feed_dict = {}
+    def _solve_no_data(self):
+        print("... training phase")
+        print("... training variables")
+        for key,param in self.comp_expl_graph.state_dict().items():
+                print(key,param.shape)
+        print("... building explanation graph")
         prev_loss = None
         for step in range(self.flags.max_iterate):
             feed_dict = {}
             for embedding_generator in self.embedding_generators:
                 if embedding_generator is not None:
-                    feed_dict = embedding_generator.build_feed(feed_dict)
-            out_inside = self.sess.run(inside, feed_dict=feed_dict)
-
+                    feed_dict = embedding_generator.build_feed(feed_dict,None)
+            #out_inside = self.sess.run(inside, feed_dict=feed_dict)
+            goal_inside = self.comp_expl_graph.forward(verbose=True)
+            inside = []
+            for goal in goal_inside:
+                l1 = goal["inside"]
+                inside.append(l1)
             loss = 0
             for embedding_generator in self.embedding_generators:
                 if embedding_generator is not None:
@@ -136,6 +147,7 @@ class TprismModel():
             if prev_loss is not None and not loss < prev_loss:
                 pass
             prev_loss = loss
+        ##
     
     def fit(self, input_data=None, verbose=False):
         if input_data is None:
@@ -402,7 +414,7 @@ def run_training(args):
     start_t = time.time()
     print("... fit")
     if flags.cycle:
-        model.solve(goal_dataset)
+        model.solve()
     elif input_data is not None:
         model.fit(input_data)
         model.pred(input_data)
@@ -443,14 +455,20 @@ def run_test(args):
     print("[SAVE]", flags.output)
     data={}
     j=0
-    for root_obj in graph.root_list:
-        for el in root_obj.roots:
+    for j,root_obj in enumerate(graph.root_list):
+        multi_root=False
+        if len(root_obj.roots)>1: # preference
+            multi_root=True
+        for i,el in enumerate(root_obj.roots):
             sid=el.sorted_id
             gg=graph.goals[sid].node
             name=gg.goal.name
             #name=to_string_goal(gg.goal)
-            data[sid]={"name":name,"data":out[j]}
-            j+=1
+            if multi_root:
+                data[sid]={"name":name,"data":out[j][i]}
+            else:
+                data[sid]={"name":name,"data":out[j]}
+
     fp = open('output.pkl','wb')
     pickle.dump(data,fp)
 

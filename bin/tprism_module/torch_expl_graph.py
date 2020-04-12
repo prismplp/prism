@@ -92,7 +92,7 @@ class TorchComputationalExplGraph(ComputationalExplGraph,torch.nn.Module):
                         template = goal_template[node.sorted_id]["template"]
                         shape = goal_template[node.sorted_id]["shape"]
                         # shape=cycle_embedding_generator.template2shape(template)
-                        temp_goal_inside = cycle_embedding_generator.get_embedding(
+                        temp_goal_inside = cycle_embedding_generator.forward(
                             name, shape, node.sorted_id
                         )
                         temp_goal_template = template
@@ -202,8 +202,11 @@ class TorchTensor(TorchTensorBase):
         self.reset_parameters()
 
     def reset_parameters(self):
-        torch.nn.init.kaiming_uniform_(self.param, a=math.sqrt(5))
-    
+        if len(self.param.shape)==2:
+            torch.nn.init.kaiming_uniform_(self.param, a=math.sqrt(5))
+        else:
+            self.param.data.uniform_(-0.1, 0.1)
+
     def __call__(self):
         return self.param
 
@@ -211,9 +214,17 @@ class TorchGather(TorchTensorBase):
     def __init__(self,provider,var,idx):
         self.var=var
         self.idx=idx
+        self.provider=provider
 
     def __call__(self):
-        v = torch.gather(self.var,self.idx)
+        if isinstance(self.idx,PlaceholderData):
+            idx=self.provider.get_embedding(self.idx)
+        else:
+            idx=self.idx
+        if isinstance(self.var,TorchTensorBase):
+            v = torch.index_select(self.var(),0,idx)
+        else:
+            v = torch.index_select(self.var,0,idx)
         return v
 
 

@@ -677,7 +677,7 @@ class SwitchTensorProvider:
                     # trainig variable with placeholder
                     var = vocab_var[vocab_name]
                     ph = ph_var[ph_list[0]]
-                    tensor_embedding[sw_name] = self.tensor_gather(self,var, ph)
+                    tensor_embedding[sw_name] = self.tensor_gather_class(self,var, ph)
             else:
                 print("[WARM] unknown embedding:",sw_name)
         self.vocab_var = vocab_var

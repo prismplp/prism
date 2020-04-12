@@ -50,3 +50,12 @@ class Softmax(BaseOperator):
     def get_output_template(self, input_template):
         return input_template
 
+class Min1(BaseOperator):
+    def __init__(self, parameters):
+        pass
+
+    def call(self, x):
+        return torch.clamp(x, 0.0, 1.0)
+
+    def get_output_template(self, input_template):
+        return input_template
