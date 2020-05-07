@@ -97,7 +97,7 @@ target_compile_options(${EXECUTABLE_1} PUBLIC
   $<$<PLATFORM_ID:Linux>:
     -fomit-frame-pointer -fno-strict-aliasing -Wall -m64
   >
-  $<$<PLATFORM_ID:Windows>:
+  $<$<PLATFORM_ID:CYGWIN>:
     -fomit-frame-pointer -fno-strict-aliasing -Wall
   >
 )
@@ -110,7 +110,7 @@ target_compile_definitions(${EXECUTABLE_1} PUBLIC
   $<$<PLATFORM_ID:Linux>:
     MALLOC_TRACE LINUX POSIX unix M64BITS
   >
-  $<$<PLATFORM_ID:Windows>:
+  $<$<PLATFORM_ID:CYGWIN>:
     CYGWIN LINUX POSIX unix
   >
 )
