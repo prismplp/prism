@@ -3,6 +3,7 @@
 # endif()
 
 cmake_minimum_required(VERSION 3.13)
+project(prism_bin)
 
 if (APPLE)
   set(CMAKE_CXX_FLAGS "-stdlib=libc++")
@@ -17,8 +18,6 @@ elseif (UNIX AND NOT APPLE AND NOT CYGWIN)
   set(VAR_PLATFORM linux)
 endif()
 message(${VAR_PLATFORM})
-
-project(prism_up_${VAR_PLATFORM}.bin)
 
 set(EXECUTABLE_1 prism_up_${VAR_PLATFORM}.bin)
 if (CYGWIN)
