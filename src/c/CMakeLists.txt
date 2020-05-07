@@ -11,7 +11,9 @@ set (CMAKE_CXX_STANDARD 11)
 
 if (APPLE)
   set(VAR_PLATFORM darwin)
-elseif (UNIX AND NOT APPLE)
+elseif (CYGWIN)
+  set(VAR_PLATFORM cygwin)
+elseif (UNIX AND NOT APPLE AND NOT CYGWIN)
   set(VAR_PLATFORM linux)
 endif()
 message(${VAR_PLATFORM})
@@ -19,6 +21,9 @@ message(${VAR_PLATFORM})
 project(prism_up_${VAR_PLATFORM}.bin)
 
 set(EXECUTABLE_1 prism_up_${VAR_PLATFORM}.bin)
+if (CYGWIN)
+  set(EXECUTABLE_1 prism_up_${VAR_PLATFORM}.exe)
+endif()
 
 # include(CheckPIESupported)
 # check_pie_supported()
@@ -93,6 +98,9 @@ target_compile_options(${EXECUTABLE_1} PUBLIC
   $<$<PLATFORM_ID:Linux>:
     -fomit-frame-pointer -fno-strict-aliasing -Wall -m64
   >
+  $<$<PLATFORM_ID:Windows>:
+    -fomit-frame-pointer -fno-strict-aliasing -Wall
+  >
 )
 
 # target_compile_features(prism_up_linux.bin PUBLIC cxx_std_11)
@@ -102,6 +110,9 @@ target_compile_definitions(${EXECUTABLE_1} PUBLIC
   >
   $<$<PLATFORM_ID:Linux>:
     MALLOC_TRACE LINUX POSIX unix M64BITS
+  >
+  $<$<PLATFORM_ID:Windows>:
+    CYGWIN LINUX POSIX unix
   >
 )
 
