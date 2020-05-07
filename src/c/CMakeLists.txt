@@ -21,7 +21,7 @@ message(${VAR_PLATFORM})
 
 set(EXECUTABLE_1 prism_up_${VAR_PLATFORM}.bin)
 if (CYGWIN)
-  set(EXECUTABLE_1 prism_up_${VAR_PLATFORM}.exe)
+  set(EXECUTABLE_1 prism_up_${VAR_PLATFORM})
 endif()
 
 # include(CheckPIESupported)
