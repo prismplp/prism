@@ -16,9 +16,19 @@ elseif (UNIX AND NOT APPLE)
 endif()
 message(${VAR_PLATFORM})
 
-project(prism_up_${VAR_PLATFORM}.bin)
+if (NOT DEFINED PROCTYPE)
+  set(PROCTYPE up)
+endif()
 
-set(EXECUTABLE_1 prism_up_${VAR_PLATFORM}.bin)
+if ("${PROCTYPE}" STREQUAL "mp")
+  set(CMAKE_C_COMPILER mpicc)
+  set(CMAKE_CXX_COMPILER mpicxx)
+endif()
+message(${PROCTYPE})
+
+project(prism_${PROCTYPE}_${VAR_PLATFORM}.bin)
+
+set(EXECUTABLE_1 prism_${PROCTYPE}_${VAR_PLATFORM}.bin)
 
 # include(CheckPIESupported)
 # check_pie_supported()
@@ -82,6 +92,17 @@ add_executable(${EXECUTABLE_1}
   up/tensor_preds.cpp
   up/sgd.cpp
 
+  $<$<STREQUAL:${PROCTYPE},mp>:
+    mp/mp_core.c
+    mp/mp_em_aux.c
+    mp/mp_em_ml.c
+    mp/mp_em_preds.c
+    mp/mp_em_vb.c
+    mp/mp_flags.c
+    mp/mp_preds.c
+    mp/mp_sw.c
+  >
+
   external/expl.pb.cc
 )
 
@@ -102,6 +123,9 @@ target_compile_definitions(${EXECUTABLE_1} PUBLIC
   >
   $<$<PLATFORM_ID:Linux>:
     MALLOC_TRACE LINUX POSIX unix M64BITS
+  >
+  $<$<STREQUAL:${PROCTYPE},mp>:
+    MPI
   >
 )
 
