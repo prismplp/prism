@@ -1,7 +1,7 @@
 FROM ubuntu:18.04
 
 MAINTAINER "" <>
-ENV PATH $PATH:/prism/bin:/root/anaconda3/bin
+ENV PATH $PATH:/prism/bin:/root/anaconda3/bin:~/cmake-3.17.3-Linux-x86_64/bin
 SHELL ["/bin/bash", "-c"]
 
 ADD . /prism
@@ -12,16 +12,21 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update -y && \
     apt-get install -y curl && \
     apt-get install -y expect && \
-    cd prism/ && \
     apt-get install -y make build-essential libhdf5-dev pkg-config libprotobuf-dev protobuf-compiler && \
-    apt-get install -y cmake && \
+    apt-get install -y wget && \
+    apt-get install -y openmpi-doc openmpi-bin libopenmpi-dev && \
+    apt-get install -y ssh && \
     apt-get clean && \
+    cd ~/ && \
+    wget https://github.com/Kitware/CMake/releases/download/v3.17.3/cmake-3.17.3-Linux-x86_64.tar.gz && \
+    tar zxvf cmake-3.17.3-Linux-x86_64.tar.gz && \
+    cd /prism  && \
     cd src/c/external/ && \
     sh ./generate.sh && \
     cd ../ && \
     # make -f Makefile.gmake && \
     # make -f Makefile.gmake install && \
-    mkdir cmake && \
+    mkdir -p cmake && \
     cd cmake && \
     cmake .. && \
     cmake --build . && \
