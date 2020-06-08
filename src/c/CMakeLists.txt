@@ -2,22 +2,47 @@
 #   message(FATAL_ERROR "DO NOT BUILD in-tree.")
 # endif()
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.13)
 
-project(prism_up_linux.bin)
+if (APPLE)
+  set(CMAKE_CXX_FLAGS "-stdlib=libc++")
+endif()
+set (CMAKE_CXX_STANDARD 11)
+
+if (APPLE)
+  set(VAR_PLATFORM darwin)
+elseif (UNIX AND NOT APPLE)
+  set(VAR_PLATFORM linux)
+endif()
+message(${VAR_PLATFORM})
+
+if (NOT DEFINED PROCTYPE)
+  set(PROCTYPE up)
+endif()
+
+if ("${PROCTYPE}" STREQUAL "mp")
+  set(CMAKE_C_COMPILER mpicc)
+  set(CMAKE_CXX_COMPILER mpicxx)
+endif()
+message(${PROCTYPE})
+
+project(prism_${PROCTYPE}_${VAR_PLATFORM}.bin)
+
+set(EXECUTABLE_1 prism_${PROCTYPE}_${VAR_PLATFORM}.bin)
 
 # include(CheckPIESupported)
 # check_pie_supported()
 
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(HDF5 hdf5-serial REQUIRED)
+find_package(HDF5 REQUIRED)
+# pkg_check_modules(HDF5 hdf5-serial REQUIRED)
 link_directories(${HDF5_LIBRARY_DIRS})
 include_directories(${HDF5_INCLUDE_DIRS})
 pkg_check_modules(PROTOBUF protobuf REQUIRED)
-# link_directories(${PROTOBUF_LIBRARY_DIRS})
-# include_directories(${PROTOBUF_INCLUDE_DIRS})
+link_directories(${PROTOBUF_LIBRARY_DIRS})
+include_directories(${PROTOBUF_INCLUDE_DIRS})
 
-add_executable(prism_up_linux.bin
+add_executable(${EXECUTABLE_1}
   core/glue.c
   core/bpx.c
   core/idtable.c
@@ -67,22 +92,62 @@ add_executable(prism_up_linux.bin
   up/tensor_preds.cpp
   up/sgd.cpp
 
+  $<$<STREQUAL:${PROCTYPE},mp>:
+    mp/mp_core.c
+    mp/mp_em_aux.c
+    mp/mp_em_ml.c
+    mp/mp_em_preds.c
+    mp/mp_em_vb.c
+    mp/mp_flags.c
+    mp/mp_preds.c
+    mp/mp_sw.c
+  >
+
   external/expl.pb.cc
 )
 
 # set_property(TARGET prism_up_linux.bin PROPERTY POSITION_INDEPENDENT_CODE FALSE)
-target_compile_options(prism_up_linux.bin PUBLIC -fomit-frame-pointer -fno-strict-aliasing -Wall -m64)
-target_compile_features(prism_up_linux.bin PUBLIC cxx_std_11)
-target_compile_definitions(prism_up_linux.bin PUBLIC MALLOC_TRACE LINUX POSIX unix M64BITS)
+target_compile_options(${EXECUTABLE_1} PUBLIC
+  $<$<PLATFORM_ID:Darwin>:
+    -fomit-frame-pointer -fno-strict-aliasing -Wall -arch x86_64 -Wno-c++11-narrowing -mmacosx-version-min=10.7
+  >
+  $<$<PLATFORM_ID:Linux>:
+    -fomit-frame-pointer -fno-strict-aliasing -Wall -m64
+  >
+)
 
-target_include_directories(prism_up_linux.bin
+# target_compile_features(prism_up_linux.bin PUBLIC cxx_std_11)
+target_compile_definitions(${EXECUTABLE_1} PUBLIC
+  $<$<PLATFORM_ID:Darwin>:
+    DARWIN
+  >
+  $<$<PLATFORM_ID:Linux>:
+    MALLOC_TRACE LINUX POSIX unix M64BITS
+  >
+  $<$<STREQUAL:${PROCTYPE},mp>:
+    MPI
+  >
+)
+
+target_link_options(${EXECUTABLE_1} PUBLIC
+  $<$<PLATFORM_ID:Darwin>:
+    -arch x86_64 -mmacosx-version-min=10.7
+  >
+  $<$<PLATFORM_ID:Linux>:
+    -m64 -no-pie
+  >
+)
+
+target_include_directories(${EXECUTABLE_1}
   PUBLIC
   ./bp4prism/include
   ./
   ./resource
   ./up
+  # /Library/Developer/CommandLineTools/usr/include/c++/v1
   )
 
-target_link_libraries(prism_up_linux.bin PUBLIC m pthread hdf5_cpp ${HDF5_LIBRARIES} ${PROTOBUF_LIBRARIES} /prism/src/c/bp4prism/lib/bp4prism-linux.a -m64 -no-pie)
+set(BP4PRISM_A ${CMAKE_CURRENT_SOURCE_DIR}/bp4prism/lib/bp4prism-${VAR_PLATFORM}.a)
+target_link_libraries(${EXECUTABLE_1} PUBLIC m pthread hdf5_cpp ${HDF5_LIBRARIES} ${PROTOBUF_LIBRARIES} ${BP4PRISM_A})
 
-install(TARGETS prism_up_linux.bin RUNTIME DESTINATION /prism/bin)
+install(TARGETS ${EXECUTABLE_1} RUNTIME DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/../../bin)
