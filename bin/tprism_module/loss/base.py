@@ -11,6 +11,8 @@ class BaseLoss:
             for sid in goal_ids:
                 l1 = goal_inside[sid]["inside"]
                 output.append(l1)
-        return None, output
+        return None, output, None
+    def metrics(self, output, label):
+        return {}
 
 

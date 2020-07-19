@@ -60,9 +60,9 @@ tprism train \
     --data ./mnist_tmp/mnist_data.train.h5    \
     --embedding ./mnist/mnist.h5 \
     --sgd_loss ce_pl2            \
-    --max_iterate 300            \
+    --max_iterate 10            \
     --sgd_minibatch_size 1000    \
-    --sgd_learning_rate 0.01
+    --sgd_learning_rate 0.001
 
 tprism test \
     --intermediate_data_prefix ./mnist_tmp/mnist. \
@@ -76,5 +76,5 @@ tprism test \
 ## Input: mnist_output.npy: prediction scores (the number of samples x the number of classes)
 ## Input: mnist_tmp/mnist_data.test.h5: correct labels
 ##
-python mnist_eval.py 
+#python mnist_eval.py 
 

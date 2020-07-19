@@ -294,19 +294,34 @@ class ComputationalExplGraph:
                     continue
                 sw_node_template = sw_template + node_template
                 sw_node_shape = sw_shape + node_shape
-                # constructing einsum operation using template and inside
-                out_template = self.compute_output_template(sw_node_template)
-                out_shape = self.compute_output_shape(
-                    out_template, sw_node_template, sw_node_shape
-                )
-                if len(sw_node_template) > 0:  # condition for einsum
-                    if path_batch_flag:
-                        out_template = ["b"] + out_template
-                ## computing operaters
-                for op in path.operators:
-                    cls = operator_loader.get_operator(op.name)
-                    op_obj = cls(op.values)
-                    out_template = op_obj.get_output_template(out_template)
+
+                ##########
+                ops=[op.name for op in path.operators]
+                if "distribution" in ops:
+                    # distributino clause
+                    print("=== distribution ===")
+                    print(sw_node_template)
+                    print(sw_node_shape)
+                    ##
+                    out_template = sw_node_template[0]
+                    out_shape = sw_node_shape[0]
+                    print(out_template)
+                    print(out_shape)
+                else:
+                    # constructing einsum operation using template and inside
+                    out_template = self.compute_output_template(sw_node_template)
+                    out_shape = self.compute_output_shape(
+                        out_template, sw_node_template, sw_node_shape
+                    )
+                    if len(sw_node_template) > 0:  # condition for einsum
+                        if path_batch_flag:
+                            out_template = ["b"] + out_template
+                    ## computing operaters
+                    for op in path.operators:
+                        cls = operator_loader.get_operator(op.name)
+                        op_obj = cls(op.values)
+                        out_template = op_obj.get_output_template(out_template)
+                ##########
                 path_template.append(out_template)
                 path_shape.append(out_shape)
                 ##

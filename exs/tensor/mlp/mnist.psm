@@ -31,13 +31,10 @@ prism_main([train]):-
 	load_clauses('./mnist/mnist.train.dat',Gs),
 	GoalPlaceholder=[output(_,_)],
 	save_placeholder_goals('./mnist_tmp/mnist_data.train.h5',GoalPlaceholder,Gs),
-	
 	% placeholder construction 
-	GoalPlaceholder=[X|_],
 	save_expl_graph('./mnist_tmp/mnist.expl.json','./mnist_tmp/mnist.flags.json',GoalPlaceholder).
 
 prism_main([test]):-
-	
 	% dataset construction
 	load_clauses('./mnist/mnist.test.dat',Gs),
 	GoalPlaceholder=[output(_,_)],

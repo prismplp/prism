@@ -2,6 +2,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from tprism_module.loss.base import BaseLoss
+import sklearn.metrics
 
 
 class Nll(BaseLoss):
@@ -56,6 +57,38 @@ class Ce_pl2(BaseLoss):
                 output.append(l1)
                 label.append(label_ph_var)
         return loss, output, label
+    def metrics(self, output, label):
+        pred=np.argmax(output,axis=1)
+        acc=sklearn.metrics.accuracy_score(label,pred)
+        return {"*accuracy":acc}
+
+class Mse(BaseLoss):
+    def __init__(self, parameters=None):
+        pass
+
+    # loss: goal x minibatch
+    def call(self, graph, goal_inside, tensor_provider):
+        loss = []
+        output = []
+        label = []
+        gamma = 1.00
+        label_ph = tensor_provider.ph_var["$placeholder1$"]
+        label_ph_var =tensor_provider.get_embedding(label_ph)
+        beta = 1.0e-4
+        for rank_root in graph.root_list:
+            goal_ids = [el.sorted_id for el in rank_root.roots]
+            l1 = goal_inside[goal_ids[0]]["inside"]
+            l2 = goal_inside[goal_ids[1]]["inside"]
+            lo = (l1-l2)**2
+            loss.append(lo.sum())
+            output.append(l1)
+            label.append(l2)
+        return loss, output, label
+    def metrics(self, output, label):
+        mse=np.mean((label-output)**2,axis=0)
+        mse=np.sum(mse)
+        return {"*mse":mse}
+
 
 
 class PreferencePair(BaseLoss):

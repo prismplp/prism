@@ -1,4 +1,5 @@
 import torch
+import torch.nn.functional as F
 import json
 import re
 import numpy as np
@@ -37,12 +38,30 @@ class TorchComputationalExplGraph(ComputationalExplGraph,torch.nn.Module):
         self.goal_template=goal_template
         self.cycle_node=cycle_node
         self.graph=graph
+        self.loss={}
         self.tensor_provider=tensor_provider
         self.cycle_embedding_generator=cycle_embedding_generator
 
         for name, val in tensor_provider.params.items():
             self.register_parameter(name, val)
-        
+
+    def _distribution_forward(self,name,dist,params,param_template,op):
+        if dist=="normal":
+            mean=params[0]
+            var =params[1]
+            scale=torch.sqrt(F.softplus(var))
+            q_z = torch.distributions.normal.Normal(mean, scale)
+            out_inside = q_z.rsample()
+            out_template = param_template[0]
+            p_z = torch.distributions.normal.Normal(torch.zeros_like(mean), torch.ones_like(var))
+            loss_KL = torch.distributions.kl.kl_divergence(q_z, p_z)
+            self.loss[name]=loss_KL.sum()
+        else:
+            out_inside = params[0]
+            out_template = param_template[0]
+            print("[ERROR] unknown distribution:",dist)
+        return out_inside, out_template
+
     def forward(self,verbose=False):
         graph=self.graph
         tensor_provider=self.tensor_provider
@@ -50,6 +69,7 @@ class TorchComputationalExplGraph(ComputationalExplGraph,torch.nn.Module):
         goal_template=self.goal_template
         cycle_node=self.cycle_node
         operator_loader=self.operator_loader
+        self.loss={}
         # goal_template
         # converting explanation graph to computational graph
         goal_inside = [None] * len(graph.goals)
@@ -119,36 +139,47 @@ class TorchComputationalExplGraph(ComputationalExplGraph,torch.nn.Module):
                 ## building template and inside for all elements (switches and nodes) in the path
                 sw_node_template = sw_template + node_template
                 sw_node_inside = sw_inside + node_inside
-                path_v = sorted(zip(sw_node_template, sw_node_inside), key=lambda x: x[0])
-                template = [x[0] for x in path_v]
-                inside = [x[1] for x in path_v]
-                # constructing einsum operation using template and inside
-                out_template = self.compute_output_template(template)
-                # print(template,out_template)
-                out_inside = prob_sw_inside
-                if len(template) > 0:  # condition for einsum
-                    lhs = ",".join(map(lambda x: "".join(x), template))
-                    rhs = "".join(out_template)
-                    if path_batch_flag:
-                        rhs = "b" + rhs
-                        out_template = ["b"] + out_template
-                    einsum_eq = lhs + "->" + rhs
-                    if verbose:
-                        print("  index:", einsum_eq)
-                        print("  var. :", inside)
-                    out_inside = torch.einsum(einsum_eq, *inside) * out_inside
-                for scalar_inside in node_scalar_inside:
-                    out_inside = scalar_inside * out_inside
-                ## computing operaters
-                for op in path.operators:
-                    if verbose:
-                        print("  operator:", op.name)
-                    cls = operator_loader.get_operator(op.name)
-                    # print(">>>",op.values)
-                    # print(">>>",cls)
-                    op_obj = cls(op.values)
-                    out_inside = op_obj.call(out_inside)
-                    out_template = op_obj.get_output_template(out_template)
+                
+                ops={op.name:op for op in path.operators}
+                if "distribution" in ops:
+                    op=ops["distribution"]
+                    dist=op.values[0]
+                    name=g.node.goal.name
+                    out_inside, out_template = self._distribution_forward(name,
+                            dist, params = sw_node_inside, param_template=sw_node_template,op=op)
+                else:
+                    path_v = sorted(zip(sw_node_template, sw_node_inside), key=lambda x: x[0])
+                    template = [x[0] for x in path_v]
+                    inside = [x[1] for x in path_v]
+                    # constructing einsum operation using template and inside
+                    out_template = self.compute_output_template(template)
+                    # print(template,out_template)
+                    out_inside = prob_sw_inside
+                    if len(template) > 0:  # condition for einsum
+                        lhs = ",".join(map(lambda x: "".join(x), template))
+                        rhs = "".join(out_template)
+                        if path_batch_flag:
+                            rhs = "b" + rhs
+                            out_template = ["b"] + out_template
+                        einsum_eq = lhs + "->" + rhs
+                        if verbose:
+                            print("  index:", einsum_eq)
+                            print("  var. :", inside)
+                        out_inside = torch.einsum(einsum_eq, *inside) * out_inside
+                    for scalar_inside in node_scalar_inside:
+                        out_inside = scalar_inside * out_inside
+                    ## computing operaters
+                    for op in path.operators:
+                        if verbose:
+                            print("  operator:", op.name)
+                        cls = operator_loader.get_operator(op.name)
+                        # print(">>>",op.values)
+                        # print(">>>",cls)
+                        op_obj = cls(op.values)
+                        out_inside = op_obj.call(out_inside)
+                        out_template = op_obj.get_output_template(out_template)
+                    
+
                 ##
                 self.path_inside.append(out_inside)
                 self.path_template.append(out_template)
@@ -170,7 +201,7 @@ class TorchComputationalExplGraph(ComputationalExplGraph,torch.nn.Module):
                     "inside": torch.sum(torch.stack(self.path_inside), dim=0),
                     "batch_flag": path_batch_flag,
                 }
-        return goal_inside
+        return goal_inside,self.loss
 
 
 class TorchTensorBase():
@@ -252,7 +283,7 @@ class TorchSwitchTensorProvider(SwitchTensorProvider):
             key=self.tensor_embedding[name]
             if type(key) is PlaceholderData:
                 if verbose: print("[INFO] from PlaceholderData",name,"==>",key.name)
-                out=torch.tensor(self.input_feed_dict[key])
+                out=self.input_feed_dict[key]
             elif isinstance(key,TorchTensorBase):
                 if verbose: print("[INFO] from Tensor",name,"==>")
                 out=key()
@@ -260,10 +291,12 @@ class TorchSwitchTensorProvider(SwitchTensorProvider):
                 raise Exception('Unknoen embedding type', name,key)
         elif type(name) is PlaceholderData:
             if verbose: print("[INFO] from PlaceholderData",name)
-            out=torch.tensor(self.input_feed_dict[name])
+            out=self.input_feed_dict[name]
         else:
             raise Exception('Unknoen embedding', name)
         if verbose:
             print(out)
+            print(type(out))
+            print("sum:",out.sum())
         return out
 
