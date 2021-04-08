@@ -5,7 +5,7 @@ mkdir -p markov_chain_tmp
 
 upprism markov_chain.psm 
 
-tprism.py train \
+tprism train \
     --intermediate_data_prefix ./markov_chain_tmp/ \
     --sgd_loss nll              \
     --max_iterate 10            \

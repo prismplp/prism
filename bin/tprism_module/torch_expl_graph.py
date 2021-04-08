@@ -61,6 +61,145 @@ class TorchComputationalExplGraph(ComputationalExplGraph,torch.nn.Module):
             out_template = param_template[0]
             print("[ERROR] unknown distribution:",dist)
         return out_inside, out_template
+    
+    def forward_(self,verbose=False):
+        graph=self.graph
+        tensor_provider=self.tensor_provider
+        cycle_embedding_generator=self.cycle_embedding_generator
+        goal_template=self.goal_template
+        cycle_node=self.cycle_node
+        operator_loader=self.operator_loader
+        self.loss={}
+        # goal_template
+        # converting explanation graph to computational graph
+        goal_inside = [None] * len(graph.goals)
+        for i in range(len(graph.goals)):
+            g = graph.goals[i]
+            if verbose:
+                print(
+                    "=== tensor equation (node_id:%d, %s) ==="
+                    % (g.node.sorted_id, g.node.goal.name)
+                )
+            path_inside = []
+            path_template = []
+            path_batch_flag = False
+            for path in g.paths:
+                path_data={
+                    "sw_template": [],
+                    "sw_inside":[],
+                    "prob_sw_inside":[],
+                    "node_template": [],
+                    "node_inside": [],
+                    "node_scalar_inside": [],
+                }
+                ## build template and inside for switches in the path
+                for sw in path.tensor_switches:
+                    ph = ("tensor_provider.get_placeholder_name",sw.name)
+                    if len(ph) > 0:
+                        path_data["sw_template"].append(["b"] + list(sw.values))
+                        path_batch_flag = True
+                    else:
+                        path_data["sw_template"].append(list(sw.values))
+                    sw_var = ("tensor_provider.get_embedding",sw.name)
+                    path_data["sw_inside"].append(sw_var)
+                for sw in path.prob_switches:
+                    path_data["prob_sw_inside"].append(("switch",sw.inside))
+
+                ## building template and inside for nodes in the path
+                for node in path.nodes:
+                    temp_goal = goal_inside[node.sorted_id]
+                    temp_goal_id = ("goal_inside",node.sorted_id)
+                    if node.sorted_id in cycle_node:
+                        name = node.goal.name
+                        template = goal_template[node.sorted_id]["template"]
+                        shape = goal_template[node.sorted_id]["shape"]
+                        temp_goal_inside = ("cycle_embedding_generator",name, shape, node.sorted_id)
+                        temp_goal_template = template
+                        path_data["node_inside"].append(temp_goal_inside)
+                        path_data["node_template"].append(temp_goal_template)
+                    elif temp_goal is None:
+                        print("  [ERROR] cycle node is detected")
+                        temp_goal = goal_inside[node.sorted_id]
+                        print(g.node.sorted_id)
+                        print(node)
+                        print(node.sorted_id)
+                        print(temp_goal)
+                        quit()
+                    elif len(temp_goal["template"]) > 0:
+                        # tensor
+                        temp_goal_inside = temp_goal_id
+                        temp_goal_template = temp_goal["template"]
+                        if temp_goal["batch_flag"]:
+                            path_batch_flag = True
+                        path_data["node_inside"].append(temp_goal_inside)
+                        path_data["node_template"].append(temp_goal_template)
+                    else:  # scalar
+                        path_data["node_scalar_inside"].append(temp_goal_id)
+                ## building template and inside for all elements (switches and nodes) in the path
+                sw_node_template = path_data["sw_template"] + path_data["node_template"]
+                sw_node_inside = path_data["sw_inside"] + path_data["node_inside"]
+                
+                ops={op.name:op for op in path.operators}
+                if "distribution" in ops:
+                    op=ops["distribution"]
+                    dist=op.values[0]
+                    name=g.node.goal.name
+                    out_inside, out_template = self._distribution_forward_(name,
+                            dist, params = sw_node_inside, param_template=sw_node_template,op=op)
+                else:
+                    path_v = sorted(zip(sw_node_template, sw_node_inside), key=lambda x: x[0])
+                    template = [x[0] for x in path_v]
+                    inside = [x[1] for x in path_v]
+                    # constructing einsum operation using template and inside
+                    out_template = self.compute_output_template(template)
+                    if len(template) > 0:  # condition for einsum
+                        lhs = ",".join(map(lambda x: "".join(x), template))
+                        rhs = "".join(out_template)
+                        if path_batch_flag:
+                            rhs = "b" + rhs
+                            out_template = ["b"] + out_template
+                        einsum_eq = lhs + "->" + rhs
+                        if verbose:
+                            print("  index:", einsum_eq)
+                            print("  var. :", inside)
+                        out_inside = ("torch.einsum",einsum_eq, inside)
+                    ## computing operaters
+                    for op in path.operators:
+                        if verbose:
+                            print("  operator:", op.name)
+                        cls = operator_loader.get_operator(op.name)
+                        op_obj = cls(op.values)
+                        out_inside = ("operator",op.name,out_inside)
+                        out_template = op_obj.get_output_template(out_template)
+                ##
+                path_inside.append(out_inside)
+                path_template.append(out_template)
+                ##
+            ##
+            path_template_list = self.get_unique_list(path_template)
+            if len(path_template_list) == 0:
+                goal_inside[i] = {
+                    "template": [],
+                    "inside": 1,
+                    "batch_flag": False,
+                }
+            else:
+                if len(path_template_list) != 1:
+                    print("[WARNING] missmatch indices:", path_template_list)
+                if len(path_template_list[0])==0:
+                    goal_inside[i] = {
+                        "template": path_template_list[0],
+                        "inside": path_inside,
+                        "batch_flag": path_batch_flag,
+                    }
+                else:
+                    goal_inside[i] = {
+                        "template": path_template_list[0],
+                        "inside": path_inside,
+                        "batch_flag": path_batch_flag,
+                    }
+        return goal_inside,self.loss
+
 
     def forward(self,verbose=False):
         graph=self.graph
@@ -96,7 +235,7 @@ class TorchComputationalExplGraph(ComputationalExplGraph,torch.nn.Module):
                         sw_template.append(list(sw.values))
                     sw_var = tensor_provider.get_embedding(sw.name,verbose)
                     sw_inside.append(sw_var)
-                prob_sw_inside = 1.0
+                prob_sw_inside = torch.tensor(1.0)
                 for sw in path.prob_switches:
                     prob_sw_inside *= sw.inside
 
@@ -135,7 +274,11 @@ class TorchComputationalExplGraph(ComputationalExplGraph,torch.nn.Module):
                         node_inside.append(temp_goal_inside)
                         node_template.append(temp_goal_template)
                     else:  # scalar
-                        node_scalar_inside.append(temp_goal["inside"])
+                        if type(temp_goal["inside"]) is list:
+                            a=torch.tensor(temp_goal["inside"])
+                            node_scalar_inside.append(torch.squeeze(a))
+                        else:
+                            node_scalar_inside.append(temp_goal["inside"])
                 ## building template and inside for all elements (switches and nodes) in the path
                 sw_node_template = sw_template + node_template
                 sw_node_inside = sw_inside + node_inside
@@ -190,17 +333,24 @@ class TorchComputationalExplGraph(ComputationalExplGraph,torch.nn.Module):
             if len(path_template_list) == 0:
                 goal_inside[i] = {
                     "template": [],
-                    "inside": np.array(1),
+                    "inside": torch.tensor(1),
                     "batch_flag": False,
                 }
             else:
                 if len(path_template_list) != 1:
                     print("[WARNING] missmatch indices:", path_template_list)
-                goal_inside[i] = {
-                    "template": path_template_list[0],
-                    "inside": torch.sum(torch.stack(self.path_inside), dim=0),
-                    "batch_flag": path_batch_flag,
-                }
+                if len(path_template_list[0])==0:
+                    goal_inside[i] = {
+                        "template": path_template_list[0],
+                        "inside": self.path_inside,
+                        "batch_flag": path_batch_flag,
+                    }
+                else:
+                    goal_inside[i] = {
+                        "template": path_template_list[0],
+                        "inside": torch.sum(torch.stack(self.path_inside), dim=0),
+                        "batch_flag": path_batch_flag,
+                    }
         return goal_inside,self.loss
 
 
@@ -278,7 +428,7 @@ class TorchSwitchTensorProvider(SwitchTensorProvider):
             if isinstance(obj,TorchTensorBase):
                 out=obj()
             else:
-                raise Exception('Unknoen embedding type', name,key)
+                raise Exception('Unknoen embedding type', name, type(obj))
         elif type(name) is str:
             key=self.tensor_embedding[name]
             if type(key) is PlaceholderData:

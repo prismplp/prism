@@ -591,6 +591,7 @@ class SwitchTensorProvider:
         flags,
         load_embeddings=False,
         embedding_generators=[],
+        verbose=False,
     ):
         # sw_info: switch name =>SwitchTensor
         sw_info = self._build_sw_info(graph,options)

@@ -111,7 +111,7 @@ class PreferencePair(BaseLoss):
             # l=tf.log(tf.exp(l2-l1)+1)+reg_loss
             # l = tf.nn.softplus(1 * l2)+tf.nn.softplus(-1 * l1) + reg_loss
             loss.append(torch.sum(l))
-            output.append([l1, l2])
+            output.append(torch.stack([l1, l2]))
         return loss, output, None
 
 

@@ -14,7 +14,7 @@ upprism distmult_sample.psm
 ## Minibatch SGD trainging is done by minimizing the loss function (preference_pair: preference-pair loss function for rank learning)
 ## The optional arguments determine training parameters: the number of epoch (--max_iterate) and the learning rate in the training phase.
 ##
-tprism.py train \
+tprism train \
     --intermediate_data_prefix ./distmult_sample_tmp/ \
     --sgd_loss preference_pair            \
     --max_iterate 10            \

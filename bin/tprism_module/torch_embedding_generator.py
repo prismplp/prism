@@ -53,15 +53,15 @@ class CycleEmbeddingGenerator(BaseEmbeddingGenerator):
     def forward(self, name, shape, node_id):
         ph_name = name + "_cyc"
         if ph_name in self.embedding:
-            print("[GET]>", ph_name, ":", self.embedding[ph_name]["tensor"])
+            print("[GET cycle]>", ph_name, ":", self.embedding[ph_name]["tensor"])
             return torch.tensor(self.embedding[ph_name]["data"])
         else:
-            print("[CREATE]>", ph_name, ":", shape)
+            print("[CREATE cycle]>", ph_name, ":", shape)
             self.embedding[ph_name] = {}
             self.embedding[ph_name]["tensor"] = PlaceholderData(
                 name=ph_name, shape=shape, dtype=torch.float32
             )
-            self.embedding[ph_name]["data"] = np.zeros(shape=shape, dtype=np.float32)
+            self.embedding[ph_name]["data"] = torch.tensor(np.zeros(shape=shape, dtype=np.float32))
             self.embedding[ph_name]["id"] = node_id
             return torch.tensor(self.embedding[ph_name]["data"])
 
@@ -70,20 +70,21 @@ class CycleEmbeddingGenerator(BaseEmbeddingGenerator):
             batch_data = data["data"]
             ph_var = data["tensor"]
             if self.feed_verb:
-                print("[INFO: feed]", "node_id:", data["id"], "=>", ph_name)
-            feed_dict[ph_var] = batch_data
+                print("[INFO: cycle feed]", "node_id:", data["id"], "=>", ph_name)
+            feed_dict[ph_var] = torch.Tensor(batch_data)
         return feed_dict
 
     def update(self, out_inside):
         total_loss = 0
         for ph_name, data in self.embedding.items():
             node_id = data["id"]
-            print("[INFO: update] node_id:", node_id, "=>", ph_name)
+            print("[INFO: cycle update] node_id:", node_id, "=>", ph_name)
             ##
-            loss = self.embedding[ph_name]["data"] - out_inside[node_id]
-            total_loss += np.sum(loss ** 2)
+            o=out_inside[node_id]
+            loss = self.embedding[ph_name]["data"] - o
+            total_loss += (loss ** 2).sum()
             ##
-            self.embedding[ph_name]["data"] = out_inside[node_id]
+            self.embedding[ph_name]["data"] = o
             # a=0.5
             # self.embedding[ph_name]["data"]=(1.0-a)*self.embedding[ph_name]["data"]+a*out_inside[node_id]
         return total_loss
@@ -132,7 +133,10 @@ class DatasetEmbeddingGenerator(BaseEmbeddingGenerator):
     def build_feed(self, feed_dict, idx=None):
         for vocab_name, data in self.dataset.items():
             ph_name = vocab_name + "_ph"
-            batch_data = data[idx]
+            if idx is None:
+                batch_data = data
+            else:
+                batch_data = data[idx]
             if ph_name in self.created_ph_var:
                 ph_var = self.created_ph_var[ph_name]
                 feed_dict[ph_var] = torch.Tensor(batch_data)
@@ -182,7 +186,7 @@ class ConstEmbeddingGenerator(BaseEmbeddingGenerator):
             ph_name = vocab_name + "_ph"
             if ph_name in self.created_ph_var:
                 ph_var = self.created_ph_var[ph_name]
-                feed_dict[ph_var] = data
+                feed_dict[ph_var] = torch.Tensor(data)
             if self.feed_verb:
                 print("[INFO: feed]", vocab_name, "=>", ph_name)
         return feed_dict

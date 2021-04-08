@@ -214,7 +214,7 @@ $pp_trans_phase_tensor(Prog0,Prog_tensor,Info):-
 	$pp_tensor_merge_pred(Prog_tensor0,Pred1,Prog_tensor1),
 	$pp_tensor_merge_pred(Prog_tensor1,Pred2,Prog_tensor2),
 	$pp_tensor_merge_pred(Prog_tensor2,Pred3,Prog_tensor3),
-	$pp_tensor_merge_pred(Prog_tensor2,Pred4,Prog_tensor),
+	$pp_tensor_merge_pred(Prog_tensor3,Pred4,Prog_tensor),
 	(tprism_debug_level(1)->(
 	format(">> T-PRISM before\n"),
 	maplist(X,format("~w\n",X),Prog0),
