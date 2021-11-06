@@ -140,8 +140,8 @@ nonground_unique(L,L1):-
 	unique(L0,L1).
 
 tprism_debug_level(1).
-%CollectLists:
-% data(occured switches,declared index)
+%% CollectLists:
+%$  data(occured switches,declared index)
 $pp_trans_phase_tensor(Prog0,Prog_tensor,Info):-
 	maplist(X,Y,CollectList,(
 		X=pred(index,2,A2,A3,A4,Clauses)->
@@ -373,13 +373,5 @@ $pp_tensor_core(Filename,OptionFilename,Mode,OptionMode,GoalList) :-
 	cputime(EndEM),
 	save_flags(OptionFilename,OptionMode,SwShape),
 	cputime(End),!.
-	%$pc_import_occ_switches(NewSws,NSwitches,NSwVals),
-	%format("=======================\n"),
-	%$pp_decode_update_switches(Mode,NewSws),
-	%format("======================\n"),
-	%$pp_assert_graph_stats(NSubgraphs,NGoalNodes,NSwNodes,AvgShared),
-	%$pp_assert_learn_stats(Mode,Output,NSwitches,NSwVals,TableSpace,
-	%					   Start,End,StartExpl,EndExpl,StartEM,EndEM,1000),
-	%$pp_print_learn_stats_message(MsgT),!.
 
 

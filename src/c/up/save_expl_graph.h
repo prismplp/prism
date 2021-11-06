@@ -8,6 +8,7 @@ enum SaveFormat{
 	FormatHDF5=3,
 };
 
-int pc_prism_save_3(void);
+extern "C"
+int pc_prism_save_expl_graph_3(void);
 
 #endif /* SAVE_EXPL_GRAPH_H */

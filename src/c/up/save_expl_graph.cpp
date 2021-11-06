@@ -29,8 +29,9 @@ extern "C" {
 #include <set>
 #include <cmath>
 #include <string>
-#include "external/expl.pb.h"
 #include "up/save_expl_graph.h"
+
+#include "external/expl.pb.h"
 #include <google/protobuf/text_format.h>
 #include <google/protobuf/message.h>
 #include <google/protobuf/descriptor.h>
@@ -42,6 +43,8 @@ extern "C" {
 using namespace std;
 using namespace google::protobuf;
 
+/* get_* retuens serializable object for each object in the explanation graph.
+ */
 prism::GoalTerm get_goal(TERM term){
 	prism::GoalTerm goal;
 	const char* name=bpx_get_name(term);
@@ -64,6 +67,8 @@ prism::ExplGraphNode get_node(int id,int sorted_id){
 	return node;
 }
 
+/* this function adds the list object (term) to the values variable in the given sw object
+ */
 void set_value_list(prism::SwIns* sw,TERM term){
 	if(bpx_is_list(term)){
 		while(!bpx_is_nil(term)){
@@ -77,6 +82,7 @@ void set_value_list(prism::SwIns* sw,TERM term){
 		sw->add_values(term_str);
 	}
 }
+
 prism::SwIns get_swins(SW_INS_PTR sw_ins){
 	prism::SwIns sw;
 	int id= sw_ins->id;
@@ -222,7 +228,6 @@ int run_save_expl_graph(const string& outfilename,SaveFormat format) {
 	}
 	*/
 	for (RNK_NODE_PTR itr = rank_root; itr != NULL; itr=itr->next) {
-		//int index = i%num_minibatch;
 		prism::RankRoot* rr=goals.add_root_list();
 		for(int j=0;j<itr->goal_count;j++){
 			prism::Root* r=rr->add_roots();
@@ -244,6 +249,13 @@ int run_save_expl_graph(const string& outfilename,SaveFormat format) {
 	
 	return BP_TRUE;
 }
+
+/* This function returns information about switches that occures in the explanation graph as p_sw_list
+ * occ_switch_tab_size=[msw(tensor(w(2)),[i]),msw(..,..),..]
+ * a list of sw(index of occ_switches, [sw_ins(instance_id),...])
+ *
+ * e.g. p_sw_list = [sw(1,[sw_ins(4),sw_ins(3),sw_ins(2),sw_ins(1)]),sw(0,[sw_ins(0)])
+*/
 int get_occ_switches(TERM p_sw_list) {
 	TERM p_sw_list0,p_sw_list1;
 	TERM p_sw_ins_list0,p_sw_ins_list1,sw,sw_ins;
@@ -277,7 +289,6 @@ int get_occ_switches(TERM p_sw_list) {
 		p_sw_list0 = p_sw_list1;
 	}
 	return bpx_unify(p_sw_list,    p_sw_list0);
-	//return bpx_unify(p_sw_list,    p_sw_list0);
 }
 
 
