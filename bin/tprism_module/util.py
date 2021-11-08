@@ -14,6 +14,7 @@ import pickle
 import tprism_module.expl_pb2 as expl_pb2
 import tprism_module.expl_graph as expl_graph
 
+
 def to_string_goal(goal):
     """
     s=goal.name
@@ -21,10 +22,11 @@ def to_string_goal(goal):
     s+=",".join([str(arg) for arg in goal.args])
     s+=")"
     """
-    s=goal.name
-    s+=","
-    s+=",".join([str(arg) for arg in goal.args])
+    s = goal.name
+    s += ","
+    s += ",".join([str(arg) for arg in goal.args])
     return s
+
 
 class Flags(object):
     def __init__(self, args, options):
@@ -59,32 +61,33 @@ class Flags(object):
         ##
         self.sgd_learning_rate = float(self.sgd_learning_rate)
 
+
 def get_goal_dataset(goal_dataset):
-    out_idx=[]
+    out_idx = []
     for j, goal in enumerate(goal_dataset):
         all_num = goal["dataset"].shape[1]
-        all_idx=np.array(list(range(all_num)))
+        all_idx = np.array(list(range(all_num)))
         out_idx.append(all_idx)
     return out_idx
 
 
-def split_goal_dataset(goal_dataset,valid_ratio = 0.1):
-    train_idx=[]
-    valid_idx=[]
+def split_goal_dataset(goal_dataset, valid_ratio=0.1):
+    train_idx = []
+    valid_idx = []
     for j, goal in enumerate(goal_dataset):
         ph_vars = goal["placeholders"]
         all_num = goal["dataset"].shape[1]
-        all_idx=np.array(list(range(all_num)))
+        all_idx = np.array(list(range(all_num)))
         np.random.shuffle(all_idx)
         train_num = int(all_num - valid_ratio * all_num)
         train_idx.append(all_idx[:train_num])
         valid_idx.append(all_idx[train_num:])
-    return train_idx,valid_idx
+    return train_idx, valid_idx
 
 
 #
-#goal_dataset["placeholders"] => ph_vars
-#goal_dataset["dataset"]: dataset
+# goal_dataset["placeholders"] => ph_vars
+# goal_dataset["dataset"]: dataset
 # dataset contains indeces: values in the given dataset is coverted into index
 def build_goal_dataset(input_data, tensor_provider):
     goal_dataset = []
@@ -103,7 +106,7 @@ def build_goal_dataset(input_data, tensor_provider):
         for i, ph_name in enumerate(ph_names):
             rec = d["records"]
             if tensor_provider.is_convertable_value(ph_name):
-                print("[INFO]",ph_name,"converted!!")
+                print("[INFO]", ph_name, "converted!!")
                 dataset[i] = to_index_func(rec[:, i], ph_name)
             else:  # goal placeholder
                 dataset[i] = rec[:, i]
@@ -115,5 +118,3 @@ def build_goal_dataset(input_data, tensor_provider):
     for obj in goal_dataset:
         obj["dataset"] = np.array(obj["dataset"])
     return goal_dataset
-
-

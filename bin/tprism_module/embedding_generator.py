@@ -19,13 +19,17 @@ import tprism_module.expl_pb2 as expl_pb2
 import tprism_module.op.base
 import tprism_module.loss.base
 
+
 class BaseEmbeddingGenerator:
     def is_embedding(self, vocab_name):
         return False
+
     def get_shape(self, vocab_name):
         return None
+
     def get_embedding(self, name, shape, node_id):
         return None
+
     def update(self, out_inside):
         pass
 
@@ -42,7 +46,7 @@ class CycleEmbeddingGenerator(BaseEmbeddingGenerator):
         self.tensor_shape = {
             el.tensor_name: [d for d in el.shape] for el in options.tensor_shape
         }
-    
+
     def template2shape(self, template):
         return [self.index_range[t] for t in template]
 
@@ -84,6 +88,7 @@ class CycleEmbeddingGenerator(BaseEmbeddingGenerator):
             # self.embedding[ph_name]["data"]=(1.0-a)*self.embedding[ph_name]["data"]+a*out_inside[node_id]
         return total_loss
 
+
 # embedding data from data
 class DatasetEmbeddingGenerator(BaseEmbeddingGenerator):
     def __init__(self):
@@ -118,7 +123,7 @@ class DatasetEmbeddingGenerator(BaseEmbeddingGenerator):
             return self.created_ph_var[ph_name]
         else:
             if shape is None:
-                shape=self.dataset[vocab_name].shape
+                shape = self.dataset[vocab_name].shape
             self.created_ph_var[ph_name] = tf.placeholder(
                 name=ph_name, shape=shape, dtype=tf.float32
             )
@@ -133,6 +138,7 @@ class DatasetEmbeddingGenerator(BaseEmbeddingGenerator):
                 ph_var = self.created_ph_var[ph_name]
                 feed_dict[ph_var] = batch_data
         return feed_dict
+
 
 # embedding data from data
 class ConstEmbeddingGenerator(BaseEmbeddingGenerator):
@@ -167,12 +173,13 @@ class ConstEmbeddingGenerator(BaseEmbeddingGenerator):
             return self.created_ph_var[ph_name]
         else:
             if shape is None:
-                shape=self.dataset[vocab_name].shape
+                shape = self.dataset[vocab_name].shape
             self.created_ph_var[ph_name] = tf.placeholder(
                 name=ph_name, shape=shape, dtype=tf.float32
             )
             print("[CREATE]>", ph_name, ":", shape)
             return self.created_ph_var[ph_name]
+
     def build_feed(self, feed_dict, idx=None):
         for vocab_name, data in self.dataset.items():
             ph_name = vocab_name + "_ph"
@@ -182,7 +189,3 @@ class ConstEmbeddingGenerator(BaseEmbeddingGenerator):
             if self.feed_verb:
                 print("[INFO: feed]", vocab_name, "=>", ph_name)
         return feed_dict
-
-
-
-

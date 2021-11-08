@@ -19,14 +19,17 @@ import tprism_module.expl_pb2 as expl_pb2
 import tprism_module.op.base
 import tprism_module.loss.base
 
-from tprism_module.expl_graph import ComputationalExplGraph,SwitchTensorProvider
-from tprism_module.expl_graph import PlaceholderGraph,VocabSet,OperatorLoader
+from tprism_module.expl_graph import ComputationalExplGraph, SwitchTensorProvider
+from tprism_module.expl_graph import PlaceholderGraph, VocabSet, OperatorLoader
+
 
 class TFComputationalExplGraph(ComputationalExplGraph):
     def __init__(self):
         super().__init__()
-        
-    def build_explanation_graph(self, graph, tensor_provider, cycle_embedding_generator=None):
+
+    def build_explanation_graph(
+        self, graph, tensor_provider, cycle_embedding_generator=None
+    ):
         operator_loader = OperatorLoader()
         operator_loader.load_all("op")
         goal_template, cycle_node = self.build_explanation_graph_template(
@@ -104,7 +107,9 @@ class TFComputationalExplGraph(ComputationalExplGraph):
                 ## building template and inside for all elements (switches and nodes) in the path
                 sw_node_template = sw_template + node_template
                 sw_node_inside = sw_inside + node_inside
-                path_v = sorted(zip(sw_node_template, sw_node_inside), key=lambda x: x[0])
+                path_v = sorted(
+                    zip(sw_node_template, sw_node_inside), key=lambda x: x[0]
+                )
                 template = [x[0] for x in path_v]
                 inside = [x[1] for x in path_v]
                 # constructing einsum operation using template and inside
@@ -170,11 +175,11 @@ class TFSwitchTensorProvider(SwitchTensorProvider):
         embedding_generators=[],
     ):
         # sw_info: switch name =>SwitchTensor
-        sw_info = self._build_sw_info(graph,options)
-        # 
-        ph_graph=PlaceholderGraph()
-        ph_graph.build(input_data,sw_info)
-        
+        sw_info = self._build_sw_info(graph, options)
+        #
+        ph_graph = PlaceholderGraph()
+        ph_graph.build(input_data, sw_info)
+
         ## build vocab group
         if load_embeddings:
             print("[LOAD]", flags.vocab)
@@ -187,15 +192,17 @@ class TFSwitchTensorProvider(SwitchTensorProvider):
             with open(flags.vocab, mode="wb") as f:
                 pickle.dump(vocab_set, f)
         ##
-        self.vocab_var_type=self._build_vocab_var_type(ph_graph,vocab_set,embedding_generators)
+        self.vocab_var_type = self._build_vocab_var_type(
+            ph_graph, vocab_set, embedding_generators
+        )
         self.vocab_set = vocab_set
-        self.ph_graph=ph_graph
+        self.ph_graph = ph_graph
         self.sw_info = sw_info
         ##
         ## Forward
         ##
         # build placeholders
-        #ph_var    : ph_name => placeholder
+        # ph_var    : ph_name => placeholder
         ph_var = {}
         batch_size = flags.sgd_minibatch_size
         for ph_name in ph_graph.ph_values.keys():
@@ -207,22 +214,32 @@ class TFSwitchTensorProvider(SwitchTensorProvider):
         ## assigning tensor variable
         ## vocab_var: vocab_name => variable
         ##
-        vocab_var={}
+        vocab_var = {}
         dtype = tf.float32
         initializer = tf.contrib.layers.xavier_initializer()
         for vocab_name, var_type in self.vocab_var_type.items():
             values = vocab_set.get_values(vocab_name)
-            if var_type["type"]=="dataset":
-                print(">> dataset >>", vocab_name, ":",var_type["dataset_shape"],"=>", var_type["shape"])
-            elif var_type["type"]=="onehot":
+            if var_type["type"] == "dataset":
+                print(
+                    ">> dataset >>",
+                    vocab_name,
+                    ":",
+                    var_type["dataset_shape"],
+                    "=>",
+                    var_type["shape"],
+                )
+            elif var_type["type"] == "onehot":
                 print(">> onehot  >>", vocab_name, ":", var_type["shape"])
-                d=var_type["value"]
+                d = var_type["value"]
                 var = tf.one_hot(d, var_type["shape"][0])
                 vocab_var[vocab_name] = var
             else:
                 print(">> variable>>", vocab_name, ":", var_type["shape"])
                 var = tf.get_variable(
-                    vocab_name, shape=var_type["shape"], initializer=initializer, dtype=dtype
+                    vocab_name,
+                    shape=var_type["shape"],
+                    initializer=initializer,
+                    dtype=dtype,
                 )
                 vocab_var[vocab_name] = var
         # converting PRISM switches to Tensorflow Variables
@@ -233,10 +250,10 @@ class TFSwitchTensorProvider(SwitchTensorProvider):
             var_name = sw.var_name
             ph_list = sw.ph_names
             if len(ph_list) == 0:
-                dataset_flag=False
+                dataset_flag = False
                 for eg in embedding_generators:
                     if eg.is_embedding(vocab_name):
-                        dataset_flag=True
+                        dataset_flag = True
                         # dataset without placeholder
                         shape = list(list(sw.shape_set)[0])
                         if sw.value is None:
@@ -246,20 +263,20 @@ class TFSwitchTensorProvider(SwitchTensorProvider):
                         else:
                             print("ph_list==0 and value enbabled")
                             var = eg.get_embedding(vocab_name)
-                            print((vocab_name,":", var.shape,"=>",shape))
-                            index=vocab_set.get_values_index(vocab_name, sw.value)
-                            print(index,sw.value)
-                            tensor_embedding[sw_name] = var[sw.value] # TODO
+                            print((vocab_name, ":", var.shape, "=>", shape))
+                            index = vocab_set.get_values_index(vocab_name, sw.value)
+                            print(index, sw.value)
+                            tensor_embedding[sw_name] = var[sw.value]  # TODO
                 if not dataset_flag:
                     print("ph_list==0 and no dataset")
                     # trainig variable without placeholder
                     var = vocab_var[vocab_name]
                     tensor_embedding[sw_name] = var
             elif len(ph_list) == 1:
-                dataset_flag=False
+                dataset_flag = False
                 for eg in embedding_generators:
                     if eg.is_embedding(vocab_name):
-                        dataset_flag=True
+                        dataset_flag = True
                         # dataset with placeholder
                         print("ph_list==1 and dataset enabled")
                         shape = [batch_size] + list(list(sw.shape_set)[0])
@@ -272,7 +289,7 @@ class TFSwitchTensorProvider(SwitchTensorProvider):
                     ph = ph_var[ph_list[0]]
                     tensor_embedding[sw_name] = tf.gather(var, ph)
             else:
-                print("[WARM] unknown embedding:",sw_name)
+                print("[WARM] unknown embedding:", sw_name)
         self.vocab_var = vocab_var
         self.ph_var = ph_var
         self.tensor_embedding = tensor_embedding

@@ -17,29 +17,36 @@ import tprism_module.expl_pb2 as expl_pb2
 import tprism_module.expl_graph as expl_graph
 import tprism_module.torch_expl_graph as torch_expl_graph
 import tprism_module.torch_embedding_generator as embed_gen
-from tprism_module.util import  to_string_goal, Flags, build_goal_dataset, split_goal_dataset, get_goal_dataset
+from tprism_module.util import (
+    to_string_goal,
+    Flags,
+    build_goal_dataset,
+    split_goal_dataset,
+    get_goal_dataset,
+)
 from tprism_module.torch_util import draw_graph
 import re
 import numpy as np
 import sklearn.metrics
 
-class TprismEvaluator():
-    def __init__(self, goal_dataset = None):
+
+class TprismEvaluator:
+    def __init__(self, goal_dataset=None):
         if goal_dataset is not None:
-            self.n_goals=len(goal_dataset)
+            self.n_goals = len(goal_dataset)
         else:
-            self.n_goals=1
+            self.n_goals = 1
         self.loss_history = [[] for _ in range(self.n_goals)]
         self.loss_dict_history = [[] for _ in range(self.n_goals)]
         self.label = [[] for _ in range(self.n_goals)]
         self.output = [[] for _ in range(self.n_goals)]
 
-
     def start_epoch(self):
         self.running_loss = [0.0 for _ in range(self.n_goals)]
         self.running_loss_dict = [{} for _ in range(self.n_goals)]
         self.running_count = [0 for _ in range(self.n_goals)]
-    def update(self,loss,loss_dict,j):
+
+    def update(self, loss, loss_dict, j):
         """
             This function is called the last of batch iteration
               loss,output, label: return values of forward
@@ -53,63 +60,67 @@ class TprismEvaluator():
                 self.running_loss_dict[j][k] += v
             else:
                 self.running_loss_dict[j][k] = v
-    def stop_epoch(self,j=0,mean_flag=True):
+
+    def stop_epoch(self, j=0, mean_flag=True):
         if mean_flag:
             self.running_loss[j] /= self.running_count[j]
             for k in self.running_loss_dict[j].keys():
-                self.running_loss_dict[j][k] /=  self.running_count[j]
+                self.running_loss_dict[j][k] /= self.running_count[j]
         self.loss_history[j].append(self.running_loss[j])
         self.loss_dict_history[j].append(self.running_loss_dict[j])
+
     def get_dict(self, prefix="train"):
-        result={}
+        result = {}
         for j in range(self.n_goals):
-            key="{:s}-loss".format(prefix)
-            val=self.running_loss[j]
-            result[key]=float(val)
+            key = "{:s}-loss".format(prefix)
+            val = self.running_loss[j]
+            result[key] = float(val)
             for k, v in self.running_loss_dict[j].items():
-                if k[0]!="*":
+                if k[0] != "*":
                     m = "{:s}-{:s}-loss".format(prefix, k)
                 else:
                     m = "*{:s}-{:s}".format(prefix, k[1:])
-                result[m]=float(v)
+                result[m] = float(v)
             return result
 
     def get_msg(self, prefix="train"):
         msg = []
-        for key,val in self.get_dict(prefix=prefix).items():
-            m = "{:s}: {:.3f}".format(key,val)
+        for key, val in self.get_dict(prefix=prefix).items():
+            m = "{:s}: {:.3f}".format(key, val)
             msg.append(m)
         return "  ".join(msg)
 
     def get_loss(self):
-            return self.running_loss
-    def update_data(self,output,label,j):
-        if type(output[j])==list: # preference
-            _o=[o.detach().numpy() for o in output[j]]
+        return self.running_loss
+
+    def update_data(self, output, label, j):
+        if type(output[j]) == list:  # preference
+            _o = [o.detach().numpy() for o in output[j]]
         else:
-            _o=output[j].detach().numpy()
+            _o = output[j].detach().numpy()
         self.output[j].extend(_o)
         if label is not None:
-            _l=label[j].detach().numpy()
+            _l = label[j].detach().numpy()
             self.label[j].extend(_l)
 
-class TprismModel():
-    def __init__(self, flags, options, graph, loss_cls):
-        self.graph=graph
-        self.flags=flags
-        self.options=options
-        self.loss_cls=loss_cls
 
-    def build(self,input_data,load_embeddings,embedding_key):
+class TprismModel:
+    def __init__(self, flags, options, graph, loss_cls):
+        self.graph = graph
+        self.flags = flags
+        self.options = options
+        self.loss_cls = loss_cls
+
+    def build(self, input_data, load_embeddings, embedding_key):
         self._build_embedding(embedding_key)
-        self._set_data(input_data,load_embeddings)
+        self._set_data(input_data, load_embeddings)
         self._build_explanation_graph()
 
-    def _build_embedding(self,embedding_key):
+    def _build_embedding(self, embedding_key):
         embedding_generators = []
         if self.flags.embedding:
             eg = embed_gen.DatasetEmbeddingGenerator()
-            eg.load(self.flags.embedding,key=embedding_key)
+            eg.load(self.flags.embedding, key=embedding_key)
             embedding_generators.append(eg)
         if self.flags.const_embedding:
             eg = embed_gen.ConstEmbeddingGenerator()
@@ -122,8 +133,8 @@ class TprismModel():
             embedding_generators.append(cycle_embedding_generator)
         self.embedding_generators = embedding_generators
         self.cycle_embedding_generator = cycle_embedding_generator
-        
-    def _set_data(self,input_data,load_embeddings):
+
+    def _set_data(self, input_data, load_embeddings):
         self.tensor_provider = torch_expl_graph.TorchSwitchTensorProvider()
         self.tensor_provider.build(
             self.graph,
@@ -135,28 +146,29 @@ class TprismModel():
         )
 
     def _build_explanation_graph(self):
-        self.comp_expl_graph=torch_expl_graph.TorchComputationalExplGraph(
+        self.comp_expl_graph = torch_expl_graph.TorchComputationalExplGraph(
             self.graph, self.tensor_provider, self.cycle_embedding_generator
         )
-    def solve(self,input_data=None):
+
+    def solve(self, input_data=None):
         if input_data is None:
             self._solve_no_data()
 
     def _solve_no_data(self):
         print("... training phase")
         print("... training variables")
-        for key,param in self.comp_expl_graph.state_dict().items():
-                print(key,param.shape)
+        for key, param in self.comp_expl_graph.state_dict().items():
+            print(key, param.shape)
         print("... building explanation graph")
         prev_loss = None
         for step in range(self.flags.max_iterate):
             feed_dict = {}
             for embedding_generator in self.embedding_generators:
                 if embedding_generator is not None:
-                    feed_dict = embedding_generator.build_feed(feed_dict,None)
+                    feed_dict = embedding_generator.build_feed(feed_dict, None)
             self.tensor_provider.set_input(feed_dict)
-            #out_inside = self.sess.run(inside, feed_dict=feed_dict)
-            goal_inside,loss_list = self.comp_expl_graph.forward(verbose=True)
+            # out_inside = self.sess.run(inside, feed_dict=feed_dict)
+            goal_inside, loss_list = self.comp_expl_graph.forward(verbose=True)
             inside = []
             for goal in goal_inside:
                 l1 = goal["inside"]
@@ -172,96 +184,102 @@ class TprismModel():
                 pass
             prev_loss = loss
         ##
-    
+
     def fit(self, input_data=None, verbose=False):
         if input_data is None:
             return self._fit_no_data(verbose)
         else:
             return self._fit(input_data, verbose)
 
-    def _fit_no_data(self,verbose):
+    def _fit_no_data(self, verbose):
         print("... training phase")
         print("... training variables")
-        for key,param in self.comp_expl_graph.state_dict().items():
-                print(key,param.shape)
-        optimizer=optim.Adam(self.comp_expl_graph.parameters(), self.flags.sgd_learning_rate, weight_decay=1.0e-10)
+        for key, param in self.comp_expl_graph.state_dict().items():
+            print(key, param.shape)
+        optimizer = optim.Adam(
+            self.comp_expl_graph.parameters(),
+            self.flags.sgd_learning_rate,
+            weight_decay=1.0e-10,
+        )
         print("... initialization")
         loss_cls = self.loss_cls()
         print("... building explanation graph")
-        
-        best_total_loss=None
-        train_evaluator=TprismEvaluator()
+
+        best_total_loss = None
+        train_evaluator = TprismEvaluator()
         for epoch in range(self.flags.max_iterate):
             start_t = time.time()
             # train
-            #print("... iteration")
-            goal_inside,loss_list = self.comp_expl_graph.forward()
-            loss, output, label = loss_cls.call(self.graph, goal_inside, self.tensor_provider)
+            # print("... iteration")
+            goal_inside, loss_list = self.comp_expl_graph.forward()
+            loss, output, label = loss_cls.call(
+                self.graph, goal_inside, self.tensor_provider
+            )
             optimizer.zero_grad()
-            total_loss=torch.sum(torch.stack(loss),dim=0)
+            total_loss = torch.sum(torch.stack(loss), dim=0)
             total_loss.backward()
             optimizer.step()
-            metrics = loss_cls.metrics(output,label)
+            metrics = loss_cls.metrics(output, label)
             train_evaluator.start_epoch()
-            train_evaluator.update(total_loss,loss_list,0)
+            train_evaluator.update(total_loss, loss_list, 0)
             train_evaluator.stop_epoch()
-            #display_graph(output[j],'graph_pytorch')
-            
+            # display_graph(output[j],'graph_pytorch')
 
-            #train_acc=sklearn.metrics.accuracy_score(all_label,all_output)
+            # train_acc=sklearn.metrics.accuracy_score(all_label,all_output)
             train_time = time.time() - start_t
-            print(
-                "[{:4d}] ".format(epoch + 1),
-                train_evaluator.get_msg("train")
-            )
+            print("[{:4d}] ".format(epoch + 1), train_evaluator.get_msg("train"))
             print("train time:{0}".format(train_time) + "[sec]")
-            if best_total_loss is None or train_evaluator.running_loss[0] < best_total_loss:
-                best_total_loss=train_evaluator.running_loss[0]
-                self.save(self.flags.model+".best.model")
-        self.save(self.flags.model+".last.model")
+            if (
+                best_total_loss is None
+                or train_evaluator.running_loss[0] < best_total_loss
+            ):
+                best_total_loss = train_evaluator.running_loss[0]
+                self.save(self.flags.model + ".best.model")
+        self.save(self.flags.model + ".last.model")
 
-    def _build_feed(self,ph_vars,dataset,idx,verbose=False):
+    def _build_feed(self, ph_vars, dataset, idx, verbose=False):
         if verbose:
             for i, ph in enumerate(ph_vars):
-                print("[INFO feed]",ph,ph.name)
-                print("[INFO feed]",dataset[i,idx].shape)
-        feed_dict = {
-            ph: torch.tensor(dataset[i, idx])
-            for i, ph in enumerate(ph_vars)
-            }
+                print("[INFO feed]", ph, ph.name)
+                print("[INFO feed]", dataset[i, idx].shape)
+        feed_dict = {ph: torch.tensor(dataset[i, idx]) for i, ph in enumerate(ph_vars)}
         return feed_dict
-    
+
     def _set_batch_input(self, goal, train_idx, j, itr):
         batch_size = self.flags.sgd_minibatch_size
         ph_vars = goal["placeholders"]
         dataset = goal["dataset"]
-        batch_idx=train_idx[j][itr * batch_size : (itr + 1) * batch_size]
-        feed_dict = self._build_feed(ph_vars,dataset,batch_idx)
-        #for k,v in feed_dict.items():
+        batch_idx = train_idx[j][itr * batch_size : (itr + 1) * batch_size]
+        feed_dict = self._build_feed(ph_vars, dataset, batch_idx)
+        # for k,v in feed_dict.items():
         #    print(k,v.shape)
         for embedding_generator in self.embedding_generators:
             if embedding_generator is not None:
-                feed_dict = embedding_generator.build_feed(feed_dict,batch_idx)
+                feed_dict = embedding_generator.build_feed(feed_dict, batch_idx)
         self.tensor_provider.set_input(feed_dict)
-        
+
     def _fit(self, input_data, verbose):
         print("... training phase")
         goal_dataset = build_goal_dataset(input_data, self.tensor_provider)
         print("... training variables")
-        for key,param in self.comp_expl_graph.state_dict().items():
-                print(key,param.shape)
-        optimizer=optim.Adam(self.comp_expl_graph.parameters(), self.flags.sgd_learning_rate, weight_decay=1.0e-10)
+        for key, param in self.comp_expl_graph.state_dict().items():
+            print(key, param.shape)
+        optimizer = optim.Adam(
+            self.comp_expl_graph.parameters(),
+            self.flags.sgd_learning_rate,
+            weight_decay=1.0e-10,
+        )
         best_valid_loss = [None for _ in range(len(goal_dataset))]
         patient_count = 0
         batch_size = self.flags.sgd_minibatch_size
         print("... splitting data")
-        train_idx,valid_idx=split_goal_dataset(goal_dataset)
+        train_idx, valid_idx = split_goal_dataset(goal_dataset)
         loss_cls = self.loss_cls()
         print("... starting training")
         for epoch in range(self.flags.max_iterate):
             start_t = time.time()
-            train_evaluator=TprismEvaluator(goal_dataset)
-            valid_evaluator=TprismEvaluator(goal_dataset)
+            train_evaluator = TprismEvaluator(goal_dataset)
+            valid_evaluator = TprismEvaluator(goal_dataset)
             for j, goal in enumerate(goal_dataset):
                 if verbose:
                     print(goal)
@@ -270,38 +288,51 @@ class TprismModel():
                 num_itr = len(train_idx[j]) // batch_size
                 train_evaluator.start_epoch()
                 for itr in range(num_itr):
-                    self._set_batch_input(goal,train_idx, j, itr)
-                    goal_inside,loss_list = self.comp_expl_graph.forward(verbose=verbose)
-                    loss, output, label = loss_cls.call(self.graph, goal_inside, self.tensor_provider)
+                    self._set_batch_input(goal, train_idx, j, itr)
+                    goal_inside, loss_list = self.comp_expl_graph.forward(
+                        verbose=verbose
+                    )
+                    loss, output, label = loss_cls.call(
+                        self.graph, goal_inside, self.tensor_provider
+                    )
                     if label is not None:
-                        metrics = loss_cls.metrics(output[j].detach().numpy(),label[j].detach().numpy())
+                        metrics = loss_cls.metrics(
+                            output[j].detach().numpy(), label[j].detach().numpy()
+                        )
                     else:
-                        metrics = loss_cls.metrics(output[j].detach().numpy(),None)
+                        metrics = loss_cls.metrics(output[j].detach().numpy(), None)
                     loss_list.update(metrics)
-                    #display_graph(output[j],'graph_pytorch')
+                    # display_graph(output[j],'graph_pytorch')
                     optimizer.zero_grad()
                     loss[j].backward()
                     optimizer.step()
-                    train_evaluator.update(loss[j],loss_list,j)
+                    train_evaluator.update(loss[j], loss_list, j)
                 # validation
                 num_itr = len(valid_idx[j]) // batch_size
                 valid_evaluator.start_epoch()
                 for itr in range(num_itr):
-                    self._set_batch_input(goal,valid_idx, j, itr)
-                    goal_inside,loss_list = self.comp_expl_graph.forward()
-                    loss, output,label = loss_cls.call(self.graph, goal_inside, self.tensor_provider)
+                    self._set_batch_input(goal, valid_idx, j, itr)
+                    goal_inside, loss_list = self.comp_expl_graph.forward()
+                    loss, output, label = loss_cls.call(
+                        self.graph, goal_inside, self.tensor_provider
+                    )
                     if label is not None:
-                        metrics = loss_cls.metrics(output[j].detach().numpy(),label[j].detach().numpy())
+                        metrics = loss_cls.metrics(
+                            output[j].detach().numpy(), label[j].detach().numpy()
+                        )
                     else:
-                        metrics = loss_cls.metrics(output[j].detach().numpy(),None)
+                        metrics = loss_cls.metrics(output[j].detach().numpy(), None)
                     loss_list.update(metrics)
-                    valid_evaluator.update(loss[j],loss_list,j)
+                    valid_evaluator.update(loss[j], loss_list, j)
                 # checking validation loss for early stopping
-                if best_valid_loss[j] is None or best_valid_loss[j] > valid_evaluator.running_loss[j]:
+                if (
+                    best_valid_loss[j] is None
+                    or best_valid_loss[j] > valid_evaluator.running_loss[j]
+                ):
                     best_valid_loss[j] = valid_evaluator.running_loss[j]
                     patient_count = 0
-                    check_point_flag=True
-                    self.save(self.flags.model+".best.model")
+                    check_point_flag = True
+                    self.save(self.flags.model + ".best.model")
                 else:
                     patient_count += 1
                 ckpt_msg = "*" if check_point_flag else ""
@@ -316,8 +347,8 @@ class TprismModel():
                     break
             train_time = time.time() - start_t
             print("train time:{0}".format(train_time) + "[sec]")
-        self.save(self.flags.model+".last.model")
-    
+        self.save(self.flags.model + ".last.model")
+
     def save(self, filename):
         torch.save(self.comp_expl_graph.state_dict(), filename)
 
@@ -326,100 +357,103 @@ class TprismModel():
 
     def pred(self, input_data=None, verbose=False):
         if input_data is not None:
-            return self._pred(input_data,verbose)
+            return self._pred(input_data, verbose)
         else:
             return self._pred_no_data(verbose)
 
-    def _pred_no_data(self,verbose):
+    def _pred_no_data(self, verbose):
         print("... prediction")
         print("... loaded variables")
-        for key,param in self.comp_expl_graph.state_dict().items():
-                print(key,param.shape)
+        for key, param in self.comp_expl_graph.state_dict().items():
+            print(key, param.shape)
         print("... initialization")
         loss_cls = self.loss_cls()
-        evaluator=TprismEvaluator()
-        
+        evaluator = TprismEvaluator()
+
         print("... predicting")
         start_t = time.time()
-        goal_inside,loss_list = self.comp_expl_graph.forward()
-        loss, output, label = loss_cls.call(self.graph, goal_inside, self.tensor_provider)
-        evaluator.eval(loss,output,label)
-        #train_acc=sklearn.metrics.accuracy_score(all_label,all_output)
-        print(
-            "loss:",
-            np.sum(evaluator.total_loss),
+        goal_inside, loss_list = self.comp_expl_graph.forward()
+        loss, output, label = loss_cls.call(
+            self.graph, goal_inside, self.tensor_provider
         )
-        outputs=evaluator.output
-        pred_y=evaluator.pred_y
+        evaluator.eval(loss, output, label)
+        # train_acc=sklearn.metrics.accuracy_score(all_label,all_output)
+        print("loss:", np.sum(evaluator.total_loss))
+        outputs = evaluator.output
+        pred_y = evaluator.pred_y
         pred_time = time.time() - start_t
         print("prediction time:{0}".format(pred_time) + "[sec]")
-        return pred_y,outputs
-     
+        return pred_y, outputs
+
     def export_computational_graph(self, input_data, verbose=False):
         print("... prediction")
         goal_dataset = build_goal_dataset(input_data, self.tensor_provider)
         print("... loaded variables")
-        for key,param in self.comp_expl_graph.state_dict().items():
-            print(key,param.shape)
+        for key, param in self.comp_expl_graph.state_dict().items():
+            print(key, param.shape)
         print("... initialization")
         batch_size = self.flags.sgd_minibatch_size
-        test_idx=get_goal_dataset(goal_dataset)
+        test_idx = get_goal_dataset(goal_dataset)
         loss_cls = self.loss_cls()
-        evaluator=TprismEvaluator(goal_dataset)
+        evaluator = TprismEvaluator(goal_dataset)
         print("... predicting")
         start_t = time.time()
-        outputs=[]
-        labels=[]
+        outputs = []
+        labels = []
         for j, goal in enumerate(goal_dataset):
             # valid
             num_itr = len(test_idx[j]) // batch_size
             evaluator.start_epoch()
             for itr in range(num_itr):
-                self._set_batch_input(goal,test_idx, j, itr)
-                goal_inside,loss_list = self.comp_expl_graph.forward_()
+                self._set_batch_input(goal, test_idx, j, itr)
+                goal_inside, loss_list = self.comp_expl_graph.forward_()
                 for g in goal_inside:
                     print(g)
                     for path in g["inside"]:
-                        print("  ",path)
+                        print("  ", path)
                 exit()
-        
+
     def _pred(self, input_data, verbose=False):
         print("... prediction")
         goal_dataset = build_goal_dataset(input_data, self.tensor_provider)
         print("... loaded variables")
-        for key,param in self.comp_expl_graph.state_dict().items():
-                print(key,param.shape)
+        for key, param in self.comp_expl_graph.state_dict().items():
+            print(key, param.shape)
         print("... initialization")
         batch_size = self.flags.sgd_minibatch_size
-        test_idx=get_goal_dataset(goal_dataset)
+        test_idx = get_goal_dataset(goal_dataset)
         loss_cls = self.loss_cls()
-        evaluator=TprismEvaluator(goal_dataset)
+        evaluator = TprismEvaluator(goal_dataset)
         print("... predicting")
         start_t = time.time()
-        outputs=[]
-        labels=[]
+        outputs = []
+        labels = []
         for j, goal in enumerate(goal_dataset):
             # valid
             num_itr = len(test_idx[j]) // batch_size
             evaluator.start_epoch()
             for itr in range(num_itr):
-                self._set_batch_input(goal,test_idx, j, itr)
-                goal_inside,loss_list = self.comp_expl_graph.forward()
-                loss, output,label = loss_cls.call(self.graph, goal_inside, self.tensor_provider)
-                evaluator.update(loss[j],loss_list,j)
-                _o=output[j].detach().numpy()
-                _l=label[j].detach().numpy()if label is not None else None
-                metrics = loss_cls.metrics(_o,_l)
-                evaluator.update_data(output,label,j)
+                self._set_batch_input(goal, test_idx, j, itr)
+                goal_inside, loss_list = self.comp_expl_graph.forward()
+                loss, output, label = loss_cls.call(
+                    self.graph, goal_inside, self.tensor_provider
+                )
+                evaluator.update(loss[j], loss_list, j)
+                _o = output[j].detach().numpy()
+                _l = label[j].detach().numpy() if label is not None else None
+                metrics = loss_cls.metrics(_o, _l)
+                evaluator.update_data(output, label, j)
             ##
             print(evaluator.get_msg("test"))
-            #print(evaluator.output[j],evaluator.label[j])
-            metrics = loss_cls.metrics(np.array(evaluator.output[j]),np.array(evaluator.label[j]))
+            # print(evaluator.output[j],evaluator.label[j])
+            metrics = loss_cls.metrics(
+                np.array(evaluator.output[j]), np.array(evaluator.label[j])
+            )
             outputs.append(np.array(evaluator.output[j]))
             labels.append(evaluator.label[j])
         pred_time = time.time() - start_t
         print("test time:{0}".format(pred_time) + "[sec]")
-        return labels,outputs
+        return labels, outputs
 
     def save_draw_graph(self, g, base_name):
         html = draw_graph.show_graph(g)
@@ -427,6 +461,7 @@ class TprismModel():
         fp.write(html)
         dot = draw_graph.tf_to_dot(g)
         dot.render(base_name)
+
 
 def run_preparing(g, sess, args):
     input_data = expl_graph.load_input_data(args.data)
@@ -472,8 +507,8 @@ def run_training(args):
     loss_cls = loss_loader.get_loss(flags.sgd_loss)
     ##
     print("... computational graph")
-    model = TprismModel(flags,options,graph, loss_cls)
-    model.build(input_data,load_embeddings=False,embedding_key="train")
+    model = TprismModel(flags, options, graph, loss_cls)
+    model.build(input_data, load_embeddings=False, embedding_key="train")
     start_t = time.time()
     if flags.cycle:
         print("... fit with cycle")
@@ -481,14 +516,15 @@ def run_training(args):
     elif input_data is not None:
         print("... fit with input data")
         model.export_computational_graph(input_data)
-        model.fit(input_data,verbose=False)
+        model.fit(input_data, verbose=False)
         model.pred(input_data)
     else:
         print("... fit without input")
         model.fit()
-    
+
     train_time = time.time() - start_t
     print("total training time:{0}".format(train_time) + "[sec]")
+
 
 def run_test(args):
     if args.data is not None:
@@ -504,38 +540,39 @@ def run_test(args):
     loss_cls = loss_loader.get_loss(flags.sgd_loss)
     ##
     print("... computational graph")
-    model = TprismModel(flags,options,graph, loss_cls)
-    model.build(input_data,load_embeddings=False, embedding_key="test")
-    model.load(flags.model+".best.model")
+    model = TprismModel(flags, options, graph, loss_cls)
+    model.build(input_data, load_embeddings=False, embedding_key="test")
+    model.load(flags.model + ".best.model")
     start_t = time.time()
     print("... prediction")
     if flags.cycle:
         model.solve(goal_dataset)
     elif input_data is not None:
-        pred_y,out=model.pred(input_data)
+        pred_y, out = model.pred(input_data)
     else:
-        pred_y,out=model.pred()
+        pred_y, out = model.pred()
     train_time = time.time() - start_t
     print("total training time:{0}".format(train_time) + "[sec]")
     print("... output")
     print("[SAVE]", flags.output)
-    data={}
-    for j,root_obj in enumerate(graph.root_list):
-        multi_root=False
-        if len(root_obj.roots)>1: # preference
-            multi_root=True
-        for i,el in enumerate(root_obj.roots):
-            sid=el.sorted_id
-            gg=graph.goals[sid].node
-            name=gg.goal.name
-            #name=to_string_goal(gg.goal)
+    data = {}
+    for j, root_obj in enumerate(graph.root_list):
+        multi_root = False
+        if len(root_obj.roots) > 1:  # preference
+            multi_root = True
+        for i, el in enumerate(root_obj.roots):
+            sid = el.sorted_id
+            gg = graph.goals[sid].node
+            name = gg.goal.name
+            # name=to_string_goal(gg.goal)
             if multi_root:
-                data[sid]={"name":name,"data":out[j][i]}
+                data[sid] = {"name": name, "data": out[j][i]}
             else:
-                data[sid]={"name":name,"data":out[j]}
+                data[sid] = {"name": name, "data": out[j]}
 
-    fp = open('output.pkl','wb')
-    pickle.dump(data,fp)
+    fp = open("output.pkl", "wb")
+    pickle.dump(data, fp)
+
 
 def main():
     # set random seed
@@ -647,5 +684,7 @@ def main():
         run_train_cv(args)
     if args.mode == "show":
         run_display(args)
+
+
 if __name__ == "__main__":
     main()

@@ -17,6 +17,7 @@ import tprism_module.expl_graph as expl_graph
 import tprism_module.draw_graph as draw_graph
 import tprism_module.embedding_generator as embed_gen
 
+
 def to_string_goal(goal):
     """
     s=goal.name
@@ -24,10 +25,11 @@ def to_string_goal(goal):
     s+=",".join([str(arg) for arg in goal.args])
     s+=")"
     """
-    s=goal.name
-    s+=","
-    s+=",".join([str(arg) for arg in goal.args])
+    s = goal.name
+    s += ","
+    s += ",".join([str(arg) for arg in goal.args])
     return s
+
 
 class Flags(object):
     def __init__(self, args, options):
@@ -123,24 +125,24 @@ def optimize_gd(sess, goal_dataset, loss, flags, embedding_generators):
     saver.save(sess, flags.model)
 
 
-def build_feed(ph_vars,dataset,idx):
-    feed_dict = {
-        ph: dataset[i, idx]
-        for i, ph in enumerate(ph_vars)
-        }
+def build_feed(ph_vars, dataset, idx):
+    feed_dict = {ph: dataset[i, idx] for i, ph in enumerate(ph_vars)}
     return feed_dict
-def split_goal_dataset(goal_dataset,valid_ratio = 0.1):
-    train_idx=[]
-    valid_idx=[]
+
+
+def split_goal_dataset(goal_dataset, valid_ratio=0.1):
+    train_idx = []
+    valid_idx = []
     for j, goal in enumerate(goal_dataset):
         ph_vars = goal["placeholders"]
         all_num = goal["dataset"].shape[1]
-        all_idx=np.array(list(range(all_num)))
+        all_idx = np.array(list(range(all_num)))
         np.random.shuffle(all_idx)
         train_num = int(all_num - valid_ratio * all_num)
         train_idx.append(all_idx[:train_num])
         valid_idx.append(all_idx[train_num:])
-    return train_idx,valid_idx
+    return train_idx, valid_idx
+
 
 def optimize(sess, goal_dataset, loss, flags, embedding_generators):
     # optimizer = tf.train.GradientDescentOptimizer(flags.sgd_learning_rate)
@@ -162,7 +164,7 @@ def optimize(sess, goal_dataset, loss, flags, embedding_generators):
     best_valid_loss = [None for _ in range(len(goal_dataset))]
     stopping_step = 0
     batch_size = flags.sgd_minibatch_size
-    train_idx,valid_idx=split_goal_dataset(goal_dataset)
+    train_idx, valid_idx = split_goal_dataset(goal_dataset)
     for step in range(flags.max_iterate):
         start_t = time.time()
         total_train_loss = [0.0 for _ in range(len(goal_dataset))]
@@ -176,10 +178,17 @@ def optimize(sess, goal_dataset, loss, flags, embedding_generators):
                 progbar = tf.keras.utils.Progbar(num_itr)
             ## one epoch
             for itr in range(num_itr):
-                feed_dict = build_feed(ph_vars,goal["dataset"],train_idx[j][itr * batch_size : (itr + 1) * batch_size])
+                feed_dict = build_feed(
+                    ph_vars,
+                    goal["dataset"],
+                    train_idx[j][itr * batch_size : (itr + 1) * batch_size],
+                )
                 for embedding_generator in embedding_generators:
                     if embedding_generator is not None:
-                        feed_dict = embedding_generator.build_feed(feed_dict,train_idx[j][itr * batch_size : (itr + 1) * batch_size])
+                        feed_dict = embedding_generator.build_feed(
+                            feed_dict,
+                            train_idx[j][itr * batch_size : (itr + 1) * batch_size],
+                        )
                 batch_loss, _ = sess.run([loss[j], train[j]], feed_dict=feed_dict)
                 if not flags.no_verb:
                     bl = np.mean(batch_loss)
@@ -188,10 +197,17 @@ def optimize(sess, goal_dataset, loss, flags, embedding_generators):
             # valid
             num_itr = len(valid_idx[j]) // batch_size
             for itr in range(num_itr):
-                feed_dict = build_feed(ph_vars,goal["dataset"],valid_idx[j][itr * batch_size : (itr + 1) * batch_size])
+                feed_dict = build_feed(
+                    ph_vars,
+                    goal["dataset"],
+                    valid_idx[j][itr * batch_size : (itr + 1) * batch_size],
+                )
                 for embedding_generator in embedding_generators:
                     if embedding_generator is not None:
-                        feed_dict = embedding_generator.build_feed(feed_dict,valid_idx[j][itr * batch_size : (itr + 1) * batch_size])
+                        feed_dict = embedding_generator.build_feed(
+                            feed_dict,
+                            valid_idx[j][itr * batch_size : (itr + 1) * batch_size],
+                        )
                 batch_loss, _ = sess.run([loss[j], train[j]], feed_dict=feed_dict)
                 total_valid_loss[j] += np.mean(batch_loss) / num_itr
             #
@@ -218,8 +234,9 @@ def optimize(sess, goal_dataset, loss, flags, embedding_generators):
     print("[SAVE]", flags.model)
     saver.save(sess, flags.model)
 
+
 def pred(sess, goal_dataset, loss, output, flags, embedding_generators):
-    total_goal_inside=None
+    total_goal_inside = None
     start_t = time.time()
     if goal_dataset is not None:
         ### dataset is given (minibatch)
@@ -239,11 +256,11 @@ def pred(sess, goal_dataset, loss, output, flags, embedding_generators):
                 if len(temp_idx) < batch_size:
                     padding_idx = np.zeros((batch_size,), dtype=np.int32)
                     padding_idx[: len(temp_idx)] = temp_idx
-                    temp_idx=padding_idx
-                feed_dict = build_feed(ph_vars,dataset,temp_idx)
+                    temp_idx = padding_idx
+                feed_dict = build_feed(ph_vars, dataset, temp_idx)
                 for embedding_generator in embedding_generators:
                     if embedding_generator is not None:
-                        feed_dict = embedding_generator.build_feed(feed_dict,temp_idx)
+                        feed_dict = embedding_generator.build_feed(feed_dict, temp_idx)
                 batch_loss, batch_output = sess.run(
                     [loss[j], output[j]], feed_dict=feed_dict
                 )
@@ -270,12 +287,11 @@ def pred(sess, goal_dataset, loss, output, flags, embedding_generators):
         print("output:", np.array(total_output).shape)
         total_goal_inside = []
         for g in goal_inside:
-            g_inside = sess.run([g['inside']], feed_dict=feed_dict)
+            g_inside = sess.run([g["inside"]], feed_dict=feed_dict)
             total_goal_inside.append(g_inside[0])
     test_time = time.time() - start_t
     print("test time:{0}".format(test_time) + "[sec]")
     return total_output, total_loss, total_goal_inside
-    
 
 
 def save_draw_graph(g, base_name):
@@ -287,8 +303,8 @@ def save_draw_graph(g, base_name):
 
 
 #
-#goal_dataset["placeholders"] => ph_vars
-#goal_dataset["dataset"]: dataset
+# goal_dataset["placeholders"] => ph_vars
+# goal_dataset["dataset"]: dataset
 # dataset contains indeces: values in the given dataset is coverted into index
 def build_goal_dataset(input_data, tensor_provider):
     goal_dataset = []
@@ -307,7 +323,7 @@ def build_goal_dataset(input_data, tensor_provider):
         for i, ph_name in enumerate(ph_names):
             rec = d["records"]
             if tensor_provider.is_convertable_value(ph_name):
-                print("[INFO]",ph_name,"converted!!")
+                print("[INFO]", ph_name, "converted!!")
                 dataset[i] = to_index_func(rec[:, i], ph_name)
             else:  # goal placeholder
                 dataset[i] = rec[:, i]
@@ -388,7 +404,7 @@ def run_training(g, sess, args):
         load_embeddings=False,
         embedding_generators=embedding_generators,
     )
-    comp_expl_graph=expl_graph.ComputationalExplGraph()
+    comp_expl_graph = expl_graph.ComputationalExplGraph()
     goal_inside = comp_expl_graph.build_explanation_graph(
         graph, tensor_provider, cycle_embedding_generator
     )
@@ -414,29 +430,11 @@ def run_training(g, sess, args):
     ##
     start_t = time.time()
     if flags.cycle:
-        optimize_solve(
-            sess,
-            goal_dataset,
-            goal_inside,
-            flags,
-            embedding_generators,
-        )
+        optimize_solve(sess, goal_dataset, goal_inside, flags, embedding_generators)
     elif goal_dataset is not None:
-        optimize(
-            sess,
-            goal_dataset,
-            loss,
-            flags,
-            embedding_generators,
-        )
+        optimize(sess, goal_dataset, loss, flags, embedding_generators)
     else:
-        optimize_gd(
-            sess,
-            goal_dataset,
-            loss,
-            flags,
-            embedding_generators,
-        )
+        optimize_gd(sess, goal_dataset, loss, flags, embedding_generators)
     train_time = time.time() - start_t
     print("traing time:{0}".format(train_time) + "[sec]")
 
@@ -476,7 +474,7 @@ def run_test(g, sess, args):
         load_embeddings=True,
         embedding_generators=embedding_generators,
     )
-    comp_expl_graph=expl_graph.ComputationalExplGraph()
+    comp_expl_graph = expl_graph.ComputationalExplGraph()
     goal_inside = comp_expl_graph.build_explanation_graph(
         graph, tensor_provider, cycle_embedding_generator
     )
@@ -491,25 +489,20 @@ def run_test(g, sess, args):
     saver.restore(sess, flags.model)
 
     if flags.cycle:
-        optimize_solve(
-            sess,
-            goal_dataset,
-            goal_inside,
-            flags,
-            embedding_generators,
-        )
-    total_output,total_loss,total_goal_inside=pred(sess, goal_dataset, loss, output, flags, embedding_generators)
+        optimize_solve(sess, goal_dataset, goal_inside, flags, embedding_generators)
+    total_output, total_loss, total_goal_inside = pred(
+        sess, goal_dataset, loss, output, flags, embedding_generators
+    )
     print("[SAVE]", flags.output)
     np.save(flags.output, total_output)
     if total_goal_inside is not None:
-        data={}
-        for g_info,g in zip(graph.goals, total_goal_inside):
-            gg=g_info.node.goal
-            name=to_string_goal(gg)
-            data[g_info.node.id]={"name":name,"data":g}
-        fp = open('output.pkl','wb')
-        pickle.dump(data,fp)
-
+        data = {}
+        for g_info, g in zip(graph.goals, total_goal_inside):
+            gg = g_info.node.goal
+            name = to_string_goal(gg)
+            data[g_info.node.id] = {"name": name, "data": g}
+        fp = open("output.pkl", "wb")
+        pickle.dump(data, fp)
 
     """
     ###
@@ -523,6 +516,7 @@ def run_test(g, sess, args):
     fp = open('output.pkl','wb')
     pickle.dump(data,fp)
     """
+
 
 def run_display(args):
     #
@@ -538,6 +532,7 @@ def run_display(args):
     obj = pickle.load(fp)
     print(obj.vocab_group)
     ##
+
 
 def main():
     # set random seed
@@ -652,5 +647,7 @@ def main():
                 run_train_cv(g, sess, args)
             if args.mode == "show":
                 run_display(args)
+
+
 if __name__ == "__main__":
     main()

@@ -1,6 +1,8 @@
 import numpy as np
 import torch
 from tprism_module.op.base import BaseOperator
+from google.protobuf.pyext._message import RepeatedScalarContainer
+from typing import List
 
 class Reindex(BaseOperator):
     def __init__(self, parameters):
@@ -19,13 +21,13 @@ class Reindex(BaseOperator):
 
 
 class Sigmoid(BaseOperator):
-    def __init__(self, parameters):
+    def __init__(self, parameters: RepeatedScalarContainer) -> None:
         pass
 
     def call(self, x):
         return torch.sigmoid(x)
 
-    def get_output_template(self, input_template):
+    def get_output_template(self, input_template: List[str]) -> List[str]:
         return input_template
 
 

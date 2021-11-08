@@ -3,6 +3,7 @@ import torch
 import torch.nn.functional as F
 from tprism_module.loss.base import BaseLoss
 import sklearn.metrics
+from typing import Optional
 
 
 class Nll(BaseLoss):
@@ -32,7 +33,7 @@ class Nll(BaseLoss):
         return loss, output, None
 
 class Ce_pl2(BaseLoss):
-    def __init__(self, parameters=None):
+    def __init__(self, parameters: None=None) -> None:
         pass
 
     # loss: goal x minibatch
@@ -92,7 +93,7 @@ class Mse(BaseLoss):
 
 
 class PreferencePair(BaseLoss):
-    def __init__(self, parameters=None):
+    def __init__(self, parameters: None=None) -> None:
         pass
 
     # loss: goal x minibatch
