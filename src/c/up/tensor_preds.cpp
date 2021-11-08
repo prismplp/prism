@@ -41,7 +41,10 @@ using namespace google::protobuf;
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
+#ifdef USE_H5
 #include <H5Cpp.h>
+#endif
+
 #include <regex>
 
 using namespace std;
@@ -104,6 +107,7 @@ void save_message_json(const string& outfilename,json& msg,SaveFormat format) {
 }
 
 
+#ifdef USE_H5
 /*
  * ph  =[ph_term1,   ph_term2,  ...]
  * data=[data_term1, data_term2,...]
@@ -192,6 +196,7 @@ void save_placeholder_data_hdf5(TERM ph, TERM data, string filename,SaveFormat f
 		goal_counter++;
 	}
 }
+#endif
 
 TERM construct_placeholder_goal_json(json &g, TERM ph_term, TERM data_term,int split_num) {
 	// adding placeholder list
@@ -323,7 +328,7 @@ void save_placeholder_data(TERM ph, TERM data, string filename,SaveFormat format
 				ph   = bpx_get_cdr(ph);
 				data = bpx_get_cdr(data);
 				goal_counter++;
-				file_counter=0;
+				file_count=0;
 			}else{
 				break;
 			}
@@ -342,7 +347,10 @@ int pc_save_placeholder_data_5(void) {
 	TERM data=bpx_get_call_arg(4,5);
 	int split_num=bpx_get_integer(bpx_get_call_arg(5,5));//=20000000
 	if(FormatHDF5==format){
+#ifdef USE_H5
 		save_placeholder_data_hdf5(ph, data, filename, format);
+#else
+#endif
 	}else{
 #ifdef USE_PROTOBUF
 		save_placeholder_data(ph, data, filename, format, split_num);
@@ -361,6 +369,7 @@ string get_dataset_name(string term_name){
 	return r;
 }
 
+#ifdef USE_H5
 void save_embedding_matrix_hdf5(const string filename, const string group_name, const string dataset_name, TERM term_list, TERM shape){
 	TERM el   = bpx_get_car(term_list);
 	TERM next = bpx_get_cdr(term_list);
@@ -431,6 +440,8 @@ void save_embedding_vector_hdf5(const string filename, const string group_name, 
 		dataset.write( data_table, H5::PredType::NATIVE_FLOAT );
 	}
 }
+#endif
+
 
 extern "C"
 int pc_save_embedding_tensor_5(void) {
@@ -455,6 +466,7 @@ int pc_save_embedding_tensor_5(void) {
 		length++;
 	}
 	// only supported matrix and FormatHDF5
+#ifdef USE_H5
 	if(length==1){
 		save_embedding_vector_hdf5(filename, group, dataset_name, term_list, shape);
 	}else if(length==2){
@@ -462,6 +474,7 @@ int pc_save_embedding_tensor_5(void) {
 	}else{
 		return BP_FALSE;
 	}
+#endif
 	return BP_TRUE;
 }
 

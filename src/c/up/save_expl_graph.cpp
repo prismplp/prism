@@ -186,7 +186,8 @@ int run_save_expl_graph_json(const string& outfilename,SaveFormat format) {
 		//prism::ExplGraphGoal
 		//prism::ExplGraphNode* node=goal->mutable_node();
 		int sorted_id=mapping_to_sorted_id.at(id);
-		json node=get_node_json(id,sorted_id);
+		json goal=json::object();
+		goal["node"]=get_node_json(id,sorted_id);
 		json paths=json::array();
 		path_ptr = eg_ptr->path_ptr;
 		while (path_ptr != NULL) {
@@ -218,7 +219,8 @@ int run_save_expl_graph_json(const string& outfilename,SaveFormat format) {
 			paths.push_back(path);
 			path_ptr = path_ptr->next;
 		}
-		goals["goals"].push_back(paths);
+		goal["paths"]=paths;
+		goals["goals"].push_back(goal);
 	}
 	//
 	/*
@@ -514,7 +516,11 @@ int pc_prism_save_expl_graph_3(void) {
 	const char* filename=bpx_get_name(bpx_get_call_arg(1,3));
 	SaveFormat format = (SaveFormat) bpx_get_integer(bpx_get_call_arg(2,3));
 	p_sw_list=bpx_get_call_arg(3,3);
+#ifdef USE_PROTOBUF
+	run_save_expl_graph(filename,format);
+#else
 	run_save_expl_graph_json(filename,format);
+#endif
 	get_occ_switches(p_sw_list);
 	//return bpx_unify(bpx_get_call_arg(1,1), bpx_build_integer(1));
 	return BP_TRUE;

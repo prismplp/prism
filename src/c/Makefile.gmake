@@ -19,6 +19,10 @@ SUBDIRS += $(MP_DIR)
 OBJS    += $(MP_OBJS)
 endif
 
+ifeq ($(USE_PB),1)
+OBJS    += $(PB_OBJS)
+endif
+
 ##----------------------------------------------------------------------
 
 all: $(TARGET)
