@@ -8,6 +8,12 @@ enum SaveFormat{
 	FormatHDF5=3,
 };
 
+enum SwType{
+	SwTypeProbabilistic = 0,
+	SwTypeTensor = 1,
+	SwTypeOperator = 2,
+};
+
 extern "C"
 int pc_prism_save_expl_graph_3(void);
 
