@@ -14,18 +14,18 @@ import re
 import pickle
 import h5py
 
-import tprism_module.expl_pb2 as expl_pb2
-import tprism_module.op.base
-import tprism_module.loss.base
+import tprism.expl_pb2 as expl_pb2
+import tprism.op.base
+import tprism.loss.base
 from numpy import int32, int64, ndarray, str_
 from torch import Tensor, dtype
 from torch.nn.parameter import Parameter
-from tprism_module.loss.torch_standard_loss import Ce_pl2, PreferencePair
-from tprism_module.op.torch_standard_op import Sigmoid
+from tprism.loss.torch_standard_loss import Ce_pl2, PreferencePair
+from tprism.op.torch_standard_op import Sigmoid
 from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union
 
-from tprism_module.placeholder import PlaceholderData
-from tprism_module.torch_embedding_generator import DatasetEmbeddingGenerator
+from tprism.placeholder import PlaceholderData
+from tprism.torch_embedding_generator import DatasetEmbeddingGenerator
 
 def load_input_data(data_filename_list: List[str]) -> List[Dict[str, Union[int, List[str], ndarray]]]:
     input_data_list = []
@@ -104,7 +104,7 @@ def load_explanation_graph(expl_filename, option_filename):
 class OperatorLoader:
     def __init__(self) -> None:
         self.operators = {}
-        self.base_module_name = "tprism_module.op."
+        self.base_module_name = "tprism.op."
         self.module = None
 
     # a snake case operator name to class name
@@ -138,7 +138,7 @@ class OperatorLoader:
 
     def load_module(self, module):
         for cls_name, cls in inspect.getmembers(module, inspect.isclass):
-            if issubclass(cls, tprism_module.op.base.BaseOperator):
+            if issubclass(cls, tprism.op.base.BaseOperator):
                 print("[IMPORT]", cls_name)
                 op_name = self.to_op_name(cls_name)
                 self.operators[op_name] = cls
@@ -147,7 +147,7 @@ class OperatorLoader:
 class LossLoader:
     def __init__(self) -> None:
         self.module = None
-        self.base_module_name = "tprism_module.loss."
+        self.base_module_name = "tprism.loss."
         self.losses = {}
 
     # a snake case operator name to class name
@@ -182,7 +182,7 @@ class LossLoader:
 
     def load_module(self, module):
         for cls_name, cls in inspect.getmembers(module, inspect.isclass):
-            if issubclass(cls, tprism_module.loss.base.BaseLoss):
+            if issubclass(cls, tprism.loss.base.BaseLoss):
                 print("[IMPORT]", cls_name)
                 op_name = self.to_op_name(cls_name)
                 self.losses[op_name] = cls

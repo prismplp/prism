@@ -13,24 +13,32 @@ import argparse
 import time
 import pickle
 
-import tprism_module.expl_pb2 as expl_pb2
-import tprism_module.expl_graph as expl_graph
-import tprism_module.torch_expl_graph as torch_expl_graph
-import tprism_module.torch_embedding_generator as embed_gen
-from tprism_module.util import (
+import tprism.expl_pb2 as expl_pb2
+import tprism.expl_graph as expl_graph
+import tprism.torch_expl_graph as torch_expl_graph
+import tprism.torch_embedding_generator as embed_gen
+from tprism.util import (
     to_string_goal,
     Flags,
     build_goal_dataset,
     split_goal_dataset,
     get_goal_dataset,
 )
-from tprism_module.torch_util import draw_graph
+from tprism.torch_util import draw_graph
 import re
 import numpy as np
 import sklearn.metrics
 
+""" Main module for command line interface
+
+This is called by tprism command (pytorch based tprism)
+"""
 
 class TprismEvaluator:
+    """Evaluator for pytorch system
+
+        This is MyClass.
+    """
     def __init__(self, goal_dataset=None):
         if goal_dataset is not None:
             self.n_goals = len(goal_dataset)

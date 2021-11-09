@@ -1,10 +1,10 @@
 import numpy as np
 import torch
 import torch.nn.functional as F
-from tprism_module.loss.base import BaseLoss
 import sklearn.metrics
 from typing import Optional
 
+from tprism.loss.base import BaseLoss
 
 class Nll(BaseLoss):
     def __init__(self, parameters=None):

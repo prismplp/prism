@@ -1,5 +1,8 @@
 import numpy as np
-import tensorflow as tf
+import torch
+from tprism.op.base import BaseOperator
+from google.protobuf.pyext._message import RepeatedScalarContainer
+from typing import List
 
 class Reindex(BaseOperator):
     def __init__(self, parameters):
@@ -18,13 +21,13 @@ class Reindex(BaseOperator):
 
 
 class Sigmoid(BaseOperator):
-    def __init__(self, parameters):
+    def __init__(self, parameters: RepeatedScalarContainer) -> None:
         pass
 
     def call(self, x):
-        return tf.nn.sigmoid(x)
+        return torch.sigmoid(x)
 
-    def get_output_template(self, input_template):
+    def get_output_template(self, input_template: List[str]) -> List[str]:
         return input_template
 
 
@@ -33,7 +36,7 @@ class Relu(BaseOperator):
         pass
 
     def call(self, x):
-        return tf.nn.relu(x)
+        return torch.relu(x)
 
     def get_output_template(self, input_template):
         return input_template
@@ -44,18 +47,17 @@ class Softmax(BaseOperator):
         pass
 
     def call(self, x):
-        return tf.nn.softmax(x)
+        return torch.softmax(x,dim=-1)
 
     def get_output_template(self, input_template):
         return input_template
-
 
 class Min1(BaseOperator):
     def __init__(self, parameters):
         pass
 
     def call(self, x):
-        return tf.clip_by_value(x, 0.0, 1.0)
+        return torch.clamp(x, 0.0, 1.0)
 
     def get_output_template(self, input_template):
         return input_template

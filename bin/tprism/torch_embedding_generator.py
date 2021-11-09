@@ -15,10 +15,10 @@ import re
 import pickle
 import h5py
 
-import tprism_module.expl_pb2 as expl_pb2
-import tprism_module.op.base
-import tprism_module.loss.base
-from tprism_module.placeholder import PlaceholderData
+import tprism.expl_pb2 as expl_pb2
+import tprism.op.base
+import tprism.loss.base
+from tprism.placeholder import PlaceholderData
 from numpy import ndarray
 from torch import Tensor
 from typing import Dict, Optional, Tuple
@@ -121,10 +121,10 @@ class DatasetEmbeddingGenerator(BaseEmbeddingGenerator):
     def is_embedding(self, vocab_name: str) -> bool:
         return vocab_name in self.dataset
 
-    def get_shape(self, vocab_name: str) -> Tuple[int, int]:
+    def get_shape(self, vocab_name: str) -> Tuple[int, ...]:
         return self.dataset[vocab_name].shape
 
-    def get_embedding(self, vocab_name: str, shape: None=None) -> PlaceholderData:
+    def get_embedding(self, vocab_name: str, shape: Optional[Tuple[int, ...]] =None) -> Optional[PlaceholderData]:
         if not self.is_embedding(vocab_name):
             print("[SKIP]>", vocab_name)
             return None
@@ -203,3 +203,4 @@ class ConstEmbeddingGenerator(BaseEmbeddingGenerator):
             if self.feed_verb:
                 print("[INFO: feed]", vocab_name, "=>", ph_name)
         return feed_dict
+

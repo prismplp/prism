@@ -11,8 +11,8 @@ import argparse
 import time
 import pickle
 
-import tprism_module.expl_pb2 as expl_pb2
-import tprism_module.expl_graph as expl_graph
+import tprism.expl_pb2 as expl_pb2
+import tprism.expl_graph as expl_graph
 
 
 def to_string_goal(goal):

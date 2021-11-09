@@ -17,13 +17,13 @@ import pickle
 import h5py
 import math
 
-import tprism_module.expl_pb2 as expl_pb2
-import tprism_module.op.base
-import tprism_module.loss.base
+import tprism.expl_pb2 as expl_pb2
+import tprism.op.base
+import tprism.loss.base
 
-from tprism_module.expl_graph import ComputationalExplGraph, SwitchTensorProvider
-from tprism_module.expl_graph import PlaceholderGraph, VocabSet, OperatorLoader
-from tprism_module.placeholder import PlaceholderData
+from tprism.expl_graph import ComputationalExplGraph, SwitchTensorProvider
+from tprism.expl_graph import PlaceholderGraph, VocabSet, OperatorLoader
+from tprism.placeholder import PlaceholderData
 from numpy import int64
 from torch import dtype
 from typing import Any, Dict, List, Tuple, Union
