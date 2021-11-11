@@ -195,7 +195,7 @@ class TorchComputationalExplGraph(ComputationalExplGraph, torch.nn.Module):
                 path_template.append(out_template)
                 ##
             ##
-            path_template_list = self.get_unique_list(path_template)
+            path_template_list = self._get_unique_list(path_template)
             if len(path_template_list) == 0:
                 goal_inside[i] = {"template": [], "inside": 1, "batch_flag": False}
             else:
@@ -348,7 +348,7 @@ class TorchComputationalExplGraph(ComputationalExplGraph, torch.nn.Module):
                 path_template.append(out_template)
                 ##
             ##
-            path_template_list = self.get_unique_list(path_template)
+            path_template_list = self._get_unique_list(path_template)
 
             if len(path_template_list) == 0:
                 goal_inside[i] = {
@@ -359,10 +359,10 @@ class TorchComputationalExplGraph(ComputationalExplGraph, torch.nn.Module):
             else:
                 if len(path_template_list) != 1:
                     print("[WARNING] missmatch indices:", path_template_list)
-                if len(path_template_list[0]) == 0:
+                if len(path_template_list[0]) == 0: # scalar inside
                     goal_inside[i] = {
                         "template": path_template_list[0],
-                        "inside": path_inside,
+                        "inside": path_inside[0],
                         "batch_flag": path_batch_flag,
                     }
                 else:
@@ -427,6 +427,9 @@ class TorchGather(TorchTensorBase):
             idx = self.idx
         if isinstance(self.var, TorchTensorBase):
             v = torch.index_select(self.var(), 0, idx)
+        elif isinstance(self.var, PlaceholderData):
+            v = self.provider.get_embedding(self.var)
+            v = v[idx]
         else:
             v = torch.index_select(self.var, 0, idx)
         return v
@@ -477,3 +480,4 @@ class TorchSwitchTensorProvider(SwitchTensorProvider):
             print(type(out))
             print("sum:", out.sum())
         return out
+

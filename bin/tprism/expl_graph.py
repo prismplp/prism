@@ -228,12 +228,12 @@ class SwitchTensor:
 
     """
     def __init__(self, sw_name: str) -> None:
+        self.value = None
         self.name = sw_name
         self.shape_set = set([])
         self.ph_names = self.get_placeholder_name(sw_name)
-        self.vocab_name = self.make_vocab_name(sw_name)
+        self.vocab_name = self.make_vocab_name(sw_name) # update self.value
         self.var_name = self.make_var_name(sw_name)
-        self.value = None
 
     def enabled_placeholder(self):
         return len(self.ph_names) == 0
@@ -267,6 +267,15 @@ class SwitchTensor:
 
 
 class VocabSet:
+    """ This class connect a values with a vovabrary via placeholders
+    vocab -> placeholder ->values
+
+    Attributes:
+        vocab_values (Dict[str, List[Any]]): the key is a vocab name, and the value ia a list of values.
+        value_index (Dict[Tuple[str,Any],int): the key is a tuple of a vocab name and a value, and the value is an index.
+
+    """
+
     def __init__(self) -> None:
         # vocab name => a list of values
         self.vocab_values = None
@@ -274,8 +283,10 @@ class VocabSet:
         self.value_index = None
 
     def build_from_ph(self, ph_graph: 'PlaceholderGraph') -> None:
+        """ This method builds vocab_values and value_index from PlaceholderGraph.
+        """
         vocab_ph = ph_graph.vocab_ph
-        ph_values = ph_graph.ph_values
+        ph_values = ph_graph.ph_values #
         vocab_values = {}
         for vocab_name, phs in vocab_ph.items():
             for ph in phs:
@@ -306,10 +317,21 @@ class VocabSet:
 
 
 class PlaceholderGraph:
+    """ This class build a graph related to placeholders
+    vocab <-- sw_info --> placeholder --> values
+
+    Attributes:
+        vocab_ph (Dict[str, Set[str]]): vocab_name => a set of nemes of placeholders
+        ph_vocab (Dict[str, Set[str]): placeholder name => a set of the vocabs
+        ph_values (Dict[str,Set[Any]]): placeholder name => a set of values
+        vocab_shape (Dict[str, Set[Any]]): vocab_name => a set of shapes
+
+    """
+
     def __init__(self) -> None:
         self.vocab_ph = None
         self.ph_vocab = None
-        self.ph_values = None
+        self.ph_values = None #Dict[str,Set[Any]]
         self.vocab_shape = None
 
     def _build_ph_values(self, input_data: List[Dict[str, Union[int, List[str], ndarray]]]) -> None:
@@ -325,7 +347,7 @@ class PlaceholderGraph:
         self.ph_values = ph_values
 
     def _build_vocab_ph(self, ph_values: Dict[str, Set[int32]], sw_info: Dict[str, SwitchTensor]) -> None:
-        # ph_vocab/vocab_ph: ph_name <==> vocab_name
+        # ph_vocab/vocab_ph: ph_name <== sw_info ==> vocab_name
         # vocab_shape: vocab_name => shape
         ph_vocab = {ph_name: set() for ph_name in ph_values.keys()}
         vocab_ph = {sw.vocab_name: set() for sw in sw_info.values()}
@@ -356,6 +378,18 @@ class PlaceholderGraph:
 
 
 class SwitchTensorProvider:
+    """ This class provides information of switches
+
+    Attributes:
+        tensor_embedding (Dict[str, Tensor]):embedding tensor
+        sw_info (Dict[str, SwitchTensor]): switch infomation
+        ph_graph:
+        input_feed_dict:
+        params:
+        vocab_var_type:
+
+    """
+
     def __init__(self) -> None:
         self.tensor_embedding = None
         self.sw_info = None
@@ -377,6 +411,11 @@ class SwitchTensorProvider:
         self.input_feed_dict = feed_dict
 
     def get_placeholder_name(self, name: str) -> List[Union[str, Any]]:
+        """
+        Args:
+            switch name (str):
+        
+        """
         return self.sw_info[name].ph_names
 
     def get_switch(self, name: str) -> SwitchTensor:
@@ -405,6 +444,8 @@ class SwitchTensorProvider:
             return False
 
     def _build_sw_info(self, graph, options):
+        """ This function builds sw_info from the explanation graph 
+        """
         tensor_shape = {
             el.tensor_name: [d for d in el.shape] for el in options.tensor_shape
         }
@@ -424,6 +465,28 @@ class SwitchTensorProvider:
         return sw_info
 
     def _build_vocab_var_type(self, ph_graph: PlaceholderGraph, vocab_set: VocabSet, embedding_generators: List[Union[Any, DatasetEmbeddingGenerator]]) -> Dict[str, Union[Dict[str, Union[str, Tuple[int, int], List[Union[int64, int]]]], Dict[str, Union[str, List[int]]], Dict[str, Union[str, List[Union[int64, int]]]]]]:
+        """ This function builds temporal object: vocab_name =>  var_type
+
+        Note:
+            vocab_var_type (Dict[str,VarType]):
+            Var type is a dictionary 
+
+                # var_type["type"]=="dataset"
+                var_type={
+                    "dataset_shape": Tuple[int, ...],
+                    "shape": List[int, ...],
+                }
+                # var_type["type"]=="onehot"
+                var_type={
+                    "value": int,
+                    "shape": List[int, ...],
+                }
+                # var_type["type"]=="variable"
+                var_type={
+                    "shape": List[int, ...]
+                }
+
+        """
         vocab_var_type = {}
         for vocab_name, shapes in ph_graph.vocab_shape.items():
             values = vocab_set.get_values(vocab_name)
@@ -553,22 +616,27 @@ class SwitchTensorProvider:
                         # dataset without placeholder
                         shape = list(list(sw.shape_set)[0])
                         if sw.value is None:
-                            print("ph_list==0 and value==none")
                             var = eg.get_embedding(vocab_name, shape)
+                            if verbose:
+                                print("ph_list==0 and value==none")
+                                print((vocab_name, ":", var.shape))
                             tensor_embedding[sw_name] = var
                         else:
-                            print("ph_list==0 and value enbabled")
                             var = eg.get_embedding(vocab_name)
                             if verbose:
+                                print("ph_list==0 and value enbabled")
                                 print((vocab_name, ":", var.shape, "=>", shape))
                             index = vocab_set.get_values_index(vocab_name, sw.value)
                             if verbose:
                                 print(index, sw.value)
-                            tensor_embedding[sw_name] = var[sw.value]  # TODO
+                            #tensor_embedding[sw_name] = var[sw.value]
+                            tensor_embedding[sw_name] = self.tensor_gather_class(self, var, sw.value)
                 if not dataset_flag:
-                    print("ph_list==0 and no dataset")
                     # trainig variable without placeholder
                     var = vocab_var[vocab_name]
+                    if verbose:
+                        print("ph_list==0 and no dataset")
+                        print((vocab_name, ":", var.shape))
                     tensor_embedding[sw_name] = var
             elif len(ph_list) == 1:
                 dataset_flag = False
@@ -576,16 +644,19 @@ class SwitchTensorProvider:
                     if eg.is_embedding(vocab_name):
                         dataset_flag = True
                         # dataset with placeholder
-                        print("ph_list==1 and dataset enabled")
                         shape = [batch_size] + list(list(sw.shape_set)[0])
                         var = eg.get_embedding(vocab_name)
-                        # print(var)
                         # var = eg.get_embedding(vocab_name, shape)
+                        if verbose:
+                            print("ph_list==1 and dataset enabled")
+                            print((vocab_name, ":", var.shape, "=>", shape))
                         tensor_embedding[sw_name] = var
                 if not dataset_flag:
-                    print("ph_list==1 and dataset disabled")
                     # trainig variable with placeholder
                     var = vocab_var[vocab_name]
+                    if verbose:
+                        print("ph_list==1 and dataset disabled")
+                        print((vocab_name, ":", var.shape, "=>", shape))
                     ph = ph_var[ph_list[0]]
                     tensor_embedding[sw_name] = self.tensor_gather_class(self, var, ph)
             else:

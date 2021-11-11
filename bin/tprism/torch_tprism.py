@@ -224,6 +224,11 @@ class TprismModel:
         for epoch in range(self.flags.max_iterate):
             start_t = time.time()
             # train
+            feed_dict = {}
+            for embedding_generator in self.embedding_generators:
+                if embedding_generator is not None:
+                    feed_dict = embedding_generator.build_feed(feed_dict, None)
+            self.tensor_provider.set_input(feed_dict)
             # print("... iteration")
             goal_inside, loss_list = self.comp_expl_graph.forward()
             loss, output, label = loss_cls.call(
@@ -425,7 +430,6 @@ class TprismModel:
                     print(g)
                     for path in g["inside"]:
                         print("  ", path)
-                exit()
 
     def _pred(self, input_data, verbose=False):
         print("... prediction")
