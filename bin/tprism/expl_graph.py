@@ -1,22 +1,19 @@
+""" This module contains base explanation graph classes that does not depend on pytorch
+
+"""
+
+from __future__ import annotations
 import json
 import re
 import numpy as np
-from google.protobuf import json_format
 
 from itertools import chain
 import collections
 
-import inspect
-import importlib
-import glob
 import os
 import re
 import pickle
-import h5py
 
-import tprism.expl_pb2 as expl_pb2
-import tprism.op.base
-import tprism.loss.base
 from numpy import int32, int64, ndarray, str_
 from torch import Tensor, dtype
 from torch.nn.parameter import Parameter
@@ -27,185 +24,43 @@ from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union
 from tprism.placeholder import PlaceholderData
 from tprism.torch_embedding_generator import DatasetEmbeddingGenerator
 
-def load_input_data(data_filename_list: List[str]) -> List[Dict[str, Union[int, List[str], ndarray]]]:
-    input_data_list = []
-    for filename in data_filename_list:
-        _, ext = os.path.splitext(filename)
-        if ext == ".h5":
-            print("[LOAD]", filename)
-            datasets = load_input_h5(filename)
-        elif ext == ".json":
-            print("[LOAD]", filename)
-            datasets = load_input_json(filename)
-        elif ext[:5] == ".json":
-            print("[LOAD]", filename)
-            datasets = load_input_json(filename)
-        else:
-            print("[ERROR]", data_filename)
-        input_data_list.append(datasets)
-    return merge_input_data(input_data_list)
-    # return input_data_list
-
-
-def load_input_json(filename):
-    input_data = expl_pb2.PlaceholderData()
-    with open(filename, "r") as fp:
-        input_data = json_format.Parse(fp.read(), input_data)
-    datasets = []
-    for g in input_data.goals:
-        phs = [ph.name for ph in g.placeholders]
-        rs = []
-        for r in g.records:
-            rs.append([item for item in items])
-        dataset = {"goal_id": g.id, "placeholders": phs, "records": rs}
-        datasets.append(dataset)
-    return datasets
-
-
-def load_input_h5(filename: str) -> List[Dict[str, Union[int, List[str], ndarray]]]:
-    infh = h5py.File(filename, "r")
-    datasets = []
-    for k in infh:
-        goal_id = int(k)
-        phs = [ph.decode() for ph in infh[k]["data"].attrs.get("placeholders")]
-        rs = infh[k]["data"].value
-        dataset = {"goal_id": goal_id, "placeholders": phs, "records": rs}
-        datasets.append(dataset)
-    infh.close()
-    return datasets
-
-
-def merge_input_data(input_data_list: List[List[Dict[str, Union[int, List[str], ndarray]]]]) -> List[Dict[str, Union[int, List[str], ndarray]]]:
-    merged_data = {}
-    for datasets in input_data_list:
-        for data in datasets:
-            goal_id = data["goal_id"]
-            if goal_id not in merged_data:
-                merged_data[goal_id] = data
-            else:
-                merged_data[goal_id]["records"].extend(data[goal_id]["records"])
-
-    return list(merged_data.values())
-
-
-def load_explanation_graph(expl_filename, option_filename):
-    graph = expl_pb2.ExplGraph()
-    options = expl_pb2.Option()
-    print("[LOAD]", expl_filename)
-    with open(expl_filename, "r") as fp:
-        graph = json_format.Parse(fp.read(), graph)
-    # f = open("expl.bin", "rb")
-    # graph.ParseFromString(f.read())
-    with open(option_filename, "r") as fp:
-        options = json_format.Parse(fp.read(), options)
-    return graph, options
-
-
-class OperatorLoader:
-    def __init__(self) -> None:
-        self.operators = {}
-        self.base_module_name = "tprism.op."
-        self.module = None
-
-    # a snake case operator name to class name
-    def to_class_name(self, snake_str):
-        components = snake_str.split("_")
-        return "".join(x.title() for x in components)
-
-    # class name to a snake case operator name
-    def to_op_name(self, cls_name: str) -> str:
-        _underscorer1 = re.compile(r"(.)([A-Z][a-z]+)")
-        _underscorer2 = re.compile("([a-z0-9])([A-Z])")
-        subbed = _underscorer1.sub(r"\1_\2", cls_name)
-        return _underscorer2.sub(r"\1_\2", subbed).lower()
-
-    def get_operator(self, name: str) -> Type[Sigmoid]:
-        assert name in self.operators, "%s is not found" % (name)
-        cls = self.operators[name]
-        assert cls is not None, "%s is not found" % (name)
-        return cls
-
-    def load_all(self, path: str) -> None:
-        search_path = os.path.dirname(__file__) + "/" + path
-        for fpath in glob.glob(search_path + "*.py"):
-            print("[LOAD]", fpath)
-            name = os.path.basename(os.path.splitext(fpath)[0])
-            module_name = self.base_module_name + name
-            module = importlib.machinery.SourceFileLoader(
-                module_name, fpath
-            ).load_module()
-            self.load_module(module)
-
-    def load_module(self, module):
-        for cls_name, cls in inspect.getmembers(module, inspect.isclass):
-            if issubclass(cls, tprism.op.base.BaseOperator):
-                print("[IMPORT]", cls_name)
-                op_name = self.to_op_name(cls_name)
-                self.operators[op_name] = cls
-
-
-class LossLoader:
-    def __init__(self) -> None:
-        self.module = None
-        self.base_module_name = "tprism.loss."
-        self.losses = {}
-
-    # a snake case operator name to class name
-    def to_class_name(self, snake_str):
-        components = snake_str.split("_")
-        return "".join(x.title() for x in components)
-
-    # class name to a snake case operator name
-    def to_op_name(self, cls_name: str) -> str:
-        _underscorer1 = re.compile(r"(.)([A-Z][a-z]+)")
-        _underscorer2 = re.compile("([a-z0-9])([A-Z])")
-        subbed = _underscorer1.sub(r"\1_\2", cls_name)
-        return _underscorer2.sub(r"\1_\2", subbed).lower()
-
-    def get_loss(self, name: str) -> Union[Type[Ce_pl2], Type[PreferencePair]]:
-        if name in self.losses:
-            cls = self.losses[name]
-            return cls
-        else:
-            return None
-
-    def load_all(self, path: str) -> None:
-        search_path = os.path.dirname(__file__) + "/" + path
-        for fpath in glob.glob(search_path + "*.py"):
-            print("[LOAD]", fpath)
-            name = os.path.basename(os.path.splitext(fpath)[0])
-            module_name = self.base_module_name + name
-            module = importlib.machinery.SourceFileLoader(
-                module_name, fpath
-            ).load_module()
-            self.load_module(module)
-
-    def load_module(self, module):
-        for cls_name, cls in inspect.getmembers(module, inspect.isclass):
-            if issubclass(cls, tprism.loss.base.BaseLoss):
-                print("[IMPORT]", cls_name)
-                op_name = self.to_op_name(cls_name)
-                self.losses[op_name] = cls
-
-
 class ComputationalExplGraph:
-    def __init__(self):
-        self.path_inside = None
-        self.path_template = None
+    """ This class is a base class for a concrete explanation graph.
+    This module support to compute explanation_graph_template.
+    An explanation_graph_template has a part of computational explanation graph:
+    a list of goal templates(goal means LHS of path),
 
-    def get_unique_list(self, seq: List[List[str]]) -> List[List[str]]:
+    Note:
+        Goal template
+
+            a goal template=
+            {
+                "template": List[str],
+                "batch_flag": Boolean,
+                "shape": List[int ...],
+            }
+
+
+
+    """
+
+
+    def __init__(self):
+        pass
+
+    def _get_unique_list(self, seq: List[List[str]]) -> List[List[str]]:
         seen = []
         return [x for x in seq if x not in seen and not seen.append(x)]
 
     # [['i'], ['i','l', 'j'], ['j','k']] => ['l','k']
-    def compute_output_template(self, template: List[List[str]]) -> List[Union[str, Any]]:
+    def _compute_output_template(self, template: List[List[str]]) -> List[Union[str, Any]]:
         counter = collections.Counter(chain.from_iterable(template))
         out_template = [k for k, cnt in counter.items() if cnt == 1 and k != "b"]
         return sorted(out_template)
 
     # [['i'], ['i','l', 'j'], ['j','k']] => ['l','k']
     # [[3], [3, 4, 5], [5,6]] => [4,6]
-    def compute_output_shape(self, out_template: List[Union[str, Any]], sw_node_template: List[List[str]], sw_node_shape: List[Union[Tuple[int, int], List[int], List[Optional[int]], Tuple[int]]]) -> List[Union[int, Any]]:
+    def _compute_output_shape(self, out_template: List[Union[str, Any]], sw_node_template: List[List[str]], sw_node_shape: List[Union[Tuple[int, int], List[int], List[Optional[int]], Tuple[int]]]) -> List[Union[int, Any]]:
         symbol_shape = {}
         for template_list, shape_list in zip(sw_node_template, sw_node_shape):
             for t, s in zip(template_list, shape_list):
@@ -230,7 +85,10 @@ class ComputationalExplGraph:
                 out_shape.append(None)
         return out_shape
 
-    def unify_shapes(self, path_shapes: List[List[Union[int, Any]]]) -> List[Union[int, Any]]:
+    def _unify_shapes(self, path_shapes: List[List[Union[int, Any]]]) -> List[Union[int, Any]]:
+        """
+        This method is used to unify shapes for all paths
+        """
         n = len(path_shapes)
         if n == 0:
             return []
@@ -252,6 +110,17 @@ class ComputationalExplGraph:
     def build_explanation_graph_template(
         self, graph, tensor_provider, operator_loader=None, cycle_node=[]
     ):
+        """
+        Args:
+            graph: explanation graph object
+            tensor_provider(SwitchTensorProvider): tensor provider
+            operator_loader=None(OperatorLoader): operator loader
+            cycle_node=[]: a list of cycle node
+
+        Returns:
+            goal_template:
+            cycle_node: a list of cycle node (if given cycle_node, it is updated)
+        """
         # checking template
         goal_template = [None] * len(graph.goals)
         for i in range(len(graph.goals)):
@@ -309,8 +178,8 @@ class ComputationalExplGraph:
                     print(out_shape)
                 else:
                     # constructing einsum operation using template and inside
-                    out_template = self.compute_output_template(sw_node_template)
-                    out_shape = self.compute_output_shape(
+                    out_template = self._compute_output_template(sw_node_template)
+                    out_shape = self._compute_output_shape(
                         out_template, sw_node_template, sw_node_shape
                     )
                     if len(sw_node_template) > 0:  # condition for einsum
@@ -326,8 +195,8 @@ class ComputationalExplGraph:
                 path_shape.append(out_shape)
                 ##
             ##
-            path_template_list = self.get_unique_list(path_template)
-            path_shape = self.unify_shapes(path_shape)
+            path_template_list = self._get_unique_list(path_template)
+            path_shape = self._unify_shapes(path_shape)
             if len(path_template_list) == 0:
                 goal_template[i] = {
                     "template": [],
@@ -347,13 +216,24 @@ class ComputationalExplGraph:
 
 
 class SwitchTensor:
+    """ This class connect a tensor with a switch
+    
+    Attributes:
+        name (str): switch name
+        shape_set (Set[Tuple[int,...]]):
+        ph_names (List[str]): generated from the switch name
+        vocab_name (str): generated from the switch name
+        var_name (str): generated from the switch name
+        value (Any): 
+
+    """
     def __init__(self, sw_name: str) -> None:
         self.name = sw_name
         self.shape_set = set([])
-        self.value = None
         self.ph_names = self.get_placeholder_name(sw_name)
         self.vocab_name = self.make_vocab_name(sw_name)
         self.var_name = self.make_var_name(sw_name)
+        self.value = None
 
     def enabled_placeholder(self):
         return len(self.ph_names) == 0

@@ -22,7 +22,8 @@ import tprism.op.base
 import tprism.loss.base
 
 from tprism.expl_graph import ComputationalExplGraph, SwitchTensorProvider
-from tprism.expl_graph import PlaceholderGraph, VocabSet, OperatorLoader
+from tprism.expl_graph import PlaceholderGraph, VocabSet
+from tprism.loader import OperatorLoader
 from tprism.placeholder import PlaceholderData
 from numpy import int64
 from torch import dtype
@@ -169,7 +170,7 @@ class TorchComputationalExplGraph(ComputationalExplGraph, torch.nn.Module):
                     template = [x[0] for x in path_v]
                     inside = [x[1] for x in path_v]
                     # constructing einsum operation using template and inside
-                    out_template = self.compute_output_template(template)
+                    out_template = self._compute_output_template(template)
                     if len(template) > 0:  # condition for einsum
                         lhs = ",".join(map(lambda x: "".join(x), template))
                         rhs = "".join(out_template)
@@ -232,8 +233,8 @@ class TorchComputationalExplGraph(ComputationalExplGraph, torch.nn.Module):
                     "=== tensor equation (node_id:%d, %s) ==="
                     % (g.node.sorted_id, g.node.goal.name)
                 )
-            self.path_inside = []
-            self.path_template = []
+            path_inside = []
+            path_template = []
             path_batch_flag = False
             for path in g.paths:
                 ## build template and inside for switches in the path
@@ -315,7 +316,7 @@ class TorchComputationalExplGraph(ComputationalExplGraph, torch.nn.Module):
                     template = [x[0] for x in path_v]
                     inside = [x[1] for x in path_v]
                     # constructing einsum operation using template and inside
-                    out_template = self.compute_output_template(template)
+                    out_template = self._compute_output_template(template)
                     # print(template,out_template)
                     out_inside = prob_sw_inside
                     if len(template) > 0:  # condition for einsum
@@ -343,11 +344,11 @@ class TorchComputationalExplGraph(ComputationalExplGraph, torch.nn.Module):
                         out_template = op_obj.get_output_template(out_template)
 
                 ##
-                self.path_inside.append(out_inside)
-                self.path_template.append(out_template)
+                path_inside.append(out_inside)
+                path_template.append(out_template)
                 ##
             ##
-            path_template_list = self.get_unique_list(self.path_template)
+            path_template_list = self.get_unique_list(path_template)
 
             if len(path_template_list) == 0:
                 goal_inside[i] = {
@@ -361,13 +362,13 @@ class TorchComputationalExplGraph(ComputationalExplGraph, torch.nn.Module):
                 if len(path_template_list[0]) == 0:
                     goal_inside[i] = {
                         "template": path_template_list[0],
-                        "inside": self.path_inside,
+                        "inside": path_inside,
                         "batch_flag": path_batch_flag,
                     }
                 else:
                     goal_inside[i] = {
                         "template": path_template_list[0],
-                        "inside": torch.sum(torch.stack(self.path_inside), dim=0),
+                        "inside": torch.sum(torch.stack(path_inside), dim=0),
                         "batch_flag": path_batch_flag,
                     }
         return goal_inside, self.loss

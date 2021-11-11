@@ -24,6 +24,12 @@ from tprism.util import (
     split_goal_dataset,
     get_goal_dataset,
 )
+from tprism.loader import (
+    load_input_data,
+    load_explanation_graph,
+    LossLoader,
+)
+
 from tprism.torch_util import draw_graph
 import re
 import numpy as np
@@ -472,12 +478,12 @@ class TprismModel:
 
 
 def run_preparing(g, sess, args):
-    input_data = expl_graph.load_input_data(args.data)
-    graph, options = expl_graph.load_explanation_graph(args.expl_graph, args.flags)
+    input_data = load_input_data(args.data)
+    graph, options = load_explanation_graph(args.expl_graph, args.flags)
     flags = Flags(args, options)
     flags.update()
     ##
-    loss_loader = expl_graph.LossLoader()
+    loss_loader = LossLoader()
     loss_loader.load_all("loss/")
     loss_cls = loss_loader.get_loss(flags.sgd_loss)
     ##
@@ -503,14 +509,14 @@ def run_preparing(g, sess, args):
 
 def run_training(args):
     if args.data is not None:
-        input_data = expl_graph.load_input_data(args.data)
+        input_data = load_input_data(args.data)
     else:
         input_data = None
-    graph, options = expl_graph.load_explanation_graph(args.expl_graph, args.flags)
+    graph, options = load_explanation_graph(args.expl_graph, args.flags)
     flags = Flags(args, options)
     flags.update()
     ##
-    loss_loader = expl_graph.LossLoader()
+    loss_loader = LossLoader()
     loss_loader.load_all("loss/torch*")
     loss_cls = loss_loader.get_loss(flags.sgd_loss)
     ##
@@ -536,14 +542,14 @@ def run_training(args):
 
 def run_test(args):
     if args.data is not None:
-        input_data = expl_graph.load_input_data(args.data)
+        input_data = load_input_data(args.data)
     else:
         input_data = None
-    graph, options = expl_graph.load_explanation_graph(args.expl_graph, args.flags)
+    graph, options = load_explanation_graph(args.expl_graph, args.flags)
     flags = Flags(args, options)
     flags.update()
     ##
-    loss_loader = expl_graph.LossLoader()
+    loss_loader = LossLoader()
     loss_loader.load_all("loss/torch*")
     loss_cls = loss_loader.get_loss(flags.sgd_loss)
     ##
