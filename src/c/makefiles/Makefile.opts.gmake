@@ -47,7 +47,8 @@ LD         = g++
 endif
 
 ifeq ($(USE_H5),1)
-CFLAGS    += `pkg-config --cflags hdf5-serial --libs` -l hdf5_cpp
+CFLAGS    += -DUSE_H5
+CFLAGS    += `pkg-config --cflags hdf5-serial --libs`
 LDFLAGS   += `pkg-config --cflags hdf5-serial --libs` -l hdf5_cpp
 endif
 

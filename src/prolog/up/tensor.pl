@@ -1,3 +1,5 @@
+tprism_debug_level(0).
+
 $pp_index_get_i1(0,[],_).
 $pp_index_get_i1(N0,[X|G],S):-N0>0,N is N0 -1,index_atoms(As),member(X,As),not member(X,S),$pp_index_get_i1(N,G,[X|S]).
 $pp_index_all_different(N,G):-findall(X,$pp_index_get_i1(N,X,[]),G).
@@ -139,7 +141,6 @@ nonground_unique(L,L1):-
 	$pp_tensor_filter_nonground(L,L0),
 	unique(L0,L1).
 
-tprism_debug_level(1).
 %% CollectLists:
 %$  data(occured switches,declared index)
 $pp_trans_phase_tensor(Prog0,Prog_tensor,Info):-

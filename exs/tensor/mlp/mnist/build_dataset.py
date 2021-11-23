@@ -1,7 +1,12 @@
 import numpy as np
 import h5py
-from tensorflow.examples.tutorials.mnist import input_data
 
+from sklearn.datasets import fetch_openml
+
+"""
+from tensorflow.examples.tutorials.mnist import input_data
+data_path = "../dataset"
+mnist = fetch_mldata('MNIST original', data_home=data_path)
 
 mnist = input_data.read_data_sets("MNIST_data/", one_hot=False)
 
@@ -17,7 +22,17 @@ print(y_train.shape)
 
 print(X_test.shape)
 print(y_test.shape)
+"""
 
+mnist_X, mnist_y = fetch_openml('mnist_784', version=1, data_home=".", return_X_y=True)
+
+x_all = mnist_X.astype(np.float32) / 255
+y_all = mnist_y.astype(np.int32)
+
+X_train=x_all[:60000,:]
+y_train=y_all[:60000]
+X_test =x_all[60000:,:]
+y_test =y_all[60000:]
 
 with h5py.File("mnist.h5", 'w') as fp:
 	fp.create_group('train')

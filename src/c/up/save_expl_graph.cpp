@@ -232,7 +232,6 @@ int run_save_expl_graph_json(const string& outfilename,SaveFormat format) {
 		r->set_count(roots[i]->count);
 	}
 	*/
-	printf(">>>>>>>>>\n");
 	goals["rootList"]=json::array();
 	for (RNK_NODE_PTR itr = rank_root; itr != NULL; itr=itr->next) {
 		//prism::RankRoot* rr=goals.add_root_list();

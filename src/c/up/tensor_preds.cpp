@@ -350,6 +350,7 @@ int pc_save_placeholder_data_5(void) {
 #ifdef USE_H5
 		save_placeholder_data_hdf5(ph, data, filename, format);
 #else
+		printf("[ERROR] hdf5 format is not implemented (please compile prism with the USE_H5 option)\n");
 #endif
 	}else{
 #ifdef USE_PROTOBUF
