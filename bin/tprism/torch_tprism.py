@@ -238,12 +238,13 @@ class TprismModel:
                 self.graph, goal_inside, self.tensor_provider
             )
             optimizer.zero_grad()
-            total_loss = torch.sum(torch.stack(loss), dim=0)
+            total_loss = torch.sum(loss, dim=0)
             total_loss.backward()
             optimizer.step()
             metrics = loss_cls.metrics(output, label)
+            metrics.update(loss_list)
             train_evaluator.start_epoch()
-            train_evaluator.update(total_loss, loss_list, 0)
+            train_evaluator.update(total_loss, metrics, 0)
             train_evaluator.stop_epoch()
             # display_graph(output[j],'graph_pytorch')
 
@@ -391,21 +392,29 @@ class TprismModel:
         print("... initialization")
         loss_cls = self.loss_cls()
         evaluator = TprismEvaluator()
-
+        ###
+        feed_dict = {}
+        for embedding_generator in self.embedding_generators:
+            if embedding_generator is not None:
+                feed_dict = embedding_generator.build_feed(feed_dict, None)
+        self.tensor_provider.set_input(feed_dict)
         print("... predicting")
         start_t = time.time()
         goal_inside, loss_list = self.comp_expl_graph.forward()
         loss, output, label = loss_cls.call(
             self.graph, goal_inside, self.tensor_provider
         )
-        evaluator.eval(loss, output, label)
+        metrics=loss_cls.metrics(output, label)
         # train_acc=sklearn.metrics.accuracy_score(all_label,all_output)
-        print("loss:", np.sum(evaluator.total_loss))
-        outputs = evaluator.output
-        pred_y = evaluator.pred_y
+        #print("loss:", np.sum(evaluator.get_loss())
+        print("loss:", torch.sum(loss))
+        print("metrics:", metrics)
         pred_time = time.time() - start_t
         print("prediction time:{0}".format(pred_time) + "[sec]")
-        return pred_y, outputs
+        if label is None:
+            label=label.detach().numpy()
+        output=output.detach().numpy()
+        return label, output
 
     def export_computational_graph(self, input_data, verbose=False):
         print("... prediction")
@@ -576,6 +585,7 @@ def run_test(args):
     train_time = time.time() - start_t
     print("total training time:{0}".format(train_time) + "[sec]")
     print("... output")
+    np.save(flags.output,out)
     print("[SAVE]", flags.output)
     data = {}
     for j, root_obj in enumerate(graph.root_list):

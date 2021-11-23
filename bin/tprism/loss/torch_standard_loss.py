@@ -30,7 +30,43 @@ class Nll(BaseLoss):
             ll = torch.mean(o, dim=0)
             loss.append(ll)
             output.append(o)
+        loss=torch.stack(loss)
+        output=torch.stack(output)
         return loss, output, None
+
+class Ce(BaseLoss):
+    def __init__(self, parameters=None):
+        pass
+
+    # loss: goal x minibatch
+    def call(self, graph, goal_inside, tensor_provider):
+        loss = []
+        output = []
+        gamma = 1.00
+        o=[]
+        y=[]
+        for rank_root in graph.root_list:
+            goal_ids = [el.sorted_id for el in rank_root.roots]
+            for sid in goal_ids:
+                args = graph.goals[sid].node.goal.args
+                label=int(args[0])
+                out = goal_inside[sid]["inside"]
+                o.append(out)
+                y.append(label)
+        o_t=torch.stack(o)
+        y_t=torch.LongTensor(y)
+        loss = F.cross_entropy(o_t,y_t)
+        return loss, o_t, y_t
+
+    def metrics(self, output, label):
+        if label is not None:
+            output=output.detach().numpy()
+            lebel=label.detach().numpy()
+            pred=np.argmax(output,axis=1)
+            acc=sklearn.metrics.accuracy_score(label,pred)
+            return {"*accuracy":acc}
+        return {}
+
 
 class Ce_pl2(BaseLoss):
     def __init__(self, parameters: None=None) -> None:
@@ -57,11 +93,19 @@ class Ce_pl2(BaseLoss):
                 loss.append(lo)
                 output.append(l1)
                 label.append(label_ph_var)
+        loss=torch.stack(loss)
+        output=torch.stack(output)
+        label=torch.stack(label)
         return loss, output, label
+
     def metrics(self, output, label):
-        pred=np.argmax(output,axis=1)
-        acc=sklearn.metrics.accuracy_score(label,pred)
-        return {"*accuracy":acc}
+        if label is not None:
+            output=output.detach().numpy()
+            lebel=label.detach().numpy()
+            pred=np.argmax(output,axis=1)
+            acc=sklearn.metrics.accuracy_score(label,pred)
+            return {"*accuracy":acc}
+        return {}
 
 class Mse(BaseLoss):
     def __init__(self, parameters=None):
@@ -84,11 +128,19 @@ class Mse(BaseLoss):
             loss.append(lo.sum())
             output.append(l1)
             label.append(l2)
+        loss=torch.stack(loss)
+        output=torch.stack(output)
+        label=torch.stack(label)
         return loss, output, label
     def metrics(self, output, label):
-        mse=np.mean((label-output)**2,axis=0)
-        mse=np.sum(mse)
-        return {"*mse":mse}
+        if label is not None:
+            output=output.detach().numpy()
+            lebel=label.detach().numpy()
+            mse=np.mean((label-output)**2,axis=0)
+            mse=np.sum(mse)
+            return {"*mse":mse}
+        else:
+            return {}
 
 
 
@@ -113,6 +165,8 @@ class PreferencePair(BaseLoss):
             # l = tf.nn.softplus(1 * l2)+tf.nn.softplus(-1 * l1) + reg_loss
             loss.append(torch.sum(l))
             output.append(torch.stack([l1, l2]))
+        loss=torch.stack(loss)
+        output=torch.stack(output)
         return loss, output, None
 
 
