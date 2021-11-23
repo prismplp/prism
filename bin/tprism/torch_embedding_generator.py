@@ -44,6 +44,8 @@ class CycleEmbeddingGenerator(BaseEmbeddingGenerator):
         self.index_range = {}
         self.tensor_shape = {}
         self.feed_verb = False
+        self.get_verb  = False
+        self.info_verb = True
 
     def load(self, options):
         self.index_range = {el.index: el.range for el in options.index_range}
@@ -60,10 +62,12 @@ class CycleEmbeddingGenerator(BaseEmbeddingGenerator):
     def forward(self, name, shape, node_id):
         ph_name = name + "_cyc"
         if ph_name in self.embedding:
-            print("[GET cycle]>", ph_name, ":", self.embedding[ph_name]["tensor"])
+            if self.get_verb:
+                print("[GET cycle]>", ph_name, ":", self.embedding[ph_name]["tensor"])
             return torch.tensor(self.embedding[ph_name]["data"])
         else:
-            print("[CREATE cycle]>", ph_name, ":", shape)
+            if self.info_verb:
+                print("[CREATE cycle]>", ph_name, ":", shape)
             self.embedding[ph_name] = {}
             self.embedding[ph_name]["tensor"] = PlaceholderData(
                 name=ph_name, shape=shape, dtype=torch.float32
@@ -87,7 +91,8 @@ class CycleEmbeddingGenerator(BaseEmbeddingGenerator):
         total_loss = 0
         for ph_name, data in self.embedding.items():
             node_id = data["id"]
-            print("[INFO: cycle update] node_id:", node_id, "=>", ph_name)
+            if self.info_verb:
+                print("[INFO: cycle update] node_id:", node_id, "=>", ph_name)
             ##
             o = out_inside[node_id]
             loss = self.embedding[ph_name]["data"] - o
@@ -104,18 +109,22 @@ class CycleEmbeddingGenerator(BaseEmbeddingGenerator):
 class DatasetEmbeddingGenerator(BaseEmbeddingGenerator):
     def __init__(self) -> None:
         self.feed_verb = False
+        self.get_verb  = False
+        self.info_verb = True
         self.dataset = {}
         self.created_ph_var = {}
         self.vocabset_ph_var = None
 
     def load(self, filename: str, key: str="train") -> None:
-        print("[LOAD]", filename)
+        if self.info_verb:
+            print("[LOAD]", filename)
         infh = h5py.File(filename, "r")
         if key in infh:
             for vocab_name in infh[key]:
                 rs = infh[key][vocab_name][()]
                 self.dataset[vocab_name] = rs
-                print("[LOAD DatasetEmbedding]", vocab_name)
+                if self.info_verb:
+                    print("[LOAD DatasetEmbedding]", vocab_name)
         infh.close()
 
     def is_embedding(self, vocab_name: str) -> bool:
@@ -126,11 +135,13 @@ class DatasetEmbeddingGenerator(BaseEmbeddingGenerator):
 
     def get_embedding(self, vocab_name: str, shape: Optional[Tuple[int, ...]] =None) -> Optional[PlaceholderData]:
         if not self.is_embedding(vocab_name):
-            print("[SKIP]>", vocab_name)
+            if self.info_verb:
+                print("[SKIP]>", vocab_name)
             return None
         ph_name = vocab_name + "_ph"
         if ph_name in self.created_ph_var:
-            print("[GET]>", ph_name, ":", self.created_ph_var[ph_name])
+            if self.get_verb:
+                print("[GET]>", ph_name, ":", self.created_ph_var[ph_name])
             return self.created_ph_var[ph_name]
         else:
             if shape is None:
@@ -138,7 +149,8 @@ class DatasetEmbeddingGenerator(BaseEmbeddingGenerator):
             self.created_ph_var[ph_name] = PlaceholderData(
                 name=ph_name, shape=shape, dtype=torch.float32, ref=vocab_name
             )
-            print("[CREATE]>", ph_name, ":", shape, "ref:", vocab_name)
+            if self.info_verb:
+                print("[CREATE]>", ph_name, ":", shape, "ref:", vocab_name)
             return self.created_ph_var[ph_name]
 
     def build_feed(self, feed_dict: Dict[PlaceholderData, Tensor], idx: Optional[ndarray]=None) -> Dict[PlaceholderData, Tensor]:
@@ -151,6 +163,8 @@ class DatasetEmbeddingGenerator(BaseEmbeddingGenerator):
             if ph_name in self.created_ph_var:
                 ph_var = self.created_ph_var[ph_name]
                 feed_dict[ph_var] = torch.Tensor(batch_data)
+            if self.feed_verb:
+                print("[INFO: feed]", vocab_name, "=>", ph_name)
         return feed_dict
 
 
@@ -158,17 +172,21 @@ class DatasetEmbeddingGenerator(BaseEmbeddingGenerator):
 class ConstEmbeddingGenerator(BaseEmbeddingGenerator):
     def __init__(self):
         self.feed_verb = False
+        self.get_verb  = False
+        self.info_verb = True
         self.dataset = {}
         self.created_ph_var = {}
 
     def load(self, filename, key="train"):
-        print("[LOAD]", filename)
+        if self.info_verb:
+            print("[LOAD]", filename)
         infh = h5py.File(filename, "r")
         if key in infh:
             for vocab_name in infh[key]:
                 rs = infh[key][vocab_name].value
                 self.dataset[vocab_name] = rs
-                print("[LOAD ConstEmbedding]", vocab_name)
+                if self.info_verb:
+                    print("[LOAD ConstEmbedding]", vocab_name)
         infh.close()
 
     def is_embedding(self, vocab_name):
@@ -179,11 +197,13 @@ class ConstEmbeddingGenerator(BaseEmbeddingGenerator):
 
     def get_embedding(self, vocab_name, shape=None):
         if not self.is_embedding(vocab_name):
-            print("[SKIP]>", vocab_name)
+            if self.info_verb:
+                print("[SKIP]>", vocab_name)
             return None
         ph_name = vocab_name + "_ph"
         if ph_name in self.created_ph_var:
-            print("[GET]>", ph_name, ":", self.created_ph_var[ph_name])
+            if self.get_verb:
+                print("[GET]>", ph_name, ":", self.created_ph_var[ph_name])
             return self.created_ph_var[ph_name]
         else:
             if shape is None:
@@ -191,7 +211,8 @@ class ConstEmbeddingGenerator(BaseEmbeddingGenerator):
             self.created_ph_var[ph_name] = PlaceholderData(
                 name=ph_name, shape=shape, dtype=torch.float32
             )
-            print("[CREATE]>", ph_name, ":", shape)
+            if self.info_verb:
+                print("[CREATE]>", ph_name, ":", shape)
             return self.created_ph_var[ph_name]
 
     def build_feed(self, feed_dict, idx=None):

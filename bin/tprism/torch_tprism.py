@@ -428,7 +428,7 @@ class TprismModel:
             evaluator.start_epoch()
             for itr in range(num_itr):
                 self._set_batch_input(goal, test_idx, j, itr)
-                goal_inside, loss_list = self.comp_expl_graph.forward_()
+                goal_inside, loss_list = self.comp_expl_graph.forward(dryrun=True)
                 for g in goal_inside:
                     print(g)
                     for path in g["inside"]:
@@ -537,6 +537,7 @@ def run_training(args):
     elif input_data is not None:
         print("... fit with input data")
         model.export_computational_graph(input_data)
+        print("=========")
         model.fit(input_data, verbose=False)
         model.pred(input_data)
     else:
