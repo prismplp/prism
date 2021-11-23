@@ -43,7 +43,6 @@ This is called by tprism command (pytorch based tprism)
 class TprismEvaluator:
     """Evaluator for pytorch system
 
-        This is MyClass.
     """
     def __init__(self, goal_dataset=None):
         if goal_dataset is not None:
@@ -119,6 +118,10 @@ class TprismEvaluator:
 
 
 class TprismModel:
+    """T-PRISM model for pytorch
+
+    """
+ 
     def __init__(self, flags, options, graph, loss_cls):
         self.graph = graph
         self.flags = flags

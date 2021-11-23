@@ -9,6 +9,7 @@ def make_dot(var, params):
 
     Blue nodes are the Variables that require grad, orange are Tensors
     saved for backward in torch.autograd.Function
+
     Args:
         var: output Variable
         params: dict of (name, Variable) to add names to node that

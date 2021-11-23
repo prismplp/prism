@@ -31,6 +31,24 @@ from typing import Any, Dict, List, Tuple, Union
 
 
 class TorchComputationalExplGraph(ComputationalExplGraph, torch.nn.Module):
+    """ This class is a concrete explanation graph for pytorch
+
+    Note:
+        aaaaa
+
+        ::
+        
+            {
+                "sw_template": [],
+                "sw_inside": [],
+                "prob_sw_inside": [],
+                "node_template": [],
+                "node_inside": [],
+                "node_scalar_inside": [],
+            }
+
+            
+    """
     def __init__(self, graph, tensor_provider, cycle_embedding_generator=None):
         torch.nn.Module.__init__(self)
 

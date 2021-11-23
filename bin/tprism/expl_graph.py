@@ -16,7 +16,7 @@ import pickle
 
 from numpy import int32, int64, ndarray, str_
 from torch import Tensor, dtype
-from torch.nn.parameter import Parameter
+from torch.nn.parameter import Parameter # this is only used for typing 
 from tprism.loss.torch_standard_loss import Ce_pl2, PreferencePair
 from tprism.op.torch_standard_op import Sigmoid
 from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union
@@ -33,13 +33,14 @@ class ComputationalExplGraph:
     Note:
         Goal template
 
+        ::
+
             a goal template=
             {
                 "template": List[str],
                 "batch_flag": Boolean,
                 "shape": List[int ...],
             }
-
 
 
     """
@@ -386,7 +387,6 @@ class SwitchTensorProvider:
         ph_graph:
         input_feed_dict:
         params:
-        vocab_var_type:
 
     """
 
@@ -411,23 +411,45 @@ class SwitchTensorProvider:
         self.input_feed_dict = feed_dict
 
     def get_placeholder_name(self, name: str) -> List[Union[str, Any]]:
-        """
+        """ 
         Args:
-            switch name (str):
-        
+            switch name (str): switch name
+        Returns:
+            placeholder name
         """
         return self.sw_info[name].ph_names
 
     def get_switch(self, name: str) -> SwitchTensor:
+        """ 
+        Args:
+            switch name (str): switch name
+        Returns:
+            switch tensor
+        """
         return self.sw_info[name]
 
     def get_placeholder_var_name(self, name: str) -> str:
+        """ 
+        Args:
+            name (str): placeholder name
+        Returns:
+            placeholder variable name in PlaceholderData.name
+        """
         return re.sub(r"\$", "", name)
 
     def add_param(self, name: str, param: Parameter) -> None:
+        """ 
+        Args:
+            name (str): Tensor's name
+            param (Parameter): Parameter
+        """
         self.params[name] = param
 
     def get_param(self, name):
+        """ 
+        Args:
+            name (str): Tensor's name
+        """
         return self.params[name]
 
     def convert_value_to_index(self, value: Union[int, int32], ph_name: Union[str, str_]) -> int:
@@ -469,7 +491,9 @@ class SwitchTensorProvider:
 
         Note:
             vocab_var_type (Dict[str,VarType]):
-            Var type is a dictionary 
+            Var type is a dictionary like follows:
+
+            ::
 
                 # var_type["type"]=="dataset"
                 var_type={
