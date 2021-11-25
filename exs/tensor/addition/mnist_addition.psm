@@ -1,0 +1,46 @@
+%%%%
+%%%%  T-PRISM Multi-layer perceptron with addition knowledge -- mnist_addition.psm
+%%%%
+%%%%  Copyright (C) 2019 Ryosuke Kojima
+%%%%
+%%
+%%  This example tackles an addition of MNIST using T-PRISM.
+%%  This sample codes uses the MNIST dataset containing 28x28 images.
+%%
+
+%%-------------------------------------
+%%  Declarations of tensor atoms
+%%
+
+tensor_atom(onehot(_),[10]).
+tensor_atom(w(0),[10,256]).   % 10 output class (from 0 to 9)
+tensor_atom(w(1),[256,784]).  % 256 nodes in the hidden layer
+tensor_atom(get(in,_),[784]).     % 28x28 input image
+index_list([i,j,k,l]).
+%%------------------------------------
+%%  Modeling part:
+%%
+number10(Y):-member(Y,[0,1,2,3,4,5,6,7,8,9]).
+number3(Y):-member(Y,[0,1,2]).
+
+output(Y,X1,X2):-number3(Y1),number3(Y2),number10(Y_pred),
+	Y_pred is Y1+Y2,
+	tensor(onehot(Y_pred),[l]),
+	mnist(X1,Y1),mnist(X2,Y2).
+mnist(X,Y):-tensor(onehot(Y),[i]),mnist0(X).
+mnist0(X):-operator(softmax),matrix(w(0),[i,j]),layer1(X).
+layer1(X):-operator(sigmoid), matrix(w(1),[j,k]),layer2(X).
+layer2(X):-vector(get(in,X),[k]).
+
+%%------------------------------------
+%%  Main:
+%%
+
+prism_main([train]):-
+	load_clauses('./mnist/mnist.train.dat',Gs),
+	save_expl_graph('./addition_tmp/mnist.expl.json','./addition_tmp/mnist.flags.json',Gs).
+
+prism_main([test]):-
+	load_clauses('./mnist/mnist.test.dat',Gs),
+	save_expl_graph('./addition_tmp/mnist_test.expl.json','./addition_tmp/mnist_test.flags.json',Gs).
+

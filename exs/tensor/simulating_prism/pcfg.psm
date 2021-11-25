@@ -41,11 +41,11 @@ proj([X|Xs],L0-L1):-
 simulated_msw(Sw,Val):-
 	get_values(Sw,Values),     % get candidates
 	nth0(Index, Values, Val),  % choice (non-deterministic)
-	prob_tensor(Sw,[i]),       % distribution vector
+	p_tensor(Sw,[i]),       % distribution vector
 	tensor(onehot(Index),[i]). % P(Sw=Val) = dot(distribution vector, onehot vector)
 
 
-prob_tensor(X,Index):-
+p_tensor(X,Index):-
 	operator(softmax),
 	tensor(sw(X),Index).
 

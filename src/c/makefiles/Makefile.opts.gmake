@@ -11,6 +11,16 @@ endif
 ifndef MATRIX
 MATRIX = eigen
 endif
+
+ifndef USE_PB
+USE_PB = 0
+endif
+
+ifndef USE_H5
+USE_H5 = 0
+endif
+
+
 ##----------------------------------------------------------------------
 
 TARGET      = prism_$(PROCTYPE)_$(PLATFORM).bin
@@ -21,20 +31,33 @@ MAKEFILE    = Makefile.gmake
 CC          = gcc
 LD          = gcc
 #CC         = llvm-gcc
-#CFLAGS      = -O3 -fomit-frame-pointer -fno-strict-aliasing -Wall -I../bp4prism/include -I.. -I../lapack
+#CFLAGS     = -O3 -fomit-frame-pointer -fno-strict-aliasing -Wall -I../bp4prism/include -I.. -I../lapack
 #CFLAGS     = -pg -Wall -I../bp4prism/include -I..
 
 ifeq ($(MATRIX),lapack)
-CFLAGS     = -O3 -fomit-frame-pointer -fno-strict-aliasing -Wall -I../bp4prism/include -I.. -I../resource/lapack -I../resource -I../up  `pkg-config --cflags hdf5-serial --libs` -l hdf5_cpp
-LDFLAGS     = -lm -lpthread -lgfortran  `pkg-config --cflags --libs protobuf`  `pkg-config --cflags hdf5-serial --libs` -l hdf5_cpp
+CFLAGS     = -O3 -fomit-frame-pointer -fno-strict-aliasing -Wall -I../bp4prism/include -I.. -I../resource/lapack -I../resource -I../up
+LDFLAGS    = -lm -lpthread -lgfortran
 CXXFLAGS=$(CFLAGS)
 LD         = g++
 else
-CFLAGS     = -fomit-frame-pointer -fno-strict-aliasing -Wall -I../bp4prism/include -I.. -I../resource -I../up `pkg-config --cflags hdf5-serial --libs` -l hdf5_cpp
-LDFLAGS    = -lm -lpthread `pkg-config --cflags --libs protobuf` `pkg-config --cflags hdf5-serial --libs` -l hdf5_cpp
+CFLAGS     = -fomit-frame-pointer -fno-strict-aliasing -Wall -I../bp4prism/include -I.. -I../resource -I../up
+LDFLAGS    = -lm -lpthread
 CXXFLAGS=$(CFLAGS)
 LD         = g++
 endif
+
+ifeq ($(USE_H5),1)
+CFLAGS    += -DUSE_H5
+CFLAGS    += `pkg-config --cflags hdf5-serial --libs`
+LDFLAGS   += `pkg-config --cflags hdf5-serial --libs` -l hdf5_cpp
+endif
+
+ifeq ($(USE_PB),1)
+CFLAGS     += -DUSE_PROTOBUF
+LDFLAGS    += `pkg-config --cflags --libs protobuf`
+endif
+
+
 
 #LDFLAGS    = -pg -lm -lpthread
 CP          = cp -f

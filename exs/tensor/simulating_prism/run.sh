@@ -24,8 +24,8 @@ upprism pcfg.psm
 ## The optional arguments determine training parameters: the number of epoch (--max_iterate 10), batch
 ## size (--sgd_minibatch_size 10), and learning rate (--sgd_learning_rate 0.01).
 ##
-tprism.py train \
-    --intermediate_data_prefix ./pcfg_tmp/ \
+tprism train \
+    --input ./pcfg_tmp/       \
     --sgd_loss nll            \
     --max_iterate 10          \
     --sgd_minibatch_size 10   \

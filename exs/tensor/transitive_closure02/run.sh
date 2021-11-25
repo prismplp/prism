@@ -34,8 +34,8 @@ upprism transitive_closure.psm ${N}
 ## an embedding tensor is imported from ./random_graph/tc_${N}_${p}.h5
 
 tprism train \
-	--intermediate_data_prefix transitive_closure_tmp/ \
-	--embedding ./random_graph/tc_${N}_${p}.h5 \
-	--cycle \
-	--cpu
+    --input transitive_closure_tmp/ \
+    --const_embedding ./random_graph/tc_${N}_${p}.h5 \
+    --cycle \
+    --cpu
 

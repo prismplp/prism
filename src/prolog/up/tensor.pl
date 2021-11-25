@@ -1,3 +1,53 @@
+tprism_debug_level(0).
+
+%%%
+%%% Data science utility (experimental)
+%%%
+atoms_concat([X|L],R):-
+	$pp_atoms_concat(L,X,R).
+atoms_concat([],'').
+$pp_toms_concat([],X,X).
+$pp_atoms_concat([A|L],X1,R):-
+	atom_concat(X1,A,X2),
+	atoms_concat(L,X2,R).
+
+save_sw_tsv([],_).
+save_sw_tsv([G|Gs],St):-
+  G = [I|_],
+  functor(I,Name,Arity),
+  I =.. [_|IList],
+  append([Arity|G], IList, R),
+  format("~w",Name),
+  maplist(El, format("\t~w",El),R),
+  format("\n"),
+  save_sw_tsv(Gs,St).
+
+save_sw_tsv(Filename):-
+  open(Filename,write,St),
+  set_output(St),
+  format("Name\tArity\tTerm\tStatus\tVals\tParam\tArg1\tArg2\tArg3\tArg4\tArg5\n"),
+  findall([I,Status,Vals,Param], get_sw(I,Status,Vals,Param), Sws),
+  save_sw_tsv(Sws,St),
+  close(St).
+
+save_sw_d_tsv(Filename):-
+  open(Filename,write,St),
+  set_output(St),
+  format("Name\tArity\tTerm\tStatus\tVals\tPseudoCount\tArg1\tArg2\tArg3\tArg4\tArg5\n"),
+  findall([I,Status,Vals,PC], get_sw_d(I,Status,Vals,PC), Sws),
+  save_sw_tsv(Sws,St),
+  close(St).
+
+save_sw_pd_tsv(Filename):-
+  open(Filename,write,St),
+  set_output(St),
+  format("Name\tArity\tTerm\tStatus\tVals\tParam\tPseudoCount\tArg1\tArg2\tArg3\tArg4\tArg5\n"),
+  findall([I,Status,Vals,Param,PC], get_sw_pd(I,Status,Vals,Param,PC), Sws),
+  save_sw_tsv(Sws,St),
+  close(St).
+
+
+
 $pp_index_get_i1(0,[],_).
 $pp_index_get_i1(N0,[X|G],S):-N0>0,N is N0 -1,index_atoms(As),member(X,As),not member(X,S),$pp_index_get_i1(N,G,[X|S]).
 $pp_index_all_different(N,G):-findall(X,$pp_index_get_i1(N,X,[]),G).
@@ -64,8 +114,8 @@ save_placeholder_goals(PlaceholderGoals,Goals):-save_placeholder_goals('data.h5'
 save_placeholder_goals(Filename,PlaceholderGoals,Goals):-save_placeholder_goals(Filename,hdf5,PlaceholderGoals,Goals).
 save_placeholder_goals(Filename,Mode,PlaceholderGoals,Goals):-
 	$pp_generate_placeholder_goals(PlaceholderGoals,Goals,0,GG,Var),
-format("~w\n",[Var]),
-format("~w\n\n",[GG]),
+	format("[call] ~w\n",[(save_placeholder_data(Filename,Mode,Var,GG))]),
+	format("       ~w\n",[PlaceholderGoals]),
 	save_placeholder_data(Filename,Mode,Var,GG).
 
 $pp_generate_placeholder([],N,N).
@@ -86,6 +136,8 @@ $pp_generate_placeholder_goals([GP0|GP],Goals,N,[X|XX],[V0|Var]):-
 	$pp_generate_placeholder_goals(GP,Goals,M,XX,Var).
 	
 
+%% placeholders: #goal x #Placeholders for each goal
+%% Data: #goal x #sample for each goal x #Placeholders for each goal
 save_placeholder_data(Placeholders,Data):-save_placeholder_data('data.h5',hdf5,Placeholders,Data).
 save_placeholder_data(Filename,Placeholders,Data):-save_placeholder_data(Filename,hdf5,Placeholders,Data).
 save_placeholder_data(Filename,Mode,Placeholders,Data):-
@@ -137,9 +189,8 @@ nonground_unique(L,L1):-
 	$pp_tensor_filter_nonground(L,L0),
 	unique(L0,L1).
 
-tprism_debug_level(0).
-%CollectLists:
-% data(occured switches,declared index)
+%% CollectLists:
+%$  data(occured switches,declared index)
 $pp_trans_phase_tensor(Prog0,Prog_tensor,Info):-
 	maplist(X,Y,CollectList,(
 		X=pred(index,2,A2,A3,A4,Clauses)->
@@ -160,12 +211,12 @@ $pp_trans_phase_tensor(Prog0,Prog_tensor,Info):-
 	% occured_index_atoms:
 	% index_atoms:
 	%=====
-	maplist(C,X,C=data(_,X,_,_),FlatCList,IndexList),
+	maplist(C,X,C=data(_,X,_,_,_),FlatCList,IndexList),
 	flatten(IndexList,IndexAtoms),
 	nonground_unique(IndexAtoms,UIndexAtoms),
 	assert(declared_index_atoms(UIndexAtoms)),
 	%
-	maplist(C,X,C=data(X,_,_,_),FlatCList,TensorList),
+	maplist(C,X,C=data(X,_,_,_,_),FlatCList,TensorList),
 	flatten(TensorList,TensorAtoms),
 	maplist(T,I,T=tensor(_,I),TensorAtoms,TIndexList),
 	flatten(TIndexList,TIndexAtoms),
@@ -184,7 +235,7 @@ $pp_trans_phase_tensor(Prog0,Prog_tensor,Info):-
 	%========
 	% add tensor atoms and operators
 	%========
-	maplist(C,X,C=data(_,_,X,_),FlatCList,TAList),
+	maplist(C,X,C=data(_,_,X,_,_),FlatCList,TAList),
 	flatten(TAList,TAL),
 	maplist(TA,Val,(copy_term(TA,TA1),Val=(values(tensor(TA1),G):-tensor_atom(TA1,Shape),length(Shape,N),$pp_index_all_combination(N,G))),TAL,ValPreds),
 	Pred2=pred(values,2,_,_,_,ValPreds),
@@ -192,16 +243,27 @@ $pp_trans_phase_tensor(Prog0,Prog_tensor,Info):-
 	%========
 	% add subgoal
 	%========
-	maplist(C,X,C=data(_,_,_,X),FlatCList,SGList),
+	maplist(C,X,C=data(_,_,_,X,_),FlatCList,SGList),
 	flatten(SGList,SG0List),
 	maplist(SG,X,(SG=subgoal(G,_),G=..[F|Args],length(Args,L),X=F/L),SG0List,SG1List),
 	nonground_unique(SG1List,SG2List),
 	maplist(G,Pred,(G=PredName/NArg,length(Arg,NArg),A=..[PredName|Arg],Pred=(subgoal(A,S):-msw($operator(reindex(S)),$operator),A)),SG2List,SGPreds),
 	Pred3=pred(subgoal,2,_,_,_,SGPreds),
 	%========
+	% add prob_tensor
+	%========
+	maplist(C,X,C=data(_,_,_,_,X),FlatCList,PTList),
+	flatten(PTList,PT0List),
+	maplist(PT,Xs,(PT=prob_tensor(D,Gs),maplist(G,X,(G=..[F|Args],length(Args,L),X=F/L),Gs,Xs)),PT0List,PT1List),
+	nonground_unique(PT1List,PT2List),
+	maplist(Gs,Pred,(maplist(A,G,(G=PredName/NArg,length(Arg,NArg),A=..[PredName|Arg]),As,Gs),LBody=[msw($operator(distribution(Dist)),$operator)|As],list_to_and(LBody,Body),Pred=(prob_tensor(Dist,As):-Body)),PT2List,PTPreds),
+	Pred4=pred(prob_tensor,2,_,_,_,PTPreds),
+	%
+	%========
 	$pp_tensor_merge_pred(Prog_tensor0,Pred1,Prog_tensor1),
 	$pp_tensor_merge_pred(Prog_tensor1,Pred2,Prog_tensor2),
-	$pp_tensor_merge_pred(Prog_tensor2,Pred3,Prog_tensor),
+	$pp_tensor_merge_pred(Prog_tensor2,Pred3,Prog_tensor3),
+	$pp_tensor_merge_pred(Prog_tensor3,Pred4,Prog_tensor),
 	(tprism_debug_level(1)->(
 	format(">> T-PRISM before\n"),
 	maplist(X,format("~w\n",X),Prog0),
@@ -223,33 +285,37 @@ $pp_tensor_parse_clauses(Clauses,NewClauses,CollectLists):-
 $pp_tensor_get_msws(Clause,MswClause,CollectList):-
 	Clause=tensor_atom(_,_) -> (
 		Clause=tensor_atom(TA,_),
-		CollectList=data([],[],TA,[]),
+		CollectList=data([],[],TA,[],[]),
 		MswClause=Clause);
 	Clause=(tensor_atom(_,_):-Body) -> (
 		Clause=(tensor_atom(TA,_):-Body),
-		CollectList=data([],[],TA,[]),
+		CollectList=data([],[],TA,[],[]),
 		MswClause=Clause);
 	Clause=index(_,_) -> (
 		Clause=index(A0,A1),
-		CollectList=data([],A1,[],[]),
+		CollectList=data([],A1,[],[],[]),
 		MswClause=values(tensor(A0),A1));
 	Clause=(index(_,_):-Body) -> (
 		Clause=(index(A0,A1):-Body),
-		CollectList=data([],[],[],[]),
+		CollectList=data([],[],[],[],[]),
 		MswClause=(values(tensor(A0),A1):-Body));
 	Clause=(H:-Body) -> (
 		Clause=(H:-Body),
 		and_to_list(Body,LBody),
 		$pp_tensor_msw_filter(LBody,MswLBody,VecList),
 		$pp_tensor_subgoal_filter(LBody,Subgoals),
+		$pp_tensor_prob_tensor_filter(LBody,ProbTensors),
 		list_to_and(MswLBody,MswBody),
-		CollectList=data(VecList,[],[],Subgoals),
+		CollectList=data(VecList,[],[],Subgoals,ProbTensors),
 		MswClause=(H:-(MswBody)));
-	MswClause=Clause,CollectList=data([],[],[],[]).
+	MswClause=Clause,CollectList=data([],[],[],[],[]).
 
 $pp_tensor_subgoal_filter([],[]).
 $pp_tensor_subgoal_filter([subgoal(A0,A1)|Atoms],[subgoal(A0,A1)|SGList]):-$pp_tensor_subgoal_filter(Atoms,SGList).
 $pp_tensor_subgoal_filter([_|Atoms],SGList):-$pp_tensor_subgoal_filter(Atoms,SGList).
+$pp_tensor_prob_tensor_filter([],[]).
+$pp_tensor_prob_tensor_filter([prob_tensor(A0,A1)|Atoms],[prob_tensor(A0,A1)|SGList]):-$pp_tensor_prob_tensor_filter(Atoms,SGList).
+$pp_tensor_prob_tensor_filter([_|Atoms],SGList):-$pp_tensor_prob_tensor_filter(Atoms,SGList).
 
 
 $pp_tensor_msw_filter([],[],[]).
@@ -356,13 +422,5 @@ $pp_tensor_core(Filename,OptionFilename,Mode,OptionMode,GoalList) :-
 	cputime(EndEM),
 	save_flags(OptionFilename,OptionMode,SwShape),
 	cputime(End),!.
-	%$pc_import_occ_switches(NewSws,NSwitches,NSwVals),
-	%format("=======================\n"),
-	%$pp_decode_update_switches(Mode,NewSws),
-	%format("======================\n"),
-	%$pp_assert_graph_stats(NSubgraphs,NGoalNodes,NSwNodes,AvgShared),
-	%$pp_assert_learn_stats(Mode,Output,NSwitches,NSwVals,TableSpace,
-	%					   Start,End,StartExpl,EndExpl,StartEM,EndEM,1000),
-	%$pp_print_learn_stats_message(MsgT),!.
 
 

@@ -14,7 +14,7 @@
 %% An atom tr is associated with a transition matrix from a state i to j
 %% Also, using index_atoms/2, i and j are index symbols
 %% index_atoms/2 can be ommited when only the second argument of tensor/2 does not variable.
-%% In this case, tensor/2 occurred in prob_tensor/2 contains a variable Index; hence,
+%% In this case, tensor/2 occurred in prob_tensor_msw/2 contains a variable Index; hence,
 %% index symbols i and j should be explicitely defined using index_atoms/1. 
 %%
 
@@ -34,19 +34,19 @@ transition(T,0):-observe_state(T,[i]).
 transition(T,N):-
 	N>0,
 	NextN is N - 1,
-	prob_tensor(tr,[i,j]),
+	prob_tensor_msw(tr,[i,j]),
 	subgoal(transition(T,NextN),[j]).
 
 %%------------------------------------
 %%  Utility part:
 %%
-%% prob_tensor/2 can be used in place of tensor/2 to represent matrices with probability as elements.
+%% prob_tensor_msw/2 can be used in place of tensor/2 to represent matrices with probability as elements.
 %% observe_state/1 shows that the probability of observing a specific state is extracted
 %% from a vector containing probability as an element. It is realized by the inner product
 %% of a probability vector and the one-hot vector.
 %%
 
-prob_tensor(X,Index):-
+prob_tensor_msw(X,Index):-
 	operator(softmax),
 	tensor(X,Index).
 
