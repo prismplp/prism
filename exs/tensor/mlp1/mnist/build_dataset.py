@@ -32,10 +32,10 @@ with h5py.File("mnist.h5", "w") as fp:
 
 fp = open("mnist.train.dat", "w")
 for i in range(X_train.shape[0]):
-    line = "output(%d,%d).\n" % (i, y_train[i])
+    line = "output(%d,%d).\n" % (y_train[i],i)
     fp.write(line)
 
 fp = open("mnist.test.dat", "w")
 for i in range(X_test.shape[0]):
-    line = "output(%d,%d).\n" % (i, y_test[i])
+    line = "output(%d,%d).\n" % (y_test[i],i)
     fp.write(line)

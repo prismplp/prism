@@ -24,8 +24,8 @@ upprism transitive_closure.psm
 ## In this case, the loss function is not required.
 
 tprism train \
-	--intermediate_data_prefix transitive_closure_tmp/ \
-	--embedding transitive_closure_tmp/embedding.h5 \
-	--cycle \
-	--cpu
+    --input transitive_closure_tmp/ \
+    --embedding transitive_closure_tmp/embedding.h5 \
+    --cycle \
+    --cpu
 

@@ -15,8 +15,8 @@ upprism distmult_sample.psm
 ## The optional arguments determine training parameters: the number of epoch (--max_iterate) and the learning rate in the training phase.
 ##
 tprism train \
-    --intermediate_data_prefix ./distmult_sample_tmp/ \
-    --sgd_loss preference_pair            \
+    --input ./distmult_sample_tmp/ \
+    --sgd_loss preference_pair     \
     --max_iterate 10            \
     --sgd_learning_rate 0.01 --cpu
 

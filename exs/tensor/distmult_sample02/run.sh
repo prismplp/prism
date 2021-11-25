@@ -14,10 +14,10 @@ upprism distmult_sample.psm
 ## --data  specifies the substitution values for placeholders in the explanation graph
 ##
 tprism train \
-    --intermediate_data_prefix ./distmult_sample_tmp/ \
-    --sgd_loss preference_pair            \
-    --data ./distmult_sample_tmp/data.h5     \
-    --max_iterate 10            \
+    --input ./distmult_sample_tmp/    \
+    --sgd_loss preference_pair        \
+    --dataset ./distmult_sample_tmp/data.h5  \
+    --max_iterate 10          \
     --sgd_minibatch_size 5    \
     --sgd_learning_rate 0.01
 

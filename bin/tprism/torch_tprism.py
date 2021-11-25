@@ -494,7 +494,7 @@ class TprismModel:
 
 
 def run_preparing(g, sess, args):
-    input_data = load_input_data(args.data)
+    input_data = load_input_data(args.dataset)
     graph, options = load_explanation_graph(args.expl_graph, args.flags)
     flags = Flags(args, options)
     flags.update()
@@ -524,8 +524,8 @@ def run_preparing(g, sess, args):
 
 
 def run_training(args):
-    if args.data is not None:
-        input_data = load_input_data(args.data)
+    if args.dataset is not None:
+        input_data = load_input_data(args.dataset)
     else:
         input_data = None
     graph, options = load_explanation_graph(args.expl_graph, args.flags)
@@ -558,8 +558,8 @@ def run_training(args):
 
 
 def run_test(args):
-    if args.data is not None:
-        input_data = load_input_data(args.data)
+    if args.dataset is not None:
+        input_data = load_input_data(args.dataset)
     else:
         input_data = None
     graph, options = load_explanation_graph(args.expl_graph, args.flags)
@@ -701,6 +701,8 @@ def main():
         os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
 
     # deprecated
+    if args.data is not None:
+        args.dataset=args.data
     if args.intermediate_data_prefix is not None:
         if args.expl_graph is None:
             args.expl_graph = args.intermediate_data_prefix + "expl.json"
@@ -712,14 +714,17 @@ def main():
             args.vocab = args.intermediate_data_prefix + "vocab.pkl"
     elif args.input is not None:
         # setting default input data
+        sep="."
+        if os.path.isdir(args.input):
+            sep=""
         if args.expl_graph is None:
-            args.expl_graph = args.input + ".expl.json"
+            args.expl_graph = args.input + sep + "expl.json"
         if args.flags is None:
-            args.flags = args.input + ".flags.json"
+            args.flags = args.input + sep + "flags.json"
         if args.model is None:
-            args.model = args.input + ".model"
+            args.model = args.input + sep + "model"
         if args.vocab is None:
-            args.vocab = args.input + ".vocab.pkl"
+            args.vocab = args.input + sep + "vocab.pkl"
     #
     ##
     # setup

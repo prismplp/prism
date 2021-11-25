@@ -12,7 +12,7 @@
 %%  Declarations of tensor atoms
 %%
 
-tensor_atom(w(0),[3,256]).   % 10 output class (from 0 to 9)
+tensor_atom(w(0),[10,256]).   % 10 output class (from 0 to 9)
 tensor_atom(w(1),[256,784]).  % 256 nodes in the hidden layer
 tensor_atom(get(in,_),[784]).     % 28x28 input image
 

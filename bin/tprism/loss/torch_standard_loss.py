@@ -60,8 +60,10 @@ class Ce(BaseLoss):
 
     def metrics(self, output, label):
         if label is not None:
-            output=output.detach().numpy()
-            lebel=label.detach().numpy()
+            if type(output) is torch.Tensor:
+                output=output.detach().numpy()
+            if type(label) is torch.Tensor:
+                lebel=label.detach().numpy()
             pred=np.argmax(output,axis=1)
             acc=sklearn.metrics.accuracy_score(label,pred)
             return {"*accuracy":acc}
@@ -100,8 +102,10 @@ class Ce_pl2(BaseLoss):
 
     def metrics(self, output, label):
         if label is not None:
-            output=output.detach().numpy()
-            lebel=label.detach().numpy()
+            if type(output) is torch.Tensor:
+                output=output.detach().numpy()
+            if type(label) is torch.Tensor:
+                lebel=label.detach().numpy()
             pred=np.argmax(output,axis=1)
             acc=sklearn.metrics.accuracy_score(label,pred)
             return {"*accuracy":acc}
@@ -134,8 +138,10 @@ class Mse(BaseLoss):
         return loss, output, label
     def metrics(self, output, label):
         if label is not None:
-            output=output.detach().numpy()
-            lebel=label.detach().numpy()
+            if type(output) is torch.Tensor:
+                output=output.detach().numpy()
+            if type(label) is torch.Tensor:
+                lebel=label.detach().numpy()
             mse=np.mean((label-output)**2,axis=0)
             mse=np.sum(mse)
             return {"*mse":mse}

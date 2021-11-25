@@ -56,17 +56,17 @@ upprism mnist.psm test
 ##         contains predcted class scores for each test sample.
 ##
 tprism train \
-    --intermediate_data_prefix ./mnist_tmp/mnist. \
+    --input ./mnist_tmp/mnist    \
     --embedding ./mnist/mnist.h5 \
     --sgd_loss ce                \
-    --max_iterate 50            \
-    --sgd_minibatch_size 100    \
+    --max_iterate 50             \
+    --sgd_minibatch_size 100     \
     --sgd_learning_rate 0.001
 
 tprism test \
-    --intermediate_data_prefix ./mnist_tmp/mnist_test. \
-    --embedding ./mnist/mnist.h5 \
-    --sgd_loss ce                \
+    --input ./mnist_tmp/mnist_test \
+    --embedding ./mnist/mnist.h5   \
+    --sgd_loss ce                  \
     --vocab ./mnist_tmp/mnist.vocab.pkl \
     --model ./mnist_tmp/mnist.model \
     --output mnist_output.npy
