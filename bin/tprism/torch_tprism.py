@@ -616,15 +616,24 @@ def main():
     parser.add_argument("--config", type=str, default=None, help="config json file")
 
     parser.add_argument(
-        "--data", type=str, default=None, nargs="+", help="[from prolog] data json file"
+            "--data", type=str, default=None, nargs="+", help="[from prolog] data json file (deprecated: use --dataset)"
+    )
+    parser.add_argument(
+            "--dataset", type=str, default=None, nargs="+", help="[from prolog] dataset file"
     )
     ## intermediate data
     parser.add_argument(
         "--intermediate_data_prefix",
+        type=str,
+        default=None,
+        help="intermediate data (deprecated: use --input)",
+    )
+    parser.add_argument(
+        "--input",
         "-I",
         type=str,
-        default="./",
-        help="intermediate data",
+        default=None,
+        help="input intermediate data",
     )
     parser.add_argument(
         "--expl_graph",
@@ -636,9 +645,9 @@ def main():
         "--flags", type=str, default=None, help="[from prolog] flags json file"
     )
     parser.add_argument("--model", type=str, default=None, help="model file")
-    parser.add_argument("--vocab", type=str, default=None, help="model file")
+    parser.add_argument("--vocab", type=str, default=None, help="vocabrary file")
     ##
-    parser.add_argument("--embedding", type=str, default=None, help="model file")
+    parser.add_argument("--embedding", type=str, default=None, help="embedding file")
     parser.add_argument("--const_embedding", type=str, default=None, help="model file")
     parser.add_argument("--draw_graph", type=str, default=None, help="graph file")
 
@@ -691,7 +700,7 @@ def main():
     elif args.gpu is not None:
         os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
 
-    #
+    # deprecated
     if args.intermediate_data_prefix is not None:
         if args.expl_graph is None:
             args.expl_graph = args.intermediate_data_prefix + "expl.json"
@@ -701,6 +710,17 @@ def main():
             args.model = args.intermediate_data_prefix + "model"
         if args.vocab is None:
             args.vocab = args.intermediate_data_prefix + "vocab.pkl"
+    elif args.input is not None:
+        # setting default input data
+        if args.expl_graph is None:
+            args.expl_graph = args.input + ".expl.json"
+        if args.flags is None:
+            args.flags = args.input + ".flags.json"
+        if args.model is None:
+            args.model = args.input + ".model"
+        if args.vocab is None:
+            args.vocab = args.input + ".vocab.pkl"
+    #
     ##
     # setup
     seed = 1234
