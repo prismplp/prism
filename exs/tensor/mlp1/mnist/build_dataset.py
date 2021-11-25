@@ -13,6 +13,15 @@ y_train = y_all[:60000]
 X_test = x_all[60000:, :]
 y_test = y_all[60000:]
 
+X_train = X_train[y_train < 3, :]
+y_train = y_train[y_train < 3]
+X_test = X_test[y_test < 3, :]
+y_test = y_test[y_test < 3]
+X_train = X_train[:300]
+y_train = y_train[:300]
+X_test = X_test[:100]
+y_test = y_test[:100]
+
 with h5py.File("mnist.h5", "w") as fp:
     fp.create_group("train")
     fp["train"].create_dataset("tensor_in_", data=X_train + 0.1)
