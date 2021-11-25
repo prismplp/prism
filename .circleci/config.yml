@@ -9,6 +9,9 @@ jobs:
     steps:
       - checkout
       - run:
+          name: install git
+          command: apt update && apt install -y git
+      - run:
           name: fix protobuf version
           command: ./src/c/external/generate.sh
       - run:
