@@ -7,10 +7,10 @@ jobs:
       - image: naegawaprism/prism:latest
     working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
     steps:
-      - checkout
       - run:
           name: install git
           command: apt update && apt install -y git
+      - checkout
       - run:
           name: fix protobuf version
           command: ./src/c/external/generate.sh
