@@ -56,7 +56,7 @@ upprism mnist_addition.psm test
 ##         contains predcted class scores for each test sample.
 ##
 tprism train \
-    --input   ./mnist_tmp/mnist  \
+    --input   ./addition_tmp/mnist  \
     --embedding ./mnist/mnist.h5 \
     --sgd_loss  ce               \
     --max_iterate 30             \
@@ -65,7 +65,7 @@ tprism train \
 
 
 tprism test \
-    --input ./mnist_tmp/mnist_test  \
+    --input ./addition_tmp/mnist_test  \
     --embedding ./mnist/mnist.h5    \
     --sgd_loss  ce                  \
     --vocab ./mnist_tmp/mnist.vocab.pkl \
