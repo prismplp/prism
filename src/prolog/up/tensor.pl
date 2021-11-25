@@ -1,5 +1,53 @@
 tprism_debug_level(0).
 
+%%%
+%%% Data science utility (experimental)
+%%%
+atoms_concat([X|L],R):-
+	$pp_atoms_concat(L,X,R).
+atoms_concat([],'').
+$pp_toms_concat([],X,X).
+$pp_atoms_concat([A|L],X1,R):-
+	atom_concat(X1,A,X2),
+	atoms_concat(L,X2,R).
+
+save_sw_tsv([],_).
+save_sw_tsv([G|Gs],St):-
+  G = [I|_],
+  functor(I,Name,Arity),
+  I =.. [_|IList],
+  append([Arity|G], IList, R),
+  format("~w",Name),
+  maplist(El, format("\t~w",El),R),
+  format("\n"),
+  save_sw_tsv(Gs,St).
+
+save_sw_tsv(Filename):-
+  open(Filename,write,St),
+  set_output(St),
+  format("Name\tArity\tTerm\tStatus\tVals\tParam\tArg1\tArg2\tArg3\tArg4\tArg5\n"),
+  findall([I,Status,Vals,Param], get_sw(I,Status,Vals,Param), Sws),
+  save_sw_tsv(Sws,St),
+  close(St).
+
+save_sw_d_tsv(Filename):-
+  open(Filename,write,St),
+  set_output(St),
+  format("Name\tArity\tTerm\tStatus\tVals\tPseudoCount\tArg1\tArg2\tArg3\tArg4\tArg5\n"),
+  findall([I,Status,Vals,PC], get_sw_d(I,Status,Vals,PC), Sws),
+  save_sw_tsv(Sws,St),
+  close(St).
+
+save_sw_pd_tsv(Filename):-
+  open(Filename,write,St),
+  set_output(St),
+  format("Name\tArity\tTerm\tStatus\tVals\tParam\tPseudoCount\tArg1\tArg2\tArg3\tArg4\tArg5\n"),
+  findall([I,Status,Vals,Param,PC], get_sw_pd(I,Status,Vals,Param,PC), Sws),
+  save_sw_tsv(Sws,St),
+  close(St).
+
+
+
 $pp_index_get_i1(0,[],_).
 $pp_index_get_i1(N0,[X|G],S):-N0>0,N is N0 -1,index_atoms(As),member(X,As),not member(X,S),$pp_index_get_i1(N,G,[X|S]).
 $pp_index_all_different(N,G):-findall(X,$pp_index_get_i1(N,X,[]),G).
