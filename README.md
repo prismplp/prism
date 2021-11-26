@@ -21,6 +21,8 @@ LICENSE and LICENSE.src.
 For the files under each directory, please read the README file
 in the directory.  For the papers or additional information
 on PRISM, please visit http://rjida.meijo-u.ac.jp/prism/ .
+# Python interface
+Please see: https://github.com/prismplp/pyprism
 
 # Pre-release Tensorized-PRISM (T-PRISM)
 ## Installation for Ubuntu18.04
