@@ -25,25 +25,45 @@ on PRISM, please visit http://rjida.meijo-u.ac.jp/prism/ .
 Please see: https://github.com/prismplp/pyprism
 
 # Pre-release Tensorized-PRISM (T-PRISM)
-## Installation for Ubuntu18.04
+## Installation
 
-Preparation
+Preparation for Ubuntu18.04
 ```
-apt-get install -y libhdf5-dev libprotobuf-dev protobuf-compiler
+sudo apt-get install libhdf5-100 libhdf5-cpp-100
 ```
-Installing python(Recommendation: Anaconda) and Tensorflow(Recommendation: v1.13).
+Preparation for Ubuntu20.04
+
+```
+sudo apt-get install libhdf5-103 libhdf5-cpp-103
+```
+
+
+
+Installing python(Recommendation: Anaconda) and Pytorch.
 - Anaconda: https://www.anaconda.com/
-- Tensorflow: https://www.tensorflow.org/
+- Pytorch: https://pytorch.org/
 
-Download `prism_tprism_pre_linux.tar.gz` from [release page](https://github.com/prismplp/prism/releases)
+For Ubuntu18.04, download `prism_tprism_pre_linux_ubuntu18.tar.gz` from [release page](https://github.com/prismplp/prism/releases):
 ```
-wget "https://github.com/prismplp/prism/releases/download/v2.4(T-PRISM)-prerelease/prism_tprism_pre_linux.tar.gz"
+wget "https://github.com/prismplp/prism/releases/download/v2.4.2a(T-PRISM)-prerelease/prism_tprism_pre_linux_ubuntu18.tar.gz"
 ```
+
+For Ubuntu20.04, download `prism_tprism_pre_linux_ubuntu20.tar.gz` from [release page](https://github.com/prismplp/prism/releases) 
+```
+wget "https://github.com/prismplp/prism/releases/download/v2.4.2a(T-PRISM)-prerelease/prism_tprism_pre_linux_ubuntu20.tar.gz"
+
+```
+
 
 Extract binaries and sample programs
 ```
-tar xvf prism_tprism_pre_linux.tar.gz 
+tar xvf prism_tprism_pre_linux_ubuntu18.tar.gz 
 ```
+or
+```
+tar xvf prism_tprism_pre_linux_ubuntu20.tar.gz 
+```
+
 
 Setting the proper environmental variable: 
 ```
