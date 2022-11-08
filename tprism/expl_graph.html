@@ -143,9 +143,9 @@ class ComputationalExplGraph:
         &#34;&#34;&#34;
         Args:
             graph: explanation graph object
-            tensor_provider(SwitchTensorProvider): tensor provider
-            operator_loader=None(OperatorLoader): operator loader
-            cycle_node=[]: a list of cycle node
+            tensor_provider (SwitchTensorProvider): tensor provider
+            operator_loader (OperatorLoader): operator loader
+            cycle_node : a list of cycle node
 
         Returns:
             goal_template:
@@ -841,9 +841,9 @@ a list of goal templates(goal means LHS of path),</p>
         &#34;&#34;&#34;
         Args:
             graph: explanation graph object
-            tensor_provider(SwitchTensorProvider): tensor provider
-            operator_loader=None(OperatorLoader): operator loader
-            cycle_node=[]: a list of cycle node
+            tensor_provider (SwitchTensorProvider): tensor provider
+            operator_loader (OperatorLoader): operator loader
+            cycle_node : a list of cycle node
 
         Returns:
             goal_template:
@@ -956,10 +956,12 @@ a list of goal templates(goal means LHS of path),</p>
 <dl>
 <dt><strong><code>graph</code></strong></dt>
 <dd>explanation graph object</dd>
+<dt><strong><code>tensor_provider</code></strong> :&ensp;<code><a title="tprism.expl_graph.SwitchTensorProvider" href="#tprism.expl_graph.SwitchTensorProvider">SwitchTensorProvider</a></code></dt>
+<dd>tensor provider</dd>
+<dt><strong><code>operator_loader</code></strong> :&ensp;<code>OperatorLoader</code></dt>
+<dd>operator loader</dd>
 </dl>
-<p>tensor_provider(SwitchTensorProvider): tensor provider
-operator_loader=None(OperatorLoader): operator loader
-cycle_node=[]: a list of cycle node</p>
+<p>cycle_node : a list of cycle node</p>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt>goal_template:</dt>
@@ -976,9 +978,9 @@ cycle_node=[]: a list of cycle node</p>
     &#34;&#34;&#34;
     Args:
         graph: explanation graph object
-        tensor_provider(SwitchTensorProvider): tensor provider
-        operator_loader=None(OperatorLoader): operator loader
-        cycle_node=[]: a list of cycle node
+        tensor_provider (SwitchTensorProvider): tensor provider
+        operator_loader (OperatorLoader): operator loader
+        cycle_node : a list of cycle node
 
     Returns:
         goal_template:
