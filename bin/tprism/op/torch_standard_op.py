@@ -1,11 +1,10 @@
 import numpy as np
 import torch
 from tprism.op.base import BaseOperator
-from google.protobuf.pyext._message import RepeatedScalarContainer
 from typing import List
 
 class Reindex(BaseOperator):
-    def __init__(self, parameters):
+    def __init__(self, parameters: List[str]):
         index = parameters[0].strip("[]").split(",")
         self.out = index
         pass
@@ -21,7 +20,7 @@ class Reindex(BaseOperator):
 
 
 class Sigmoid(BaseOperator):
-    def __init__(self, parameters: RepeatedScalarContainer) -> None:
+    def __init__(self, parameters: List[str]) -> None:
         pass
 
     def call(self, x):
@@ -32,7 +31,7 @@ class Sigmoid(BaseOperator):
 
 
 class Relu(BaseOperator):
-    def __init__(self, parameters):
+    def __init__(self, parameters: List[str]):
         pass
 
     def call(self, x):
@@ -43,7 +42,7 @@ class Relu(BaseOperator):
 
 
 class Softmax(BaseOperator):
-    def __init__(self, parameters):
+    def __init__(self, parameters: List[str]):
         pass
 
     def call(self, x):
@@ -53,7 +52,7 @@ class Softmax(BaseOperator):
         return input_template
 
 class Min1(BaseOperator):
-    def __init__(self, parameters):
+    def __init__(self, parameters: List[str]):
         pass
 
     def call(self, x):
