@@ -1,3 +1,11 @@
+"""
+This module contains pytorch explanation graphs and pytorch tensors.
+
+This module constructs a computational graph by forward traversing the given explanation graph.
+
+"""
+
+
 import torch
 import torch.nn.functional as F
 import json
@@ -102,8 +110,8 @@ class TorchComputationalExplGraph(ComputationalExplGraph, torch.nn.Module):
     def forward(self, verbose=False, dryrun=False):
         """
         Args:
-            verbose(bool): if true, this function displays an explanation graph with forward computation
-            dryrun(bool):  if true, this function outputs information required for calculation as goal_inside instead of computational graph
+            verbose (bool): if true, this function displays an explanation graph with forward computation
+            dryrun (bool):  if true, this function outputs information required for calculation as goal_inside instead of computational graph
 
         Returns:
             Tuple[List[Dict],Dict]: a pair of goal_inside and loss:

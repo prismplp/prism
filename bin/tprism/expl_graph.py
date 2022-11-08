@@ -114,9 +114,9 @@ class ComputationalExplGraph:
         """
         Args:
             graph: explanation graph object
-            tensor_provider(SwitchTensorProvider): tensor provider
-            operator_loader=None(OperatorLoader): operator loader
-            cycle_node=[]: a list of cycle node
+            tensor_provider (SwitchTensorProvider): tensor provider
+            operator_loader (OperatorLoader): operator loader
+            cycle_node : a list of cycle node
 
         Returns:
             goal_template:

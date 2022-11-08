@@ -1,3 +1,7 @@
+"""
+This module contains EmbeddingGenerators,
+which assign a tensor to an atom.
+"""
 import torch
 import json
 import re

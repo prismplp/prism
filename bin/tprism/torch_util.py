@@ -1,3 +1,7 @@
+"""
+This module contains utilities related to graphviz
+"""
+
 import torch
 import torch.optim as optim
 import torch.nn.functional as F

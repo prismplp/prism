@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+"""
+This module contains pytorch T-PRISM main 
+"""
+
+
 import torch
 import torch.optim as optim
 import torch.nn.functional as F
