@@ -38,7 +38,7 @@ jobs:
         run: python3 -m pip install "git+https://github.com/prismplp/prism.git#egg=t-prism&subdirectory=bin"
 
       - name: Install dependencies
-        run: python3 -m pip install scikit-learn pdoc3
+        run: python3 -m pip install scikit-learn pdoc3 h5py
       
       - name: Install dependencies
         run: python3 -m pip install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cpu
