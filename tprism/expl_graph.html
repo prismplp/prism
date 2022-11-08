@@ -1,0 +1,2223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>tprism.expl_graph API documentation</title>
+<meta name="description" content="This module contains base explanation graph classes that does not depend on pytorch" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>tprism.expl_graph</code></h1>
+</header>
+<section id="section-intro">
+<p>This module contains base explanation graph classes that does not depend on pytorch</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34; This module contains base explanation graph classes that does not depend on pytorch
+
+&#34;&#34;&#34;
+
+from __future__ import annotations
+import json
+import re
+import numpy as np
+
+from itertools import chain
+import collections
+
+import os
+import re
+import pickle
+
+from numpy import int32, int64, ndarray, str_
+from torch import Tensor, dtype
+from torch.nn.parameter import Parameter # this is only used for typing 
+from tprism.loss.torch_standard_loss import Ce_pl2, PreferencePair
+from tprism.op.torch_standard_op import Sigmoid
+from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union
+
+from tprism.placeholder import PlaceholderData
+from tprism.torch_embedding_generator import DatasetEmbeddingGenerator
+
+class ComputationalExplGraph:
+    &#34;&#34;&#34; This class is a base class for a concrete explanation graph.
+    This module support to compute explanation_graph_template.
+    An explanation_graph_template has a part of computational explanation graph:
+    a list of goal templates(goal means LHS of path),
+
+    Note:
+        Goal template
+
+        ::
+
+            a goal template=
+            {
+                &#34;template&#34;: List[str],
+                &#34;batch_flag&#34;: Boolean,
+                &#34;shape&#34;: List[int ...],
+            }
+
+
+    &#34;&#34;&#34;
+
+
+    def __init__(self):
+        pass
+
+    def _get_unique_list(self, seq: List[List[str]]) -&gt; List[List[str]]:
+        seen = []
+        return [x for x in seq if x not in seen and not seen.append(x)]
+
+    # [[&#39;i&#39;], [&#39;i&#39;,&#39;l&#39;, &#39;j&#39;], [&#39;j&#39;,&#39;k&#39;]] =&gt; [&#39;l&#39;,&#39;k&#39;]
+    def _compute_output_template(self, template: List[List[str]]) -&gt; List[Union[str, Any]]:
+        counter = collections.Counter(chain.from_iterable(template))
+        out_template = [k for k, cnt in counter.items() if cnt == 1 and k != &#34;b&#34;]
+        return sorted(out_template)
+
+    # [[&#39;i&#39;], [&#39;i&#39;,&#39;l&#39;, &#39;j&#39;], [&#39;j&#39;,&#39;k&#39;]] =&gt; [&#39;l&#39;,&#39;k&#39;]
+    # [[3], [3, 4, 5], [5,6]] =&gt; [4,6]
+    def _compute_output_shape(self, out_template: List[Union[str, Any]], sw_node_template: List[List[str]], sw_node_shape: List[Union[Tuple[int, int], List[int], List[Optional[int]], Tuple[int]]]) -&gt; List[Union[int, Any]]:
+        symbol_shape = {}
+        for template_list, shape_list in zip(sw_node_template, sw_node_shape):
+            for t, s in zip(template_list, shape_list):
+                if t not in symbol_shape:
+                    symbol_shape[t] = s
+                elif symbol_shape[t] is None:
+                    symbol_shape[t] = s
+                else:
+                    assert symbol_shape[t] == s, (
+                        &#34;index symbol mismatch:&#34;
+                        + str(t)
+                        + &#34;:&#34;
+                        + str(symbol_shape[t])
+                        + &#34;!=&#34;
+                        + str(s)
+                    )
+        out_shape = []
+        for symbol in out_template:
+            if symbol in symbol_shape:
+                out_shape.append(symbol_shape[symbol])
+            else:
+                out_shape.append(None)
+        return out_shape
+
+    def _unify_shapes(self, path_shapes: List[List[Union[int, Any]]]) -&gt; List[Union[int, Any]]:
+        &#34;&#34;&#34;
+        This method is used to unify shapes for all paths
+        &#34;&#34;&#34;
+        n = len(path_shapes)
+        if n == 0:
+            return []
+        else:
+            m = len(path_shapes[0])
+            out_shape = []
+            for j in range(m):
+                dim = None
+                for i in range(n):
+                    if path_shapes[i][j] is None:
+                        pass
+                    elif dim is None:
+                        dim = path_shapes[i][j]
+                    else:
+                        assert path_shapes[i][j] == dim, &#34;shape mismatching&#34;
+                out_shape.append(dim)
+            return out_shape
+
+    def build_explanation_graph_template(
+        self, graph, tensor_provider, operator_loader=None, cycle_node=[]
+    ):
+        &#34;&#34;&#34;
+        Args:
+            graph: explanation graph object
+            tensor_provider(SwitchTensorProvider): tensor provider
+            operator_loader=None(OperatorLoader): operator loader
+            cycle_node=[]: a list of cycle node
+
+        Returns:
+            goal_template:
+            cycle_node: a list of cycle node (if given cycle_node, it is updated)
+        &#34;&#34;&#34;
+        # checking template
+        goal_template = [None] * len(graph.goals)
+        for i in range(len(graph.goals)):
+            g = graph.goals[i]
+            path_template = []
+            path_shape = []
+            path_batch_flag = False
+            for path in g.paths:
+                ## build template and inside for switches in the path
+                sw_template = []
+                sw_shape = []
+                for sw in path.tensor_switches:
+                    ph = tensor_provider.get_placeholder_name(sw.name)
+                    sw_obj = tensor_provider.get_switch(sw.name)
+                    if len(ph) &gt; 0:
+                        sw_template.append([&#34;b&#34;] + list(sw.values))
+                        path_batch_flag = True
+                        sw_shape.append([None] + list(sw_obj.get_shape()))
+                    else:
+                        sw_template.append(list(sw.values))
+                        sw_shape.append(sw_obj.get_shape())
+                ## building template and inside for nodes in the path
+                node_template = []
+                node_shape = []
+                cycle_detected = False
+                for node in path.nodes:
+                    temp_goal = goal_template[node.sorted_id]
+                    if temp_goal is None:
+                        # cycle
+                        if node.sorted_id not in cycle_node:
+                            cycle_node.append(node.sorted_id)
+                        cycle_detected = True
+                        continue
+                    if len(temp_goal[&#34;template&#34;]) &gt; 0:
+                        if temp_goal[&#34;batch_flag&#34;]:
+                            path_batch_flag = True
+                        node_shape.append(temp_goal[&#34;shape&#34;])
+                        node_template.append(temp_goal[&#34;template&#34;])
+                if cycle_detected:
+                    continue
+                sw_node_template = sw_template + node_template
+                sw_node_shape = sw_shape + node_shape
+
+                ##########
+                ops = [op.name for op in path.operators]
+                if &#34;distribution&#34; in ops:
+                    # distributino clause
+                    print(&#34;=== distribution ===&#34;)
+                    print(sw_node_template)
+                    print(sw_node_shape)
+                    ##
+                    out_template = sw_node_template[0]
+                    out_shape = sw_node_shape[0]
+                    print(out_template)
+                    print(out_shape)
+                else:
+                    # constructing einsum operation using template and inside
+                    out_template = self._compute_output_template(sw_node_template)
+                    out_shape = self._compute_output_shape(
+                        out_template, sw_node_template, sw_node_shape
+                    )
+                    if len(sw_node_template) &gt; 0:  # condition for einsum
+                        if path_batch_flag:
+                            out_template = [&#34;b&#34;] + out_template
+                    ## computing operaters
+                    for op in path.operators:
+                        cls = operator_loader.get_operator(op.name)
+                        op_obj = cls(op.values)
+                        out_template = op_obj.get_output_template(out_template)
+                ##########
+                path_template.append(out_template)
+                path_shape.append(out_shape)
+                ##
+            ##
+            path_template_list = self._get_unique_list(path_template)
+            path_shape = self._unify_shapes(path_shape)
+            if len(path_template_list) == 0:
+                goal_template[i] = {
+                    &#34;template&#34;: [],
+                    &#34;batch_flag&#34;: False,
+                    &#34;shape&#34;: path_shape,
+                }
+            else:
+                if len(path_template_list) != 1:
+                    print(&#34;[WARNING] missmatch indices:&#34;, path_template_list)
+                goal_template[i] = {
+                    &#34;template&#34;: path_template_list[0],
+                    &#34;batch_flag&#34;: path_batch_flag,
+                    &#34;shape&#34;: path_shape,
+                }
+        ##
+        return goal_template, cycle_node
+
+
+class SwitchTensor:
+    &#34;&#34;&#34; This class connect a tensor with a switch
+    
+    Attributes:
+        name (str): switch name
+        shape_set (Set[Tuple[int,...]]):
+        ph_names (List[str]): generated from the switch name
+        vocab_name (str): generated from the switch name
+        var_name (str): generated from the switch name
+        value (Any): 
+
+    &#34;&#34;&#34;
+    def __init__(self, sw_name: str) -&gt; None:
+        self.value = None
+        self.name = sw_name
+        self.shape_set = set([])
+        self.ph_names = self.get_placeholder_name(sw_name)
+        self.vocab_name = self.make_vocab_name(sw_name) # update self.value
+        self.var_name = self.make_var_name(sw_name)
+
+    def enabled_placeholder(self):
+        return len(self.ph_names) == 0
+
+    def add_shape(self, shape: Union[Tuple[int], Tuple[int, int]]) -&gt; None:
+        self.shape_set.add(shape)
+
+    def get_shape(self) -&gt; Union[Tuple[int], Tuple[int, int]]:
+        assert len(self.shape_set) == 1, (
+            self.name + &#34;: shape is not unique:&#34; + str(self.shape_set)
+        )
+        return list(self.shape_set)[0]
+
+    def get_placeholder_name(self, name: str) -&gt; List[Union[str, Any]]:
+        pattern = r&#34;(\$placeholder[0-9]+\$)&#34;
+        m = re.finditer(pattern, name)
+        names = [el.group(1) for el in m]
+        return names
+
+    def make_vocab_name(self, name: str) -&gt; str:
+        m = re.match(r&#34;^tensor\(get\((.*),([0-9]*)\)\)$&#34;, name)
+        if m:
+            name = &#34;tensor(&#34; + m.group(1) + &#34;)&#34;
+            self.value = int(m.group(2))
+        pattern = r&#34;\$(placeholder[0-9]+)\$&#34;
+        m = re.sub(pattern, &#34;&#34;, name)
+        return self.make_var_name(m)
+
+    def make_var_name(self, name: str) -&gt; str:
+        return re.sub(r&#34;[\[\],\)\(\&#39;$]+&#34;, &#34;_&#34;, name)
+
+
+class VocabSet:
+    &#34;&#34;&#34; This class connect a values with a vovabrary via placeholders
+    vocab -&gt; placeholder -&gt;values
+
+    Attributes:
+        vocab_values (Dict[str, List[Any]]): the key is a vocab name, and the value ia a list of values.
+        value_index (Dict[Tuple[str,Any],int): the key is a tuple of a vocab name and a value, and the value is an index.
+
+    &#34;&#34;&#34;
+
+    def __init__(self) -&gt; None:
+        # vocab name =&gt; a list of values
+        self.vocab_values = None
+        # vocab name, value =&gt; index
+        self.value_index = None
+
+    def build_from_ph(self, ph_graph: &#39;PlaceholderGraph&#39;) -&gt; None:
+        &#34;&#34;&#34; This method builds vocab_values and value_index from PlaceholderGraph.
+        &#34;&#34;&#34;
+        vocab_ph = ph_graph.vocab_ph
+        ph_values = ph_graph.ph_values #
+        vocab_values = {}
+        for vocab_name, phs in vocab_ph.items():
+            for ph in phs:
+                if vocab_name not in vocab_values:
+                    vocab_values[vocab_name] = set()
+                vocab_values[vocab_name] |= ph_values[ph]
+        self.vocab_values = {k: list(v) for k, v in vocab_values.items()}
+        self.value_index = self._build_value_index()
+
+    def _build_value_index(self) -&gt; Dict[Tuple[str, int32], int]:
+        value_index = {}
+        for vocab_name, values in self.vocab_values.items():
+            for i, v in enumerate(sorted(values)):
+                value_index[(vocab_name, v)] = i
+        return value_index
+
+    def get_values_index(self, vocab_name: str, value: Union[int, int32]) -&gt; int:
+        key = (vocab_name, value)
+        if key in self.value_index:
+            return self.value_index[key]
+        else:
+            return 0
+
+    def get_values(self, vocab_name: str) -&gt; Optional[List[int32]]:
+        if vocab_name not in self.vocab_values:
+            return None
+        return self.vocab_values[vocab_name]
+
+
+class PlaceholderGraph:
+    &#34;&#34;&#34; This class build a graph related to placeholders
+    vocab &lt;-- sw_info --&gt; placeholder --&gt; values
+
+    Attributes:
+        vocab_ph (Dict[str, Set[str]]): vocab_name =&gt; a set of nemes of placeholders
+        ph_vocab (Dict[str, Set[str]): placeholder name =&gt; a set of the vocabs
+        ph_values (Dict[str,Set[Any]]): placeholder name =&gt; a set of values
+        vocab_shape (Dict[str, Set[Any]]): vocab_name =&gt; a set of shapes
+
+    &#34;&#34;&#34;
+
+    def __init__(self) -&gt; None:
+        self.vocab_ph = None
+        self.ph_vocab = None
+        self.ph_values = None #Dict[str,Set[Any]]
+        self.vocab_shape = None
+
+    def _build_ph_values(self, input_data: List[Dict[str, Union[int, List[str], ndarray]]]) -&gt; None:
+        ph_values = {}
+        for g in input_data:
+            for ph in g[&#34;placeholders&#34;]:
+                if ph not in ph_values:
+                    ph_values[ph] = set()
+            placeholders = [ph for ph in g[&#34;placeholders&#34;]]
+            rt = np.transpose(g[&#34;records&#34;])
+            for i, item in enumerate(rt):
+                ph_values[placeholders[i]] |= set(item)
+        self.ph_values = ph_values
+
+    def _build_vocab_ph(self, ph_values: Dict[str, Set[int32]], sw_info: Dict[str, SwitchTensor]) -&gt; None:
+        # ph_vocab/vocab_ph: ph_name &lt;== sw_info ==&gt; vocab_name
+        # vocab_shape: vocab_name =&gt; shape
+        ph_vocab = {ph_name: set() for ph_name in ph_values.keys()}
+        vocab_ph = {sw.vocab_name: set() for sw in sw_info.values()}
+        vocab_shape = {sw.vocab_name: set() for sw in sw_info.values()}
+        for sw_name, sw in sw_info.items():
+            ## build vocab. shape
+            if sw.vocab_name not in vocab_shape:
+                vocab_shape[sw.vocab_name] = set()
+            vocab_shape[sw.vocab_name] |= sw.shape_set
+            ## build ph_vocab/vocab_ph
+            ph_list = sw.ph_names
+            if len(ph_list) == 1:
+                vocab_ph[sw.vocab_name].add(ph_list[0])
+                ph_vocab[ph_list[0]].add(sw.vocab_name)
+            elif len(ph_list) &gt; 1:
+                print(&#34;[ERROR] not supprted: one placeholder for one term&#34;)
+        self.ph_vocab = ph_vocab
+        self.vocab_ph = vocab_ph
+        self.vocab_shape = vocab_shape
+        ##
+
+    def build(self, input_data: List[Dict[str, Union[int, List[str], ndarray]]], sw_info: Dict[str, SwitchTensor]) -&gt; None:
+        if input_data is not None:
+            self._build_ph_values(input_data)
+        else:
+            self.ph_values = {}
+        self._build_vocab_ph(self.ph_values, sw_info)
+
+
+class SwitchTensorProvider:
+    &#34;&#34;&#34; This class provides information of switches
+
+    Attributes:
+        tensor_embedding (Dict[str, Tensor]):embedding tensor
+        sw_info (Dict[str, SwitchTensor]): switch infomation
+        ph_graph:
+        input_feed_dict:
+        params:
+
+    &#34;&#34;&#34;
+
+    def __init__(self) -&gt; None:
+        self.tensor_embedding = None
+        self.sw_info = None
+        self.ph_graph = None
+        self.input_feed_dict = None
+        self.params = {}
+
+    def get_embedding(self, name):
+        if self.input_feed_dict is None:
+            return self.tensor_embedding[name]
+        else:
+            key = self.tensor_embedding[name]
+            return self.input_feed_dict[key]
+
+    def set_embedding(self, name, var):
+        self.tensor_embedding[name] = var
+
+    def set_input(self, feed_dict: Dict[PlaceholderData, Tensor]) -&gt; None:
+        self.input_feed_dict = feed_dict
+
+    def get_placeholder_name(self, name: str) -&gt; List[Union[str, Any]]:
+        &#34;&#34;&#34; 
+        Args:
+            switch name (str): switch name
+        Returns:
+            placeholder name
+        &#34;&#34;&#34;
+        return self.sw_info[name].ph_names
+
+    def get_switch(self, name: str) -&gt; SwitchTensor:
+        &#34;&#34;&#34; 
+        Args:
+            switch name (str): switch name
+        Returns:
+            switch tensor
+        &#34;&#34;&#34;
+        return self.sw_info[name]
+
+    def get_placeholder_var_name(self, name: str) -&gt; str:
+        &#34;&#34;&#34; 
+        Args:
+            name (str): placeholder name
+        Returns:
+            placeholder variable name in PlaceholderData.name
+        &#34;&#34;&#34;
+        return re.sub(r&#34;\$&#34;, &#34;&#34;, name)
+
+    def add_param(self, name: str, param: Parameter) -&gt; None:
+        &#34;&#34;&#34; 
+        Args:
+            name (str): Tensor&#39;s name
+            param (Parameter): Parameter
+        &#34;&#34;&#34;
+        self.params[name] = param
+
+    def get_param(self, name):
+        &#34;&#34;&#34; 
+        Args:
+            name (str): Tensor&#39;s name
+        &#34;&#34;&#34;
+        return self.params[name]
+
+    def convert_value_to_index(self, value: Union[int, int32], ph_name: Union[str, str_]) -&gt; int:
+        ph_vocab = self.ph_graph.ph_vocab
+        vocab_name = self.ph_graph.ph_vocab[ph_name]
+        vocab_name = list(vocab_name)[0]
+        index = self.vocab_set.get_values_index(vocab_name, value)
+        return index
+
+    def is_convertable_value(self, ph_name: str) -&gt; bool:
+        if ph_name in self.ph_graph.ph_vocab:
+            return len(self.ph_graph.ph_vocab[ph_name]) &gt; 0
+        else:
+            return False
+
+    def _build_sw_info(self, graph, options):
+        &#34;&#34;&#34; This function builds sw_info from the explanation graph 
+        &#34;&#34;&#34;
+        tensor_shape = {
+            el.tensor_name: [d for d in el.shape] for el in options.tensor_shape
+        }
+        sw_info = {}
+        for g in graph.goals:
+            for path in g.paths:
+                for sw in path.tensor_switches:
+                    if sw.name not in sw_info:
+                        sw_obj = SwitchTensor(sw.name)
+                        sw_info[sw.name] = sw_obj
+                    else:
+                        sw_obj = sw_info[sw.name]
+                    value_list = [el for el in sw.values]
+                    if sw.name in tensor_shape:
+                        shape = tuple(tensor_shape[sw.name])
+                    sw_obj.add_shape(shape)
+        return sw_info
+
+    def _build_vocab_var_type(self, ph_graph: PlaceholderGraph, vocab_set: VocabSet, embedding_generators: List[Union[Any, DatasetEmbeddingGenerator]]) -&gt; Dict[str, Union[Dict[str, Union[str, Tuple[int, int], List[Union[int64, int]]]], Dict[str, Union[str, List[int]]], Dict[str, Union[str, List[Union[int64, int]]]]]]:
+        &#34;&#34;&#34; This function builds temporal object: vocab_name =&gt;  var_type
+
+        Note:
+            vocab_var_type (Dict[str,VarType]):
+            Var type is a dictionary like follows:
+
+            ::
+
+                # var_type[&#34;type&#34;]==&#34;dataset&#34;
+                var_type={
+                    &#34;dataset_shape&#34;: Tuple[int, ...],
+                    &#34;shape&#34;: List[int, ...],
+                }
+                # var_type[&#34;type&#34;]==&#34;onehot&#34;
+                var_type={
+                    &#34;value&#34;: int,
+                    &#34;shape&#34;: List[int, ...],
+                }
+                # var_type[&#34;type&#34;]==&#34;variable&#34;
+                var_type={
+                    &#34;shape&#34;: List[int, ...]
+                }
+
+        &#34;&#34;&#34;
+        vocab_var_type = {}
+        for vocab_name, shapes in ph_graph.vocab_shape.items():
+            values = vocab_set.get_values(vocab_name)
+            ##
+            if len(shapes) == 1:
+                shape = list(shapes)[0]
+                if values is not None:
+                    # s=[len(values)]+list(shape)
+                    s = [max(values) + 1] + list(shape)
+                else:
+                    s = list(shape)
+            else:
+                shape = sorted(list(shapes), key=lambda x: len(x), reverse=True)[0]
+                s = list(shape)
+            ##
+            var_type = {}
+            dataset_flag = False
+            for eg in embedding_generators:
+                if eg.is_embedding(vocab_name):
+                    dataset_shape = eg.get_shape(vocab_name)
+                    var_type[&#34;type&#34;] = &#34;dataset&#34;
+                    var_type[&#34;dataset_shape&#34;] = dataset_shape
+                    var_type[&#34;shape&#34;] = s
+                    dataset_flag = True
+            if dataset_flag:
+                pass
+            elif vocab_name[:14] == &#34;tensor_onehot_&#34;:
+                m = re.match(r&#34;tensor_onehot_([\d]*)_&#34;, vocab_name)
+                if m:
+                    d = int(m.group(1))
+                    if len(s) == 1:
+                        var_type[&#34;type&#34;] = &#34;onehot&#34;
+                        var_type[&#34;value&#34;] = d
+                        var_type[&#34;shape&#34;] = s
+                    else:
+                        print(&#34;[ERROR]&#34;)
+                else:
+                    print(&#34;[ERROR]&#34;)
+            else:
+                var_type[&#34;type&#34;] = &#34;variable&#34;
+                var_type[&#34;shape&#34;] = s
+            vocab_var_type[vocab_name] = var_type
+        return vocab_var_type
+
+    def build(
+        self,
+        graph,
+        options,
+        input_data,
+        flags,
+        load_embeddings=False,
+        embedding_generators=[],
+        verbose=False,
+    ):
+        # sw_info: switch name =&gt;SwitchTensor
+        sw_info = self._build_sw_info(graph, options)
+        #
+        ph_graph = PlaceholderGraph()
+        ph_graph.build(input_data, sw_info)
+
+        ## build vocab group
+        if load_embeddings:
+            print(&#34;[LOAD]&#34;, flags.vocab)
+            with open(flags.vocab, mode=&#34;rb&#34;) as f:
+                vocab_set = pickle.load(f)
+        else:
+            vocab_set = VocabSet()
+            vocab_set.build_from_ph(ph_graph)
+            print(&#34;[SAVE]&#34;, flags.vocab)
+            with open(flags.vocab, mode=&#34;wb&#34;) as f:
+                pickle.dump(vocab_set, f)
+        ##
+        self.vocab_var_type = self._build_vocab_var_type(
+            ph_graph, vocab_set, embedding_generators
+        )
+        self.vocab_set = vocab_set
+        self.ph_graph = ph_graph
+        self.sw_info = sw_info
+        ##
+        # build placeholders
+        # ph_var    : ph_name =&gt; placeholder
+        ph_var = {}
+        batch_size = flags.sgd_minibatch_size
+        for ph_name in ph_graph.ph_values.keys():
+            ph_var_name = self.get_placeholder_var_name(ph_name)
+            ph_var[ph_name] = PlaceholderData(
+                name=ph_var_name, shape=(batch_size,), dtype=self.integer_dtype
+            )
+        #
+        ## assigning tensor variable
+        ## vocab_var: vocab_name =&gt; variable
+        ##
+        vocab_var = {}
+        # initializer = tf.contrib.layers.xavier_initializer()
+        for vocab_name, var_type in self.vocab_var_type.items():
+            values = vocab_set.get_values(vocab_name)
+            if var_type[&#34;type&#34;] == &#34;dataset&#34;:
+                print(
+                    &#34;&gt;&gt; dataset &gt;&gt;&#34;,
+                    vocab_name,
+                    &#34;:&#34;,
+                    var_type[&#34;dataset_shape&#34;],
+                    &#34;=&gt;&#34;,
+                    var_type[&#34;shape&#34;],
+                )
+            elif var_type[&#34;type&#34;] == &#34;onehot&#34;:
+                print(&#34;&gt;&gt; onehot  &gt;&gt;&#34;, vocab_name, &#34;:&#34;, var_type[&#34;shape&#34;])
+                d = var_type[&#34;value&#34;]
+                var = self.tensor_onehot_class(self, var_type[&#34;shape&#34;][0], d)
+                vocab_var[vocab_name] = var
+            else:
+                print(&#34;&gt;&gt; variable&gt;&gt;&#34;, vocab_name, &#34;:&#34;, var_type[&#34;shape&#34;])
+                var = self.tensor_class(self, vocab_name, var_type[&#34;shape&#34;])
+                vocab_var[vocab_name] = var
+        # converting PRISM switches to Tensorflow Variables
+        # tensor_embedding: sw_name =&gt; tensor
+        tensor_embedding = {}
+        for sw_name, sw in sw_info.items():
+            vocab_name = sw.vocab_name
+            var_name = sw.var_name
+            ph_list = sw.ph_names
+            if len(ph_list) == 0:
+                dataset_flag = False
+                for eg in embedding_generators:
+                    if eg.is_embedding(vocab_name):
+                        dataset_flag = True
+                        # dataset without placeholder
+                        shape = list(list(sw.shape_set)[0])
+                        if sw.value is None:
+                            var = eg.get_embedding(vocab_name, shape)
+                            if verbose:
+                                print(&#34;ph_list==0 and value==none&#34;)
+                                print((vocab_name, &#34;:&#34;, var.shape))
+                            tensor_embedding[sw_name] = var
+                        else:
+                            var = eg.get_embedding(vocab_name)
+                            if verbose:
+                                print(&#34;ph_list==0 and value enbabled&#34;)
+                                print((vocab_name, &#34;:&#34;, var.shape, &#34;=&gt;&#34;, shape))
+                            index = vocab_set.get_values_index(vocab_name, sw.value)
+                            if verbose:
+                                print(index, sw.value)
+                            #tensor_embedding[sw_name] = var[sw.value]
+                            tensor_embedding[sw_name] = self.tensor_gather_class(self, var, sw.value)
+                if not dataset_flag:
+                    # trainig variable without placeholder
+                    var = vocab_var[vocab_name]
+                    if verbose:
+                        print(&#34;ph_list==0 and no dataset&#34;)
+                        print((vocab_name, &#34;:&#34;, var.shape))
+                    tensor_embedding[sw_name] = var
+            elif len(ph_list) == 1:
+                dataset_flag = False
+                for eg in embedding_generators:
+                    if eg.is_embedding(vocab_name):
+                        dataset_flag = True
+                        # dataset with placeholder
+                        shape = [batch_size] + list(list(sw.shape_set)[0])
+                        var = eg.get_embedding(vocab_name)
+                        # var = eg.get_embedding(vocab_name, shape)
+                        if verbose:
+                            print(&#34;ph_list==1 and dataset enabled&#34;)
+                            print((vocab_name, &#34;:&#34;, var.shape, &#34;=&gt;&#34;, shape))
+                        tensor_embedding[sw_name] = var
+                if not dataset_flag:
+                    # trainig variable with placeholder
+                    var = vocab_var[vocab_name]
+                    if verbose:
+                        print(&#34;ph_list==1 and dataset disabled&#34;)
+                        print((vocab_name, &#34;:&#34;, var.shape, &#34;=&gt;&#34;, shape))
+                    ph = ph_var[ph_list[0]]
+                    tensor_embedding[sw_name] = self.tensor_gather_class(self, var, ph)
+            else:
+                print(&#34;[WARM] unknown embedding:&#34;, sw_name)
+        self.vocab_var = vocab_var
+        self.ph_var = ph_var
+        self.tensor_embedding = tensor_embedding
+        return tensor_embedding</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="tprism.expl_graph.ComputationalExplGraph"><code class="flex name class">
+<span>class <span class="ident">ComputationalExplGraph</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>This class is a base class for a concrete explanation graph.
+This module support to compute explanation_graph_template.
+An explanation_graph_template has a part of computational explanation graph:
+a list of goal templates(goal means LHS of path),</p>
+<h2 id="note">Note</h2>
+<p>Goal template</p>
+<p>::</p>
+<pre><code>a goal template=
+{
+    "template": List[str],
+    "batch_flag": Boolean,
+    "shape": List[int ...],
+}
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ComputationalExplGraph:
+    &#34;&#34;&#34; This class is a base class for a concrete explanation graph.
+    This module support to compute explanation_graph_template.
+    An explanation_graph_template has a part of computational explanation graph:
+    a list of goal templates(goal means LHS of path),
+
+    Note:
+        Goal template
+
+        ::
+
+            a goal template=
+            {
+                &#34;template&#34;: List[str],
+                &#34;batch_flag&#34;: Boolean,
+                &#34;shape&#34;: List[int ...],
+            }
+
+
+    &#34;&#34;&#34;
+
+
+    def __init__(self):
+        pass
+
+    def _get_unique_list(self, seq: List[List[str]]) -&gt; List[List[str]]:
+        seen = []
+        return [x for x in seq if x not in seen and not seen.append(x)]
+
+    # [[&#39;i&#39;], [&#39;i&#39;,&#39;l&#39;, &#39;j&#39;], [&#39;j&#39;,&#39;k&#39;]] =&gt; [&#39;l&#39;,&#39;k&#39;]
+    def _compute_output_template(self, template: List[List[str]]) -&gt; List[Union[str, Any]]:
+        counter = collections.Counter(chain.from_iterable(template))
+        out_template = [k for k, cnt in counter.items() if cnt == 1 and k != &#34;b&#34;]
+        return sorted(out_template)
+
+    # [[&#39;i&#39;], [&#39;i&#39;,&#39;l&#39;, &#39;j&#39;], [&#39;j&#39;,&#39;k&#39;]] =&gt; [&#39;l&#39;,&#39;k&#39;]
+    # [[3], [3, 4, 5], [5,6]] =&gt; [4,6]
+    def _compute_output_shape(self, out_template: List[Union[str, Any]], sw_node_template: List[List[str]], sw_node_shape: List[Union[Tuple[int, int], List[int], List[Optional[int]], Tuple[int]]]) -&gt; List[Union[int, Any]]:
+        symbol_shape = {}
+        for template_list, shape_list in zip(sw_node_template, sw_node_shape):
+            for t, s in zip(template_list, shape_list):
+                if t not in symbol_shape:
+                    symbol_shape[t] = s
+                elif symbol_shape[t] is None:
+                    symbol_shape[t] = s
+                else:
+                    assert symbol_shape[t] == s, (
+                        &#34;index symbol mismatch:&#34;
+                        + str(t)
+                        + &#34;:&#34;
+                        + str(symbol_shape[t])
+                        + &#34;!=&#34;
+                        + str(s)
+                    )
+        out_shape = []
+        for symbol in out_template:
+            if symbol in symbol_shape:
+                out_shape.append(symbol_shape[symbol])
+            else:
+                out_shape.append(None)
+        return out_shape
+
+    def _unify_shapes(self, path_shapes: List[List[Union[int, Any]]]) -&gt; List[Union[int, Any]]:
+        &#34;&#34;&#34;
+        This method is used to unify shapes for all paths
+        &#34;&#34;&#34;
+        n = len(path_shapes)
+        if n == 0:
+            return []
+        else:
+            m = len(path_shapes[0])
+            out_shape = []
+            for j in range(m):
+                dim = None
+                for i in range(n):
+                    if path_shapes[i][j] is None:
+                        pass
+                    elif dim is None:
+                        dim = path_shapes[i][j]
+                    else:
+                        assert path_shapes[i][j] == dim, &#34;shape mismatching&#34;
+                out_shape.append(dim)
+            return out_shape
+
+    def build_explanation_graph_template(
+        self, graph, tensor_provider, operator_loader=None, cycle_node=[]
+    ):
+        &#34;&#34;&#34;
+        Args:
+            graph: explanation graph object
+            tensor_provider(SwitchTensorProvider): tensor provider
+            operator_loader=None(OperatorLoader): operator loader
+            cycle_node=[]: a list of cycle node
+
+        Returns:
+            goal_template:
+            cycle_node: a list of cycle node (if given cycle_node, it is updated)
+        &#34;&#34;&#34;
+        # checking template
+        goal_template = [None] * len(graph.goals)
+        for i in range(len(graph.goals)):
+            g = graph.goals[i]
+            path_template = []
+            path_shape = []
+            path_batch_flag = False
+            for path in g.paths:
+                ## build template and inside for switches in the path
+                sw_template = []
+                sw_shape = []
+                for sw in path.tensor_switches:
+                    ph = tensor_provider.get_placeholder_name(sw.name)
+                    sw_obj = tensor_provider.get_switch(sw.name)
+                    if len(ph) &gt; 0:
+                        sw_template.append([&#34;b&#34;] + list(sw.values))
+                        path_batch_flag = True
+                        sw_shape.append([None] + list(sw_obj.get_shape()))
+                    else:
+                        sw_template.append(list(sw.values))
+                        sw_shape.append(sw_obj.get_shape())
+                ## building template and inside for nodes in the path
+                node_template = []
+                node_shape = []
+                cycle_detected = False
+                for node in path.nodes:
+                    temp_goal = goal_template[node.sorted_id]
+                    if temp_goal is None:
+                        # cycle
+                        if node.sorted_id not in cycle_node:
+                            cycle_node.append(node.sorted_id)
+                        cycle_detected = True
+                        continue
+                    if len(temp_goal[&#34;template&#34;]) &gt; 0:
+                        if temp_goal[&#34;batch_flag&#34;]:
+                            path_batch_flag = True
+                        node_shape.append(temp_goal[&#34;shape&#34;])
+                        node_template.append(temp_goal[&#34;template&#34;])
+                if cycle_detected:
+                    continue
+                sw_node_template = sw_template + node_template
+                sw_node_shape = sw_shape + node_shape
+
+                ##########
+                ops = [op.name for op in path.operators]
+                if &#34;distribution&#34; in ops:
+                    # distributino clause
+                    print(&#34;=== distribution ===&#34;)
+                    print(sw_node_template)
+                    print(sw_node_shape)
+                    ##
+                    out_template = sw_node_template[0]
+                    out_shape = sw_node_shape[0]
+                    print(out_template)
+                    print(out_shape)
+                else:
+                    # constructing einsum operation using template and inside
+                    out_template = self._compute_output_template(sw_node_template)
+                    out_shape = self._compute_output_shape(
+                        out_template, sw_node_template, sw_node_shape
+                    )
+                    if len(sw_node_template) &gt; 0:  # condition for einsum
+                        if path_batch_flag:
+                            out_template = [&#34;b&#34;] + out_template
+                    ## computing operaters
+                    for op in path.operators:
+                        cls = operator_loader.get_operator(op.name)
+                        op_obj = cls(op.values)
+                        out_template = op_obj.get_output_template(out_template)
+                ##########
+                path_template.append(out_template)
+                path_shape.append(out_shape)
+                ##
+            ##
+            path_template_list = self._get_unique_list(path_template)
+            path_shape = self._unify_shapes(path_shape)
+            if len(path_template_list) == 0:
+                goal_template[i] = {
+                    &#34;template&#34;: [],
+                    &#34;batch_flag&#34;: False,
+                    &#34;shape&#34;: path_shape,
+                }
+            else:
+                if len(path_template_list) != 1:
+                    print(&#34;[WARNING] missmatch indices:&#34;, path_template_list)
+                goal_template[i] = {
+                    &#34;template&#34;: path_template_list[0],
+                    &#34;batch_flag&#34;: path_batch_flag,
+                    &#34;shape&#34;: path_shape,
+                }
+        ##
+        return goal_template, cycle_node</code></pre>
+</details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="tprism.torch_expl_graph.TorchComputationalExplGraph" href="torch_expl_graph.html#tprism.torch_expl_graph.TorchComputationalExplGraph">TorchComputationalExplGraph</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="tprism.expl_graph.ComputationalExplGraph.build_explanation_graph_template"><code class="name flex">
+<span>def <span class="ident">build_explanation_graph_template</span></span>(<span>self, graph, tensor_provider, operator_loader=None, cycle_node=[])</span>
+</code></dt>
+<dd>
+<div class="desc"><h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>graph</code></strong></dt>
+<dd>explanation graph object</dd>
+</dl>
+<p>tensor_provider(SwitchTensorProvider): tensor provider
+operator_loader=None(OperatorLoader): operator loader
+cycle_node=[]: a list of cycle node</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt>goal_template:</dt>
+<dt><code>cycle_node</code></dt>
+<dd>a list of cycle node (if given cycle_node, it is updated)</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def build_explanation_graph_template(
+    self, graph, tensor_provider, operator_loader=None, cycle_node=[]
+):
+    &#34;&#34;&#34;
+    Args:
+        graph: explanation graph object
+        tensor_provider(SwitchTensorProvider): tensor provider
+        operator_loader=None(OperatorLoader): operator loader
+        cycle_node=[]: a list of cycle node
+
+    Returns:
+        goal_template:
+        cycle_node: a list of cycle node (if given cycle_node, it is updated)
+    &#34;&#34;&#34;
+    # checking template
+    goal_template = [None] * len(graph.goals)
+    for i in range(len(graph.goals)):
+        g = graph.goals[i]
+        path_template = []
+        path_shape = []
+        path_batch_flag = False
+        for path in g.paths:
+            ## build template and inside for switches in the path
+            sw_template = []
+            sw_shape = []
+            for sw in path.tensor_switches:
+                ph = tensor_provider.get_placeholder_name(sw.name)
+                sw_obj = tensor_provider.get_switch(sw.name)
+                if len(ph) &gt; 0:
+                    sw_template.append([&#34;b&#34;] + list(sw.values))
+                    path_batch_flag = True
+                    sw_shape.append([None] + list(sw_obj.get_shape()))
+                else:
+                    sw_template.append(list(sw.values))
+                    sw_shape.append(sw_obj.get_shape())
+            ## building template and inside for nodes in the path
+            node_template = []
+            node_shape = []
+            cycle_detected = False
+            for node in path.nodes:
+                temp_goal = goal_template[node.sorted_id]
+                if temp_goal is None:
+                    # cycle
+                    if node.sorted_id not in cycle_node:
+                        cycle_node.append(node.sorted_id)
+                    cycle_detected = True
+                    continue
+                if len(temp_goal[&#34;template&#34;]) &gt; 0:
+                    if temp_goal[&#34;batch_flag&#34;]:
+                        path_batch_flag = True
+                    node_shape.append(temp_goal[&#34;shape&#34;])
+                    node_template.append(temp_goal[&#34;template&#34;])
+            if cycle_detected:
+                continue
+            sw_node_template = sw_template + node_template
+            sw_node_shape = sw_shape + node_shape
+
+            ##########
+            ops = [op.name for op in path.operators]
+            if &#34;distribution&#34; in ops:
+                # distributino clause
+                print(&#34;=== distribution ===&#34;)
+                print(sw_node_template)
+                print(sw_node_shape)
+                ##
+                out_template = sw_node_template[0]
+                out_shape = sw_node_shape[0]
+                print(out_template)
+                print(out_shape)
+            else:
+                # constructing einsum operation using template and inside
+                out_template = self._compute_output_template(sw_node_template)
+                out_shape = self._compute_output_shape(
+                    out_template, sw_node_template, sw_node_shape
+                )
+                if len(sw_node_template) &gt; 0:  # condition for einsum
+                    if path_batch_flag:
+                        out_template = [&#34;b&#34;] + out_template
+                ## computing operaters
+                for op in path.operators:
+                    cls = operator_loader.get_operator(op.name)
+                    op_obj = cls(op.values)
+                    out_template = op_obj.get_output_template(out_template)
+            ##########
+            path_template.append(out_template)
+            path_shape.append(out_shape)
+            ##
+        ##
+        path_template_list = self._get_unique_list(path_template)
+        path_shape = self._unify_shapes(path_shape)
+        if len(path_template_list) == 0:
+            goal_template[i] = {
+                &#34;template&#34;: [],
+                &#34;batch_flag&#34;: False,
+                &#34;shape&#34;: path_shape,
+            }
+        else:
+            if len(path_template_list) != 1:
+                print(&#34;[WARNING] missmatch indices:&#34;, path_template_list)
+            goal_template[i] = {
+                &#34;template&#34;: path_template_list[0],
+                &#34;batch_flag&#34;: path_batch_flag,
+                &#34;shape&#34;: path_shape,
+            }
+    ##
+    return goal_template, cycle_node</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="tprism.expl_graph.PlaceholderGraph"><code class="flex name class">
+<span>class <span class="ident">PlaceholderGraph</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>This class build a graph related to placeholders
+vocab &lt;&ndash; sw_info &ndash;&gt; placeholder &ndash;&gt; values</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>vocab_ph</code></strong> :&ensp;<code>Dict[str, Set[str]]</code></dt>
+<dd>vocab_name =&gt; a set of nemes of placeholders</dd>
+<dt><strong><code>ph_vocab</code></strong> :&ensp;<code>Dict[str, Set[str]</code></dt>
+<dd>placeholder name =&gt; a set of the vocabs</dd>
+<dt><strong><code>ph_values</code></strong> :&ensp;<code>Dict[str,Set[Any]]</code></dt>
+<dd>placeholder name =&gt; a set of values</dd>
+<dt><strong><code>vocab_shape</code></strong> :&ensp;<code>Dict[str, Set[Any]]</code></dt>
+<dd>vocab_name =&gt; a set of shapes</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class PlaceholderGraph:
+    &#34;&#34;&#34; This class build a graph related to placeholders
+    vocab &lt;-- sw_info --&gt; placeholder --&gt; values
+
+    Attributes:
+        vocab_ph (Dict[str, Set[str]]): vocab_name =&gt; a set of nemes of placeholders
+        ph_vocab (Dict[str, Set[str]): placeholder name =&gt; a set of the vocabs
+        ph_values (Dict[str,Set[Any]]): placeholder name =&gt; a set of values
+        vocab_shape (Dict[str, Set[Any]]): vocab_name =&gt; a set of shapes
+
+    &#34;&#34;&#34;
+
+    def __init__(self) -&gt; None:
+        self.vocab_ph = None
+        self.ph_vocab = None
+        self.ph_values = None #Dict[str,Set[Any]]
+        self.vocab_shape = None
+
+    def _build_ph_values(self, input_data: List[Dict[str, Union[int, List[str], ndarray]]]) -&gt; None:
+        ph_values = {}
+        for g in input_data:
+            for ph in g[&#34;placeholders&#34;]:
+                if ph not in ph_values:
+                    ph_values[ph] = set()
+            placeholders = [ph for ph in g[&#34;placeholders&#34;]]
+            rt = np.transpose(g[&#34;records&#34;])
+            for i, item in enumerate(rt):
+                ph_values[placeholders[i]] |= set(item)
+        self.ph_values = ph_values
+
+    def _build_vocab_ph(self, ph_values: Dict[str, Set[int32]], sw_info: Dict[str, SwitchTensor]) -&gt; None:
+        # ph_vocab/vocab_ph: ph_name &lt;== sw_info ==&gt; vocab_name
+        # vocab_shape: vocab_name =&gt; shape
+        ph_vocab = {ph_name: set() for ph_name in ph_values.keys()}
+        vocab_ph = {sw.vocab_name: set() for sw in sw_info.values()}
+        vocab_shape = {sw.vocab_name: set() for sw in sw_info.values()}
+        for sw_name, sw in sw_info.items():
+            ## build vocab. shape
+            if sw.vocab_name not in vocab_shape:
+                vocab_shape[sw.vocab_name] = set()
+            vocab_shape[sw.vocab_name] |= sw.shape_set
+            ## build ph_vocab/vocab_ph
+            ph_list = sw.ph_names
+            if len(ph_list) == 1:
+                vocab_ph[sw.vocab_name].add(ph_list[0])
+                ph_vocab[ph_list[0]].add(sw.vocab_name)
+            elif len(ph_list) &gt; 1:
+                print(&#34;[ERROR] not supprted: one placeholder for one term&#34;)
+        self.ph_vocab = ph_vocab
+        self.vocab_ph = vocab_ph
+        self.vocab_shape = vocab_shape
+        ##
+
+    def build(self, input_data: List[Dict[str, Union[int, List[str], ndarray]]], sw_info: Dict[str, SwitchTensor]) -&gt; None:
+        if input_data is not None:
+            self._build_ph_values(input_data)
+        else:
+            self.ph_values = {}
+        self._build_vocab_ph(self.ph_values, sw_info)</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="tprism.expl_graph.PlaceholderGraph.build"><code class="name flex">
+<span>def <span class="ident">build</span></span>(<span>self, input_data: List[Dict[str, Union[int, List[str], ndarray]]], sw_info: Dict[str, <a title="tprism.expl_graph.SwitchTensor" href="#tprism.expl_graph.SwitchTensor">SwitchTensor</a>]) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def build(self, input_data: List[Dict[str, Union[int, List[str], ndarray]]], sw_info: Dict[str, SwitchTensor]) -&gt; None:
+    if input_data is not None:
+        self._build_ph_values(input_data)
+    else:
+        self.ph_values = {}
+    self._build_vocab_ph(self.ph_values, sw_info)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="tprism.expl_graph.SwitchTensor"><code class="flex name class">
+<span>class <span class="ident">SwitchTensor</span></span>
+<span>(</span><span>sw_name: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>This class connect a tensor with a switch</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
+<dd>switch name</dd>
+<dt>shape_set (Set[Tuple[int,&hellip;]]):</dt>
+<dt><strong><code>ph_names</code></strong> :&ensp;<code>List[str]</code></dt>
+<dd>generated from the switch name</dd>
+<dt><strong><code>vocab_name</code></strong> :&ensp;<code>str</code></dt>
+<dd>generated from the switch name</dd>
+<dt><strong><code>var_name</code></strong> :&ensp;<code>str</code></dt>
+<dd>generated from the switch name</dd>
+</dl>
+<p>value (Any):</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class SwitchTensor:
+    &#34;&#34;&#34; This class connect a tensor with a switch
+    
+    Attributes:
+        name (str): switch name
+        shape_set (Set[Tuple[int,...]]):
+        ph_names (List[str]): generated from the switch name
+        vocab_name (str): generated from the switch name
+        var_name (str): generated from the switch name
+        value (Any): 
+
+    &#34;&#34;&#34;
+    def __init__(self, sw_name: str) -&gt; None:
+        self.value = None
+        self.name = sw_name
+        self.shape_set = set([])
+        self.ph_names = self.get_placeholder_name(sw_name)
+        self.vocab_name = self.make_vocab_name(sw_name) # update self.value
+        self.var_name = self.make_var_name(sw_name)
+
+    def enabled_placeholder(self):
+        return len(self.ph_names) == 0
+
+    def add_shape(self, shape: Union[Tuple[int], Tuple[int, int]]) -&gt; None:
+        self.shape_set.add(shape)
+
+    def get_shape(self) -&gt; Union[Tuple[int], Tuple[int, int]]:
+        assert len(self.shape_set) == 1, (
+            self.name + &#34;: shape is not unique:&#34; + str(self.shape_set)
+        )
+        return list(self.shape_set)[0]
+
+    def get_placeholder_name(self, name: str) -&gt; List[Union[str, Any]]:
+        pattern = r&#34;(\$placeholder[0-9]+\$)&#34;
+        m = re.finditer(pattern, name)
+        names = [el.group(1) for el in m]
+        return names
+
+    def make_vocab_name(self, name: str) -&gt; str:
+        m = re.match(r&#34;^tensor\(get\((.*),([0-9]*)\)\)$&#34;, name)
+        if m:
+            name = &#34;tensor(&#34; + m.group(1) + &#34;)&#34;
+            self.value = int(m.group(2))
+        pattern = r&#34;\$(placeholder[0-9]+)\$&#34;
+        m = re.sub(pattern, &#34;&#34;, name)
+        return self.make_var_name(m)
+
+    def make_var_name(self, name: str) -&gt; str:
+        return re.sub(r&#34;[\[\],\)\(\&#39;$]+&#34;, &#34;_&#34;, name)</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="tprism.expl_graph.SwitchTensor.add_shape"><code class="name flex">
+<span>def <span class="ident">add_shape</span></span>(<span>self, shape: Union[Tuple[int], Tuple[int, int]]) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def add_shape(self, shape: Union[Tuple[int], Tuple[int, int]]) -&gt; None:
+    self.shape_set.add(shape)</code></pre>
+</details>
+</dd>
+<dt id="tprism.expl_graph.SwitchTensor.enabled_placeholder"><code class="name flex">
+<span>def <span class="ident">enabled_placeholder</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def enabled_placeholder(self):
+    return len(self.ph_names) == 0</code></pre>
+</details>
+</dd>
+<dt id="tprism.expl_graph.SwitchTensor.get_placeholder_name"><code class="name flex">
+<span>def <span class="ident">get_placeholder_name</span></span>(<span>self, name: str) ‑> List[Union[str, Any]]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_placeholder_name(self, name: str) -&gt; List[Union[str, Any]]:
+    pattern = r&#34;(\$placeholder[0-9]+\$)&#34;
+    m = re.finditer(pattern, name)
+    names = [el.group(1) for el in m]
+    return names</code></pre>
+</details>
+</dd>
+<dt id="tprism.expl_graph.SwitchTensor.get_shape"><code class="name flex">
+<span>def <span class="ident">get_shape</span></span>(<span>self) ‑> Union[Tuple[int], Tuple[int, int]]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_shape(self) -&gt; Union[Tuple[int], Tuple[int, int]]:
+    assert len(self.shape_set) == 1, (
+        self.name + &#34;: shape is not unique:&#34; + str(self.shape_set)
+    )
+    return list(self.shape_set)[0]</code></pre>
+</details>
+</dd>
+<dt id="tprism.expl_graph.SwitchTensor.make_var_name"><code class="name flex">
+<span>def <span class="ident">make_var_name</span></span>(<span>self, name: str) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def make_var_name(self, name: str) -&gt; str:
+    return re.sub(r&#34;[\[\],\)\(\&#39;$]+&#34;, &#34;_&#34;, name)</code></pre>
+</details>
+</dd>
+<dt id="tprism.expl_graph.SwitchTensor.make_vocab_name"><code class="name flex">
+<span>def <span class="ident">make_vocab_name</span></span>(<span>self, name: str) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def make_vocab_name(self, name: str) -&gt; str:
+    m = re.match(r&#34;^tensor\(get\((.*),([0-9]*)\)\)$&#34;, name)
+    if m:
+        name = &#34;tensor(&#34; + m.group(1) + &#34;)&#34;
+        self.value = int(m.group(2))
+    pattern = r&#34;\$(placeholder[0-9]+)\$&#34;
+    m = re.sub(pattern, &#34;&#34;, name)
+    return self.make_var_name(m)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="tprism.expl_graph.SwitchTensorProvider"><code class="flex name class">
+<span>class <span class="ident">SwitchTensorProvider</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>This class provides information of switches</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt>tensor_embedding (Dict[str, Tensor]):embedding tensor</dt>
+<dt><strong><code>sw_info</code></strong> :&ensp;<code>Dict[str, <a title="tprism.expl_graph.SwitchTensor" href="#tprism.expl_graph.SwitchTensor">SwitchTensor</a>]</code></dt>
+<dd>switch infomation</dd>
+</dl>
+<p>ph_graph:
+input_feed_dict:
+params:</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class SwitchTensorProvider:
+    &#34;&#34;&#34; This class provides information of switches
+
+    Attributes:
+        tensor_embedding (Dict[str, Tensor]):embedding tensor
+        sw_info (Dict[str, SwitchTensor]): switch infomation
+        ph_graph:
+        input_feed_dict:
+        params:
+
+    &#34;&#34;&#34;
+
+    def __init__(self) -&gt; None:
+        self.tensor_embedding = None
+        self.sw_info = None
+        self.ph_graph = None
+        self.input_feed_dict = None
+        self.params = {}
+
+    def get_embedding(self, name):
+        if self.input_feed_dict is None:
+            return self.tensor_embedding[name]
+        else:
+            key = self.tensor_embedding[name]
+            return self.input_feed_dict[key]
+
+    def set_embedding(self, name, var):
+        self.tensor_embedding[name] = var
+
+    def set_input(self, feed_dict: Dict[PlaceholderData, Tensor]) -&gt; None:
+        self.input_feed_dict = feed_dict
+
+    def get_placeholder_name(self, name: str) -&gt; List[Union[str, Any]]:
+        &#34;&#34;&#34; 
+        Args:
+            switch name (str): switch name
+        Returns:
+            placeholder name
+        &#34;&#34;&#34;
+        return self.sw_info[name].ph_names
+
+    def get_switch(self, name: str) -&gt; SwitchTensor:
+        &#34;&#34;&#34; 
+        Args:
+            switch name (str): switch name
+        Returns:
+            switch tensor
+        &#34;&#34;&#34;
+        return self.sw_info[name]
+
+    def get_placeholder_var_name(self, name: str) -&gt; str:
+        &#34;&#34;&#34; 
+        Args:
+            name (str): placeholder name
+        Returns:
+            placeholder variable name in PlaceholderData.name
+        &#34;&#34;&#34;
+        return re.sub(r&#34;\$&#34;, &#34;&#34;, name)
+
+    def add_param(self, name: str, param: Parameter) -&gt; None:
+        &#34;&#34;&#34; 
+        Args:
+            name (str): Tensor&#39;s name
+            param (Parameter): Parameter
+        &#34;&#34;&#34;
+        self.params[name] = param
+
+    def get_param(self, name):
+        &#34;&#34;&#34; 
+        Args:
+            name (str): Tensor&#39;s name
+        &#34;&#34;&#34;
+        return self.params[name]
+
+    def convert_value_to_index(self, value: Union[int, int32], ph_name: Union[str, str_]) -&gt; int:
+        ph_vocab = self.ph_graph.ph_vocab
+        vocab_name = self.ph_graph.ph_vocab[ph_name]
+        vocab_name = list(vocab_name)[0]
+        index = self.vocab_set.get_values_index(vocab_name, value)
+        return index
+
+    def is_convertable_value(self, ph_name: str) -&gt; bool:
+        if ph_name in self.ph_graph.ph_vocab:
+            return len(self.ph_graph.ph_vocab[ph_name]) &gt; 0
+        else:
+            return False
+
+    def _build_sw_info(self, graph, options):
+        &#34;&#34;&#34; This function builds sw_info from the explanation graph 
+        &#34;&#34;&#34;
+        tensor_shape = {
+            el.tensor_name: [d for d in el.shape] for el in options.tensor_shape
+        }
+        sw_info = {}
+        for g in graph.goals:
+            for path in g.paths:
+                for sw in path.tensor_switches:
+                    if sw.name not in sw_info:
+                        sw_obj = SwitchTensor(sw.name)
+                        sw_info[sw.name] = sw_obj
+                    else:
+                        sw_obj = sw_info[sw.name]
+                    value_list = [el for el in sw.values]
+                    if sw.name in tensor_shape:
+                        shape = tuple(tensor_shape[sw.name])
+                    sw_obj.add_shape(shape)
+        return sw_info
+
+    def _build_vocab_var_type(self, ph_graph: PlaceholderGraph, vocab_set: VocabSet, embedding_generators: List[Union[Any, DatasetEmbeddingGenerator]]) -&gt; Dict[str, Union[Dict[str, Union[str, Tuple[int, int], List[Union[int64, int]]]], Dict[str, Union[str, List[int]]], Dict[str, Union[str, List[Union[int64, int]]]]]]:
+        &#34;&#34;&#34; This function builds temporal object: vocab_name =&gt;  var_type
+
+        Note:
+            vocab_var_type (Dict[str,VarType]):
+            Var type is a dictionary like follows:
+
+            ::
+
+                # var_type[&#34;type&#34;]==&#34;dataset&#34;
+                var_type={
+                    &#34;dataset_shape&#34;: Tuple[int, ...],
+                    &#34;shape&#34;: List[int, ...],
+                }
+                # var_type[&#34;type&#34;]==&#34;onehot&#34;
+                var_type={
+                    &#34;value&#34;: int,
+                    &#34;shape&#34;: List[int, ...],
+                }
+                # var_type[&#34;type&#34;]==&#34;variable&#34;
+                var_type={
+                    &#34;shape&#34;: List[int, ...]
+                }
+
+        &#34;&#34;&#34;
+        vocab_var_type = {}
+        for vocab_name, shapes in ph_graph.vocab_shape.items():
+            values = vocab_set.get_values(vocab_name)
+            ##
+            if len(shapes) == 1:
+                shape = list(shapes)[0]
+                if values is not None:
+                    # s=[len(values)]+list(shape)
+                    s = [max(values) + 1] + list(shape)
+                else:
+                    s = list(shape)
+            else:
+                shape = sorted(list(shapes), key=lambda x: len(x), reverse=True)[0]
+                s = list(shape)
+            ##
+            var_type = {}
+            dataset_flag = False
+            for eg in embedding_generators:
+                if eg.is_embedding(vocab_name):
+                    dataset_shape = eg.get_shape(vocab_name)
+                    var_type[&#34;type&#34;] = &#34;dataset&#34;
+                    var_type[&#34;dataset_shape&#34;] = dataset_shape
+                    var_type[&#34;shape&#34;] = s
+                    dataset_flag = True
+            if dataset_flag:
+                pass
+            elif vocab_name[:14] == &#34;tensor_onehot_&#34;:
+                m = re.match(r&#34;tensor_onehot_([\d]*)_&#34;, vocab_name)
+                if m:
+                    d = int(m.group(1))
+                    if len(s) == 1:
+                        var_type[&#34;type&#34;] = &#34;onehot&#34;
+                        var_type[&#34;value&#34;] = d
+                        var_type[&#34;shape&#34;] = s
+                    else:
+                        print(&#34;[ERROR]&#34;)
+                else:
+                    print(&#34;[ERROR]&#34;)
+            else:
+                var_type[&#34;type&#34;] = &#34;variable&#34;
+                var_type[&#34;shape&#34;] = s
+            vocab_var_type[vocab_name] = var_type
+        return vocab_var_type
+
+    def build(
+        self,
+        graph,
+        options,
+        input_data,
+        flags,
+        load_embeddings=False,
+        embedding_generators=[],
+        verbose=False,
+    ):
+        # sw_info: switch name =&gt;SwitchTensor
+        sw_info = self._build_sw_info(graph, options)
+        #
+        ph_graph = PlaceholderGraph()
+        ph_graph.build(input_data, sw_info)
+
+        ## build vocab group
+        if load_embeddings:
+            print(&#34;[LOAD]&#34;, flags.vocab)
+            with open(flags.vocab, mode=&#34;rb&#34;) as f:
+                vocab_set = pickle.load(f)
+        else:
+            vocab_set = VocabSet()
+            vocab_set.build_from_ph(ph_graph)
+            print(&#34;[SAVE]&#34;, flags.vocab)
+            with open(flags.vocab, mode=&#34;wb&#34;) as f:
+                pickle.dump(vocab_set, f)
+        ##
+        self.vocab_var_type = self._build_vocab_var_type(
+            ph_graph, vocab_set, embedding_generators
+        )
+        self.vocab_set = vocab_set
+        self.ph_graph = ph_graph
+        self.sw_info = sw_info
+        ##
+        # build placeholders
+        # ph_var    : ph_name =&gt; placeholder
+        ph_var = {}
+        batch_size = flags.sgd_minibatch_size
+        for ph_name in ph_graph.ph_values.keys():
+            ph_var_name = self.get_placeholder_var_name(ph_name)
+            ph_var[ph_name] = PlaceholderData(
+                name=ph_var_name, shape=(batch_size,), dtype=self.integer_dtype
+            )
+        #
+        ## assigning tensor variable
+        ## vocab_var: vocab_name =&gt; variable
+        ##
+        vocab_var = {}
+        # initializer = tf.contrib.layers.xavier_initializer()
+        for vocab_name, var_type in self.vocab_var_type.items():
+            values = vocab_set.get_values(vocab_name)
+            if var_type[&#34;type&#34;] == &#34;dataset&#34;:
+                print(
+                    &#34;&gt;&gt; dataset &gt;&gt;&#34;,
+                    vocab_name,
+                    &#34;:&#34;,
+                    var_type[&#34;dataset_shape&#34;],
+                    &#34;=&gt;&#34;,
+                    var_type[&#34;shape&#34;],
+                )
+            elif var_type[&#34;type&#34;] == &#34;onehot&#34;:
+                print(&#34;&gt;&gt; onehot  &gt;&gt;&#34;, vocab_name, &#34;:&#34;, var_type[&#34;shape&#34;])
+                d = var_type[&#34;value&#34;]
+                var = self.tensor_onehot_class(self, var_type[&#34;shape&#34;][0], d)
+                vocab_var[vocab_name] = var
+            else:
+                print(&#34;&gt;&gt; variable&gt;&gt;&#34;, vocab_name, &#34;:&#34;, var_type[&#34;shape&#34;])
+                var = self.tensor_class(self, vocab_name, var_type[&#34;shape&#34;])
+                vocab_var[vocab_name] = var
+        # converting PRISM switches to Tensorflow Variables
+        # tensor_embedding: sw_name =&gt; tensor
+        tensor_embedding = {}
+        for sw_name, sw in sw_info.items():
+            vocab_name = sw.vocab_name
+            var_name = sw.var_name
+            ph_list = sw.ph_names
+            if len(ph_list) == 0:
+                dataset_flag = False
+                for eg in embedding_generators:
+                    if eg.is_embedding(vocab_name):
+                        dataset_flag = True
+                        # dataset without placeholder
+                        shape = list(list(sw.shape_set)[0])
+                        if sw.value is None:
+                            var = eg.get_embedding(vocab_name, shape)
+                            if verbose:
+                                print(&#34;ph_list==0 and value==none&#34;)
+                                print((vocab_name, &#34;:&#34;, var.shape))
+                            tensor_embedding[sw_name] = var
+                        else:
+                            var = eg.get_embedding(vocab_name)
+                            if verbose:
+                                print(&#34;ph_list==0 and value enbabled&#34;)
+                                print((vocab_name, &#34;:&#34;, var.shape, &#34;=&gt;&#34;, shape))
+                            index = vocab_set.get_values_index(vocab_name, sw.value)
+                            if verbose:
+                                print(index, sw.value)
+                            #tensor_embedding[sw_name] = var[sw.value]
+                            tensor_embedding[sw_name] = self.tensor_gather_class(self, var, sw.value)
+                if not dataset_flag:
+                    # trainig variable without placeholder
+                    var = vocab_var[vocab_name]
+                    if verbose:
+                        print(&#34;ph_list==0 and no dataset&#34;)
+                        print((vocab_name, &#34;:&#34;, var.shape))
+                    tensor_embedding[sw_name] = var
+            elif len(ph_list) == 1:
+                dataset_flag = False
+                for eg in embedding_generators:
+                    if eg.is_embedding(vocab_name):
+                        dataset_flag = True
+                        # dataset with placeholder
+                        shape = [batch_size] + list(list(sw.shape_set)[0])
+                        var = eg.get_embedding(vocab_name)
+                        # var = eg.get_embedding(vocab_name, shape)
+                        if verbose:
+                            print(&#34;ph_list==1 and dataset enabled&#34;)
+                            print((vocab_name, &#34;:&#34;, var.shape, &#34;=&gt;&#34;, shape))
+                        tensor_embedding[sw_name] = var
+                if not dataset_flag:
+                    # trainig variable with placeholder
+                    var = vocab_var[vocab_name]
+                    if verbose:
+                        print(&#34;ph_list==1 and dataset disabled&#34;)
+                        print((vocab_name, &#34;:&#34;, var.shape, &#34;=&gt;&#34;, shape))
+                    ph = ph_var[ph_list[0]]
+                    tensor_embedding[sw_name] = self.tensor_gather_class(self, var, ph)
+            else:
+                print(&#34;[WARM] unknown embedding:&#34;, sw_name)
+        self.vocab_var = vocab_var
+        self.ph_var = ph_var
+        self.tensor_embedding = tensor_embedding
+        return tensor_embedding</code></pre>
+</details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="tprism.torch_expl_graph.TorchSwitchTensorProvider" href="torch_expl_graph.html#tprism.torch_expl_graph.TorchSwitchTensorProvider">TorchSwitchTensorProvider</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="tprism.expl_graph.SwitchTensorProvider.add_param"><code class="name flex">
+<span>def <span class="ident">add_param</span></span>(<span>self, name: str, param: Parameter) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
+<dd>Tensor's name</dd>
+<dt><strong><code>param</code></strong> :&ensp;<code>Parameter</code></dt>
+<dd>Parameter</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def add_param(self, name: str, param: Parameter) -&gt; None:
+    &#34;&#34;&#34; 
+    Args:
+        name (str): Tensor&#39;s name
+        param (Parameter): Parameter
+    &#34;&#34;&#34;
+    self.params[name] = param</code></pre>
+</details>
+</dd>
+<dt id="tprism.expl_graph.SwitchTensorProvider.build"><code class="name flex">
+<span>def <span class="ident">build</span></span>(<span>self, graph, options, input_data, flags, load_embeddings=False, embedding_generators=[], verbose=False)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def build(
+    self,
+    graph,
+    options,
+    input_data,
+    flags,
+    load_embeddings=False,
+    embedding_generators=[],
+    verbose=False,
+):
+    # sw_info: switch name =&gt;SwitchTensor
+    sw_info = self._build_sw_info(graph, options)
+    #
+    ph_graph = PlaceholderGraph()
+    ph_graph.build(input_data, sw_info)
+
+    ## build vocab group
+    if load_embeddings:
+        print(&#34;[LOAD]&#34;, flags.vocab)
+        with open(flags.vocab, mode=&#34;rb&#34;) as f:
+            vocab_set = pickle.load(f)
+    else:
+        vocab_set = VocabSet()
+        vocab_set.build_from_ph(ph_graph)
+        print(&#34;[SAVE]&#34;, flags.vocab)
+        with open(flags.vocab, mode=&#34;wb&#34;) as f:
+            pickle.dump(vocab_set, f)
+    ##
+    self.vocab_var_type = self._build_vocab_var_type(
+        ph_graph, vocab_set, embedding_generators
+    )
+    self.vocab_set = vocab_set
+    self.ph_graph = ph_graph
+    self.sw_info = sw_info
+    ##
+    # build placeholders
+    # ph_var    : ph_name =&gt; placeholder
+    ph_var = {}
+    batch_size = flags.sgd_minibatch_size
+    for ph_name in ph_graph.ph_values.keys():
+        ph_var_name = self.get_placeholder_var_name(ph_name)
+        ph_var[ph_name] = PlaceholderData(
+            name=ph_var_name, shape=(batch_size,), dtype=self.integer_dtype
+        )
+    #
+    ## assigning tensor variable
+    ## vocab_var: vocab_name =&gt; variable
+    ##
+    vocab_var = {}
+    # initializer = tf.contrib.layers.xavier_initializer()
+    for vocab_name, var_type in self.vocab_var_type.items():
+        values = vocab_set.get_values(vocab_name)
+        if var_type[&#34;type&#34;] == &#34;dataset&#34;:
+            print(
+                &#34;&gt;&gt; dataset &gt;&gt;&#34;,
+                vocab_name,
+                &#34;:&#34;,
+                var_type[&#34;dataset_shape&#34;],
+                &#34;=&gt;&#34;,
+                var_type[&#34;shape&#34;],
+            )
+        elif var_type[&#34;type&#34;] == &#34;onehot&#34;:
+            print(&#34;&gt;&gt; onehot  &gt;&gt;&#34;, vocab_name, &#34;:&#34;, var_type[&#34;shape&#34;])
+            d = var_type[&#34;value&#34;]
+            var = self.tensor_onehot_class(self, var_type[&#34;shape&#34;][0], d)
+            vocab_var[vocab_name] = var
+        else:
+            print(&#34;&gt;&gt; variable&gt;&gt;&#34;, vocab_name, &#34;:&#34;, var_type[&#34;shape&#34;])
+            var = self.tensor_class(self, vocab_name, var_type[&#34;shape&#34;])
+            vocab_var[vocab_name] = var
+    # converting PRISM switches to Tensorflow Variables
+    # tensor_embedding: sw_name =&gt; tensor
+    tensor_embedding = {}
+    for sw_name, sw in sw_info.items():
+        vocab_name = sw.vocab_name
+        var_name = sw.var_name
+        ph_list = sw.ph_names
+        if len(ph_list) == 0:
+            dataset_flag = False
+            for eg in embedding_generators:
+                if eg.is_embedding(vocab_name):
+                    dataset_flag = True
+                    # dataset without placeholder
+                    shape = list(list(sw.shape_set)[0])
+                    if sw.value is None:
+                        var = eg.get_embedding(vocab_name, shape)
+                        if verbose:
+                            print(&#34;ph_list==0 and value==none&#34;)
+                            print((vocab_name, &#34;:&#34;, var.shape))
+                        tensor_embedding[sw_name] = var
+                    else:
+                        var = eg.get_embedding(vocab_name)
+                        if verbose:
+                            print(&#34;ph_list==0 and value enbabled&#34;)
+                            print((vocab_name, &#34;:&#34;, var.shape, &#34;=&gt;&#34;, shape))
+                        index = vocab_set.get_values_index(vocab_name, sw.value)
+                        if verbose:
+                            print(index, sw.value)
+                        #tensor_embedding[sw_name] = var[sw.value]
+                        tensor_embedding[sw_name] = self.tensor_gather_class(self, var, sw.value)
+            if not dataset_flag:
+                # trainig variable without placeholder
+                var = vocab_var[vocab_name]
+                if verbose:
+                    print(&#34;ph_list==0 and no dataset&#34;)
+                    print((vocab_name, &#34;:&#34;, var.shape))
+                tensor_embedding[sw_name] = var
+        elif len(ph_list) == 1:
+            dataset_flag = False
+            for eg in embedding_generators:
+                if eg.is_embedding(vocab_name):
+                    dataset_flag = True
+                    # dataset with placeholder
+                    shape = [batch_size] + list(list(sw.shape_set)[0])
+                    var = eg.get_embedding(vocab_name)
+                    # var = eg.get_embedding(vocab_name, shape)
+                    if verbose:
+                        print(&#34;ph_list==1 and dataset enabled&#34;)
+                        print((vocab_name, &#34;:&#34;, var.shape, &#34;=&gt;&#34;, shape))
+                    tensor_embedding[sw_name] = var
+            if not dataset_flag:
+                # trainig variable with placeholder
+                var = vocab_var[vocab_name]
+                if verbose:
+                    print(&#34;ph_list==1 and dataset disabled&#34;)
+                    print((vocab_name, &#34;:&#34;, var.shape, &#34;=&gt;&#34;, shape))
+                ph = ph_var[ph_list[0]]
+                tensor_embedding[sw_name] = self.tensor_gather_class(self, var, ph)
+        else:
+            print(&#34;[WARM] unknown embedding:&#34;, sw_name)
+    self.vocab_var = vocab_var
+    self.ph_var = ph_var
+    self.tensor_embedding = tensor_embedding
+    return tensor_embedding</code></pre>
+</details>
+</dd>
+<dt id="tprism.expl_graph.SwitchTensorProvider.convert_value_to_index"><code class="name flex">
+<span>def <span class="ident">convert_value_to_index</span></span>(<span>self, value: Union[int, int32], ph_name: Union[str, str_]) ‑> int</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def convert_value_to_index(self, value: Union[int, int32], ph_name: Union[str, str_]) -&gt; int:
+    ph_vocab = self.ph_graph.ph_vocab
+    vocab_name = self.ph_graph.ph_vocab[ph_name]
+    vocab_name = list(vocab_name)[0]
+    index = self.vocab_set.get_values_index(vocab_name, value)
+    return index</code></pre>
+</details>
+</dd>
+<dt id="tprism.expl_graph.SwitchTensorProvider.get_embedding"><code class="name flex">
+<span>def <span class="ident">get_embedding</span></span>(<span>self, name)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_embedding(self, name):
+    if self.input_feed_dict is None:
+        return self.tensor_embedding[name]
+    else:
+        key = self.tensor_embedding[name]
+        return self.input_feed_dict[key]</code></pre>
+</details>
+</dd>
+<dt id="tprism.expl_graph.SwitchTensorProvider.get_param"><code class="name flex">
+<span>def <span class="ident">get_param</span></span>(<span>self, name)</span>
+</code></dt>
+<dd>
+<div class="desc"><h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
+<dd>Tensor's name</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_param(self, name):
+    &#34;&#34;&#34; 
+    Args:
+        name (str): Tensor&#39;s name
+    &#34;&#34;&#34;
+    return self.params[name]</code></pre>
+</details>
+</dd>
+<dt id="tprism.expl_graph.SwitchTensorProvider.get_placeholder_name"><code class="name flex">
+<span>def <span class="ident">get_placeholder_name</span></span>(<span>self, name: str) ‑> List[Union[str, Any]]</span>
+</code></dt>
+<dd>
+<div class="desc"><h2 id="args">Args</h2>
+<p>switch name (str): switch name</p>
+<h2 id="returns">Returns</h2>
+<p>placeholder name</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_placeholder_name(self, name: str) -&gt; List[Union[str, Any]]:
+    &#34;&#34;&#34; 
+    Args:
+        switch name (str): switch name
+    Returns:
+        placeholder name
+    &#34;&#34;&#34;
+    return self.sw_info[name].ph_names</code></pre>
+</details>
+</dd>
+<dt id="tprism.expl_graph.SwitchTensorProvider.get_placeholder_var_name"><code class="name flex">
+<span>def <span class="ident">get_placeholder_var_name</span></span>(<span>self, name: str) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
+<dd>placeholder name</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>placeholder variable name in PlaceholderData.name</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_placeholder_var_name(self, name: str) -&gt; str:
+    &#34;&#34;&#34; 
+    Args:
+        name (str): placeholder name
+    Returns:
+        placeholder variable name in PlaceholderData.name
+    &#34;&#34;&#34;
+    return re.sub(r&#34;\$&#34;, &#34;&#34;, name)</code></pre>
+</details>
+</dd>
+<dt id="tprism.expl_graph.SwitchTensorProvider.get_switch"><code class="name flex">
+<span>def <span class="ident">get_switch</span></span>(<span>self, name: str) ‑> <a title="tprism.expl_graph.SwitchTensor" href="#tprism.expl_graph.SwitchTensor">SwitchTensor</a></span>
+</code></dt>
+<dd>
+<div class="desc"><h2 id="args">Args</h2>
+<p>switch name (str): switch name</p>
+<h2 id="returns">Returns</h2>
+<p>switch tensor</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_switch(self, name: str) -&gt; SwitchTensor:
+    &#34;&#34;&#34; 
+    Args:
+        switch name (str): switch name
+    Returns:
+        switch tensor
+    &#34;&#34;&#34;
+    return self.sw_info[name]</code></pre>
+</details>
+</dd>
+<dt id="tprism.expl_graph.SwitchTensorProvider.is_convertable_value"><code class="name flex">
+<span>def <span class="ident">is_convertable_value</span></span>(<span>self, ph_name: str) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def is_convertable_value(self, ph_name: str) -&gt; bool:
+    if ph_name in self.ph_graph.ph_vocab:
+        return len(self.ph_graph.ph_vocab[ph_name]) &gt; 0
+    else:
+        return False</code></pre>
+</details>
+</dd>
+<dt id="tprism.expl_graph.SwitchTensorProvider.set_embedding"><code class="name flex">
+<span>def <span class="ident">set_embedding</span></span>(<span>self, name, var)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_embedding(self, name, var):
+    self.tensor_embedding[name] = var</code></pre>
+</details>
+</dd>
+<dt id="tprism.expl_graph.SwitchTensorProvider.set_input"><code class="name flex">
+<span>def <span class="ident">set_input</span></span>(<span>self, feed_dict: Dict[PlaceholderData, Tensor]) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_input(self, feed_dict: Dict[PlaceholderData, Tensor]) -&gt; None:
+    self.input_feed_dict = feed_dict</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="tprism.expl_graph.VocabSet"><code class="flex name class">
+<span>class <span class="ident">VocabSet</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>This class connect a values with a vovabrary via placeholders
+vocab -&gt; placeholder -&gt;values</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>vocab_values</code></strong> :&ensp;<code>Dict[str, List[Any]]</code></dt>
+<dd>the key is a vocab name, and the value ia a list of values.</dd>
+<dt><strong><code>value_index</code></strong> :&ensp;<code>Dict[Tuple[str,Any],int</code></dt>
+<dd>the key is a tuple of a vocab name and a value, and the value is an index.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class VocabSet:
+    &#34;&#34;&#34; This class connect a values with a vovabrary via placeholders
+    vocab -&gt; placeholder -&gt;values
+
+    Attributes:
+        vocab_values (Dict[str, List[Any]]): the key is a vocab name, and the value ia a list of values.
+        value_index (Dict[Tuple[str,Any],int): the key is a tuple of a vocab name and a value, and the value is an index.
+
+    &#34;&#34;&#34;
+
+    def __init__(self) -&gt; None:
+        # vocab name =&gt; a list of values
+        self.vocab_values = None
+        # vocab name, value =&gt; index
+        self.value_index = None
+
+    def build_from_ph(self, ph_graph: &#39;PlaceholderGraph&#39;) -&gt; None:
+        &#34;&#34;&#34; This method builds vocab_values and value_index from PlaceholderGraph.
+        &#34;&#34;&#34;
+        vocab_ph = ph_graph.vocab_ph
+        ph_values = ph_graph.ph_values #
+        vocab_values = {}
+        for vocab_name, phs in vocab_ph.items():
+            for ph in phs:
+                if vocab_name not in vocab_values:
+                    vocab_values[vocab_name] = set()
+                vocab_values[vocab_name] |= ph_values[ph]
+        self.vocab_values = {k: list(v) for k, v in vocab_values.items()}
+        self.value_index = self._build_value_index()
+
+    def _build_value_index(self) -&gt; Dict[Tuple[str, int32], int]:
+        value_index = {}
+        for vocab_name, values in self.vocab_values.items():
+            for i, v in enumerate(sorted(values)):
+                value_index[(vocab_name, v)] = i
+        return value_index
+
+    def get_values_index(self, vocab_name: str, value: Union[int, int32]) -&gt; int:
+        key = (vocab_name, value)
+        if key in self.value_index:
+            return self.value_index[key]
+        else:
+            return 0
+
+    def get_values(self, vocab_name: str) -&gt; Optional[List[int32]]:
+        if vocab_name not in self.vocab_values:
+            return None
+        return self.vocab_values[vocab_name]</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="tprism.expl_graph.VocabSet.build_from_ph"><code class="name flex">
+<span>def <span class="ident">build_from_ph</span></span>(<span>self, ph_graph: "'<a title="tprism.expl_graph.PlaceholderGraph" href="#tprism.expl_graph.PlaceholderGraph">PlaceholderGraph</a>'") ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>This method builds vocab_values and value_index from PlaceholderGraph.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def build_from_ph(self, ph_graph: &#39;PlaceholderGraph&#39;) -&gt; None:
+    &#34;&#34;&#34; This method builds vocab_values and value_index from PlaceholderGraph.
+    &#34;&#34;&#34;
+    vocab_ph = ph_graph.vocab_ph
+    ph_values = ph_graph.ph_values #
+    vocab_values = {}
+    for vocab_name, phs in vocab_ph.items():
+        for ph in phs:
+            if vocab_name not in vocab_values:
+                vocab_values[vocab_name] = set()
+            vocab_values[vocab_name] |= ph_values[ph]
+    self.vocab_values = {k: list(v) for k, v in vocab_values.items()}
+    self.value_index = self._build_value_index()</code></pre>
+</details>
+</dd>
+<dt id="tprism.expl_graph.VocabSet.get_values"><code class="name flex">
+<span>def <span class="ident">get_values</span></span>(<span>self, vocab_name: str) ‑> Optional[List[numpy.int32]]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_values(self, vocab_name: str) -&gt; Optional[List[int32]]:
+    if vocab_name not in self.vocab_values:
+        return None
+    return self.vocab_values[vocab_name]</code></pre>
+</details>
+</dd>
+<dt id="tprism.expl_graph.VocabSet.get_values_index"><code class="name flex">
+<span>def <span class="ident">get_values_index</span></span>(<span>self, vocab_name: str, value: Union[int, int32]) ‑> int</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_values_index(self, vocab_name: str, value: Union[int, int32]) -&gt; int:
+    key = (vocab_name, value)
+    if key in self.value_index:
+        return self.value_index[key]
+    else:
+        return 0</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="tprism" href="index.html">tprism</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="tprism.expl_graph.ComputationalExplGraph" href="#tprism.expl_graph.ComputationalExplGraph">ComputationalExplGraph</a></code></h4>
+<ul class="">
+<li><code><a title="tprism.expl_graph.ComputationalExplGraph.build_explanation_graph_template" href="#tprism.expl_graph.ComputationalExplGraph.build_explanation_graph_template">build_explanation_graph_template</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="tprism.expl_graph.PlaceholderGraph" href="#tprism.expl_graph.PlaceholderGraph">PlaceholderGraph</a></code></h4>
+<ul class="">
+<li><code><a title="tprism.expl_graph.PlaceholderGraph.build" href="#tprism.expl_graph.PlaceholderGraph.build">build</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="tprism.expl_graph.SwitchTensor" href="#tprism.expl_graph.SwitchTensor">SwitchTensor</a></code></h4>
+<ul class="">
+<li><code><a title="tprism.expl_graph.SwitchTensor.add_shape" href="#tprism.expl_graph.SwitchTensor.add_shape">add_shape</a></code></li>
+<li><code><a title="tprism.expl_graph.SwitchTensor.enabled_placeholder" href="#tprism.expl_graph.SwitchTensor.enabled_placeholder">enabled_placeholder</a></code></li>
+<li><code><a title="tprism.expl_graph.SwitchTensor.get_placeholder_name" href="#tprism.expl_graph.SwitchTensor.get_placeholder_name">get_placeholder_name</a></code></li>
+<li><code><a title="tprism.expl_graph.SwitchTensor.get_shape" href="#tprism.expl_graph.SwitchTensor.get_shape">get_shape</a></code></li>
+<li><code><a title="tprism.expl_graph.SwitchTensor.make_var_name" href="#tprism.expl_graph.SwitchTensor.make_var_name">make_var_name</a></code></li>
+<li><code><a title="tprism.expl_graph.SwitchTensor.make_vocab_name" href="#tprism.expl_graph.SwitchTensor.make_vocab_name">make_vocab_name</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="tprism.expl_graph.SwitchTensorProvider" href="#tprism.expl_graph.SwitchTensorProvider">SwitchTensorProvider</a></code></h4>
+<ul class="">
+<li><code><a title="tprism.expl_graph.SwitchTensorProvider.add_param" href="#tprism.expl_graph.SwitchTensorProvider.add_param">add_param</a></code></li>
+<li><code><a title="tprism.expl_graph.SwitchTensorProvider.build" href="#tprism.expl_graph.SwitchTensorProvider.build">build</a></code></li>
+<li><code><a title="tprism.expl_graph.SwitchTensorProvider.convert_value_to_index" href="#tprism.expl_graph.SwitchTensorProvider.convert_value_to_index">convert_value_to_index</a></code></li>
+<li><code><a title="tprism.expl_graph.SwitchTensorProvider.get_embedding" href="#tprism.expl_graph.SwitchTensorProvider.get_embedding">get_embedding</a></code></li>
+<li><code><a title="tprism.expl_graph.SwitchTensorProvider.get_param" href="#tprism.expl_graph.SwitchTensorProvider.get_param">get_param</a></code></li>
+<li><code><a title="tprism.expl_graph.SwitchTensorProvider.get_placeholder_name" href="#tprism.expl_graph.SwitchTensorProvider.get_placeholder_name">get_placeholder_name</a></code></li>
+<li><code><a title="tprism.expl_graph.SwitchTensorProvider.get_placeholder_var_name" href="#tprism.expl_graph.SwitchTensorProvider.get_placeholder_var_name">get_placeholder_var_name</a></code></li>
+<li><code><a title="tprism.expl_graph.SwitchTensorProvider.get_switch" href="#tprism.expl_graph.SwitchTensorProvider.get_switch">get_switch</a></code></li>
+<li><code><a title="tprism.expl_graph.SwitchTensorProvider.is_convertable_value" href="#tprism.expl_graph.SwitchTensorProvider.is_convertable_value">is_convertable_value</a></code></li>
+<li><code><a title="tprism.expl_graph.SwitchTensorProvider.set_embedding" href="#tprism.expl_graph.SwitchTensorProvider.set_embedding">set_embedding</a></code></li>
+<li><code><a title="tprism.expl_graph.SwitchTensorProvider.set_input" href="#tprism.expl_graph.SwitchTensorProvider.set_input">set_input</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="tprism.expl_graph.VocabSet" href="#tprism.expl_graph.VocabSet">VocabSet</a></code></h4>
+<ul class="">
+<li><code><a title="tprism.expl_graph.VocabSet.build_from_ph" href="#tprism.expl_graph.VocabSet.build_from_ph">build_from_ph</a></code></li>
+<li><code><a title="tprism.expl_graph.VocabSet.get_values" href="#tprism.expl_graph.VocabSet.get_values">get_values</a></code></li>
+<li><code><a title="tprism.expl_graph.VocabSet.get_values_index" href="#tprism.expl_graph.VocabSet.get_values_index">get_values_index</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

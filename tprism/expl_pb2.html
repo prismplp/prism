@@ -1,0 +1,1969 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>tprism.expl_pb2 API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>tprism.expl_pb2</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python"># Generated by the protocol buffer compiler.  DO NOT EDIT!
+# source: expl.proto
+
+import sys
+
+_b = sys.version_info[0] &lt; 3 and (lambda x: x) or (lambda x: x.encode(&#34;latin1&#34;))
+from google.protobuf.internal import enum_type_wrapper
+from google.protobuf import descriptor as _descriptor
+from google.protobuf import message as _message
+from google.protobuf import reflection as _reflection
+from google.protobuf import symbol_database as _symbol_database
+from google.protobuf import descriptor_pb2
+
+# @@protoc_insertion_point(imports)
+
+_sym_db = _symbol_database.Default()
+
+
+DESCRIPTOR = _descriptor.FileDescriptor(
+    name=&#34;expl.proto&#34;,
+    package=&#34;prism&#34;,
+    syntax=&#34;proto3&#34;,
+    serialized_pb=_b(
+        &#39;\n\nexpl.proto\x12\x05prism&#34;8\n\x0fPlaceholderData\x12%\n\x05goals\x18\x01 \x03(\x0b\x32\x16.prism.PlaceholderGoal&#34;k\n\x0fPlaceholderGoal\x12\n\n\x02id\x18\x01 \x01(\x05\x12(\n\x0cplaceholders\x18\x02 \x03(\x0b\x32\x12.prism.Placeholder\x12&#34;\n\x07records\x18\x03 \x03(\x0b\x32\x11.prism.DataRecord&#34;\x1b\n\nDataRecord\x12\r\n\x05items\x18\x02 \x03(\t&#34;\x1b\n\x0bPlaceholder\x12\x0c\n\x04name\x18\x01 \x01(\t&#34;v\n\x06Option\x12\x1a\n\x05\x66lags\x18\x01 \x03(\x0b\x32\x0b.prism.Flag\x12&amp;\n\x0bindex_range\x18\x02 \x03(\x0b\x32\x11.prism.IndexRange\x12(\n\x0ctensor_shape\x18\x03 \x03(\x0b\x32\x12.prism.TensorShape&#34;&#34;\n\x04\x46lag\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t&#34;*\n\nIndexRange\x12\r\n\x05index\x18\x01 \x01(\t\x12\r\n\x05range\x18\x02 \x01(\x05&#34;1\n\x0bTensorShape\x12\x13\n\x0btensor_name\x18\x01 \x01(\t\x12\r\n\x05shape\x18\x02 \x03(\x05&#34;T\n\tExplGraph\x12#\n\x05goals\x18\x01 \x03(\x0b\x32\x14.prism.ExplGraphGoal\x12&#34;\n\troot_list\x18\x02 \x03(\x0b\x32\x0f.prism.RankRoot&#34;X\n\rExplGraphGoal\x12&#34;\n\x04node\x18\x01 \x01(\x0b\x32\x14.prism.ExplGraphNode\x12#\n\x05paths\x18\x02 \x03(\x0b\x32\x14.prism.ExplGraphPath&#34;\xa1\x01\n\rExplGraphPath\x12#\n\x05nodes\x18\x01 \x03(\x0b\x32\x14.prism.ExplGraphNode\x12#\n\rprob_switches\x18\x02 \x03(\x0b\x32\x0c.prism.SwIns\x12%\n\x0ftensor_switches\x18\x03 \x03(\x0b\x32\x0c.prism.SwIns\x12\x1f\n\toperators\x18\x04 \x03(\x0b\x32\x0c.prism.SwIns&#34;M\n\rExplGraphNode\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x11\n\tsorted_id\x18\x02 \x01(\x05\x12\x1d\n\x04goal\x18\x03 \x01(\x0b\x32\x0f.prism.GoalTerm&#34;&amp;\n\x08GoalTerm\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0c\n\x04\x61rgs\x18\x02 \x03(\t&#34;a\n\x05SwIns\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x0e\n\x06values\x18\x03 \x03(\t\x12\x0e\n\x06inside\x18\x04 \x01(\x02\x12\x1e\n\x07sw_type\x18\x05 \x01(\x0e\x32\r.prism.SwType&#34;%\n\x04Root\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x11\n\tsorted_id\x18\x02 \x01(\x05&#34;5\n\x08RankRoot\x12\x1a\n\x05roots\x18\x01 \x03(\x0b\x32\x0b.prism.Root\x12\r\n\x05\x63ount\x18\x02 \x01(\x05*5\n\x06SwType\x12\x11\n\rProbabilistic\x10\x00\x12\n\n\x06Tensor\x10\x01\x12\x0c\n\x08Operator\x10\x02\x62\x06proto3&#39;
+    ),
+)
+
+_SWTYPE = _descriptor.EnumDescriptor(
+    name=&#34;SwType&#34;,
+    full_name=&#34;prism.SwType&#34;,
+    filename=None,
+    file=DESCRIPTOR,
+    values=[
+        _descriptor.EnumValueDescriptor(
+            name=&#34;Probabilistic&#34;, index=0, number=0, options=None, type=None
+        ),
+        _descriptor.EnumValueDescriptor(
+            name=&#34;Tensor&#34;, index=1, number=1, options=None, type=None
+        ),
+        _descriptor.EnumValueDescriptor(
+            name=&#34;Operator&#34;, index=2, number=2, options=None, type=None
+        ),
+    ],
+    containing_type=None,
+    options=None,
+    serialized_start=1149,
+    serialized_end=1202,
+)
+_sym_db.RegisterEnumDescriptor(_SWTYPE)
+
+SwType = enum_type_wrapper.EnumTypeWrapper(_SWTYPE)
+Probabilistic = 0
+Tensor = 1
+Operator = 2
+
+
+_PLACEHOLDERDATA = _descriptor.Descriptor(
+    name=&#34;PlaceholderData&#34;,
+    full_name=&#34;prism.PlaceholderData&#34;,
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name=&#34;goals&#34;,
+            full_name=&#34;prism.PlaceholderData.goals&#34;,
+            index=0,
+            number=1,
+            type=11,
+            cpp_type=10,
+            label=3,
+            has_default_value=False,
+            default_value=[],
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            options=None,
+            file=DESCRIPTOR,
+        )
+    ],
+    extensions=[],
+    nested_types=[],
+    enum_types=[],
+    options=None,
+    is_extendable=False,
+    syntax=&#34;proto3&#34;,
+    extension_ranges=[],
+    oneofs=[],
+    serialized_start=21,
+    serialized_end=77,
+)
+
+
+_PLACEHOLDERGOAL = _descriptor.Descriptor(
+    name=&#34;PlaceholderGoal&#34;,
+    full_name=&#34;prism.PlaceholderGoal&#34;,
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name=&#34;id&#34;,
+            full_name=&#34;prism.PlaceholderGoal.id&#34;,
+            index=0,
+            number=1,
+            type=5,
+            cpp_type=1,
+            label=1,
+            has_default_value=False,
+            default_value=0,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name=&#34;placeholders&#34;,
+            full_name=&#34;prism.PlaceholderGoal.placeholders&#34;,
+            index=1,
+            number=2,
+            type=11,
+            cpp_type=10,
+            label=3,
+            has_default_value=False,
+            default_value=[],
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name=&#34;records&#34;,
+            full_name=&#34;prism.PlaceholderGoal.records&#34;,
+            index=2,
+            number=3,
+            type=11,
+            cpp_type=10,
+            label=3,
+            has_default_value=False,
+            default_value=[],
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            options=None,
+            file=DESCRIPTOR,
+        ),
+    ],
+    extensions=[],
+    nested_types=[],
+    enum_types=[],
+    options=None,
+    is_extendable=False,
+    syntax=&#34;proto3&#34;,
+    extension_ranges=[],
+    oneofs=[],
+    serialized_start=79,
+    serialized_end=186,
+)
+
+
+_DATARECORD = _descriptor.Descriptor(
+    name=&#34;DataRecord&#34;,
+    full_name=&#34;prism.DataRecord&#34;,
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name=&#34;items&#34;,
+            full_name=&#34;prism.DataRecord.items&#34;,
+            index=0,
+            number=2,
+            type=9,
+            cpp_type=9,
+            label=3,
+            has_default_value=False,
+            default_value=[],
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            options=None,
+            file=DESCRIPTOR,
+        )
+    ],
+    extensions=[],
+    nested_types=[],
+    enum_types=[],
+    options=None,
+    is_extendable=False,
+    syntax=&#34;proto3&#34;,
+    extension_ranges=[],
+    oneofs=[],
+    serialized_start=188,
+    serialized_end=215,
+)
+
+
+_PLACEHOLDER = _descriptor.Descriptor(
+    name=&#34;Placeholder&#34;,
+    full_name=&#34;prism.Placeholder&#34;,
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name=&#34;name&#34;,
+            full_name=&#34;prism.Placeholder.name&#34;,
+            index=0,
+            number=1,
+            type=9,
+            cpp_type=9,
+            label=1,
+            has_default_value=False,
+            default_value=_b(&#34;&#34;).decode(&#34;utf-8&#34;),
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            options=None,
+            file=DESCRIPTOR,
+        )
+    ],
+    extensions=[],
+    nested_types=[],
+    enum_types=[],
+    options=None,
+    is_extendable=False,
+    syntax=&#34;proto3&#34;,
+    extension_ranges=[],
+    oneofs=[],
+    serialized_start=217,
+    serialized_end=244,
+)
+
+
+_OPTION = _descriptor.Descriptor(
+    name=&#34;Option&#34;,
+    full_name=&#34;prism.Option&#34;,
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name=&#34;flags&#34;,
+            full_name=&#34;prism.Option.flags&#34;,
+            index=0,
+            number=1,
+            type=11,
+            cpp_type=10,
+            label=3,
+            has_default_value=False,
+            default_value=[],
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name=&#34;index_range&#34;,
+            full_name=&#34;prism.Option.index_range&#34;,
+            index=1,
+            number=2,
+            type=11,
+            cpp_type=10,
+            label=3,
+            has_default_value=False,
+            default_value=[],
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name=&#34;tensor_shape&#34;,
+            full_name=&#34;prism.Option.tensor_shape&#34;,
+            index=2,
+            number=3,
+            type=11,
+            cpp_type=10,
+            label=3,
+            has_default_value=False,
+            default_value=[],
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            options=None,
+            file=DESCRIPTOR,
+        ),
+    ],
+    extensions=[],
+    nested_types=[],
+    enum_types=[],
+    options=None,
+    is_extendable=False,
+    syntax=&#34;proto3&#34;,
+    extension_ranges=[],
+    oneofs=[],
+    serialized_start=246,
+    serialized_end=364,
+)
+
+
+_FLAG = _descriptor.Descriptor(
+    name=&#34;Flag&#34;,
+    full_name=&#34;prism.Flag&#34;,
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name=&#34;key&#34;,
+            full_name=&#34;prism.Flag.key&#34;,
+            index=0,
+            number=1,
+            type=9,
+            cpp_type=9,
+            label=1,
+            has_default_value=False,
+            default_value=_b(&#34;&#34;).decode(&#34;utf-8&#34;),
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name=&#34;value&#34;,
+            full_name=&#34;prism.Flag.value&#34;,
+            index=1,
+            number=2,
+            type=9,
+            cpp_type=9,
+            label=1,
+            has_default_value=False,
+            default_value=_b(&#34;&#34;).decode(&#34;utf-8&#34;),
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            options=None,
+            file=DESCRIPTOR,
+        ),
+    ],
+    extensions=[],
+    nested_types=[],
+    enum_types=[],
+    options=None,
+    is_extendable=False,
+    syntax=&#34;proto3&#34;,
+    extension_ranges=[],
+    oneofs=[],
+    serialized_start=366,
+    serialized_end=400,
+)
+
+
+_INDEXRANGE = _descriptor.Descriptor(
+    name=&#34;IndexRange&#34;,
+    full_name=&#34;prism.IndexRange&#34;,
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name=&#34;index&#34;,
+            full_name=&#34;prism.IndexRange.index&#34;,
+            index=0,
+            number=1,
+            type=9,
+            cpp_type=9,
+            label=1,
+            has_default_value=False,
+            default_value=_b(&#34;&#34;).decode(&#34;utf-8&#34;),
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name=&#34;range&#34;,
+            full_name=&#34;prism.IndexRange.range&#34;,
+            index=1,
+            number=2,
+            type=5,
+            cpp_type=1,
+            label=1,
+            has_default_value=False,
+            default_value=0,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            options=None,
+            file=DESCRIPTOR,
+        ),
+    ],
+    extensions=[],
+    nested_types=[],
+    enum_types=[],
+    options=None,
+    is_extendable=False,
+    syntax=&#34;proto3&#34;,
+    extension_ranges=[],
+    oneofs=[],
+    serialized_start=402,
+    serialized_end=444,
+)
+
+
+_TENSORSHAPE = _descriptor.Descriptor(
+    name=&#34;TensorShape&#34;,
+    full_name=&#34;prism.TensorShape&#34;,
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name=&#34;tensor_name&#34;,
+            full_name=&#34;prism.TensorShape.tensor_name&#34;,
+            index=0,
+            number=1,
+            type=9,
+            cpp_type=9,
+            label=1,
+            has_default_value=False,
+            default_value=_b(&#34;&#34;).decode(&#34;utf-8&#34;),
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name=&#34;shape&#34;,
+            full_name=&#34;prism.TensorShape.shape&#34;,
+            index=1,
+            number=2,
+            type=5,
+            cpp_type=1,
+            label=3,
+            has_default_value=False,
+            default_value=[],
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            options=None,
+            file=DESCRIPTOR,
+        ),
+    ],
+    extensions=[],
+    nested_types=[],
+    enum_types=[],
+    options=None,
+    is_extendable=False,
+    syntax=&#34;proto3&#34;,
+    extension_ranges=[],
+    oneofs=[],
+    serialized_start=446,
+    serialized_end=495,
+)
+
+
+_EXPLGRAPH = _descriptor.Descriptor(
+    name=&#34;ExplGraph&#34;,
+    full_name=&#34;prism.ExplGraph&#34;,
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name=&#34;goals&#34;,
+            full_name=&#34;prism.ExplGraph.goals&#34;,
+            index=0,
+            number=1,
+            type=11,
+            cpp_type=10,
+            label=3,
+            has_default_value=False,
+            default_value=[],
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name=&#34;root_list&#34;,
+            full_name=&#34;prism.ExplGraph.root_list&#34;,
+            index=1,
+            number=2,
+            type=11,
+            cpp_type=10,
+            label=3,
+            has_default_value=False,
+            default_value=[],
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            options=None,
+            file=DESCRIPTOR,
+        ),
+    ],
+    extensions=[],
+    nested_types=[],
+    enum_types=[],
+    options=None,
+    is_extendable=False,
+    syntax=&#34;proto3&#34;,
+    extension_ranges=[],
+    oneofs=[],
+    serialized_start=497,
+    serialized_end=581,
+)
+
+
+_EXPLGRAPHGOAL = _descriptor.Descriptor(
+    name=&#34;ExplGraphGoal&#34;,
+    full_name=&#34;prism.ExplGraphGoal&#34;,
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name=&#34;node&#34;,
+            full_name=&#34;prism.ExplGraphGoal.node&#34;,
+            index=0,
+            number=1,
+            type=11,
+            cpp_type=10,
+            label=1,
+            has_default_value=False,
+            default_value=None,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name=&#34;paths&#34;,
+            full_name=&#34;prism.ExplGraphGoal.paths&#34;,
+            index=1,
+            number=2,
+            type=11,
+            cpp_type=10,
+            label=3,
+            has_default_value=False,
+            default_value=[],
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            options=None,
+            file=DESCRIPTOR,
+        ),
+    ],
+    extensions=[],
+    nested_types=[],
+    enum_types=[],
+    options=None,
+    is_extendable=False,
+    syntax=&#34;proto3&#34;,
+    extension_ranges=[],
+    oneofs=[],
+    serialized_start=583,
+    serialized_end=671,
+)
+
+
+_EXPLGRAPHPATH = _descriptor.Descriptor(
+    name=&#34;ExplGraphPath&#34;,
+    full_name=&#34;prism.ExplGraphPath&#34;,
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name=&#34;nodes&#34;,
+            full_name=&#34;prism.ExplGraphPath.nodes&#34;,
+            index=0,
+            number=1,
+            type=11,
+            cpp_type=10,
+            label=3,
+            has_default_value=False,
+            default_value=[],
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name=&#34;prob_switches&#34;,
+            full_name=&#34;prism.ExplGraphPath.prob_switches&#34;,
+            index=1,
+            number=2,
+            type=11,
+            cpp_type=10,
+            label=3,
+            has_default_value=False,
+            default_value=[],
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name=&#34;tensor_switches&#34;,
+            full_name=&#34;prism.ExplGraphPath.tensor_switches&#34;,
+            index=2,
+            number=3,
+            type=11,
+            cpp_type=10,
+            label=3,
+            has_default_value=False,
+            default_value=[],
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name=&#34;operators&#34;,
+            full_name=&#34;prism.ExplGraphPath.operators&#34;,
+            index=3,
+            number=4,
+            type=11,
+            cpp_type=10,
+            label=3,
+            has_default_value=False,
+            default_value=[],
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            options=None,
+            file=DESCRIPTOR,
+        ),
+    ],
+    extensions=[],
+    nested_types=[],
+    enum_types=[],
+    options=None,
+    is_extendable=False,
+    syntax=&#34;proto3&#34;,
+    extension_ranges=[],
+    oneofs=[],
+    serialized_start=674,
+    serialized_end=835,
+)
+
+
+_EXPLGRAPHNODE = _descriptor.Descriptor(
+    name=&#34;ExplGraphNode&#34;,
+    full_name=&#34;prism.ExplGraphNode&#34;,
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name=&#34;id&#34;,
+            full_name=&#34;prism.ExplGraphNode.id&#34;,
+            index=0,
+            number=1,
+            type=5,
+            cpp_type=1,
+            label=1,
+            has_default_value=False,
+            default_value=0,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name=&#34;sorted_id&#34;,
+            full_name=&#34;prism.ExplGraphNode.sorted_id&#34;,
+            index=1,
+            number=2,
+            type=5,
+            cpp_type=1,
+            label=1,
+            has_default_value=False,
+            default_value=0,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name=&#34;goal&#34;,
+            full_name=&#34;prism.ExplGraphNode.goal&#34;,
+            index=2,
+            number=3,
+            type=11,
+            cpp_type=10,
+            label=1,
+            has_default_value=False,
+            default_value=None,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            options=None,
+            file=DESCRIPTOR,
+        ),
+    ],
+    extensions=[],
+    nested_types=[],
+    enum_types=[],
+    options=None,
+    is_extendable=False,
+    syntax=&#34;proto3&#34;,
+    extension_ranges=[],
+    oneofs=[],
+    serialized_start=837,
+    serialized_end=914,
+)
+
+
+_GOALTERM = _descriptor.Descriptor(
+    name=&#34;GoalTerm&#34;,
+    full_name=&#34;prism.GoalTerm&#34;,
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name=&#34;name&#34;,
+            full_name=&#34;prism.GoalTerm.name&#34;,
+            index=0,
+            number=1,
+            type=9,
+            cpp_type=9,
+            label=1,
+            has_default_value=False,
+            default_value=_b(&#34;&#34;).decode(&#34;utf-8&#34;),
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name=&#34;args&#34;,
+            full_name=&#34;prism.GoalTerm.args&#34;,
+            index=1,
+            number=2,
+            type=9,
+            cpp_type=9,
+            label=3,
+            has_default_value=False,
+            default_value=[],
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            options=None,
+            file=DESCRIPTOR,
+        ),
+    ],
+    extensions=[],
+    nested_types=[],
+    enum_types=[],
+    options=None,
+    is_extendable=False,
+    syntax=&#34;proto3&#34;,
+    extension_ranges=[],
+    oneofs=[],
+    serialized_start=916,
+    serialized_end=954,
+)
+
+
+_SWINS = _descriptor.Descriptor(
+    name=&#34;SwIns&#34;,
+    full_name=&#34;prism.SwIns&#34;,
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name=&#34;id&#34;,
+            full_name=&#34;prism.SwIns.id&#34;,
+            index=0,
+            number=1,
+            type=5,
+            cpp_type=1,
+            label=1,
+            has_default_value=False,
+            default_value=0,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name=&#34;name&#34;,
+            full_name=&#34;prism.SwIns.name&#34;,
+            index=1,
+            number=2,
+            type=9,
+            cpp_type=9,
+            label=1,
+            has_default_value=False,
+            default_value=_b(&#34;&#34;).decode(&#34;utf-8&#34;),
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name=&#34;values&#34;,
+            full_name=&#34;prism.SwIns.values&#34;,
+            index=2,
+            number=3,
+            type=9,
+            cpp_type=9,
+            label=3,
+            has_default_value=False,
+            default_value=[],
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name=&#34;inside&#34;,
+            full_name=&#34;prism.SwIns.inside&#34;,
+            index=3,
+            number=4,
+            type=2,
+            cpp_type=6,
+            label=1,
+            has_default_value=False,
+            default_value=float(0),
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name=&#34;sw_type&#34;,
+            full_name=&#34;prism.SwIns.sw_type&#34;,
+            index=4,
+            number=5,
+            type=14,
+            cpp_type=8,
+            label=1,
+            has_default_value=False,
+            default_value=0,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            options=None,
+            file=DESCRIPTOR,
+        ),
+    ],
+    extensions=[],
+    nested_types=[],
+    enum_types=[],
+    options=None,
+    is_extendable=False,
+    syntax=&#34;proto3&#34;,
+    extension_ranges=[],
+    oneofs=[],
+    serialized_start=956,
+    serialized_end=1053,
+)
+
+
+_ROOT = _descriptor.Descriptor(
+    name=&#34;Root&#34;,
+    full_name=&#34;prism.Root&#34;,
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name=&#34;id&#34;,
+            full_name=&#34;prism.Root.id&#34;,
+            index=0,
+            number=1,
+            type=5,
+            cpp_type=1,
+            label=1,
+            has_default_value=False,
+            default_value=0,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name=&#34;sorted_id&#34;,
+            full_name=&#34;prism.Root.sorted_id&#34;,
+            index=1,
+            number=2,
+            type=5,
+            cpp_type=1,
+            label=1,
+            has_default_value=False,
+            default_value=0,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            options=None,
+            file=DESCRIPTOR,
+        ),
+    ],
+    extensions=[],
+    nested_types=[],
+    enum_types=[],
+    options=None,
+    is_extendable=False,
+    syntax=&#34;proto3&#34;,
+    extension_ranges=[],
+    oneofs=[],
+    serialized_start=1055,
+    serialized_end=1092,
+)
+
+
+_RANKROOT = _descriptor.Descriptor(
+    name=&#34;RankRoot&#34;,
+    full_name=&#34;prism.RankRoot&#34;,
+    filename=None,
+    file=DESCRIPTOR,
+    containing_type=None,
+    fields=[
+        _descriptor.FieldDescriptor(
+            name=&#34;roots&#34;,
+            full_name=&#34;prism.RankRoot.roots&#34;,
+            index=0,
+            number=1,
+            type=11,
+            cpp_type=10,
+            label=3,
+            has_default_value=False,
+            default_value=[],
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            options=None,
+            file=DESCRIPTOR,
+        ),
+        _descriptor.FieldDescriptor(
+            name=&#34;count&#34;,
+            full_name=&#34;prism.RankRoot.count&#34;,
+            index=1,
+            number=2,
+            type=5,
+            cpp_type=1,
+            label=1,
+            has_default_value=False,
+            default_value=0,
+            message_type=None,
+            enum_type=None,
+            containing_type=None,
+            is_extension=False,
+            extension_scope=None,
+            options=None,
+            file=DESCRIPTOR,
+        ),
+    ],
+    extensions=[],
+    nested_types=[],
+    enum_types=[],
+    options=None,
+    is_extendable=False,
+    syntax=&#34;proto3&#34;,
+    extension_ranges=[],
+    oneofs=[],
+    serialized_start=1094,
+    serialized_end=1147,
+)
+
+_PLACEHOLDERDATA.fields_by_name[&#34;goals&#34;].message_type = _PLACEHOLDERGOAL
+_PLACEHOLDERGOAL.fields_by_name[&#34;placeholders&#34;].message_type = _PLACEHOLDER
+_PLACEHOLDERGOAL.fields_by_name[&#34;records&#34;].message_type = _DATARECORD
+_OPTION.fields_by_name[&#34;flags&#34;].message_type = _FLAG
+_OPTION.fields_by_name[&#34;index_range&#34;].message_type = _INDEXRANGE
+_OPTION.fields_by_name[&#34;tensor_shape&#34;].message_type = _TENSORSHAPE
+_EXPLGRAPH.fields_by_name[&#34;goals&#34;].message_type = _EXPLGRAPHGOAL
+_EXPLGRAPH.fields_by_name[&#34;root_list&#34;].message_type = _RANKROOT
+_EXPLGRAPHGOAL.fields_by_name[&#34;node&#34;].message_type = _EXPLGRAPHNODE
+_EXPLGRAPHGOAL.fields_by_name[&#34;paths&#34;].message_type = _EXPLGRAPHPATH
+_EXPLGRAPHPATH.fields_by_name[&#34;nodes&#34;].message_type = _EXPLGRAPHNODE
+_EXPLGRAPHPATH.fields_by_name[&#34;prob_switches&#34;].message_type = _SWINS
+_EXPLGRAPHPATH.fields_by_name[&#34;tensor_switches&#34;].message_type = _SWINS
+_EXPLGRAPHPATH.fields_by_name[&#34;operators&#34;].message_type = _SWINS
+_EXPLGRAPHNODE.fields_by_name[&#34;goal&#34;].message_type = _GOALTERM
+_SWINS.fields_by_name[&#34;sw_type&#34;].enum_type = _SWTYPE
+_RANKROOT.fields_by_name[&#34;roots&#34;].message_type = _ROOT
+DESCRIPTOR.message_types_by_name[&#34;PlaceholderData&#34;] = _PLACEHOLDERDATA
+DESCRIPTOR.message_types_by_name[&#34;PlaceholderGoal&#34;] = _PLACEHOLDERGOAL
+DESCRIPTOR.message_types_by_name[&#34;DataRecord&#34;] = _DATARECORD
+DESCRIPTOR.message_types_by_name[&#34;Placeholder&#34;] = _PLACEHOLDER
+DESCRIPTOR.message_types_by_name[&#34;Option&#34;] = _OPTION
+DESCRIPTOR.message_types_by_name[&#34;Flag&#34;] = _FLAG
+DESCRIPTOR.message_types_by_name[&#34;IndexRange&#34;] = _INDEXRANGE
+DESCRIPTOR.message_types_by_name[&#34;TensorShape&#34;] = _TENSORSHAPE
+DESCRIPTOR.message_types_by_name[&#34;ExplGraph&#34;] = _EXPLGRAPH
+DESCRIPTOR.message_types_by_name[&#34;ExplGraphGoal&#34;] = _EXPLGRAPHGOAL
+DESCRIPTOR.message_types_by_name[&#34;ExplGraphPath&#34;] = _EXPLGRAPHPATH
+DESCRIPTOR.message_types_by_name[&#34;ExplGraphNode&#34;] = _EXPLGRAPHNODE
+DESCRIPTOR.message_types_by_name[&#34;GoalTerm&#34;] = _GOALTERM
+DESCRIPTOR.message_types_by_name[&#34;SwIns&#34;] = _SWINS
+DESCRIPTOR.message_types_by_name[&#34;Root&#34;] = _ROOT
+DESCRIPTOR.message_types_by_name[&#34;RankRoot&#34;] = _RANKROOT
+DESCRIPTOR.enum_types_by_name[&#34;SwType&#34;] = _SWTYPE
+_sym_db.RegisterFileDescriptor(DESCRIPTOR)
+
+PlaceholderData = _reflection.GeneratedProtocolMessageType(
+    &#34;PlaceholderData&#34;,
+    (_message.Message,),
+    dict(
+        DESCRIPTOR=_PLACEHOLDERDATA,
+        __module__=&#34;expl_pb2&#34;
+        # @@protoc_insertion_point(class_scope:prism.PlaceholderData)
+    ),
+)
+_sym_db.RegisterMessage(PlaceholderData)
+
+PlaceholderGoal = _reflection.GeneratedProtocolMessageType(
+    &#34;PlaceholderGoal&#34;,
+    (_message.Message,),
+    dict(
+        DESCRIPTOR=_PLACEHOLDERGOAL,
+        __module__=&#34;expl_pb2&#34;
+        # @@protoc_insertion_point(class_scope:prism.PlaceholderGoal)
+    ),
+)
+_sym_db.RegisterMessage(PlaceholderGoal)
+
+DataRecord = _reflection.GeneratedProtocolMessageType(
+    &#34;DataRecord&#34;,
+    (_message.Message,),
+    dict(
+        DESCRIPTOR=_DATARECORD,
+        __module__=&#34;expl_pb2&#34;
+        # @@protoc_insertion_point(class_scope:prism.DataRecord)
+    ),
+)
+_sym_db.RegisterMessage(DataRecord)
+
+Placeholder = _reflection.GeneratedProtocolMessageType(
+    &#34;Placeholder&#34;,
+    (_message.Message,),
+    dict(
+        DESCRIPTOR=_PLACEHOLDER,
+        __module__=&#34;expl_pb2&#34;
+        # @@protoc_insertion_point(class_scope:prism.Placeholder)
+    ),
+)
+_sym_db.RegisterMessage(Placeholder)
+
+Option = _reflection.GeneratedProtocolMessageType(
+    &#34;Option&#34;,
+    (_message.Message,),
+    dict(
+        DESCRIPTOR=_OPTION,
+        __module__=&#34;expl_pb2&#34;
+        # @@protoc_insertion_point(class_scope:prism.Option)
+    ),
+)
+_sym_db.RegisterMessage(Option)
+
+Flag = _reflection.GeneratedProtocolMessageType(
+    &#34;Flag&#34;,
+    (_message.Message,),
+    dict(
+        DESCRIPTOR=_FLAG,
+        __module__=&#34;expl_pb2&#34;
+        # @@protoc_insertion_point(class_scope:prism.Flag)
+    ),
+)
+_sym_db.RegisterMessage(Flag)
+
+IndexRange = _reflection.GeneratedProtocolMessageType(
+    &#34;IndexRange&#34;,
+    (_message.Message,),
+    dict(
+        DESCRIPTOR=_INDEXRANGE,
+        __module__=&#34;expl_pb2&#34;
+        # @@protoc_insertion_point(class_scope:prism.IndexRange)
+    ),
+)
+_sym_db.RegisterMessage(IndexRange)
+
+TensorShape = _reflection.GeneratedProtocolMessageType(
+    &#34;TensorShape&#34;,
+    (_message.Message,),
+    dict(
+        DESCRIPTOR=_TENSORSHAPE,
+        __module__=&#34;expl_pb2&#34;
+        # @@protoc_insertion_point(class_scope:prism.TensorShape)
+    ),
+)
+_sym_db.RegisterMessage(TensorShape)
+
+ExplGraph = _reflection.GeneratedProtocolMessageType(
+    &#34;ExplGraph&#34;,
+    (_message.Message,),
+    dict(
+        DESCRIPTOR=_EXPLGRAPH,
+        __module__=&#34;expl_pb2&#34;
+        # @@protoc_insertion_point(class_scope:prism.ExplGraph)
+    ),
+)
+_sym_db.RegisterMessage(ExplGraph)
+
+ExplGraphGoal = _reflection.GeneratedProtocolMessageType(
+    &#34;ExplGraphGoal&#34;,
+    (_message.Message,),
+    dict(
+        DESCRIPTOR=_EXPLGRAPHGOAL,
+        __module__=&#34;expl_pb2&#34;
+        # @@protoc_insertion_point(class_scope:prism.ExplGraphGoal)
+    ),
+)
+_sym_db.RegisterMessage(ExplGraphGoal)
+
+ExplGraphPath = _reflection.GeneratedProtocolMessageType(
+    &#34;ExplGraphPath&#34;,
+    (_message.Message,),
+    dict(
+        DESCRIPTOR=_EXPLGRAPHPATH,
+        __module__=&#34;expl_pb2&#34;
+        # @@protoc_insertion_point(class_scope:prism.ExplGraphPath)
+    ),
+)
+_sym_db.RegisterMessage(ExplGraphPath)
+
+ExplGraphNode = _reflection.GeneratedProtocolMessageType(
+    &#34;ExplGraphNode&#34;,
+    (_message.Message,),
+    dict(
+        DESCRIPTOR=_EXPLGRAPHNODE,
+        __module__=&#34;expl_pb2&#34;
+        # @@protoc_insertion_point(class_scope:prism.ExplGraphNode)
+    ),
+)
+_sym_db.RegisterMessage(ExplGraphNode)
+
+GoalTerm = _reflection.GeneratedProtocolMessageType(
+    &#34;GoalTerm&#34;,
+    (_message.Message,),
+    dict(
+        DESCRIPTOR=_GOALTERM,
+        __module__=&#34;expl_pb2&#34;
+        # @@protoc_insertion_point(class_scope:prism.GoalTerm)
+    ),
+)
+_sym_db.RegisterMessage(GoalTerm)
+
+SwIns = _reflection.GeneratedProtocolMessageType(
+    &#34;SwIns&#34;,
+    (_message.Message,),
+    dict(
+        DESCRIPTOR=_SWINS,
+        __module__=&#34;expl_pb2&#34;
+        # @@protoc_insertion_point(class_scope:prism.SwIns)
+    ),
+)
+_sym_db.RegisterMessage(SwIns)
+
+Root = _reflection.GeneratedProtocolMessageType(
+    &#34;Root&#34;,
+    (_message.Message,),
+    dict(
+        DESCRIPTOR=_ROOT,
+        __module__=&#34;expl_pb2&#34;
+        # @@protoc_insertion_point(class_scope:prism.Root)
+    ),
+)
+_sym_db.RegisterMessage(Root)
+
+RankRoot = _reflection.GeneratedProtocolMessageType(
+    &#34;RankRoot&#34;,
+    (_message.Message,),
+    dict(
+        DESCRIPTOR=_RANKROOT,
+        __module__=&#34;expl_pb2&#34;
+        # @@protoc_insertion_point(class_scope:prism.RankRoot)
+    ),
+)
+_sym_db.RegisterMessage(RankRoot)
+
+
+# @@protoc_insertion_point(module_scope)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="tprism.expl_pb2.DataRecord"><code class="flex name class">
+<span>class <span class="ident">DataRecord</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>google.protobuf.pyext._message.CMessage</li>
+<li>google.protobuf.message.Message</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="tprism.expl_pb2.DataRecord.DESCRIPTOR"><code class="name">var <span class="ident">DESCRIPTOR</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="tprism.expl_pb2.DataRecord.items"><code class="name">var <span class="ident">items</span></code></dt>
+<dd>
+<div class="desc"><p>Field prism.DataRecord.items</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="tprism.expl_pb2.ExplGraph"><code class="flex name class">
+<span>class <span class="ident">ExplGraph</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>google.protobuf.pyext._message.CMessage</li>
+<li>google.protobuf.message.Message</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="tprism.expl_pb2.ExplGraph.DESCRIPTOR"><code class="name">var <span class="ident">DESCRIPTOR</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="tprism.expl_pb2.ExplGraph.goals"><code class="name">var <span class="ident">goals</span></code></dt>
+<dd>
+<div class="desc"><p>Field prism.ExplGraph.goals</p></div>
+</dd>
+<dt id="tprism.expl_pb2.ExplGraph.root_list"><code class="name">var <span class="ident">root_list</span></code></dt>
+<dd>
+<div class="desc"><p>Field prism.ExplGraph.root_list</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="tprism.expl_pb2.ExplGraphGoal"><code class="flex name class">
+<span>class <span class="ident">ExplGraphGoal</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>google.protobuf.pyext._message.CMessage</li>
+<li>google.protobuf.message.Message</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="tprism.expl_pb2.ExplGraphGoal.DESCRIPTOR"><code class="name">var <span class="ident">DESCRIPTOR</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="tprism.expl_pb2.ExplGraphGoal.node"><code class="name">var <span class="ident">node</span></code></dt>
+<dd>
+<div class="desc"><p>Field prism.ExplGraphGoal.node</p></div>
+</dd>
+<dt id="tprism.expl_pb2.ExplGraphGoal.paths"><code class="name">var <span class="ident">paths</span></code></dt>
+<dd>
+<div class="desc"><p>Field prism.ExplGraphGoal.paths</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="tprism.expl_pb2.ExplGraphNode"><code class="flex name class">
+<span>class <span class="ident">ExplGraphNode</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>google.protobuf.pyext._message.CMessage</li>
+<li>google.protobuf.message.Message</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="tprism.expl_pb2.ExplGraphNode.DESCRIPTOR"><code class="name">var <span class="ident">DESCRIPTOR</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="tprism.expl_pb2.ExplGraphNode.goal"><code class="name">var <span class="ident">goal</span></code></dt>
+<dd>
+<div class="desc"><p>Field prism.ExplGraphNode.goal</p></div>
+</dd>
+<dt id="tprism.expl_pb2.ExplGraphNode.id"><code class="name">var <span class="ident">id</span></code></dt>
+<dd>
+<div class="desc"><p>Field prism.ExplGraphNode.id</p></div>
+</dd>
+<dt id="tprism.expl_pb2.ExplGraphNode.sorted_id"><code class="name">var <span class="ident">sorted_id</span></code></dt>
+<dd>
+<div class="desc"><p>Field prism.ExplGraphNode.sorted_id</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="tprism.expl_pb2.ExplGraphPath"><code class="flex name class">
+<span>class <span class="ident">ExplGraphPath</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>google.protobuf.pyext._message.CMessage</li>
+<li>google.protobuf.message.Message</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="tprism.expl_pb2.ExplGraphPath.DESCRIPTOR"><code class="name">var <span class="ident">DESCRIPTOR</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="tprism.expl_pb2.ExplGraphPath.nodes"><code class="name">var <span class="ident">nodes</span></code></dt>
+<dd>
+<div class="desc"><p>Field prism.ExplGraphPath.nodes</p></div>
+</dd>
+<dt id="tprism.expl_pb2.ExplGraphPath.operators"><code class="name">var <span class="ident">operators</span></code></dt>
+<dd>
+<div class="desc"><p>Field prism.ExplGraphPath.operators</p></div>
+</dd>
+<dt id="tprism.expl_pb2.ExplGraphPath.prob_switches"><code class="name">var <span class="ident">prob_switches</span></code></dt>
+<dd>
+<div class="desc"><p>Field prism.ExplGraphPath.prob_switches</p></div>
+</dd>
+<dt id="tprism.expl_pb2.ExplGraphPath.tensor_switches"><code class="name">var <span class="ident">tensor_switches</span></code></dt>
+<dd>
+<div class="desc"><p>Field prism.ExplGraphPath.tensor_switches</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="tprism.expl_pb2.Flag"><code class="flex name class">
+<span>class <span class="ident">Flag</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>google.protobuf.pyext._message.CMessage</li>
+<li>google.protobuf.message.Message</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="tprism.expl_pb2.Flag.DESCRIPTOR"><code class="name">var <span class="ident">DESCRIPTOR</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="tprism.expl_pb2.Flag.key"><code class="name">var <span class="ident">key</span></code></dt>
+<dd>
+<div class="desc"><p>Field prism.Flag.key</p></div>
+</dd>
+<dt id="tprism.expl_pb2.Flag.value"><code class="name">var <span class="ident">value</span></code></dt>
+<dd>
+<div class="desc"><p>Field prism.Flag.value</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="tprism.expl_pb2.GoalTerm"><code class="flex name class">
+<span>class <span class="ident">GoalTerm</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>google.protobuf.pyext._message.CMessage</li>
+<li>google.protobuf.message.Message</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="tprism.expl_pb2.GoalTerm.DESCRIPTOR"><code class="name">var <span class="ident">DESCRIPTOR</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="tprism.expl_pb2.GoalTerm.args"><code class="name">var <span class="ident">args</span></code></dt>
+<dd>
+<div class="desc"><p>Field prism.GoalTerm.args</p></div>
+</dd>
+<dt id="tprism.expl_pb2.GoalTerm.name"><code class="name">var <span class="ident">name</span></code></dt>
+<dd>
+<div class="desc"><p>Field prism.GoalTerm.name</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="tprism.expl_pb2.IndexRange"><code class="flex name class">
+<span>class <span class="ident">IndexRange</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>google.protobuf.pyext._message.CMessage</li>
+<li>google.protobuf.message.Message</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="tprism.expl_pb2.IndexRange.DESCRIPTOR"><code class="name">var <span class="ident">DESCRIPTOR</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="tprism.expl_pb2.IndexRange.index"><code class="name">var <span class="ident">index</span></code></dt>
+<dd>
+<div class="desc"><p>Field prism.IndexRange.index</p></div>
+</dd>
+<dt id="tprism.expl_pb2.IndexRange.range"><code class="name">var <span class="ident">range</span></code></dt>
+<dd>
+<div class="desc"><p>Field prism.IndexRange.range</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="tprism.expl_pb2.Option"><code class="flex name class">
+<span>class <span class="ident">Option</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>google.protobuf.pyext._message.CMessage</li>
+<li>google.protobuf.message.Message</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="tprism.expl_pb2.Option.DESCRIPTOR"><code class="name">var <span class="ident">DESCRIPTOR</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="tprism.expl_pb2.Option.flags"><code class="name">var <span class="ident">flags</span></code></dt>
+<dd>
+<div class="desc"><p>Field prism.Option.flags</p></div>
+</dd>
+<dt id="tprism.expl_pb2.Option.index_range"><code class="name">var <span class="ident">index_range</span></code></dt>
+<dd>
+<div class="desc"><p>Field prism.Option.index_range</p></div>
+</dd>
+<dt id="tprism.expl_pb2.Option.tensor_shape"><code class="name">var <span class="ident">tensor_shape</span></code></dt>
+<dd>
+<div class="desc"><p>Field prism.Option.tensor_shape</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="tprism.expl_pb2.Placeholder"><code class="flex name class">
+<span>class <span class="ident">Placeholder</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>google.protobuf.pyext._message.CMessage</li>
+<li>google.protobuf.message.Message</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="tprism.expl_pb2.Placeholder.DESCRIPTOR"><code class="name">var <span class="ident">DESCRIPTOR</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="tprism.expl_pb2.Placeholder.name"><code class="name">var <span class="ident">name</span></code></dt>
+<dd>
+<div class="desc"><p>Field prism.Placeholder.name</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="tprism.expl_pb2.PlaceholderData"><code class="flex name class">
+<span>class <span class="ident">PlaceholderData</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>google.protobuf.pyext._message.CMessage</li>
+<li>google.protobuf.message.Message</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="tprism.expl_pb2.PlaceholderData.DESCRIPTOR"><code class="name">var <span class="ident">DESCRIPTOR</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="tprism.expl_pb2.PlaceholderData.goals"><code class="name">var <span class="ident">goals</span></code></dt>
+<dd>
+<div class="desc"><p>Field prism.PlaceholderData.goals</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="tprism.expl_pb2.PlaceholderGoal"><code class="flex name class">
+<span>class <span class="ident">PlaceholderGoal</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>google.protobuf.pyext._message.CMessage</li>
+<li>google.protobuf.message.Message</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="tprism.expl_pb2.PlaceholderGoal.DESCRIPTOR"><code class="name">var <span class="ident">DESCRIPTOR</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="tprism.expl_pb2.PlaceholderGoal.id"><code class="name">var <span class="ident">id</span></code></dt>
+<dd>
+<div class="desc"><p>Field prism.PlaceholderGoal.id</p></div>
+</dd>
+<dt id="tprism.expl_pb2.PlaceholderGoal.placeholders"><code class="name">var <span class="ident">placeholders</span></code></dt>
+<dd>
+<div class="desc"><p>Field prism.PlaceholderGoal.placeholders</p></div>
+</dd>
+<dt id="tprism.expl_pb2.PlaceholderGoal.records"><code class="name">var <span class="ident">records</span></code></dt>
+<dd>
+<div class="desc"><p>Field prism.PlaceholderGoal.records</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="tprism.expl_pb2.RankRoot"><code class="flex name class">
+<span>class <span class="ident">RankRoot</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>google.protobuf.pyext._message.CMessage</li>
+<li>google.protobuf.message.Message</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="tprism.expl_pb2.RankRoot.DESCRIPTOR"><code class="name">var <span class="ident">DESCRIPTOR</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="tprism.expl_pb2.RankRoot.count"><code class="name">var <span class="ident">count</span></code></dt>
+<dd>
+<div class="desc"><p>Field prism.RankRoot.count</p></div>
+</dd>
+<dt id="tprism.expl_pb2.RankRoot.roots"><code class="name">var <span class="ident">roots</span></code></dt>
+<dd>
+<div class="desc"><p>Field prism.RankRoot.roots</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="tprism.expl_pb2.Root"><code class="flex name class">
+<span>class <span class="ident">Root</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>google.protobuf.pyext._message.CMessage</li>
+<li>google.protobuf.message.Message</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="tprism.expl_pb2.Root.DESCRIPTOR"><code class="name">var <span class="ident">DESCRIPTOR</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="tprism.expl_pb2.Root.id"><code class="name">var <span class="ident">id</span></code></dt>
+<dd>
+<div class="desc"><p>Field prism.Root.id</p></div>
+</dd>
+<dt id="tprism.expl_pb2.Root.sorted_id"><code class="name">var <span class="ident">sorted_id</span></code></dt>
+<dd>
+<div class="desc"><p>Field prism.Root.sorted_id</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="tprism.expl_pb2.SwIns"><code class="flex name class">
+<span>class <span class="ident">SwIns</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>google.protobuf.pyext._message.CMessage</li>
+<li>google.protobuf.message.Message</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="tprism.expl_pb2.SwIns.DESCRIPTOR"><code class="name">var <span class="ident">DESCRIPTOR</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="tprism.expl_pb2.SwIns.id"><code class="name">var <span class="ident">id</span></code></dt>
+<dd>
+<div class="desc"><p>Field prism.SwIns.id</p></div>
+</dd>
+<dt id="tprism.expl_pb2.SwIns.inside"><code class="name">var <span class="ident">inside</span></code></dt>
+<dd>
+<div class="desc"><p>Field prism.SwIns.inside</p></div>
+</dd>
+<dt id="tprism.expl_pb2.SwIns.name"><code class="name">var <span class="ident">name</span></code></dt>
+<dd>
+<div class="desc"><p>Field prism.SwIns.name</p></div>
+</dd>
+<dt id="tprism.expl_pb2.SwIns.sw_type"><code class="name">var <span class="ident">sw_type</span></code></dt>
+<dd>
+<div class="desc"><p>Field prism.SwIns.sw_type</p></div>
+</dd>
+<dt id="tprism.expl_pb2.SwIns.values"><code class="name">var <span class="ident">values</span></code></dt>
+<dd>
+<div class="desc"><p>Field prism.SwIns.values</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="tprism.expl_pb2.TensorShape"><code class="flex name class">
+<span>class <span class="ident">TensorShape</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>google.protobuf.pyext._message.CMessage</li>
+<li>google.protobuf.message.Message</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="tprism.expl_pb2.TensorShape.DESCRIPTOR"><code class="name">var <span class="ident">DESCRIPTOR</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="tprism.expl_pb2.TensorShape.shape"><code class="name">var <span class="ident">shape</span></code></dt>
+<dd>
+<div class="desc"><p>Field prism.TensorShape.shape</p></div>
+</dd>
+<dt id="tprism.expl_pb2.TensorShape.tensor_name"><code class="name">var <span class="ident">tensor_name</span></code></dt>
+<dd>
+<div class="desc"><p>Field prism.TensorShape.tensor_name</p></div>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="tprism" href="index.html">tprism</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="tprism.expl_pb2.DataRecord" href="#tprism.expl_pb2.DataRecord">DataRecord</a></code></h4>
+<ul class="">
+<li><code><a title="tprism.expl_pb2.DataRecord.DESCRIPTOR" href="#tprism.expl_pb2.DataRecord.DESCRIPTOR">DESCRIPTOR</a></code></li>
+<li><code><a title="tprism.expl_pb2.DataRecord.items" href="#tprism.expl_pb2.DataRecord.items">items</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="tprism.expl_pb2.ExplGraph" href="#tprism.expl_pb2.ExplGraph">ExplGraph</a></code></h4>
+<ul class="">
+<li><code><a title="tprism.expl_pb2.ExplGraph.DESCRIPTOR" href="#tprism.expl_pb2.ExplGraph.DESCRIPTOR">DESCRIPTOR</a></code></li>
+<li><code><a title="tprism.expl_pb2.ExplGraph.goals" href="#tprism.expl_pb2.ExplGraph.goals">goals</a></code></li>
+<li><code><a title="tprism.expl_pb2.ExplGraph.root_list" href="#tprism.expl_pb2.ExplGraph.root_list">root_list</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="tprism.expl_pb2.ExplGraphGoal" href="#tprism.expl_pb2.ExplGraphGoal">ExplGraphGoal</a></code></h4>
+<ul class="">
+<li><code><a title="tprism.expl_pb2.ExplGraphGoal.DESCRIPTOR" href="#tprism.expl_pb2.ExplGraphGoal.DESCRIPTOR">DESCRIPTOR</a></code></li>
+<li><code><a title="tprism.expl_pb2.ExplGraphGoal.node" href="#tprism.expl_pb2.ExplGraphGoal.node">node</a></code></li>
+<li><code><a title="tprism.expl_pb2.ExplGraphGoal.paths" href="#tprism.expl_pb2.ExplGraphGoal.paths">paths</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="tprism.expl_pb2.ExplGraphNode" href="#tprism.expl_pb2.ExplGraphNode">ExplGraphNode</a></code></h4>
+<ul class="">
+<li><code><a title="tprism.expl_pb2.ExplGraphNode.DESCRIPTOR" href="#tprism.expl_pb2.ExplGraphNode.DESCRIPTOR">DESCRIPTOR</a></code></li>
+<li><code><a title="tprism.expl_pb2.ExplGraphNode.goal" href="#tprism.expl_pb2.ExplGraphNode.goal">goal</a></code></li>
+<li><code><a title="tprism.expl_pb2.ExplGraphNode.id" href="#tprism.expl_pb2.ExplGraphNode.id">id</a></code></li>
+<li><code><a title="tprism.expl_pb2.ExplGraphNode.sorted_id" href="#tprism.expl_pb2.ExplGraphNode.sorted_id">sorted_id</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="tprism.expl_pb2.ExplGraphPath" href="#tprism.expl_pb2.ExplGraphPath">ExplGraphPath</a></code></h4>
+<ul class="">
+<li><code><a title="tprism.expl_pb2.ExplGraphPath.DESCRIPTOR" href="#tprism.expl_pb2.ExplGraphPath.DESCRIPTOR">DESCRIPTOR</a></code></li>
+<li><code><a title="tprism.expl_pb2.ExplGraphPath.nodes" href="#tprism.expl_pb2.ExplGraphPath.nodes">nodes</a></code></li>
+<li><code><a title="tprism.expl_pb2.ExplGraphPath.operators" href="#tprism.expl_pb2.ExplGraphPath.operators">operators</a></code></li>
+<li><code><a title="tprism.expl_pb2.ExplGraphPath.prob_switches" href="#tprism.expl_pb2.ExplGraphPath.prob_switches">prob_switches</a></code></li>
+<li><code><a title="tprism.expl_pb2.ExplGraphPath.tensor_switches" href="#tprism.expl_pb2.ExplGraphPath.tensor_switches">tensor_switches</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="tprism.expl_pb2.Flag" href="#tprism.expl_pb2.Flag">Flag</a></code></h4>
+<ul class="">
+<li><code><a title="tprism.expl_pb2.Flag.DESCRIPTOR" href="#tprism.expl_pb2.Flag.DESCRIPTOR">DESCRIPTOR</a></code></li>
+<li><code><a title="tprism.expl_pb2.Flag.key" href="#tprism.expl_pb2.Flag.key">key</a></code></li>
+<li><code><a title="tprism.expl_pb2.Flag.value" href="#tprism.expl_pb2.Flag.value">value</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="tprism.expl_pb2.GoalTerm" href="#tprism.expl_pb2.GoalTerm">GoalTerm</a></code></h4>
+<ul class="">
+<li><code><a title="tprism.expl_pb2.GoalTerm.DESCRIPTOR" href="#tprism.expl_pb2.GoalTerm.DESCRIPTOR">DESCRIPTOR</a></code></li>
+<li><code><a title="tprism.expl_pb2.GoalTerm.args" href="#tprism.expl_pb2.GoalTerm.args">args</a></code></li>
+<li><code><a title="tprism.expl_pb2.GoalTerm.name" href="#tprism.expl_pb2.GoalTerm.name">name</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="tprism.expl_pb2.IndexRange" href="#tprism.expl_pb2.IndexRange">IndexRange</a></code></h4>
+<ul class="">
+<li><code><a title="tprism.expl_pb2.IndexRange.DESCRIPTOR" href="#tprism.expl_pb2.IndexRange.DESCRIPTOR">DESCRIPTOR</a></code></li>
+<li><code><a title="tprism.expl_pb2.IndexRange.index" href="#tprism.expl_pb2.IndexRange.index">index</a></code></li>
+<li><code><a title="tprism.expl_pb2.IndexRange.range" href="#tprism.expl_pb2.IndexRange.range">range</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="tprism.expl_pb2.Option" href="#tprism.expl_pb2.Option">Option</a></code></h4>
+<ul class="">
+<li><code><a title="tprism.expl_pb2.Option.DESCRIPTOR" href="#tprism.expl_pb2.Option.DESCRIPTOR">DESCRIPTOR</a></code></li>
+<li><code><a title="tprism.expl_pb2.Option.flags" href="#tprism.expl_pb2.Option.flags">flags</a></code></li>
+<li><code><a title="tprism.expl_pb2.Option.index_range" href="#tprism.expl_pb2.Option.index_range">index_range</a></code></li>
+<li><code><a title="tprism.expl_pb2.Option.tensor_shape" href="#tprism.expl_pb2.Option.tensor_shape">tensor_shape</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="tprism.expl_pb2.Placeholder" href="#tprism.expl_pb2.Placeholder">Placeholder</a></code></h4>
+<ul class="">
+<li><code><a title="tprism.expl_pb2.Placeholder.DESCRIPTOR" href="#tprism.expl_pb2.Placeholder.DESCRIPTOR">DESCRIPTOR</a></code></li>
+<li><code><a title="tprism.expl_pb2.Placeholder.name" href="#tprism.expl_pb2.Placeholder.name">name</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="tprism.expl_pb2.PlaceholderData" href="#tprism.expl_pb2.PlaceholderData">PlaceholderData</a></code></h4>
+<ul class="">
+<li><code><a title="tprism.expl_pb2.PlaceholderData.DESCRIPTOR" href="#tprism.expl_pb2.PlaceholderData.DESCRIPTOR">DESCRIPTOR</a></code></li>
+<li><code><a title="tprism.expl_pb2.PlaceholderData.goals" href="#tprism.expl_pb2.PlaceholderData.goals">goals</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="tprism.expl_pb2.PlaceholderGoal" href="#tprism.expl_pb2.PlaceholderGoal">PlaceholderGoal</a></code></h4>
+<ul class="">
+<li><code><a title="tprism.expl_pb2.PlaceholderGoal.DESCRIPTOR" href="#tprism.expl_pb2.PlaceholderGoal.DESCRIPTOR">DESCRIPTOR</a></code></li>
+<li><code><a title="tprism.expl_pb2.PlaceholderGoal.id" href="#tprism.expl_pb2.PlaceholderGoal.id">id</a></code></li>
+<li><code><a title="tprism.expl_pb2.PlaceholderGoal.placeholders" href="#tprism.expl_pb2.PlaceholderGoal.placeholders">placeholders</a></code></li>
+<li><code><a title="tprism.expl_pb2.PlaceholderGoal.records" href="#tprism.expl_pb2.PlaceholderGoal.records">records</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="tprism.expl_pb2.RankRoot" href="#tprism.expl_pb2.RankRoot">RankRoot</a></code></h4>
+<ul class="">
+<li><code><a title="tprism.expl_pb2.RankRoot.DESCRIPTOR" href="#tprism.expl_pb2.RankRoot.DESCRIPTOR">DESCRIPTOR</a></code></li>
+<li><code><a title="tprism.expl_pb2.RankRoot.count" href="#tprism.expl_pb2.RankRoot.count">count</a></code></li>
+<li><code><a title="tprism.expl_pb2.RankRoot.roots" href="#tprism.expl_pb2.RankRoot.roots">roots</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="tprism.expl_pb2.Root" href="#tprism.expl_pb2.Root">Root</a></code></h4>
+<ul class="">
+<li><code><a title="tprism.expl_pb2.Root.DESCRIPTOR" href="#tprism.expl_pb2.Root.DESCRIPTOR">DESCRIPTOR</a></code></li>
+<li><code><a title="tprism.expl_pb2.Root.id" href="#tprism.expl_pb2.Root.id">id</a></code></li>
+<li><code><a title="tprism.expl_pb2.Root.sorted_id" href="#tprism.expl_pb2.Root.sorted_id">sorted_id</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="tprism.expl_pb2.SwIns" href="#tprism.expl_pb2.SwIns">SwIns</a></code></h4>
+<ul class="two-column">
+<li><code><a title="tprism.expl_pb2.SwIns.DESCRIPTOR" href="#tprism.expl_pb2.SwIns.DESCRIPTOR">DESCRIPTOR</a></code></li>
+<li><code><a title="tprism.expl_pb2.SwIns.id" href="#tprism.expl_pb2.SwIns.id">id</a></code></li>
+<li><code><a title="tprism.expl_pb2.SwIns.inside" href="#tprism.expl_pb2.SwIns.inside">inside</a></code></li>
+<li><code><a title="tprism.expl_pb2.SwIns.name" href="#tprism.expl_pb2.SwIns.name">name</a></code></li>
+<li><code><a title="tprism.expl_pb2.SwIns.sw_type" href="#tprism.expl_pb2.SwIns.sw_type">sw_type</a></code></li>
+<li><code><a title="tprism.expl_pb2.SwIns.values" href="#tprism.expl_pb2.SwIns.values">values</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="tprism.expl_pb2.TensorShape" href="#tprism.expl_pb2.TensorShape">TensorShape</a></code></h4>
+<ul class="">
+<li><code><a title="tprism.expl_pb2.TensorShape.DESCRIPTOR" href="#tprism.expl_pb2.TensorShape.DESCRIPTOR">DESCRIPTOR</a></code></li>
+<li><code><a title="tprism.expl_pb2.TensorShape.shape" href="#tprism.expl_pb2.TensorShape.shape">shape</a></code></li>
+<li><code><a title="tprism.expl_pb2.TensorShape.tensor_name" href="#tprism.expl_pb2.TensorShape.tensor_name">tensor_name</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>
