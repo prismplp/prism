@@ -1,0 +1,3 @@
+r'''
+.. include:: ./README.md
+'''

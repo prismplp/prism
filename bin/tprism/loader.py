@@ -36,8 +36,8 @@ InputDataType = List[Dict[str, Union[int, List[str], ndarray]]]
 def load_input_data(data_filename_list: List[str]) -> InputDataType:
     """Load input data supporting .h5/.json format
 
-    Input data is a list of object like  [ {"goal_id": <int>, "placeholders": <List[str]>, "records": ndarray} ]
-
+    Input data is a list of object like  [ {"goal_id": goal_id: int, "placeholders": [paceholder1: str, ...], "records": ndarray} ]
+    
     Args:
         data_filename_list: list of input file names
     Returns:
@@ -127,6 +127,9 @@ def load_explanation_graph(expl_filename: str, option_filename: str)-> Tuple[Any
 
 
 class OperatorLoader:
+    """
+    This class is used to load custom operators
+    """
     def __init__(self) -> None:
         self.operators = {}
         self.base_module_name = "tprism.op."
@@ -170,6 +173,9 @@ class OperatorLoader:
 
 
 class LossLoader:
+    """
+    This class is used to load custom loss functions
+    """
     def __init__(self) -> None:
         self.module = None
         self.base_module_name = "tprism.loss."

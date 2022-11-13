@@ -22,13 +22,13 @@ from tprism.op.torch_standard_op import Sigmoid
 from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union
 
 from tprism.placeholder import PlaceholderData
-from tprism.torch_embedding_generator import DatasetEmbeddingGenerator
+from tprism.torch_embedding_generator import BaseEmbeddingGenerator
 
 class ComputationalExplGraph:
     """ This class is a base class for a concrete explanation graph.
-    This module support to compute explanation_graph_template.
-    An explanation_graph_template has a part of computational explanation graph:
-    a list of goal templates(goal means LHS of path),
+    This module supports build_explanation_graph_template,
+    where consistency of templates, index symbols and shape of tensors, in a given explanation graphs is confirmed.
+    The build_explanation_graph_template also computes a list of goal templates (goal means LHS of path).
 
     Note:
         Goal template
@@ -116,11 +116,12 @@ class ComputationalExplGraph:
             graph: explanation graph object
             tensor_provider (SwitchTensorProvider): tensor provider
             operator_loader (OperatorLoader): operator loader
-            cycle_node : a list of cycle node
+            cycle_node (List[int]): a list of sorted_id of cycle nodes
 
         Returns:
-            goal_template:
-            cycle_node: a list of cycle node (if given cycle_node, it is updated)
+            A tuple containing goal_template and cycle_node
+             - goal_template (List[Dict[str, Any]]): a list of goal templates
+             - cycle_node (List[int]): a list of cycle node (if given cycle_node, it is updated)
         """
         # checking template
         goal_template = [None] * len(graph.goals)
@@ -221,11 +222,11 @@ class SwitchTensor:
     
     Attributes:
         name (str): switch name
-        shape_set (Set[Tuple[int,...]]):
+        shape_set (Set[Tuple[int,...]]): a set of tensor shapes associated with this switch
         ph_names (List[str]): generated from the switch name
         vocab_name (str): generated from the switch name
         var_name (str): generated from the switch name
-        value (Any): 
+        value (Any): this values is used to represent x in the special tensor atom: get(_,x)
 
     """
     def __init__(self, sw_name: str) -> None:
@@ -239,10 +240,10 @@ class SwitchTensor:
     def enabled_placeholder(self):
         return len(self.ph_names) == 0
 
-    def add_shape(self, shape: Union[Tuple[int], Tuple[int, int]]) -> None:
+    def add_shape(self, shape: Tuple[int,...]) -> None:
         self.shape_set.add(shape)
 
-    def get_shape(self) -> Union[Tuple[int], Tuple[int, int]]:
+    def get_shape(self) -> Tuple[int,...]:
         assert len(self.shape_set) == 1, (
             self.name + ": shape is not unique:" + str(self.shape_set)
         )
@@ -268,7 +269,8 @@ class SwitchTensor:
 
 
 class VocabSet:
-    """ This class connect a values with a vovabrary via placeholders
+    """ This class connect a value object with a vovabrary via placeholders
+
     vocab -> placeholder ->values
 
     Attributes:
@@ -319,13 +321,14 @@ class VocabSet:
 
 class PlaceholderGraph:
     """ This class build a graph related to placeholders
+
     vocab <-- sw_info --> placeholder --> values
 
     Attributes:
         vocab_ph (Dict[str, Set[str]]): vocab_name => a set of nemes of placeholders
-        ph_vocab (Dict[str, Set[str]): placeholder name => a set of the vocabs
+        ph_vocab (Dict[str, Set[str]]): placeholder name => a set of the vocabs
         ph_values (Dict[str,Set[Any]]): placeholder name => a set of values
-        vocab_shape (Dict[str, Set[Any]]): vocab_name => a set of shapes
+        vocab_shape (Dict[str, Set[Tuple[int,...]]]): vocab_name => a set of shapes
 
     """
 
@@ -377,16 +380,20 @@ class PlaceholderGraph:
             self.ph_values = {}
         self._build_vocab_ph(self.ph_values, sw_info)
 
-
+VarType = Union[
+        Dict[str, Union[str, Tuple[int, int], List[Union[int64, int]]]],
+        Dict[str, Union[str, List[int]]],
+        Dict[str, Union[str, List[Union[int64, int]]]]
+        ]
 class SwitchTensorProvider:
     """ This class provides information of switches
 
     Attributes:
-        tensor_embedding (Dict[str, Tensor]):embedding tensor
+        tensor_embedding (Dict[str, Tensor]): embedding tensor
         sw_info (Dict[str, SwitchTensor]): switch infomation
-        ph_graph:
-        input_feed_dict:
-        params:
+        ph_graph (PlaceholderGraph): associated placeholder graph
+        input_feed_dict (Dict[PlaceholderData, Tensor]): feed_dict to replace a placeholder with a tensor
+        params (Dict[str,Parameter]): pytorch parameters associated with all switches provided by this provider
 
     """
 
@@ -438,7 +445,7 @@ class SwitchTensorProvider:
         return re.sub(r"\$", "", name)
 
     def add_param(self, name: str, param: Parameter) -> None:
-        """ 
+        """ This is called in the initializer of TorchTensor
         Args:
             name (str): Tensor's name
             param (Parameter): Parameter
@@ -486,7 +493,7 @@ class SwitchTensorProvider:
                     sw_obj.add_shape(shape)
         return sw_info
 
-    def _build_vocab_var_type(self, ph_graph: PlaceholderGraph, vocab_set: VocabSet, embedding_generators: List[Union[Any, DatasetEmbeddingGenerator]]) -> Dict[str, Union[Dict[str, Union[str, Tuple[int, int], List[Union[int64, int]]]], Dict[str, Union[str, List[int]]], Dict[str, Union[str, List[Union[int64, int]]]]]]:
+    def _build_vocab_var_type(self, ph_graph: PlaceholderGraph, vocab_set: VocabSet, embedding_generators: List[BaseEmbeddingGenerator]) -> Dict[str, VarType]:
         """ This function builds temporal object: vocab_name =>  var_type
 
         Note:
@@ -565,6 +572,17 @@ class SwitchTensorProvider:
         embedding_generators=[],
         verbose=False,
     ):
+        """
+        As a preparation before creating a computational graph, associate switches and tensors
+        
+         1. building PlaceholderGraph
+         2. building/loading VocabSet
+         3. associating VocabSet with variable types such as dataset, constant one-hot, and variables.
+         4. building placeholders
+         5. associating switches with tensors using embedding generators
+        
+        As a result, vocab_var, ph_var, and tensor_embedding in this class are constructed
+        """
         # sw_info: switch name =>SwitchTensor
         sw_info = self._build_sw_info(graph, options)
         #
@@ -604,7 +622,6 @@ class SwitchTensorProvider:
         ## vocab_var: vocab_name => variable
         ##
         vocab_var = {}
-        # initializer = tf.contrib.layers.xavier_initializer()
         for vocab_name, var_type in self.vocab_var_type.items():
             values = vocab_set.get_values(vocab_name)
             if var_type["type"] == "dataset":

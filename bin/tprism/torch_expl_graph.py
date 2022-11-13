@@ -41,30 +41,31 @@ from typing import Any, Dict, List, Tuple, Union
 class TorchComputationalExplGraph(ComputationalExplGraph, torch.nn.Module):
     """ This class is a concrete explanation graph for pytorch
 
-    Note:
-        A path in the explanation graph is represented as the following format:
-
-        ::
-
-            {
-                "sw_template": [],         List[str]
-                "sw_inside": [],           L
-                "prob_sw_inside": [],
-                "node_template": [],
-                "node_inside": [],
-                "node_scalar_inside": [],
-            }
-
-    Note:
-        A goal in the explanation graph is represented as the following format:
-
-        ::
-
-             goal_inside[i] = {
-                "template": path_template_list[0],
-                "inside": path_inside,
-                "batch_flag": path_batch_flag,
-             }
+Note:
+    A path in the explanation graph is represented as the following format:
+        ```
+        {
+            "sw_template": [],         a list of template: List[str]
+            "sw_inside": [],           a list of torch.tensor
+            "prob_sw_inside": [],      a list of torch.tensor (scalar) 
+            "node_template": [],       a list of template: List[str]
+            "node_inside": [],         a list of torch.tensor
+            "node_scalar_inside": [],  a list of torch.tensor (scalar)
+        }
+        ```
+Note:
+    A goal in the explanation graph is represented as the following format:
+        ```
+         goal_inside[sorted_id] = {
+            "template": path_template,      template: List[str]
+            "inside": path_inside,          torch.tensor
+            "batch_flag": path_batch_flag,  bool
+         }
+        ```
+    
+    Regarding the path template of goals, the T-PRISM's assumption requires that all pathes have equal tensor size.
+    However, index symbols need not be equal for all paths.
+    So the system display a warning in case of different index symbols and only uses the index symbols in the first path.
 
 
     """
@@ -288,7 +289,7 @@ class TorchComputationalExplGraph(ComputationalExplGraph, torch.nn.Module):
             ##
             path_template_list = self._get_unique_list(path_template)
 
-            if len(path_template_list) == 0:
+            if len(path_template_list) == 0: # non-tensor/non-probabilistic path
                 goal_inside[i] = {
                     "template": [],
                     "inside": torch.tensor(1),
