@@ -4,9 +4,9 @@
 # You can set these variables from the command line.
 BINBUILD   = pdoc
 PROJ     = ../tprism
-BUILDDIR      = .
+BUILDDIR      = ./tprism/
 
 .phony: makefile
 
 %: makefile
-	@$(BINBUILD) ${PROJ} --html -o "$(BUILDDIR)" --force
+	@$(BINBUILD) --math --docformat google ${PROJ} -o "$(BUILDDIR)"
