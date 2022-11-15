@@ -20,6 +20,10 @@ ifndef USE_H5
 USE_H5 = 0
 endif
 
+ifndef USE_NPY
+USE_NPY = 0
+endif
+
 
 ##----------------------------------------------------------------------
 
@@ -36,12 +40,12 @@ LD          = gcc
 
 ifeq ($(MATRIX),lapack)
 CFLAGS     = -O3 -fomit-frame-pointer -fno-strict-aliasing -Wall -I../bp4prism/include -I.. -I../resource/lapack -I../resource -I../up
-LDFLAGS    = -lm -lpthread -lgfortran
+LDFLAGS    = -lm -lpthread -lstdc++fs -lgfortran
 CXXFLAGS=$(CFLAGS)
 LD         = g++
 else
 CFLAGS     = -fomit-frame-pointer -fno-strict-aliasing -Wall -I../bp4prism/include -I.. -I../resource -I../up
-LDFLAGS    = -lm -lpthread
+LDFLAGS    = -lm -lpthread -lstdc++fs
 CXXFLAGS=$(CFLAGS)
 LD         = g++
 endif
@@ -57,6 +61,9 @@ CFLAGS     += -DUSE_PROTOBUF
 LDFLAGS    += `pkg-config --cflags --libs protobuf`
 endif
 
+ifeq ($(USE_NPY),1)
+CFLAGS     += -DUSE_NPY
+endif
 
 
 #LDFLAGS    = -pg -lm -lpthread
@@ -76,7 +83,7 @@ CFLAGS     += -DMPI
 endif
 
 ifeq ($(PLATFORM),linux)
-CFLAGS     += -DMALLOC_TRACE -DLINUX -DPOSIX -Dunix -DM64BITS -m64 -std=c++11
+CFLAGS     += -DMALLOC_TRACE -DLINUX -DPOSIX -Dunix -DM64BITS -m64 -std=c++17
 # -no-pie is requireed for gcc>=6
 LDFLAGS    += -m64 -no-pie
 endif

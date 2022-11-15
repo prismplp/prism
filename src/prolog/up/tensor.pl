@@ -66,11 +66,20 @@ $pp_transpose_1st_col([], [], []).
 $pp_transpose_1st_col([[H|T]|Rows], [H|Hs], [T|Ts]) :- $pp_transpose_1st_col(Rows, Hs, Ts).
 
 save_embedding_from_pattern(Vars,Pattern,Target,FileNameBase):-
-	atom_concat(FileNameBase,'.h5',FileName),
+	save_embedding_from_pattern(Vars,Pattern,Target,FileNameBase,hdf5).
+save_embedding_from_pattern(Vars,Pattern,Target,FileNameBase,Mode):-
+	(Mode==json   ->$pp_raise_runtime_error($msg(9806),json_is_not_supportted_for_saving_flags,save_embedding_from_pattern/5)
+	;Mode==pb   ->$pp_raise_runtime_error($msg(9806),pb_is_not_supportted_for_saving_flags,save_embedding_from_pattern/5)
+	;Mode==pbtxt->$pp_raise_runtime_error($msg(9806),pbtxt_is_not_supportted_for_saving_flags,save_embedding_from_pattern/5)
+	;Mode==hdf5 ->Mode0=3
+	;Mode==npy  ->Mode0=4
+	;$pp_raise_runtime_error($msg(9804),unknown_save_format,save_embedding_from_pattern/5)),
+	(Mode0==3 -> atom_concat(FileNameBase,'.h5',FileName)
+	;Mode0==4 -> atom_concat(FileNameBase,'.npy',FileName)),
 	atom_concat(FileNameBase,'.txt',FileNameSymbol),
-	$pp_save_embedding_from_pattern(Vars,Pattern,Target,train,FileName,FileNameSymbol).
+	$pp_save_embedding_from_pattern(Vars,Pattern,Target,train,FileName,FileNameSymbol,Mode0).
 
-$pp_save_embedding_from_pattern(Vars,Pattern,Target,Group,FileName,FileNameSymbol):-
+$pp_save_embedding_from_pattern(Vars,Pattern,Target,Group,FileName,FileNameSymbol,Mode0):-
 	findall(Vars,Pattern,Pairs),
 	transpose(Pairs,PairsT),
 	maplist(X,Y,(unique(X,A),sort(A,Y)),PairsT,SymbolList),
@@ -80,9 +89,9 @@ $pp_save_embedding_from_pattern(Vars,Pattern,Target,Group,FileName,FileNameSymbo
 		length(Symbols,L),
 		foreach((A,I) in (Symbols,0..L-1), hashtable_register(Table,A,I))),SymbolList,TableList),
 	maplist(P,E,$pp_encode_embedding(TableList,P,E),Pairs,EncPairs),
-	%format("~w\n",EncPairs),
+	format("~w\n",SymbolList),
 	maplist(S,L,length(S,L),SymbolList,Shape),
-	$pc_save_embedding_tensor(FileName,Group,Target,EncPairs,Shape),
+	$pc_save_embedding_tensor(FileName,Group,Target,EncPairs,Shape,Mode0),
 	%format("~w",SymbolList),
 	format("[SAVE] ~w\n",FileNameSymbol),
 	$pp_save_symbol_list(SymbolList,FileNameSymbol).
@@ -94,12 +103,12 @@ $pp_encode_embedding([T0|TableList],[P0|P],[E0|E]):-
 
 $pp_save_symbol_list(SymbolList,FileName):-
 	open(FileName,write,Stream),
-	format(Stream,"axis,index,label\n",[]),
+	format(Stream,"axis\tindex\tlabel\n",[]),
 	length(SymbolList,M),
-	foreach((Symbols,I) in (SymbolList,0..M-1),
+	foreach((Symbols,I) in (SymbolList,0..M-1),[N],
 		(length(Symbols,N),
 		(foreach((S,J) in (Symbols,0..N-1),
-			format(Stream,"~w,~w,~w\n",[I,J,S])
+			format(Stream,"~w\t~w\t~w\n",[I,J,S])
 		)))),
 	close(Stream).
 	
@@ -114,8 +123,8 @@ save_placeholder_goals(PlaceholderGoals,Goals):-save_placeholder_goals('data.h5'
 save_placeholder_goals(Filename,PlaceholderGoals,Goals):-save_placeholder_goals(Filename,hdf5,PlaceholderGoals,Goals).
 save_placeholder_goals(Filename,Mode,PlaceholderGoals,Goals):-
 	$pp_generate_placeholder_goals(PlaceholderGoals,Goals,0,GG,Var),
-	format("[call] ~w\n",[(save_placeholder_data(Filename,Mode,Var,GG))]),
-	format("       ~w\n",[PlaceholderGoals]),
+	%format("[call] ~w\n",[(save_placeholder_data(Filename,Mode,Var,GG))]),
+	%format("       ~w\n",[PlaceholderGoals]),
 	save_placeholder_data(Filename,Mode,Var,GG).
 
 $pp_generate_placeholder([],N,N).
@@ -145,6 +154,7 @@ save_placeholder_data(Filename,Mode,Placeholders,Data):-
 	;Mode==pb   ->Mode0=1
 	;Mode==pbtxt->Mode0=2
 	;Mode==hdf5 ->Mode0=3
+	;Mode==npy  ->Mode0=4
 	;$pp_raise_runtime_error($msg(9804),unknown_save_format,save_placeholder_data/4)),
 	$pc_save_placeholder_data(Filename,Mode0,Placeholders,Data,20000000).
 
@@ -161,7 +171,9 @@ save_flags(Filename,Mode,TensorList):-
 	(Mode==json ->Mode0=0
 	;Mode==pb   ->Mode0=1
 	;Mode==pbtxt->Mode0=2
-	;Mode==hdf5 ->Mode0=$pp_raise_runtime_error($msg(9806),hdf5_is_not_supportted_for_saving_flags,save_flags/2)
+	;Mode==hdf5 ->$pp_raise_runtime_error($msg(9806),hdf5_is_not_supportted_for_saving_flags,save_flags/2)
+	;Mode==npy  ->$pp_raise_runtime_error($msg(9806),npy_is_not_supportted_for_saving_flags,save_flags/2)
+
 	;$pp_raise_runtime_error($msg(9804),unknown_save_format,save_flags/2)),
 	$pc_save_options(Filename,Mode0,TensorList).
 
@@ -413,7 +425,8 @@ $pp_tensor_core(Filename,OptionFilename,Mode,OptionMode,GoalList) :-
 	(Mode==json ->Mode0=0
 	;Mode==pb   ->Mode0=1
 	;Mode==pbtxt->Mode0=2
-	;Mode==hdf5 ->Mode0=$pp_raise_runtime_error($msg(9806),hdf5_is_not_supportted_for_saving_flags,save_flags/2)
+	;Mode==hdf5 ->$pp_raise_runtime_error($msg(9806),hdf5_is_not_supportted_for_saving_flags,save_flags/2)
+	;Mode==npy  ->$pp_raise_runtime_error($msg(9806),npy_is_not_supportted_for_saving_flags,save_flags/2)
 	;$pp_raise_runtime_error($msg(9804),unknown_save_format,save_flags/2)),
 	$pc_prism_save_expl_graph(Filename,Mode0,NewSws),
 	maplist(S,SwName,(S=sw(_,SwIns),$pp_decode_switch_name(SwIns,SwName)),NewSws,Sws),

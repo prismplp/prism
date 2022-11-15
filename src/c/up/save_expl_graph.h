@@ -6,6 +6,7 @@ enum SaveFormat{
 	FormatPb=1,
 	FormatPbTxt=2,
 	FormatHDF5=3,
+	FormatNPY=4,
 };
 
 enum SwType{

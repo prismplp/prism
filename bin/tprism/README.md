@@ -22,8 +22,8 @@ export PATH=<current directory>/prism/bin:${PATH}
 ### Installation of T-PRISM
 
 Installing python(Recommendation: Anaconda) and Pytorch.
-Anaconda: https://www.anaconda.com/
-Pytorch: https://pytorch.org/
+- Anaconda: https://www.anaconda.com/
+- Pytorch: https://pytorch.org/
 
 #### Requirements:
 
