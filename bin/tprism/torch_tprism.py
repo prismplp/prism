@@ -141,11 +141,11 @@ class TprismModel:
     def _build_embedding(self, embedding_key):
         embedding_generators = []
         if self.flags.embedding:
-            eg = embed_gen.DatasetEmbeddingGenerator()
+            eg = embed_gen.EmbeddingGenerator()
             eg.load(self.flags.embedding, key=embedding_key)
             embedding_generators.append(eg)
         if self.flags.const_embedding:
-            eg = embed_gen.ConstEmbeddingGenerator()
+            eg = embed_gen.EmbeddingGenerator(const_flag=True)
             eg.load(self.flags.const_embedding)
             embedding_generators.append(eg)
         cycle_embedding_generator = None
@@ -511,11 +511,11 @@ def run_preparing(g, sess, args):
     tensor_provider = torch_expl_graph.TorchSwitchTensorProvider()
     embedding_generators = []
     if flags.embedding:
-        eg = embed_gen.DatasetEmbeddingGenerator()
+        eg = embed_gen.EmbeddingGenerator()
         eg.load(flags.embedding)
         embedding_generators.append(eg)
     if flags.const_embedding:
-        eg = embed_gen.ConstEmbeddingGenerator()
+        eg = embed_gen.EmbeddingGenerator(const_flag)
         eg.load(flags.const_embedding)
         embedding_generators.append(eg)
     tensor_provider.build(

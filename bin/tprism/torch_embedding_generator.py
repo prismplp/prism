@@ -27,8 +27,61 @@ from numpy import ndarray
 from torch import Tensor
 from typing import Dict, Optional, Tuple
 
+EmbeddingData=Dict[str,ndarray]
+
+def load_embedding_data(filename: str, key: str, verb: bool) -> EmbeddingData:
+    """Load input data supporting .h5/.json format
+
+    Args:
+        data_filename_list: list of input file names
+    Returns:
+        merged input data
+
+    """
+    _, ext = os.path.splitext(filename)
+    dataset=None
+    if ext == ".h5":
+        print("[LOAD]", filename)
+        dataset = load_embedding_h5(filename, key, verb)
+    elif ext == ".json":
+        print("[LOAD]", filename)
+        dataset = load_embedding_npy(filename, key, verb)
+    else:
+        print("[ERROR]", filename)
+    return dataset
+
+def load_embedding_h5(filename, key, verb)-> EmbeddingData:
+    infh = h5py.File(filename, "r")
+    dataset={}
+    if key in infh:
+        for vocab_name in infh[key]:
+            rs = infh[key][vocab_name][()]
+            dataset[vocab_name] = rs
+            if verb:
+                print("[LOAD DatasetEmbedding]", vocab_name)
+    infh.close()
+    return dataset
+
+
+def load_embedding_npy(filename: str, key: str, verb: bool) -> EmbeddingData:
+    fp = open(filename, "r")
+    obj=json.load(fp)
+    dataset={}
+    if key in obj["group"]:
+        tensor=np.load(obj["filename"])
+        name=obj["name"]
+        dataset[name]=tensor
+        if verb:
+            print("[LOAD DatasetEmbedding]", name)
+    return dataset
+
 
 class BaseEmbeddingGenerator:
+    def __init__(self):
+        self.feed_verb = False
+        self.get_verb  = False
+        self.info_verb = True
+
     def is_embedding(self, vocab_name):
         return False
 
@@ -44,12 +97,10 @@ class BaseEmbeddingGenerator:
 
 class CycleEmbeddingGenerator(BaseEmbeddingGenerator):
     def __init__(self):
+        super().__init__()
         self.embedding = {}
         self.index_range = {}
         self.tensor_shape = {}
-        self.feed_verb = False
-        self.get_verb  = False
-        self.info_verb = True
 
     def load(self, options):
         self.index_range = {el.index: el.range for el in options.index_range}
@@ -109,27 +160,26 @@ class CycleEmbeddingGenerator(BaseEmbeddingGenerator):
 
 
 # embedding data from data
+class EmbeddingGenerator(BaseEmbeddingGenerator):
+    """ Generating embedding data from the given tensor atom
+    
+        1. If a given tensor atom is not shared by this generator, do nothing
+        2. A placeholder name is computed by the given tensor atom
+        3. If the placeholder already exists, return this placeholder.
+        4. Create a placeholder and return it.
 
-class DatasetEmbeddingGenerator(BaseEmbeddingGenerator):
-    def __init__(self) -> None:
-        self.feed_verb = False
-        self.get_verb  = False
-        self.info_verb = True
+    Attributes:
+        dataset (Dict[str,tensor]) : loaded dataset which is defined by dictionary from a tensor atom name to an assigned tensor.
+        created_ph_var (Dict[str,PlaceholderData]) : assign
+    """
+    def __init__(self, const_flag:bool=False) -> None:
+        super().__init__()
         self.dataset = {}
         self.created_ph_var = {}
-        self.vocabset_ph_var = None
+        self.const_flag=const_flag
 
     def load(self, filename: str, key: str="train") -> None:
-        if self.info_verb:
-            print("[LOAD]", filename)
-        infh = h5py.File(filename, "r")
-        if key in infh:
-            for vocab_name in infh[key]:
-                rs = infh[key][vocab_name][()]
-                self.dataset[vocab_name] = rs
-                if self.info_verb:
-                    print("[LOAD DatasetEmbedding]", vocab_name)
-        infh.close()
+        self.dataset=load_embedding_data(filename, key, self.info_verb)
 
     def is_embedding(self, vocab_name: str) -> bool:
         return vocab_name in self.dataset
@@ -150,81 +200,31 @@ class DatasetEmbeddingGenerator(BaseEmbeddingGenerator):
         else:
             if shape is None:
                 shape = self.dataset[vocab_name].shape
-            self.created_ph_var[ph_name] = PlaceholderData(
-                name=ph_name, shape=shape, dtype=torch.float32, ref=vocab_name
-            )
+            if self.const_flag:
+                self.created_ph_var[ph_name] = PlaceholderData(
+                    name=ph_name, shape=shape, dtype=torch.float32, ref=vocab_name
+                )
+            else:
+                self.created_ph_var[ph_name] = PlaceholderData(
+                    name=ph_name, shape=shape, dtype=torch.float32
+                )
             if self.info_verb:
-                print("[CREATE]>", ph_name, ":", shape, "ref:", vocab_name)
+                if self.const_flag:
+                    print("[CREATE const]>", ph_name, ":", shape)
+                else:
+                    print("[CREATE ]>", ph_name, ":", shape, "ref:", vocab_name)
             return self.created_ph_var[ph_name]
 
     def build_feed(self, feed_dict: Dict[PlaceholderData, Tensor], idx: Optional[ndarray]=None) -> Dict[PlaceholderData, Tensor]:
         for vocab_name, data in self.dataset.items():
             ph_name = vocab_name + "_ph"
-            if idx is None:
+            if idx is None or self.const_flag:
                 batch_data = data
             else:
                 batch_data = data[idx]
             if ph_name in self.created_ph_var:
                 ph_var = self.created_ph_var[ph_name]
                 feed_dict[ph_var] = torch.Tensor(batch_data)
-            if self.feed_verb:
-                print("[INFO: feed]", vocab_name, "=>", ph_name)
-        return feed_dict
-
-
-# embedding data from data
-class ConstEmbeddingGenerator(BaseEmbeddingGenerator):
-    def __init__(self):
-        self.feed_verb = False
-        self.get_verb  = False
-        self.info_verb = True
-        self.dataset = {}
-        self.created_ph_var = {}
-
-    def load(self, filename, key="train"):
-        if self.info_verb:
-            print("[LOAD]", filename)
-        infh = h5py.File(filename, "r")
-        if key in infh:
-            for vocab_name in infh[key]:
-                rs = infh[key][vocab_name].value
-                self.dataset[vocab_name] = rs
-                if self.info_verb:
-                    print("[LOAD ConstEmbedding]", vocab_name)
-        infh.close()
-
-    def is_embedding(self, vocab_name):
-        return vocab_name in self.dataset
-
-    def get_dataset_shape(self, vocab_name):
-        return self.dataset[vocab_name].shape
-
-    def get_embedding(self, vocab_name, shape=None):
-        if not self.is_embedding(vocab_name):
-            if self.info_verb:
-                print("[SKIP]>", vocab_name)
-            return None
-        ph_name = vocab_name + "_ph"
-        if ph_name in self.created_ph_var:
-            if self.get_verb:
-                print("[GET]>", ph_name, ":", self.created_ph_var[ph_name])
-            return self.created_ph_var[ph_name]
-        else:
-            if shape is None:
-                shape = self.dataset[vocab_name].shape
-            self.created_ph_var[ph_name] = PlaceholderData(
-                name=ph_name, shape=shape, dtype=torch.float32
-            )
-            if self.info_verb:
-                print("[CREATE]>", ph_name, ":", shape)
-            return self.created_ph_var[ph_name]
-
-    def build_feed(self, feed_dict, idx=None):
-        for vocab_name, data in self.dataset.items():
-            ph_name = vocab_name + "_ph"
-            if ph_name in self.created_ph_var:
-                ph_var = self.created_ph_var[ph_name]
-                feed_dict[ph_var] = torch.Tensor(data)
             if self.feed_verb:
                 print("[INFO: feed]", vocab_name, "=>", ph_name)
         return feed_dict

@@ -75,7 +75,7 @@ save_embedding_from_pattern(Vars,Pattern,Target,FileNameBase,Mode):-
 	;Mode==npy  ->Mode0=4
 	;$pp_raise_runtime_error($msg(9804),unknown_save_format,save_embedding_from_pattern/5)),
 	(Mode0==3 -> atom_concat(FileNameBase,'.h5',FileName)
-	;Mode0==4 -> atom_concat(FileNameBase,'.npy',FileName)),
+	;Mode0==4 -> atom_concat(FileNameBase,'',FileName)),
 	atom_concat(FileNameBase,'.txt',FileNameSymbol),
 	$pp_save_embedding_from_pattern(Vars,Pattern,Target,train,FileName,FileNameSymbol,Mode0).
 

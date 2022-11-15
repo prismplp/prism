@@ -26,7 +26,7 @@ from tprism.op.torch_standard_op import Sigmoid
 from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union
 
 from tprism.placeholder import PlaceholderData
-from tprism.torch_embedding_generator import DatasetEmbeddingGenerator
+from tprism.torch_embedding_generator import EmbeddingGenerator
 
 
 #[ {"goal_id": <int>, "placeholders": <List[str]>, "records": ndarray} ]
@@ -47,13 +47,17 @@ def load_input_data(data_filename_list: List[str]) -> InputDataType:
     """
     input_data_list = []
     for filename in data_filename_list:
-        _, ext = os.path.splitext(filename)
+        rest_name, ext = os.path.splitext(filename)
         if ext == ".h5":
             print("[LOAD]", filename)
             datasets = load_input_h5(filename)
         elif ext == ".json":
-            print("[LOAD]", filename)
-            datasets = load_input_json(filename)
+            _, ext2 = os.path.splitext(rest_name)
+            if ext2==".npy":
+                datasets = load_input_npy(filename)
+            else:
+                print("[LOAD]", filename)
+                datasets = load_input_json(filename)
         elif ext[:5] == ".json":
             print("[LOAD]", filename)
             datasets = load_input_json(filename)
@@ -63,6 +67,16 @@ def load_input_data(data_filename_list: List[str]) -> InputDataType:
     return merge_input_data(input_data_list)
     # return input_data_list
 
+
+def load_input_npy(filename: str) -> InputDataType:
+    datasets = []
+    with open(filename, "r") as fp:
+        obj = json.load(fp)
+    for goal_id, o in enumerate(obj):
+        rs = np.load(o["filename"])
+        dataset = {"goal_id": goal_id, "placeholders": o["placeholders"], "records": rs}
+        datasets.append(dataset)
+    return datasets
 
 def load_input_json(filename: str) -> InputDataType:
     input_data = expl_pb2.PlaceholderData()

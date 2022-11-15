@@ -111,7 +111,7 @@ void save_placeholder_data_npy(TERM ph, TERM data, string save_path,SaveFormat f
 	}
 	std::filesystem::create_directory(save_path);
 	json info_data=json::array();
-	string filename_json=save_path+"/placeholder.json";
+	string filename_json=save_path+"/placeholder.npy.json";
 	while(!bpx_is_nil(ph) && !bpx_is_nil(data)){
 		string filename_npy=save_path+"/placeholder_"+std::to_string(goal_counter)+".npy";
 		json group;
@@ -455,12 +455,18 @@ string get_dataset_name(string term_name){
 
 #ifdef USE_NPY
 void save_embedding_tensor_npy(const string filename, const string group_name, const string dataset_name, TERM term_list, TERM shape){
+	string filename_npy=filename+".npy";
+	string filename_json=filename+".npy.json";
 	TERM el   = bpx_get_car(term_list);
 	TERM next = bpx_get_cdr(term_list);
 	if(!bpx_is_list(term_list) || !bpx_is_list(shape)){
 		return;	
 	}
+	json embedding_data;
 	// shape=[n1,n2]
+	embedding_data["group"]=group_name;
+	embedding_data["name"]=dataset_name;
+	embedding_data["shape"]=json::array();
 	std::vector<unsigned long> shape_t;
 	int n=1;
 	while(!bpx_is_nil(shape)){
@@ -468,6 +474,7 @@ void save_embedding_tensor_npy(const string filename, const string group_name, c
 		int n1=bpx_get_integer(term_n1);
 		shape = bpx_get_cdr(shape);
 		shape_t.push_back(n1);
+		embedding_data["shape"].push_back(n1);
 		n*=n1;
 	}
 	std::vector<double> data(n);
@@ -493,7 +500,9 @@ void save_embedding_tensor_npy(const string filename, const string group_name, c
 	// save dataset
 	{
 		bool fortran_order=false;
-		npy::SaveArrayAsNumpy(filename, fortran_order, shape_t.size(), shape_t.data(), data);
+		npy::SaveArrayAsNumpy(filename_npy, fortran_order, shape_t.size(), shape_t.data(), data);
+		embedding_data["filename"]=filename_npy;
+		save_json(filename_json,embedding_data);
 	}
 }
 #endif

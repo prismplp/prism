@@ -4,15 +4,38 @@ import json
 import os
 import re
 import numpy as np
+from numpy import ndarray
+from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union
+
 from google.protobuf import json_format
 from itertools import chain
 import collections
 import argparse
 import time
 import pickle
+import h5py
 
 import tprism.expl_pb2 as expl_pb2
 import tprism.expl_graph as expl_graph
+
+
+def save_embedding_as_h5(filename: str, train_data: Dict[str,ndarray]={} , test_data:Dict[str,ndarray]={}):
+    """ save embedding dataset as h5fs format
+
+    Args:
+        filename (str): h5 file name
+        train_data (Dict[str,ndarray]): the key is the name of a tensor atom and the value is the numpy array associated with the tensor atom for training phase
+        test_data (Dict[str,ndarray]): the key is the name of a tensor atom and the value is the numpy array associated with the tensor atom for test phase
+    """
+    with h5py.File(filename, "w") as fp:
+        if train_data is not None:
+            fp.create_group("train")
+            for key, val in train_data.items():
+                fp["train"].create_dataset(key, data=val)
+        if test_data is not None:
+            fp.create_group("test")
+            for key, val in train_data.items():
+                fp["test"].create_dataset(key, data=val)
 
 
 def to_string_goal(goal):
