@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="generator" content="pdoc 12.2.2"/>
+    <meta name="generator" content="pdoc 12.3.0"/>
     <title>tprism.expl_pb2 API documentation</title>
 
     <style>/*! * Bootstrap Reboot v5.0.0 (https://getbootstrap.com/) * Copyright 2011-2021 The Bootstrap Authors * Copyright 2011-2021 Twitter, Inc. * Licensed under MIT (https://github.com/twbs/bootstrap/blob/main/LICENSE) * Forked from Normalize.css, licensed MIT (https://github.com/necolas/normalize.css/blob/master/LICENSE.md) */*,::after,::before{box-sizing:border-box}@media (prefers-reduced-motion:no-preference){:root{scroll-behavior:smooth}}body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans","Liberation Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";font-size:1rem;font-weight:400;line-height:1.5;color:#212529;background-color:#fff;-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}hr{margin:1rem 0;color:inherit;background-color:currentColor;border:0;opacity:.25}hr:not([size]){height:1px}h1,h2,h3,h4,h5,h6{margin-top:0;margin-bottom:.5rem;font-weight:500;line-height:1.2}h1{font-size:calc(1.375rem + 1.5vw)}@media (min-width:1200px){h1{font-size:2.5rem}}h2{font-size:calc(1.325rem + .9vw)}@media (min-width:1200px){h2{font-size:2rem}}h3{font-size:calc(1.3rem + .6vw)}@media (min-width:1200px){h3{font-size:1.75rem}}h4{font-size:calc(1.275rem + .3vw)}@media (min-width:1200px){h4{font-size:1.5rem}}h5{font-size:1.25rem}h6{font-size:1rem}p{margin-top:0;margin-bottom:1rem}abbr[data-bs-original-title],abbr[title]{-webkit-text-decoration:underline dotted;text-decoration:underline dotted;cursor:help;-webkit-text-decoration-skip-ink:none;text-decoration-skip-ink:none}address{margin-bottom:1rem;font-style:normal;line-height:inherit}ol,ul{padding-left:2rem}dl,ol,ul{margin-top:0;margin-bottom:1rem}ol ol,ol ul,ul ol,ul ul{margin-bottom:0}dt{font-weight:700}dd{margin-bottom:.5rem;margin-left:0}blockquote{margin:0 0 1rem}b,strong{font-weight:bolder}small{font-size:.875em}mark{padding:.2em;background-color:#fcf8e3}sub,sup{position:relative;font-size:.75em;line-height:0;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}a{color:#0d6efd;text-decoration:underline}a:hover{color:#0a58ca}a:not([href]):not([class]),a:not([href]):not([class]):hover{color:inherit;text-decoration:none}code,kbd,pre,samp{font-family:SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;font-size:1em;direction:ltr;unicode-bidi:bidi-override}pre{display:block;margin-top:0;margin-bottom:1rem;overflow:auto;font-size:.875em}pre code{font-size:inherit;color:inherit;word-break:normal}code{font-size:.875em;color:#d63384;word-wrap:break-word}a>code{color:inherit}kbd{padding:.2rem .4rem;font-size:.875em;color:#fff;background-color:#212529;border-radius:.2rem}kbd kbd{padding:0;font-size:1em;font-weight:700}figure{margin:0 0 1rem}img,svg{vertical-align:middle}table{caption-side:bottom;border-collapse:collapse}caption{padding-top:.5rem;padding-bottom:.5rem;color:#6c757d;text-align:left}th{text-align:inherit;text-align:-webkit-match-parent}tbody,td,tfoot,th,thead,tr{border-color:inherit;border-style:solid;border-width:0}label{display:inline-block}button{border-radius:0}button:focus:not(:focus-visible){outline:0}button,input,optgroup,select,textarea{margin:0;font-family:inherit;font-size:inherit;line-height:inherit}button,select{text-transform:none}[role=button]{cursor:pointer}select{word-wrap:normal}select:disabled{opacity:1}[list]::-webkit-calendar-picker-indicator{display:none}[type=button],[type=reset],[type=submit],button{-webkit-appearance:button}[type=button]:not(:disabled),[type=reset]:not(:disabled),[type=submit]:not(:disabled),button:not(:disabled){cursor:pointer}::-moz-focus-inner{padding:0;border-style:none}textarea{resize:vertical}fieldset{min-width:0;padding:0;margin:0;border:0}legend{float:left;width:100%;padding:0;margin-bottom:.5rem;font-size:calc(1.275rem + .3vw);line-height:inherit}@media (min-width:1200px){legend{font-size:1.5rem}}legend+*{clear:left}::-webkit-datetime-edit-day-field,::-webkit-datetime-edit-fields-wrapper,::-webkit-datetime-edit-hour-field,::-webkit-datetime-edit-minute,::-webkit-datetime-edit-month-field,::-webkit-datetime-edit-text,::-webkit-datetime-edit-year-field{padding:0}::-webkit-inner-spin-button{height:auto}[type=search]{outline-offset:-2px;-webkit-appearance:textfield}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-color-swatch-wrapper{padding:0}::file-selector-button{font:inherit}::-webkit-file-upload-button{font:inherit;-webkit-appearance:button}output{display:inline-block}iframe{border:0}summary{display:list-item;cursor:pointer}progress{vertical-align:baseline}[hidden]{display:none!important}</style>
@@ -52,6 +52,213 @@
 
         <h2>API Documentation</h2>
             <ul class="memberlist">
+            <li>
+                    <a class="class" href="#PlaceholderData">PlaceholderData</a>
+                            <ul class="memberlist">
+                        <li>
+                                <a class="variable" href="#PlaceholderData.goals">goals</a>
+                        </li>
+                </ul>
+
+            </li>
+            <li>
+                    <a class="class" href="#PlaceholderGoal">PlaceholderGoal</a>
+                            <ul class="memberlist">
+                        <li>
+                                <a class="variable" href="#PlaceholderGoal.id">id</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#PlaceholderGoal.placeholders">placeholders</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#PlaceholderGoal.records">records</a>
+                        </li>
+                </ul>
+
+            </li>
+            <li>
+                    <a class="class" href="#DataRecord">DataRecord</a>
+                            <ul class="memberlist">
+                        <li>
+                                <a class="variable" href="#DataRecord.items">items</a>
+                        </li>
+                </ul>
+
+            </li>
+            <li>
+                    <a class="class" href="#Placeholder">Placeholder</a>
+                            <ul class="memberlist">
+                        <li>
+                                <a class="variable" href="#Placeholder.name">name</a>
+                        </li>
+                </ul>
+
+            </li>
+            <li>
+                    <a class="class" href="#Option">Option</a>
+                            <ul class="memberlist">
+                        <li>
+                                <a class="variable" href="#Option.flags">flags</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Option.index_range">index_range</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Option.tensor_shape">tensor_shape</a>
+                        </li>
+                </ul>
+
+            </li>
+            <li>
+                    <a class="class" href="#Flag">Flag</a>
+                            <ul class="memberlist">
+                        <li>
+                                <a class="variable" href="#Flag.key">key</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Flag.value">value</a>
+                        </li>
+                </ul>
+
+            </li>
+            <li>
+                    <a class="class" href="#IndexRange">IndexRange</a>
+                            <ul class="memberlist">
+                        <li>
+                                <a class="variable" href="#IndexRange.index">index</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#IndexRange.range">range</a>
+                        </li>
+                </ul>
+
+            </li>
+            <li>
+                    <a class="class" href="#TensorShape">TensorShape</a>
+                            <ul class="memberlist">
+                        <li>
+                                <a class="variable" href="#TensorShape.tensor_name">tensor_name</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#TensorShape.shape">shape</a>
+                        </li>
+                </ul>
+
+            </li>
+            <li>
+                    <a class="class" href="#ExplGraph">ExplGraph</a>
+                            <ul class="memberlist">
+                        <li>
+                                <a class="variable" href="#ExplGraph.goals">goals</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#ExplGraph.root_list">root_list</a>
+                        </li>
+                </ul>
+
+            </li>
+            <li>
+                    <a class="class" href="#ExplGraphGoal">ExplGraphGoal</a>
+                            <ul class="memberlist">
+                        <li>
+                                <a class="variable" href="#ExplGraphGoal.node">node</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#ExplGraphGoal.paths">paths</a>
+                        </li>
+                </ul>
+
+            </li>
+            <li>
+                    <a class="class" href="#ExplGraphPath">ExplGraphPath</a>
+                            <ul class="memberlist">
+                        <li>
+                                <a class="variable" href="#ExplGraphPath.nodes">nodes</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#ExplGraphPath.prob_switches">prob_switches</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#ExplGraphPath.tensor_switches">tensor_switches</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#ExplGraphPath.operators">operators</a>
+                        </li>
+                </ul>
+
+            </li>
+            <li>
+                    <a class="class" href="#ExplGraphNode">ExplGraphNode</a>
+                            <ul class="memberlist">
+                        <li>
+                                <a class="variable" href="#ExplGraphNode.id">id</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#ExplGraphNode.sorted_id">sorted_id</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#ExplGraphNode.goal">goal</a>
+                        </li>
+                </ul>
+
+            </li>
+            <li>
+                    <a class="class" href="#GoalTerm">GoalTerm</a>
+                            <ul class="memberlist">
+                        <li>
+                                <a class="variable" href="#GoalTerm.name">name</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#GoalTerm.args">args</a>
+                        </li>
+                </ul>
+
+            </li>
+            <li>
+                    <a class="class" href="#SwIns">SwIns</a>
+                            <ul class="memberlist">
+                        <li>
+                                <a class="variable" href="#SwIns.id">id</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#SwIns.name">name</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#SwIns.values">values</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#SwIns.inside">inside</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#SwIns.sw_type">sw_type</a>
+                        </li>
+                </ul>
+
+            </li>
+            <li>
+                    <a class="class" href="#Root">Root</a>
+                            <ul class="memberlist">
+                        <li>
+                                <a class="variable" href="#Root.id">id</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Root.sorted_id">sorted_id</a>
+                        </li>
+                </ul>
+
+            </li>
+            <li>
+                    <a class="class" href="#RankRoot">RankRoot</a>
+                            <ul class="memberlist">
+                        <li>
+                                <a class="variable" href="#RankRoot.roots">roots</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#RankRoot.count">count</a>
+                        </li>
+                </ul>
+
+            </li>
     </ul>
 
 
@@ -1348,6 +1555,1223 @@
 
 
             </section>
+                <section id="PlaceholderData">
+                    <div class="attr class">
+            
+    <span class="def">class</span>
+    <span class="name">PlaceholderData</span><wbr>(<span class="base">google.protobuf.pyext._message.CMessage</span>, <span class="base">google.protobuf.message.Message</span>):
+
+        
+    </div>
+    <a class="headerlink" href="#PlaceholderData"></a>
+    
+            <div class="docstring"><p>A ProtocolMessage</p>
+</div>
+
+
+                            <div id="PlaceholderData.goals" class="classattr">
+                                <div class="attr variable">
+            <span class="name">goals</span>
+
+        
+    </div>
+    <a class="headerlink" href="#PlaceholderData.goals"></a>
+    
+            <div class="docstring"><p>Field prism.PlaceholderData.goals</p>
+</div>
+
+
+                            </div>
+                            <div class="inherited">
+                                <h5>Inherited Members</h5>
+                                <dl>
+                                    <div><dt>google.protobuf.pyext._message.CMessage</dt>
+                                <dd id="PlaceholderData.__init__" class="function">CMessage</dd>
+                <dd id="PlaceholderData.MergeFrom" class="function">MergeFrom</dd>
+                <dd id="PlaceholderData.CopyFrom" class="function">CopyFrom</dd>
+                <dd id="PlaceholderData.Clear" class="function">Clear</dd>
+                <dd id="PlaceholderData.SetInParent" class="function">SetInParent</dd>
+                <dd id="PlaceholderData.IsInitialized" class="function">IsInitialized</dd>
+                <dd id="PlaceholderData.MergeFromString" class="function">MergeFromString</dd>
+                <dd id="PlaceholderData.ParseFromString" class="function">ParseFromString</dd>
+                <dd id="PlaceholderData.SerializeToString" class="function">SerializeToString</dd>
+                <dd id="PlaceholderData.SerializePartialToString" class="function">SerializePartialToString</dd>
+                <dd id="PlaceholderData.ListFields" class="function">ListFields</dd>
+                <dd id="PlaceholderData.HasField" class="function">HasField</dd>
+                <dd id="PlaceholderData.ClearField" class="function">ClearField</dd>
+                <dd id="PlaceholderData.WhichOneof" class="function">WhichOneof</dd>
+                <dd id="PlaceholderData.HasExtension" class="function">HasExtension</dd>
+                <dd id="PlaceholderData.ClearExtension" class="function">ClearExtension</dd>
+                <dd id="PlaceholderData.UnknownFields" class="function">UnknownFields</dd>
+                <dd id="PlaceholderData.DiscardUnknownFields" class="function">DiscardUnknownFields</dd>
+                <dd id="PlaceholderData.ByteSize" class="function">ByteSize</dd>
+                <dd id="PlaceholderData.FromString" class="function">FromString</dd>
+                <dd id="PlaceholderData.RegisterExtension" class="function">RegisterExtension</dd>
+                <dd id="PlaceholderData.FindInitializationErrors" class="function">FindInitializationErrors</dd>
+                <dd id="PlaceholderData.Extensions" class="variable">Extensions</dd>
+
+            </div>
+                                </dl>
+                            </div>
+                </section>
+                <section id="PlaceholderGoal">
+                    <div class="attr class">
+            
+    <span class="def">class</span>
+    <span class="name">PlaceholderGoal</span><wbr>(<span class="base">google.protobuf.pyext._message.CMessage</span>, <span class="base">google.protobuf.message.Message</span>):
+
+        
+    </div>
+    <a class="headerlink" href="#PlaceholderGoal"></a>
+    
+            <div class="docstring"><p>A ProtocolMessage</p>
+</div>
+
+
+                            <div id="PlaceholderGoal.id" class="classattr">
+                                <div class="attr variable">
+            <span class="name">id</span>
+
+        
+    </div>
+    <a class="headerlink" href="#PlaceholderGoal.id"></a>
+    
+            <div class="docstring"><p>Field prism.PlaceholderGoal.id</p>
+</div>
+
+
+                            </div>
+                            <div id="PlaceholderGoal.placeholders" class="classattr">
+                                <div class="attr variable">
+            <span class="name">placeholders</span>
+
+        
+    </div>
+    <a class="headerlink" href="#PlaceholderGoal.placeholders"></a>
+    
+            <div class="docstring"><p>Field prism.PlaceholderGoal.placeholders</p>
+</div>
+
+
+                            </div>
+                            <div id="PlaceholderGoal.records" class="classattr">
+                                <div class="attr variable">
+            <span class="name">records</span>
+
+        
+    </div>
+    <a class="headerlink" href="#PlaceholderGoal.records"></a>
+    
+            <div class="docstring"><p>Field prism.PlaceholderGoal.records</p>
+</div>
+
+
+                            </div>
+                            <div class="inherited">
+                                <h5>Inherited Members</h5>
+                                <dl>
+                                    <div><dt>google.protobuf.pyext._message.CMessage</dt>
+                                <dd id="PlaceholderGoal.__init__" class="function">CMessage</dd>
+                <dd id="PlaceholderGoal.MergeFrom" class="function">MergeFrom</dd>
+                <dd id="PlaceholderGoal.CopyFrom" class="function">CopyFrom</dd>
+                <dd id="PlaceholderGoal.Clear" class="function">Clear</dd>
+                <dd id="PlaceholderGoal.SetInParent" class="function">SetInParent</dd>
+                <dd id="PlaceholderGoal.IsInitialized" class="function">IsInitialized</dd>
+                <dd id="PlaceholderGoal.MergeFromString" class="function">MergeFromString</dd>
+                <dd id="PlaceholderGoal.ParseFromString" class="function">ParseFromString</dd>
+                <dd id="PlaceholderGoal.SerializeToString" class="function">SerializeToString</dd>
+                <dd id="PlaceholderGoal.SerializePartialToString" class="function">SerializePartialToString</dd>
+                <dd id="PlaceholderGoal.ListFields" class="function">ListFields</dd>
+                <dd id="PlaceholderGoal.HasField" class="function">HasField</dd>
+                <dd id="PlaceholderGoal.ClearField" class="function">ClearField</dd>
+                <dd id="PlaceholderGoal.WhichOneof" class="function">WhichOneof</dd>
+                <dd id="PlaceholderGoal.HasExtension" class="function">HasExtension</dd>
+                <dd id="PlaceholderGoal.ClearExtension" class="function">ClearExtension</dd>
+                <dd id="PlaceholderGoal.UnknownFields" class="function">UnknownFields</dd>
+                <dd id="PlaceholderGoal.DiscardUnknownFields" class="function">DiscardUnknownFields</dd>
+                <dd id="PlaceholderGoal.ByteSize" class="function">ByteSize</dd>
+                <dd id="PlaceholderGoal.FromString" class="function">FromString</dd>
+                <dd id="PlaceholderGoal.RegisterExtension" class="function">RegisterExtension</dd>
+                <dd id="PlaceholderGoal.FindInitializationErrors" class="function">FindInitializationErrors</dd>
+                <dd id="PlaceholderGoal.Extensions" class="variable">Extensions</dd>
+
+            </div>
+                                </dl>
+                            </div>
+                </section>
+                <section id="DataRecord">
+                    <div class="attr class">
+            
+    <span class="def">class</span>
+    <span class="name">DataRecord</span><wbr>(<span class="base">google.protobuf.pyext._message.CMessage</span>, <span class="base">google.protobuf.message.Message</span>):
+
+        
+    </div>
+    <a class="headerlink" href="#DataRecord"></a>
+    
+            <div class="docstring"><p>A ProtocolMessage</p>
+</div>
+
+
+                            <div id="DataRecord.items" class="classattr">
+                                <div class="attr variable">
+            <span class="name">items</span>
+
+        
+    </div>
+    <a class="headerlink" href="#DataRecord.items"></a>
+    
+            <div class="docstring"><p>Field prism.DataRecord.items</p>
+</div>
+
+
+                            </div>
+                            <div class="inherited">
+                                <h5>Inherited Members</h5>
+                                <dl>
+                                    <div><dt>google.protobuf.pyext._message.CMessage</dt>
+                                <dd id="DataRecord.__init__" class="function">CMessage</dd>
+                <dd id="DataRecord.MergeFrom" class="function">MergeFrom</dd>
+                <dd id="DataRecord.CopyFrom" class="function">CopyFrom</dd>
+                <dd id="DataRecord.Clear" class="function">Clear</dd>
+                <dd id="DataRecord.SetInParent" class="function">SetInParent</dd>
+                <dd id="DataRecord.IsInitialized" class="function">IsInitialized</dd>
+                <dd id="DataRecord.MergeFromString" class="function">MergeFromString</dd>
+                <dd id="DataRecord.ParseFromString" class="function">ParseFromString</dd>
+                <dd id="DataRecord.SerializeToString" class="function">SerializeToString</dd>
+                <dd id="DataRecord.SerializePartialToString" class="function">SerializePartialToString</dd>
+                <dd id="DataRecord.ListFields" class="function">ListFields</dd>
+                <dd id="DataRecord.HasField" class="function">HasField</dd>
+                <dd id="DataRecord.ClearField" class="function">ClearField</dd>
+                <dd id="DataRecord.WhichOneof" class="function">WhichOneof</dd>
+                <dd id="DataRecord.HasExtension" class="function">HasExtension</dd>
+                <dd id="DataRecord.ClearExtension" class="function">ClearExtension</dd>
+                <dd id="DataRecord.UnknownFields" class="function">UnknownFields</dd>
+                <dd id="DataRecord.DiscardUnknownFields" class="function">DiscardUnknownFields</dd>
+                <dd id="DataRecord.ByteSize" class="function">ByteSize</dd>
+                <dd id="DataRecord.FromString" class="function">FromString</dd>
+                <dd id="DataRecord.RegisterExtension" class="function">RegisterExtension</dd>
+                <dd id="DataRecord.FindInitializationErrors" class="function">FindInitializationErrors</dd>
+                <dd id="DataRecord.Extensions" class="variable">Extensions</dd>
+
+            </div>
+                                </dl>
+                            </div>
+                </section>
+                <section id="Placeholder">
+                    <div class="attr class">
+            
+    <span class="def">class</span>
+    <span class="name">Placeholder</span><wbr>(<span class="base">google.protobuf.pyext._message.CMessage</span>, <span class="base">google.protobuf.message.Message</span>):
+
+        
+    </div>
+    <a class="headerlink" href="#Placeholder"></a>
+    
+            <div class="docstring"><p>A ProtocolMessage</p>
+</div>
+
+
+                            <div id="Placeholder.name" class="classattr">
+                                <div class="attr variable">
+            <span class="name">name</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Placeholder.name"></a>
+    
+            <div class="docstring"><p>Field prism.Placeholder.name</p>
+</div>
+
+
+                            </div>
+                            <div class="inherited">
+                                <h5>Inherited Members</h5>
+                                <dl>
+                                    <div><dt>google.protobuf.pyext._message.CMessage</dt>
+                                <dd id="Placeholder.__init__" class="function">CMessage</dd>
+                <dd id="Placeholder.MergeFrom" class="function">MergeFrom</dd>
+                <dd id="Placeholder.CopyFrom" class="function">CopyFrom</dd>
+                <dd id="Placeholder.Clear" class="function">Clear</dd>
+                <dd id="Placeholder.SetInParent" class="function">SetInParent</dd>
+                <dd id="Placeholder.IsInitialized" class="function">IsInitialized</dd>
+                <dd id="Placeholder.MergeFromString" class="function">MergeFromString</dd>
+                <dd id="Placeholder.ParseFromString" class="function">ParseFromString</dd>
+                <dd id="Placeholder.SerializeToString" class="function">SerializeToString</dd>
+                <dd id="Placeholder.SerializePartialToString" class="function">SerializePartialToString</dd>
+                <dd id="Placeholder.ListFields" class="function">ListFields</dd>
+                <dd id="Placeholder.HasField" class="function">HasField</dd>
+                <dd id="Placeholder.ClearField" class="function">ClearField</dd>
+                <dd id="Placeholder.WhichOneof" class="function">WhichOneof</dd>
+                <dd id="Placeholder.HasExtension" class="function">HasExtension</dd>
+                <dd id="Placeholder.ClearExtension" class="function">ClearExtension</dd>
+                <dd id="Placeholder.UnknownFields" class="function">UnknownFields</dd>
+                <dd id="Placeholder.DiscardUnknownFields" class="function">DiscardUnknownFields</dd>
+                <dd id="Placeholder.ByteSize" class="function">ByteSize</dd>
+                <dd id="Placeholder.FromString" class="function">FromString</dd>
+                <dd id="Placeholder.RegisterExtension" class="function">RegisterExtension</dd>
+                <dd id="Placeholder.FindInitializationErrors" class="function">FindInitializationErrors</dd>
+                <dd id="Placeholder.Extensions" class="variable">Extensions</dd>
+
+            </div>
+                                </dl>
+                            </div>
+                </section>
+                <section id="Option">
+                    <div class="attr class">
+            
+    <span class="def">class</span>
+    <span class="name">Option</span><wbr>(<span class="base">google.protobuf.pyext._message.CMessage</span>, <span class="base">google.protobuf.message.Message</span>):
+
+        
+    </div>
+    <a class="headerlink" href="#Option"></a>
+    
+            <div class="docstring"><p>A ProtocolMessage</p>
+</div>
+
+
+                            <div id="Option.flags" class="classattr">
+                                <div class="attr variable">
+            <span class="name">flags</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Option.flags"></a>
+    
+            <div class="docstring"><p>Field prism.Option.flags</p>
+</div>
+
+
+                            </div>
+                            <div id="Option.index_range" class="classattr">
+                                <div class="attr variable">
+            <span class="name">index_range</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Option.index_range"></a>
+    
+            <div class="docstring"><p>Field prism.Option.index_range</p>
+</div>
+
+
+                            </div>
+                            <div id="Option.tensor_shape" class="classattr">
+                                <div class="attr variable">
+            <span class="name">tensor_shape</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Option.tensor_shape"></a>
+    
+            <div class="docstring"><p>Field prism.Option.tensor_shape</p>
+</div>
+
+
+                            </div>
+                            <div class="inherited">
+                                <h5>Inherited Members</h5>
+                                <dl>
+                                    <div><dt>google.protobuf.pyext._message.CMessage</dt>
+                                <dd id="Option.__init__" class="function">CMessage</dd>
+                <dd id="Option.MergeFrom" class="function">MergeFrom</dd>
+                <dd id="Option.CopyFrom" class="function">CopyFrom</dd>
+                <dd id="Option.Clear" class="function">Clear</dd>
+                <dd id="Option.SetInParent" class="function">SetInParent</dd>
+                <dd id="Option.IsInitialized" class="function">IsInitialized</dd>
+                <dd id="Option.MergeFromString" class="function">MergeFromString</dd>
+                <dd id="Option.ParseFromString" class="function">ParseFromString</dd>
+                <dd id="Option.SerializeToString" class="function">SerializeToString</dd>
+                <dd id="Option.SerializePartialToString" class="function">SerializePartialToString</dd>
+                <dd id="Option.ListFields" class="function">ListFields</dd>
+                <dd id="Option.HasField" class="function">HasField</dd>
+                <dd id="Option.ClearField" class="function">ClearField</dd>
+                <dd id="Option.WhichOneof" class="function">WhichOneof</dd>
+                <dd id="Option.HasExtension" class="function">HasExtension</dd>
+                <dd id="Option.ClearExtension" class="function">ClearExtension</dd>
+                <dd id="Option.UnknownFields" class="function">UnknownFields</dd>
+                <dd id="Option.DiscardUnknownFields" class="function">DiscardUnknownFields</dd>
+                <dd id="Option.ByteSize" class="function">ByteSize</dd>
+                <dd id="Option.FromString" class="function">FromString</dd>
+                <dd id="Option.RegisterExtension" class="function">RegisterExtension</dd>
+                <dd id="Option.FindInitializationErrors" class="function">FindInitializationErrors</dd>
+                <dd id="Option.Extensions" class="variable">Extensions</dd>
+
+            </div>
+                                </dl>
+                            </div>
+                </section>
+                <section id="Flag">
+                    <div class="attr class">
+            
+    <span class="def">class</span>
+    <span class="name">Flag</span><wbr>(<span class="base">google.protobuf.pyext._message.CMessage</span>, <span class="base">google.protobuf.message.Message</span>):
+
+        
+    </div>
+    <a class="headerlink" href="#Flag"></a>
+    
+            <div class="docstring"><p>A ProtocolMessage</p>
+</div>
+
+
+                            <div id="Flag.key" class="classattr">
+                                <div class="attr variable">
+            <span class="name">key</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Flag.key"></a>
+    
+            <div class="docstring"><p>Field prism.Flag.key</p>
+</div>
+
+
+                            </div>
+                            <div id="Flag.value" class="classattr">
+                                <div class="attr variable">
+            <span class="name">value</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Flag.value"></a>
+    
+            <div class="docstring"><p>Field prism.Flag.value</p>
+</div>
+
+
+                            </div>
+                            <div class="inherited">
+                                <h5>Inherited Members</h5>
+                                <dl>
+                                    <div><dt>google.protobuf.pyext._message.CMessage</dt>
+                                <dd id="Flag.__init__" class="function">CMessage</dd>
+                <dd id="Flag.MergeFrom" class="function">MergeFrom</dd>
+                <dd id="Flag.CopyFrom" class="function">CopyFrom</dd>
+                <dd id="Flag.Clear" class="function">Clear</dd>
+                <dd id="Flag.SetInParent" class="function">SetInParent</dd>
+                <dd id="Flag.IsInitialized" class="function">IsInitialized</dd>
+                <dd id="Flag.MergeFromString" class="function">MergeFromString</dd>
+                <dd id="Flag.ParseFromString" class="function">ParseFromString</dd>
+                <dd id="Flag.SerializeToString" class="function">SerializeToString</dd>
+                <dd id="Flag.SerializePartialToString" class="function">SerializePartialToString</dd>
+                <dd id="Flag.ListFields" class="function">ListFields</dd>
+                <dd id="Flag.HasField" class="function">HasField</dd>
+                <dd id="Flag.ClearField" class="function">ClearField</dd>
+                <dd id="Flag.WhichOneof" class="function">WhichOneof</dd>
+                <dd id="Flag.HasExtension" class="function">HasExtension</dd>
+                <dd id="Flag.ClearExtension" class="function">ClearExtension</dd>
+                <dd id="Flag.UnknownFields" class="function">UnknownFields</dd>
+                <dd id="Flag.DiscardUnknownFields" class="function">DiscardUnknownFields</dd>
+                <dd id="Flag.ByteSize" class="function">ByteSize</dd>
+                <dd id="Flag.FromString" class="function">FromString</dd>
+                <dd id="Flag.RegisterExtension" class="function">RegisterExtension</dd>
+                <dd id="Flag.FindInitializationErrors" class="function">FindInitializationErrors</dd>
+                <dd id="Flag.Extensions" class="variable">Extensions</dd>
+
+            </div>
+                                </dl>
+                            </div>
+                </section>
+                <section id="IndexRange">
+                    <div class="attr class">
+            
+    <span class="def">class</span>
+    <span class="name">IndexRange</span><wbr>(<span class="base">google.protobuf.pyext._message.CMessage</span>, <span class="base">google.protobuf.message.Message</span>):
+
+        
+    </div>
+    <a class="headerlink" href="#IndexRange"></a>
+    
+            <div class="docstring"><p>A ProtocolMessage</p>
+</div>
+
+
+                            <div id="IndexRange.index" class="classattr">
+                                <div class="attr variable">
+            <span class="name">index</span>
+
+        
+    </div>
+    <a class="headerlink" href="#IndexRange.index"></a>
+    
+            <div class="docstring"><p>Field prism.IndexRange.index</p>
+</div>
+
+
+                            </div>
+                            <div id="IndexRange.range" class="classattr">
+                                <div class="attr variable">
+            <span class="name">range</span>
+
+        
+    </div>
+    <a class="headerlink" href="#IndexRange.range"></a>
+    
+            <div class="docstring"><p>Field prism.IndexRange.range</p>
+</div>
+
+
+                            </div>
+                            <div class="inherited">
+                                <h5>Inherited Members</h5>
+                                <dl>
+                                    <div><dt>google.protobuf.pyext._message.CMessage</dt>
+                                <dd id="IndexRange.__init__" class="function">CMessage</dd>
+                <dd id="IndexRange.MergeFrom" class="function">MergeFrom</dd>
+                <dd id="IndexRange.CopyFrom" class="function">CopyFrom</dd>
+                <dd id="IndexRange.Clear" class="function">Clear</dd>
+                <dd id="IndexRange.SetInParent" class="function">SetInParent</dd>
+                <dd id="IndexRange.IsInitialized" class="function">IsInitialized</dd>
+                <dd id="IndexRange.MergeFromString" class="function">MergeFromString</dd>
+                <dd id="IndexRange.ParseFromString" class="function">ParseFromString</dd>
+                <dd id="IndexRange.SerializeToString" class="function">SerializeToString</dd>
+                <dd id="IndexRange.SerializePartialToString" class="function">SerializePartialToString</dd>
+                <dd id="IndexRange.ListFields" class="function">ListFields</dd>
+                <dd id="IndexRange.HasField" class="function">HasField</dd>
+                <dd id="IndexRange.ClearField" class="function">ClearField</dd>
+                <dd id="IndexRange.WhichOneof" class="function">WhichOneof</dd>
+                <dd id="IndexRange.HasExtension" class="function">HasExtension</dd>
+                <dd id="IndexRange.ClearExtension" class="function">ClearExtension</dd>
+                <dd id="IndexRange.UnknownFields" class="function">UnknownFields</dd>
+                <dd id="IndexRange.DiscardUnknownFields" class="function">DiscardUnknownFields</dd>
+                <dd id="IndexRange.ByteSize" class="function">ByteSize</dd>
+                <dd id="IndexRange.FromString" class="function">FromString</dd>
+                <dd id="IndexRange.RegisterExtension" class="function">RegisterExtension</dd>
+                <dd id="IndexRange.FindInitializationErrors" class="function">FindInitializationErrors</dd>
+                <dd id="IndexRange.Extensions" class="variable">Extensions</dd>
+
+            </div>
+                                </dl>
+                            </div>
+                </section>
+                <section id="TensorShape">
+                    <div class="attr class">
+            
+    <span class="def">class</span>
+    <span class="name">TensorShape</span><wbr>(<span class="base">google.protobuf.pyext._message.CMessage</span>, <span class="base">google.protobuf.message.Message</span>):
+
+        
+    </div>
+    <a class="headerlink" href="#TensorShape"></a>
+    
+            <div class="docstring"><p>A ProtocolMessage</p>
+</div>
+
+
+                            <div id="TensorShape.tensor_name" class="classattr">
+                                <div class="attr variable">
+            <span class="name">tensor_name</span>
+
+        
+    </div>
+    <a class="headerlink" href="#TensorShape.tensor_name"></a>
+    
+            <div class="docstring"><p>Field prism.TensorShape.tensor_name</p>
+</div>
+
+
+                            </div>
+                            <div id="TensorShape.shape" class="classattr">
+                                <div class="attr variable">
+            <span class="name">shape</span>
+
+        
+    </div>
+    <a class="headerlink" href="#TensorShape.shape"></a>
+    
+            <div class="docstring"><p>Field prism.TensorShape.shape</p>
+</div>
+
+
+                            </div>
+                            <div class="inherited">
+                                <h5>Inherited Members</h5>
+                                <dl>
+                                    <div><dt>google.protobuf.pyext._message.CMessage</dt>
+                                <dd id="TensorShape.__init__" class="function">CMessage</dd>
+                <dd id="TensorShape.MergeFrom" class="function">MergeFrom</dd>
+                <dd id="TensorShape.CopyFrom" class="function">CopyFrom</dd>
+                <dd id="TensorShape.Clear" class="function">Clear</dd>
+                <dd id="TensorShape.SetInParent" class="function">SetInParent</dd>
+                <dd id="TensorShape.IsInitialized" class="function">IsInitialized</dd>
+                <dd id="TensorShape.MergeFromString" class="function">MergeFromString</dd>
+                <dd id="TensorShape.ParseFromString" class="function">ParseFromString</dd>
+                <dd id="TensorShape.SerializeToString" class="function">SerializeToString</dd>
+                <dd id="TensorShape.SerializePartialToString" class="function">SerializePartialToString</dd>
+                <dd id="TensorShape.ListFields" class="function">ListFields</dd>
+                <dd id="TensorShape.HasField" class="function">HasField</dd>
+                <dd id="TensorShape.ClearField" class="function">ClearField</dd>
+                <dd id="TensorShape.WhichOneof" class="function">WhichOneof</dd>
+                <dd id="TensorShape.HasExtension" class="function">HasExtension</dd>
+                <dd id="TensorShape.ClearExtension" class="function">ClearExtension</dd>
+                <dd id="TensorShape.UnknownFields" class="function">UnknownFields</dd>
+                <dd id="TensorShape.DiscardUnknownFields" class="function">DiscardUnknownFields</dd>
+                <dd id="TensorShape.ByteSize" class="function">ByteSize</dd>
+                <dd id="TensorShape.FromString" class="function">FromString</dd>
+                <dd id="TensorShape.RegisterExtension" class="function">RegisterExtension</dd>
+                <dd id="TensorShape.FindInitializationErrors" class="function">FindInitializationErrors</dd>
+                <dd id="TensorShape.Extensions" class="variable">Extensions</dd>
+
+            </div>
+                                </dl>
+                            </div>
+                </section>
+                <section id="ExplGraph">
+                    <div class="attr class">
+            
+    <span class="def">class</span>
+    <span class="name">ExplGraph</span><wbr>(<span class="base">google.protobuf.pyext._message.CMessage</span>, <span class="base">google.protobuf.message.Message</span>):
+
+        
+    </div>
+    <a class="headerlink" href="#ExplGraph"></a>
+    
+            <div class="docstring"><p>A ProtocolMessage</p>
+</div>
+
+
+                            <div id="ExplGraph.goals" class="classattr">
+                                <div class="attr variable">
+            <span class="name">goals</span>
+
+        
+    </div>
+    <a class="headerlink" href="#ExplGraph.goals"></a>
+    
+            <div class="docstring"><p>Field prism.ExplGraph.goals</p>
+</div>
+
+
+                            </div>
+                            <div id="ExplGraph.root_list" class="classattr">
+                                <div class="attr variable">
+            <span class="name">root_list</span>
+
+        
+    </div>
+    <a class="headerlink" href="#ExplGraph.root_list"></a>
+    
+            <div class="docstring"><p>Field prism.ExplGraph.root_list</p>
+</div>
+
+
+                            </div>
+                            <div class="inherited">
+                                <h5>Inherited Members</h5>
+                                <dl>
+                                    <div><dt>google.protobuf.pyext._message.CMessage</dt>
+                                <dd id="ExplGraph.__init__" class="function">CMessage</dd>
+                <dd id="ExplGraph.MergeFrom" class="function">MergeFrom</dd>
+                <dd id="ExplGraph.CopyFrom" class="function">CopyFrom</dd>
+                <dd id="ExplGraph.Clear" class="function">Clear</dd>
+                <dd id="ExplGraph.SetInParent" class="function">SetInParent</dd>
+                <dd id="ExplGraph.IsInitialized" class="function">IsInitialized</dd>
+                <dd id="ExplGraph.MergeFromString" class="function">MergeFromString</dd>
+                <dd id="ExplGraph.ParseFromString" class="function">ParseFromString</dd>
+                <dd id="ExplGraph.SerializeToString" class="function">SerializeToString</dd>
+                <dd id="ExplGraph.SerializePartialToString" class="function">SerializePartialToString</dd>
+                <dd id="ExplGraph.ListFields" class="function">ListFields</dd>
+                <dd id="ExplGraph.HasField" class="function">HasField</dd>
+                <dd id="ExplGraph.ClearField" class="function">ClearField</dd>
+                <dd id="ExplGraph.WhichOneof" class="function">WhichOneof</dd>
+                <dd id="ExplGraph.HasExtension" class="function">HasExtension</dd>
+                <dd id="ExplGraph.ClearExtension" class="function">ClearExtension</dd>
+                <dd id="ExplGraph.UnknownFields" class="function">UnknownFields</dd>
+                <dd id="ExplGraph.DiscardUnknownFields" class="function">DiscardUnknownFields</dd>
+                <dd id="ExplGraph.ByteSize" class="function">ByteSize</dd>
+                <dd id="ExplGraph.FromString" class="function">FromString</dd>
+                <dd id="ExplGraph.RegisterExtension" class="function">RegisterExtension</dd>
+                <dd id="ExplGraph.FindInitializationErrors" class="function">FindInitializationErrors</dd>
+                <dd id="ExplGraph.Extensions" class="variable">Extensions</dd>
+
+            </div>
+                                </dl>
+                            </div>
+                </section>
+                <section id="ExplGraphGoal">
+                    <div class="attr class">
+            
+    <span class="def">class</span>
+    <span class="name">ExplGraphGoal</span><wbr>(<span class="base">google.protobuf.pyext._message.CMessage</span>, <span class="base">google.protobuf.message.Message</span>):
+
+        
+    </div>
+    <a class="headerlink" href="#ExplGraphGoal"></a>
+    
+            <div class="docstring"><p>A ProtocolMessage</p>
+</div>
+
+
+                            <div id="ExplGraphGoal.node" class="classattr">
+                                <div class="attr variable">
+            <span class="name">node</span>
+
+        
+    </div>
+    <a class="headerlink" href="#ExplGraphGoal.node"></a>
+    
+            <div class="docstring"><p>Field prism.ExplGraphGoal.node</p>
+</div>
+
+
+                            </div>
+                            <div id="ExplGraphGoal.paths" class="classattr">
+                                <div class="attr variable">
+            <span class="name">paths</span>
+
+        
+    </div>
+    <a class="headerlink" href="#ExplGraphGoal.paths"></a>
+    
+            <div class="docstring"><p>Field prism.ExplGraphGoal.paths</p>
+</div>
+
+
+                            </div>
+                            <div class="inherited">
+                                <h5>Inherited Members</h5>
+                                <dl>
+                                    <div><dt>google.protobuf.pyext._message.CMessage</dt>
+                                <dd id="ExplGraphGoal.__init__" class="function">CMessage</dd>
+                <dd id="ExplGraphGoal.MergeFrom" class="function">MergeFrom</dd>
+                <dd id="ExplGraphGoal.CopyFrom" class="function">CopyFrom</dd>
+                <dd id="ExplGraphGoal.Clear" class="function">Clear</dd>
+                <dd id="ExplGraphGoal.SetInParent" class="function">SetInParent</dd>
+                <dd id="ExplGraphGoal.IsInitialized" class="function">IsInitialized</dd>
+                <dd id="ExplGraphGoal.MergeFromString" class="function">MergeFromString</dd>
+                <dd id="ExplGraphGoal.ParseFromString" class="function">ParseFromString</dd>
+                <dd id="ExplGraphGoal.SerializeToString" class="function">SerializeToString</dd>
+                <dd id="ExplGraphGoal.SerializePartialToString" class="function">SerializePartialToString</dd>
+                <dd id="ExplGraphGoal.ListFields" class="function">ListFields</dd>
+                <dd id="ExplGraphGoal.HasField" class="function">HasField</dd>
+                <dd id="ExplGraphGoal.ClearField" class="function">ClearField</dd>
+                <dd id="ExplGraphGoal.WhichOneof" class="function">WhichOneof</dd>
+                <dd id="ExplGraphGoal.HasExtension" class="function">HasExtension</dd>
+                <dd id="ExplGraphGoal.ClearExtension" class="function">ClearExtension</dd>
+                <dd id="ExplGraphGoal.UnknownFields" class="function">UnknownFields</dd>
+                <dd id="ExplGraphGoal.DiscardUnknownFields" class="function">DiscardUnknownFields</dd>
+                <dd id="ExplGraphGoal.ByteSize" class="function">ByteSize</dd>
+                <dd id="ExplGraphGoal.FromString" class="function">FromString</dd>
+                <dd id="ExplGraphGoal.RegisterExtension" class="function">RegisterExtension</dd>
+                <dd id="ExplGraphGoal.FindInitializationErrors" class="function">FindInitializationErrors</dd>
+                <dd id="ExplGraphGoal.Extensions" class="variable">Extensions</dd>
+
+            </div>
+                                </dl>
+                            </div>
+                </section>
+                <section id="ExplGraphPath">
+                    <div class="attr class">
+            
+    <span class="def">class</span>
+    <span class="name">ExplGraphPath</span><wbr>(<span class="base">google.protobuf.pyext._message.CMessage</span>, <span class="base">google.protobuf.message.Message</span>):
+
+        
+    </div>
+    <a class="headerlink" href="#ExplGraphPath"></a>
+    
+            <div class="docstring"><p>A ProtocolMessage</p>
+</div>
+
+
+                            <div id="ExplGraphPath.nodes" class="classattr">
+                                <div class="attr variable">
+            <span class="name">nodes</span>
+
+        
+    </div>
+    <a class="headerlink" href="#ExplGraphPath.nodes"></a>
+    
+            <div class="docstring"><p>Field prism.ExplGraphPath.nodes</p>
+</div>
+
+
+                            </div>
+                            <div id="ExplGraphPath.prob_switches" class="classattr">
+                                <div class="attr variable">
+            <span class="name">prob_switches</span>
+
+        
+    </div>
+    <a class="headerlink" href="#ExplGraphPath.prob_switches"></a>
+    
+            <div class="docstring"><p>Field prism.ExplGraphPath.prob_switches</p>
+</div>
+
+
+                            </div>
+                            <div id="ExplGraphPath.tensor_switches" class="classattr">
+                                <div class="attr variable">
+            <span class="name">tensor_switches</span>
+
+        
+    </div>
+    <a class="headerlink" href="#ExplGraphPath.tensor_switches"></a>
+    
+            <div class="docstring"><p>Field prism.ExplGraphPath.tensor_switches</p>
+</div>
+
+
+                            </div>
+                            <div id="ExplGraphPath.operators" class="classattr">
+                                <div class="attr variable">
+            <span class="name">operators</span>
+
+        
+    </div>
+    <a class="headerlink" href="#ExplGraphPath.operators"></a>
+    
+            <div class="docstring"><p>Field prism.ExplGraphPath.operators</p>
+</div>
+
+
+                            </div>
+                            <div class="inherited">
+                                <h5>Inherited Members</h5>
+                                <dl>
+                                    <div><dt>google.protobuf.pyext._message.CMessage</dt>
+                                <dd id="ExplGraphPath.__init__" class="function">CMessage</dd>
+                <dd id="ExplGraphPath.MergeFrom" class="function">MergeFrom</dd>
+                <dd id="ExplGraphPath.CopyFrom" class="function">CopyFrom</dd>
+                <dd id="ExplGraphPath.Clear" class="function">Clear</dd>
+                <dd id="ExplGraphPath.SetInParent" class="function">SetInParent</dd>
+                <dd id="ExplGraphPath.IsInitialized" class="function">IsInitialized</dd>
+                <dd id="ExplGraphPath.MergeFromString" class="function">MergeFromString</dd>
+                <dd id="ExplGraphPath.ParseFromString" class="function">ParseFromString</dd>
+                <dd id="ExplGraphPath.SerializeToString" class="function">SerializeToString</dd>
+                <dd id="ExplGraphPath.SerializePartialToString" class="function">SerializePartialToString</dd>
+                <dd id="ExplGraphPath.ListFields" class="function">ListFields</dd>
+                <dd id="ExplGraphPath.HasField" class="function">HasField</dd>
+                <dd id="ExplGraphPath.ClearField" class="function">ClearField</dd>
+                <dd id="ExplGraphPath.WhichOneof" class="function">WhichOneof</dd>
+                <dd id="ExplGraphPath.HasExtension" class="function">HasExtension</dd>
+                <dd id="ExplGraphPath.ClearExtension" class="function">ClearExtension</dd>
+                <dd id="ExplGraphPath.UnknownFields" class="function">UnknownFields</dd>
+                <dd id="ExplGraphPath.DiscardUnknownFields" class="function">DiscardUnknownFields</dd>
+                <dd id="ExplGraphPath.ByteSize" class="function">ByteSize</dd>
+                <dd id="ExplGraphPath.FromString" class="function">FromString</dd>
+                <dd id="ExplGraphPath.RegisterExtension" class="function">RegisterExtension</dd>
+                <dd id="ExplGraphPath.FindInitializationErrors" class="function">FindInitializationErrors</dd>
+                <dd id="ExplGraphPath.Extensions" class="variable">Extensions</dd>
+
+            </div>
+                                </dl>
+                            </div>
+                </section>
+                <section id="ExplGraphNode">
+                    <div class="attr class">
+            
+    <span class="def">class</span>
+    <span class="name">ExplGraphNode</span><wbr>(<span class="base">google.protobuf.pyext._message.CMessage</span>, <span class="base">google.protobuf.message.Message</span>):
+
+        
+    </div>
+    <a class="headerlink" href="#ExplGraphNode"></a>
+    
+            <div class="docstring"><p>A ProtocolMessage</p>
+</div>
+
+
+                            <div id="ExplGraphNode.id" class="classattr">
+                                <div class="attr variable">
+            <span class="name">id</span>
+
+        
+    </div>
+    <a class="headerlink" href="#ExplGraphNode.id"></a>
+    
+            <div class="docstring"><p>Field prism.ExplGraphNode.id</p>
+</div>
+
+
+                            </div>
+                            <div id="ExplGraphNode.sorted_id" class="classattr">
+                                <div class="attr variable">
+            <span class="name">sorted_id</span>
+
+        
+    </div>
+    <a class="headerlink" href="#ExplGraphNode.sorted_id"></a>
+    
+            <div class="docstring"><p>Field prism.ExplGraphNode.sorted_id</p>
+</div>
+
+
+                            </div>
+                            <div id="ExplGraphNode.goal" class="classattr">
+                                <div class="attr variable">
+            <span class="name">goal</span>
+
+        
+    </div>
+    <a class="headerlink" href="#ExplGraphNode.goal"></a>
+    
+            <div class="docstring"><p>Field prism.ExplGraphNode.goal</p>
+</div>
+
+
+                            </div>
+                            <div class="inherited">
+                                <h5>Inherited Members</h5>
+                                <dl>
+                                    <div><dt>google.protobuf.pyext._message.CMessage</dt>
+                                <dd id="ExplGraphNode.__init__" class="function">CMessage</dd>
+                <dd id="ExplGraphNode.MergeFrom" class="function">MergeFrom</dd>
+                <dd id="ExplGraphNode.CopyFrom" class="function">CopyFrom</dd>
+                <dd id="ExplGraphNode.Clear" class="function">Clear</dd>
+                <dd id="ExplGraphNode.SetInParent" class="function">SetInParent</dd>
+                <dd id="ExplGraphNode.IsInitialized" class="function">IsInitialized</dd>
+                <dd id="ExplGraphNode.MergeFromString" class="function">MergeFromString</dd>
+                <dd id="ExplGraphNode.ParseFromString" class="function">ParseFromString</dd>
+                <dd id="ExplGraphNode.SerializeToString" class="function">SerializeToString</dd>
+                <dd id="ExplGraphNode.SerializePartialToString" class="function">SerializePartialToString</dd>
+                <dd id="ExplGraphNode.ListFields" class="function">ListFields</dd>
+                <dd id="ExplGraphNode.HasField" class="function">HasField</dd>
+                <dd id="ExplGraphNode.ClearField" class="function">ClearField</dd>
+                <dd id="ExplGraphNode.WhichOneof" class="function">WhichOneof</dd>
+                <dd id="ExplGraphNode.HasExtension" class="function">HasExtension</dd>
+                <dd id="ExplGraphNode.ClearExtension" class="function">ClearExtension</dd>
+                <dd id="ExplGraphNode.UnknownFields" class="function">UnknownFields</dd>
+                <dd id="ExplGraphNode.DiscardUnknownFields" class="function">DiscardUnknownFields</dd>
+                <dd id="ExplGraphNode.ByteSize" class="function">ByteSize</dd>
+                <dd id="ExplGraphNode.FromString" class="function">FromString</dd>
+                <dd id="ExplGraphNode.RegisterExtension" class="function">RegisterExtension</dd>
+                <dd id="ExplGraphNode.FindInitializationErrors" class="function">FindInitializationErrors</dd>
+                <dd id="ExplGraphNode.Extensions" class="variable">Extensions</dd>
+
+            </div>
+                                </dl>
+                            </div>
+                </section>
+                <section id="GoalTerm">
+                    <div class="attr class">
+            
+    <span class="def">class</span>
+    <span class="name">GoalTerm</span><wbr>(<span class="base">google.protobuf.pyext._message.CMessage</span>, <span class="base">google.protobuf.message.Message</span>):
+
+        
+    </div>
+    <a class="headerlink" href="#GoalTerm"></a>
+    
+            <div class="docstring"><p>A ProtocolMessage</p>
+</div>
+
+
+                            <div id="GoalTerm.name" class="classattr">
+                                <div class="attr variable">
+            <span class="name">name</span>
+
+        
+    </div>
+    <a class="headerlink" href="#GoalTerm.name"></a>
+    
+            <div class="docstring"><p>Field prism.GoalTerm.name</p>
+</div>
+
+
+                            </div>
+                            <div id="GoalTerm.args" class="classattr">
+                                <div class="attr variable">
+            <span class="name">args</span>
+
+        
+    </div>
+    <a class="headerlink" href="#GoalTerm.args"></a>
+    
+            <div class="docstring"><p>Field prism.GoalTerm.args</p>
+</div>
+
+
+                            </div>
+                            <div class="inherited">
+                                <h5>Inherited Members</h5>
+                                <dl>
+                                    <div><dt>google.protobuf.pyext._message.CMessage</dt>
+                                <dd id="GoalTerm.__init__" class="function">CMessage</dd>
+                <dd id="GoalTerm.MergeFrom" class="function">MergeFrom</dd>
+                <dd id="GoalTerm.CopyFrom" class="function">CopyFrom</dd>
+                <dd id="GoalTerm.Clear" class="function">Clear</dd>
+                <dd id="GoalTerm.SetInParent" class="function">SetInParent</dd>
+                <dd id="GoalTerm.IsInitialized" class="function">IsInitialized</dd>
+                <dd id="GoalTerm.MergeFromString" class="function">MergeFromString</dd>
+                <dd id="GoalTerm.ParseFromString" class="function">ParseFromString</dd>
+                <dd id="GoalTerm.SerializeToString" class="function">SerializeToString</dd>
+                <dd id="GoalTerm.SerializePartialToString" class="function">SerializePartialToString</dd>
+                <dd id="GoalTerm.ListFields" class="function">ListFields</dd>
+                <dd id="GoalTerm.HasField" class="function">HasField</dd>
+                <dd id="GoalTerm.ClearField" class="function">ClearField</dd>
+                <dd id="GoalTerm.WhichOneof" class="function">WhichOneof</dd>
+                <dd id="GoalTerm.HasExtension" class="function">HasExtension</dd>
+                <dd id="GoalTerm.ClearExtension" class="function">ClearExtension</dd>
+                <dd id="GoalTerm.UnknownFields" class="function">UnknownFields</dd>
+                <dd id="GoalTerm.DiscardUnknownFields" class="function">DiscardUnknownFields</dd>
+                <dd id="GoalTerm.ByteSize" class="function">ByteSize</dd>
+                <dd id="GoalTerm.FromString" class="function">FromString</dd>
+                <dd id="GoalTerm.RegisterExtension" class="function">RegisterExtension</dd>
+                <dd id="GoalTerm.FindInitializationErrors" class="function">FindInitializationErrors</dd>
+                <dd id="GoalTerm.Extensions" class="variable">Extensions</dd>
+
+            </div>
+                                </dl>
+                            </div>
+                </section>
+                <section id="SwIns">
+                    <div class="attr class">
+            
+    <span class="def">class</span>
+    <span class="name">SwIns</span><wbr>(<span class="base">google.protobuf.pyext._message.CMessage</span>, <span class="base">google.protobuf.message.Message</span>):
+
+        
+    </div>
+    <a class="headerlink" href="#SwIns"></a>
+    
+            <div class="docstring"><p>A ProtocolMessage</p>
+</div>
+
+
+                            <div id="SwIns.id" class="classattr">
+                                <div class="attr variable">
+            <span class="name">id</span>
+
+        
+    </div>
+    <a class="headerlink" href="#SwIns.id"></a>
+    
+            <div class="docstring"><p>Field prism.SwIns.id</p>
+</div>
+
+
+                            </div>
+                            <div id="SwIns.name" class="classattr">
+                                <div class="attr variable">
+            <span class="name">name</span>
+
+        
+    </div>
+    <a class="headerlink" href="#SwIns.name"></a>
+    
+            <div class="docstring"><p>Field prism.SwIns.name</p>
+</div>
+
+
+                            </div>
+                            <div id="SwIns.values" class="classattr">
+                                <div class="attr variable">
+            <span class="name">values</span>
+
+        
+    </div>
+    <a class="headerlink" href="#SwIns.values"></a>
+    
+            <div class="docstring"><p>Field prism.SwIns.values</p>
+</div>
+
+
+                            </div>
+                            <div id="SwIns.inside" class="classattr">
+                                <div class="attr variable">
+            <span class="name">inside</span>
+
+        
+    </div>
+    <a class="headerlink" href="#SwIns.inside"></a>
+    
+            <div class="docstring"><p>Field prism.SwIns.inside</p>
+</div>
+
+
+                            </div>
+                            <div id="SwIns.sw_type" class="classattr">
+                                <div class="attr variable">
+            <span class="name">sw_type</span>
+
+        
+    </div>
+    <a class="headerlink" href="#SwIns.sw_type"></a>
+    
+            <div class="docstring"><p>Field prism.SwIns.sw_type</p>
+</div>
+
+
+                            </div>
+                            <div class="inherited">
+                                <h5>Inherited Members</h5>
+                                <dl>
+                                    <div><dt>google.protobuf.pyext._message.CMessage</dt>
+                                <dd id="SwIns.__init__" class="function">CMessage</dd>
+                <dd id="SwIns.MergeFrom" class="function">MergeFrom</dd>
+                <dd id="SwIns.CopyFrom" class="function">CopyFrom</dd>
+                <dd id="SwIns.Clear" class="function">Clear</dd>
+                <dd id="SwIns.SetInParent" class="function">SetInParent</dd>
+                <dd id="SwIns.IsInitialized" class="function">IsInitialized</dd>
+                <dd id="SwIns.MergeFromString" class="function">MergeFromString</dd>
+                <dd id="SwIns.ParseFromString" class="function">ParseFromString</dd>
+                <dd id="SwIns.SerializeToString" class="function">SerializeToString</dd>
+                <dd id="SwIns.SerializePartialToString" class="function">SerializePartialToString</dd>
+                <dd id="SwIns.ListFields" class="function">ListFields</dd>
+                <dd id="SwIns.HasField" class="function">HasField</dd>
+                <dd id="SwIns.ClearField" class="function">ClearField</dd>
+                <dd id="SwIns.WhichOneof" class="function">WhichOneof</dd>
+                <dd id="SwIns.HasExtension" class="function">HasExtension</dd>
+                <dd id="SwIns.ClearExtension" class="function">ClearExtension</dd>
+                <dd id="SwIns.UnknownFields" class="function">UnknownFields</dd>
+                <dd id="SwIns.DiscardUnknownFields" class="function">DiscardUnknownFields</dd>
+                <dd id="SwIns.ByteSize" class="function">ByteSize</dd>
+                <dd id="SwIns.FromString" class="function">FromString</dd>
+                <dd id="SwIns.RegisterExtension" class="function">RegisterExtension</dd>
+                <dd id="SwIns.FindInitializationErrors" class="function">FindInitializationErrors</dd>
+                <dd id="SwIns.Extensions" class="variable">Extensions</dd>
+
+            </div>
+                                </dl>
+                            </div>
+                </section>
+                <section id="Root">
+                    <div class="attr class">
+            
+    <span class="def">class</span>
+    <span class="name">Root</span><wbr>(<span class="base">google.protobuf.pyext._message.CMessage</span>, <span class="base">google.protobuf.message.Message</span>):
+
+        
+    </div>
+    <a class="headerlink" href="#Root"></a>
+    
+            <div class="docstring"><p>A ProtocolMessage</p>
+</div>
+
+
+                            <div id="Root.id" class="classattr">
+                                <div class="attr variable">
+            <span class="name">id</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Root.id"></a>
+    
+            <div class="docstring"><p>Field prism.Root.id</p>
+</div>
+
+
+                            </div>
+                            <div id="Root.sorted_id" class="classattr">
+                                <div class="attr variable">
+            <span class="name">sorted_id</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Root.sorted_id"></a>
+    
+            <div class="docstring"><p>Field prism.Root.sorted_id</p>
+</div>
+
+
+                            </div>
+                            <div class="inherited">
+                                <h5>Inherited Members</h5>
+                                <dl>
+                                    <div><dt>google.protobuf.pyext._message.CMessage</dt>
+                                <dd id="Root.__init__" class="function">CMessage</dd>
+                <dd id="Root.MergeFrom" class="function">MergeFrom</dd>
+                <dd id="Root.CopyFrom" class="function">CopyFrom</dd>
+                <dd id="Root.Clear" class="function">Clear</dd>
+                <dd id="Root.SetInParent" class="function">SetInParent</dd>
+                <dd id="Root.IsInitialized" class="function">IsInitialized</dd>
+                <dd id="Root.MergeFromString" class="function">MergeFromString</dd>
+                <dd id="Root.ParseFromString" class="function">ParseFromString</dd>
+                <dd id="Root.SerializeToString" class="function">SerializeToString</dd>
+                <dd id="Root.SerializePartialToString" class="function">SerializePartialToString</dd>
+                <dd id="Root.ListFields" class="function">ListFields</dd>
+                <dd id="Root.HasField" class="function">HasField</dd>
+                <dd id="Root.ClearField" class="function">ClearField</dd>
+                <dd id="Root.WhichOneof" class="function">WhichOneof</dd>
+                <dd id="Root.HasExtension" class="function">HasExtension</dd>
+                <dd id="Root.ClearExtension" class="function">ClearExtension</dd>
+                <dd id="Root.UnknownFields" class="function">UnknownFields</dd>
+                <dd id="Root.DiscardUnknownFields" class="function">DiscardUnknownFields</dd>
+                <dd id="Root.ByteSize" class="function">ByteSize</dd>
+                <dd id="Root.FromString" class="function">FromString</dd>
+                <dd id="Root.RegisterExtension" class="function">RegisterExtension</dd>
+                <dd id="Root.FindInitializationErrors" class="function">FindInitializationErrors</dd>
+                <dd id="Root.Extensions" class="variable">Extensions</dd>
+
+            </div>
+                                </dl>
+                            </div>
+                </section>
+                <section id="RankRoot">
+                    <div class="attr class">
+            
+    <span class="def">class</span>
+    <span class="name">RankRoot</span><wbr>(<span class="base">google.protobuf.pyext._message.CMessage</span>, <span class="base">google.protobuf.message.Message</span>):
+
+        
+    </div>
+    <a class="headerlink" href="#RankRoot"></a>
+    
+            <div class="docstring"><p>A ProtocolMessage</p>
+</div>
+
+
+                            <div id="RankRoot.roots" class="classattr">
+                                <div class="attr variable">
+            <span class="name">roots</span>
+
+        
+    </div>
+    <a class="headerlink" href="#RankRoot.roots"></a>
+    
+            <div class="docstring"><p>Field prism.RankRoot.roots</p>
+</div>
+
+
+                            </div>
+                            <div id="RankRoot.count" class="classattr">
+                                <div class="attr variable">
+            <span class="name">count</span>
+
+        
+    </div>
+    <a class="headerlink" href="#RankRoot.count"></a>
+    
+            <div class="docstring"><p>Field prism.RankRoot.count</p>
+</div>
+
+
+                            </div>
+                            <div class="inherited">
+                                <h5>Inherited Members</h5>
+                                <dl>
+                                    <div><dt>google.protobuf.pyext._message.CMessage</dt>
+                                <dd id="RankRoot.__init__" class="function">CMessage</dd>
+                <dd id="RankRoot.MergeFrom" class="function">MergeFrom</dd>
+                <dd id="RankRoot.CopyFrom" class="function">CopyFrom</dd>
+                <dd id="RankRoot.Clear" class="function">Clear</dd>
+                <dd id="RankRoot.SetInParent" class="function">SetInParent</dd>
+                <dd id="RankRoot.IsInitialized" class="function">IsInitialized</dd>
+                <dd id="RankRoot.MergeFromString" class="function">MergeFromString</dd>
+                <dd id="RankRoot.ParseFromString" class="function">ParseFromString</dd>
+                <dd id="RankRoot.SerializeToString" class="function">SerializeToString</dd>
+                <dd id="RankRoot.SerializePartialToString" class="function">SerializePartialToString</dd>
+                <dd id="RankRoot.ListFields" class="function">ListFields</dd>
+                <dd id="RankRoot.HasField" class="function">HasField</dd>
+                <dd id="RankRoot.ClearField" class="function">ClearField</dd>
+                <dd id="RankRoot.WhichOneof" class="function">WhichOneof</dd>
+                <dd id="RankRoot.HasExtension" class="function">HasExtension</dd>
+                <dd id="RankRoot.ClearExtension" class="function">ClearExtension</dd>
+                <dd id="RankRoot.UnknownFields" class="function">UnknownFields</dd>
+                <dd id="RankRoot.DiscardUnknownFields" class="function">DiscardUnknownFields</dd>
+                <dd id="RankRoot.ByteSize" class="function">ByteSize</dd>
+                <dd id="RankRoot.FromString" class="function">FromString</dd>
+                <dd id="RankRoot.RegisterExtension" class="function">RegisterExtension</dd>
+                <dd id="RankRoot.FindInitializationErrors" class="function">FindInitializationErrors</dd>
+                <dd id="RankRoot.Extensions" class="variable">Extensions</dd>
+
+            </div>
+                                </dl>
+                            </div>
+                </section>
     </main>
 <script>
     function escapeHTML(html) {
