@@ -108,7 +108,7 @@ Note:
         return out_inside, out_template
 
     
-    def forward(self, verbose=False, dryrun=False):
+    def forward(self, verbose=False,verbose_embedding=False, dryrun=False):
         """
         Args:
             verbose (bool): if true, this function displays an explanation graph with forward computation
@@ -153,7 +153,7 @@ Note:
                     if dryrun:
                         sw_var = ("tensor_provider.get_embedding", sw.name)
                     else:
-                        sw_var = tensor_provider.get_embedding(sw.name, verbose)
+                        sw_var = tensor_provider.get_embedding(sw.name, verbose_embedding)
                     sw_inside.append(sw_var)
                 if dryrun:
                     prob_sw_inside = []
@@ -259,7 +259,8 @@ Note:
                         einsum_eq = lhs + "->" + rhs
                         if verbose:
                             print("  index:", einsum_eq)
-                            print("  var. :", inside)
+                            print("  var. :", [x.shape for x in inside])
+                            #print("  var. :", inside)
                         if dryrun:
                             out_inside = ("torch.einsum", einsum_eq, inside)
                         else:

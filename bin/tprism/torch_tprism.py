@@ -140,13 +140,13 @@ class TprismModel:
 
     def _build_embedding(self, embedding_key):
         embedding_generators = []
-        if self.flags.embedding:
+        for embedding_filename in self.flags.embedding:
             eg = embed_gen.EmbeddingGenerator()
-            eg.load(self.flags.embedding, key=embedding_key)
+            eg.load(embedding_filename, key=embedding_key)
             embedding_generators.append(eg)
-        if self.flags.const_embedding:
+        for embedding_filename in self.flags.const_embedding:
             eg = embed_gen.EmbeddingGenerator(const_flag=True)
-            eg.load(self.flags.const_embedding)
+            eg.load(embedding_filename)
             embedding_generators.append(eg)
         cycle_embedding_generator = None
         if self.flags.cycle:
@@ -175,6 +175,8 @@ class TprismModel:
     def solve(self, input_data=None):
         if input_data is None:
             self._solve_no_data()
+        else:
+            print("solver with input data is not implemented")
 
     def _solve_no_data(self):
         print("... training phase")
@@ -265,7 +267,7 @@ class TprismModel:
                 self.save(self.flags.model + ".best.model")
         self.save(self.flags.model + ".last.model")
 
-    def _build_feed(self, ph_vars, dataset, idx, verbose=False):
+    def _build_feed(self, ph_vars, dataset, idx, verbose=True):
         if verbose:
             for i, ph in enumerate(ph_vars):
                 print("[INFO feed]", ph, ph.name)
@@ -381,7 +383,10 @@ class TprismModel:
         torch.save(self.comp_expl_graph.state_dict(), filename)
 
     def load(self, filename):
-        self.comp_expl_graph.load_state_dict(torch.load(filename))
+        if os.path.isfile(filename):
+            self.comp_expl_graph.load_state_dict(torch.load(filename))
+        else:
+            print("[SKIP] skip loading")
 
     def pred(self, input_data=None, verbose=False):
         if input_data is not None:
@@ -405,50 +410,66 @@ class TprismModel:
         self.tensor_provider.set_input(feed_dict)
         print("... predicting")
         start_t = time.time()
-        goal_inside, loss_list = self.comp_expl_graph.forward()
+        goal_inside, loss_list = self.comp_expl_graph.forward(verbose=verbose,verbose_embedding=verbose)
         loss, output, label = loss_cls.call(
             self.graph, goal_inside, self.tensor_provider
         )
         metrics=loss_cls.metrics(output, label)
-        # train_acc=sklearn.metrics.accuracy_score(all_label,all_output)
-        #print("loss:", np.sum(evaluator.get_loss())
-        print("loss:", torch.sum(loss))
-        print("metrics:", metrics)
         pred_time = time.time() - start_t
         print("prediction time:{0}".format(pred_time) + "[sec]")
-        if label is None:
+        # train_acc=sklearn.metrics.accuracy_score(all_label,all_output)
+        #print("loss:", np.sum(evaluator.get_loss())
+        if loss is not None:
+            print("loss:", torch.sum(loss))
+        print("metrics:", metrics)
+        if label is not None:
             label=label.detach().numpy()
-        output=output.detach().numpy()
+        if type(output) is list:
+            output=[o.detach().numpy() for o in output]
+        else:
+            output=output.detach().numpy()
         return label, output
 
-    def export_computational_graph(self, input_data, verbose=False):
+    def export_computational_graph(self, input_data=None, verbose=False):
         print("... prediction")
-        goal_dataset = build_goal_dataset(input_data, self.tensor_provider)
+        if input_data:
+            goal_dataset = build_goal_dataset(input_data, self.tensor_provider)
         print("... loaded variables")
         for key, param in self.comp_expl_graph.state_dict().items():
             print(key, param.shape)
         print("... initialization")
-        batch_size = self.flags.sgd_minibatch_size
-        test_idx = get_goal_dataset(goal_dataset)
         loss_cls = self.loss_cls()
-        evaluator = TprismEvaluator(goal_dataset)
+        if input_data:
+            batch_size = self.flags.sgd_minibatch_size
+            test_idx = get_goal_dataset(goal_dataset)
+            evaluator = TprismEvaluator(goal_dataset)
+        else:
+            evaluator = TprismEvaluator()
         print("... predicting")
         start_t = time.time()
         outputs = []
         labels = []
-        for j, goal in enumerate(goal_dataset):
-            # valid
-            num_itr = len(test_idx[j]) // batch_size
+        if input_data:
+            for j, goal in enumerate(goal_dataset):
+                # valid
+                num_itr = len(test_idx[j]) // batch_size
+                evaluator.start_epoch()
+                for itr in range(num_itr):
+                    self._set_batch_input(goal, test_idx, j, itr)
+                    goal_inside, loss_list = self.comp_expl_graph.forward(dryrun=True)
+                    for g in goal_inside:
+                        print(g)
+                        for path in g["inside"]:
+                            print("  ", path)
+        else:
             evaluator.start_epoch()
-            for itr in range(num_itr):
-                self._set_batch_input(goal, test_idx, j, itr)
-                goal_inside, loss_list = self.comp_expl_graph.forward(dryrun=True)
-                for g in goal_inside:
-                    print(g)
-                    for path in g["inside"]:
-                        print("  ", path)
+            goal_inside, loss_list = self.comp_expl_graph.forward(dryrun=True)
+            for g in goal_inside:
+                print(g)
+                for path in g["inside"]:
+                    print("  ", path)
 
-    def _pred(self, input_data, verbose=False):
+    def _pred(self, input_data, verbose):
         print("... prediction")
         goal_dataset = build_goal_dataset(input_data, self.tensor_provider)
         print("... loaded variables")
@@ -465,16 +486,21 @@ class TprismModel:
         labels = []
         for j, goal in enumerate(goal_dataset):
             # valid
-            num_itr = len(test_idx[j]) // batch_size
+            if len(test_idx[j])%batch_size==0:
+                num_itr = len(test_idx[j]) // batch_size
+            else:
+                num_itr = len(test_idx[j]) // batch_size + 1
             evaluator.start_epoch()
             for itr in range(num_itr):
                 self._set_batch_input(goal, test_idx, j, itr)
-                goal_inside, loss_list = self.comp_expl_graph.forward()
+                goal_inside, loss_list = self.comp_expl_graph.forward(verbose=verbose, verbose_embedding=verbose)
                 loss, output, label = loss_cls.call(
                     self.graph, goal_inside, self.tensor_provider
                 )
-                evaluator.update(loss[j], loss_list, j)
+                if loss is not None:
+                    evaluator.update(loss[j], loss_list, j)
                 _o = output[j].detach().numpy()
+                print(_o)
                 _l = label[j].detach().numpy() if label is not None else None
                 metrics = loss_cls.metrics(_o, _l)
                 evaluator.update_data(output, label, j)
@@ -498,8 +524,11 @@ class TprismModel:
         dot.render(base_name)
 
 
-def run_preparing(g, sess, args):
-    input_data = load_input_data(args.dataset)
+def run_preparing(args):
+    if args.dataset is not None:
+        input_data = load_input_data(args.dataset)
+    else:
+        input_data = None
     graph, options = load_explanation_graph(args.expl_graph, args.flags)
     flags = Flags(args, options)
     flags.update()
@@ -510,13 +539,13 @@ def run_preparing(g, sess, args):
     ##
     tensor_provider = torch_expl_graph.TorchSwitchTensorProvider()
     embedding_generators = []
-    if flags.embedding:
+    for embedding_filename in flags.embedding:
         eg = embed_gen.EmbeddingGenerator()
-        eg.load(flags.embedding)
+        eg.load(embedding_filename )
         embedding_generators.append(eg)
-    if flags.const_embedding:
+    for embedding_filename in flags.const_embedding:
         eg = embed_gen.EmbeddingGenerator(const_flag)
-        eg.load(flags.const_embedding)
+        eg.load(embedding_filename )
         embedding_generators.append(eg)
     tensor_provider.build(
         graph,
@@ -550,13 +579,12 @@ def run_training(args):
         model.solve()
     elif input_data is not None:
         print("... fit with input data")
-        model.export_computational_graph(input_data)
-        print("=========")
+        #model.export_computational_graph(input_data)
         model.fit(input_data, verbose=False)
         model.pred(input_data)
     else:
         print("... fit without input")
-        model.fit()
+        model.fit(verbose=False)
 
     train_time = time.time() - start_t
     print("total training time:{0}".format(train_time) + "[sec]")
@@ -578,15 +606,18 @@ def run_test(args):
     print("... computational graph")
     model = TprismModel(flags, options, graph, loss_cls)
     model.build(input_data, load_embeddings=False, embedding_key="test")
-    model.load(flags.model + ".best.model")
+    if flags.model is not None:
+        model.load(flags.model + ".best.model")
     start_t = time.time()
     print("... prediction")
     if flags.cycle:
         model.solve(goal_dataset)
     elif input_data is not None:
-        pred_y, out = model.pred(input_data)
+        #model.export_computational_graph(input_data)
+        pred_y, out = model.pred(input_data,verbose=args.verbose)
     else:
-        pred_y, out = model.pred()
+        #model.export_computational_graph()
+        pred_y, out = model.pred(verbose=args.verbose)
     train_time = time.time() - start_t
     print("total training time:{0}".format(train_time) + "[sec]")
     print("... output")
@@ -652,8 +683,8 @@ def main():
     parser.add_argument("--model", type=str, default=None, help="model file")
     parser.add_argument("--vocab", type=str, default=None, help="vocabrary file")
     ##
-    parser.add_argument("--embedding", type=str, default=None, help="embedding file")
-    parser.add_argument("--const_embedding", type=str, default=None, help="model file")
+    parser.add_argument("--embedding", type=str,nargs="+", default=[], help="embedding file")
+    parser.add_argument("--const_embedding", type=str,nargs="+", default=[], help="model file")
     parser.add_argument("--draw_graph", type=str, default=None, help="graph file")
 
     parser.add_argument(
@@ -689,6 +720,7 @@ def main():
     parser.add_argument("--sgd_patience", type=int, default=3, help="[prolog flag] ")
 
     parser.add_argument("--cycle", action="store_true", help="cycle")
+    parser.add_argument("--verbose", action="store_true", help="verbose")
 
     args = parser.parse_args()
     # config

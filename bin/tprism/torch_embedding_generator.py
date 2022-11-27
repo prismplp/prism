@@ -80,7 +80,7 @@ class BaseEmbeddingGenerator:
     def __init__(self):
         self.feed_verb = False
         self.get_verb  = False
-        self.info_verb = True
+        self.info_verb = False
 
     def is_embedding(self, vocab_name):
         return False

@@ -58,11 +58,14 @@ class Flags(object):
         self.flags = {f.key: f.value for f in options.flags}
 
     def __getattr__(self, k):
-        return (
-            dict.get(self.internal_config, k)
-            or getattr(self.args, k, None)
-            or dict.get(self.flags, k)
-        )
+        if k in self.internal_config:
+            return  dict.get(self.internal_config, k)
+        elif k in self.args:
+            if not getattr(self.args, k, None):
+                if k in self.flags:
+                    return dict.get(self.flags, k)
+            return getattr(self.args, k, None)
+        return None
 
     def add(self, k, v):
         self.internal_config[k] = v
