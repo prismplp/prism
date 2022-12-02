@@ -6,7 +6,7 @@ from typing import Optional
 
 from tprism.loss.base import BaseLoss
 
-class Nll(BaseLoss):
+class NLL(BaseLoss):
     def __init__(self, parameters=None):
         pass
 
@@ -34,7 +34,7 @@ class Nll(BaseLoss):
         output=torch.stack(output)
         return loss, output, None
 
-class Ce(BaseLoss):
+class CE(BaseLoss):
     def __init__(self, parameters=None):
         pass
 
@@ -70,7 +70,7 @@ class Ce(BaseLoss):
         return {}
 
 
-class Ce_pl2(BaseLoss):
+class CE_pl2(BaseLoss):
     def __init__(self, parameters: None=None) -> None:
         pass
 
@@ -111,7 +111,7 @@ class Ce_pl2(BaseLoss):
             return {"*accuracy":acc}
         return {}
 
-class Mse(BaseLoss):
+class MSE(BaseLoss):
     def __init__(self, parameters=None):
         pass
 
@@ -171,6 +171,26 @@ class PreferencePair(BaseLoss):
             # l = tf.nn.softplus(1 * l2)+tf.nn.softplus(-1 * l1) + reg_loss
             loss.append(torch.sum(l))
             output.append(torch.stack([l1, l2]))
+        loss=torch.stack(loss)
+        output=torch.stack(output)
+        return loss, output, None
+
+
+class RMSEPair(BaseLoss):
+    def __init__(self, parameters: None=None) -> None:
+        pass
+
+    # loss: goal x minibatch
+    def call(self, graph, goal_inside, tensor_provider):
+        loss = []
+        output = []
+        for rank_root in graph.root_list:
+            goal_ids = [el.sorted_id for el in rank_root.roots]
+            output1 = goal_inside[goal_ids[0]]["inside"]
+            output2 = goal_inside[goal_ids[1]]["inside"]
+            l=output1-output2
+            loss.append(torch.sqrt(torch.mean(l**2)))
+            output.append(torch.stack([output1, output2]))
         loss=torch.stack(loss)
         output=torch.stack(output)
         return loss, output, None

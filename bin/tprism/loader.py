@@ -216,6 +216,10 @@ class LossLoader:
 
     def load_all(self, path: str) -> None:
         search_path = os.path.dirname(__file__) + "/" + path
+        self.load_all_from_direct_path(search_path)
+
+    def load_all_from_search_path(self, search_path: str) -> None:
+        print("[LOAD]", search_path)
         for fpath in glob.glob(search_path + "*.py"):
             print("[LOAD]", fpath)
             name = os.path.basename(os.path.splitext(fpath)[0])
@@ -232,4 +236,11 @@ class LossLoader:
                 op_name = self.to_op_name(cls_name)
                 self.losses[op_name] = cls
 
+def main():
+    loss_loader = LossLoader()
+    loss_loader.load_all_from_search_path("./loss/")
+    print(loss_loader.losses)
+    #loss_cls = loss_loader.get_loss(flags.sgd_loss)
 
+if __name__ == "__main__":
+    main()
