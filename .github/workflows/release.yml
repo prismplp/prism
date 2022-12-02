@@ -23,11 +23,6 @@ jobs:
       run: cd tools && sh init_package.sh
     - name: zipping package
       run: cd tools && zip -r prism_linux_dev.auto.zip prism/
-    - name: Get release
-      id: get_release
-      uses: bruceadams/get-release@v1.3.2
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
     - name: Release
       uses: softprops/action-gh-release@v1
       with:
