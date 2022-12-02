@@ -1,4 +1,4 @@
-[![CircleCI](https://circleci.com/gh/prismplp/prism.svg?style=shield)](https://circleci.com/gh/prismplp/prism)
+![](https://github.com/prismplp/prism/actions/workflows/release.yml/badge.svg)
 [![](https://dockerbuildbadges.quelltext.eu/status.svg?organization=prismplp&repository=prism)](https://hub.docker.com/r/prismplp/prism/builds/ 'DockerHub')
 [![](https://img.shields.io/docker/stars/prismplp/prism.svg)](https://hub.docker.com/r/prismplp/prism 'DockerHub')
 [![](https://img.shields.io/docker/pulls/prismplp/prism.svg)](https://hub.docker.com/r/prismplp/prism 'DockerHub')
