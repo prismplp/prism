@@ -17,7 +17,6 @@ import pickle
 from numpy import int32, int64, ndarray, str_
 from torch import Tensor, dtype
 from torch.nn.parameter import Parameter # this is only used for typing 
-from tprism.loss.torch_standard_loss import Ce_pl2, PreferencePair
 from tprism.op.torch_standard_op import Sigmoid
 from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union
 
