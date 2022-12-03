@@ -1,0 +1,32 @@
+name: release
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-18.04
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: make
+      run: cd src/c && USE_NPY=1 make -f Makefile.gmake
+    - name: make install
+      run: cd src/c && USE_NPY=1 make -f Makefile.gmake install
+    - name: make prolog
+      run: cd src/prolog && make install 
+    - name: package
+      run: cd tools && sh init_package.sh
+    - name: zipping package
+      run: cd tools && zip -r prism_linux_dev.auto.zip prism/
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: tools/prism_linux_dev.auto.zip
+        tag_name: v2.4.2a(T-PRISM)-prerelease
+
+      
