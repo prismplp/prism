@@ -83,7 +83,7 @@ CFLAGS     += -DMPI
 endif
 
 ifeq ($(PLATFORM),linux)
-CFLAGS     += -DMALLOC_TRACE -DLINUX -DPOSIX -Dunix -DM64BITS -m64 -std=c++17
+CFLAGS     += -DMALLOC_TRACE -DLINUX -DPOSIX -Dunix -DM64BITS -m64 -std=c++11
 # -no-pie is requireed for gcc>=6
 LDFLAGS    += -m64 -no-pie
 endif

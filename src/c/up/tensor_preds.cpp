@@ -43,10 +43,24 @@ using namespace google::protobuf;
 using json = nlohmann::json;
 
 #ifdef USE_NPY
-#include<filesystem> //C++17
+//#include<filesystem> //C++17
+#ifdef WIN32
+#include <direct.h>
+#else
+#include <sys/stat.h>
+#endif
 #include<libnpy/npy.hpp>
 #endif
 
+bool create_dir(const std::string& save_path){
+	//return _mkdir(save_path)==0;
+#ifdef WIN32
+	return _mkdir(save_path.c_str())==0;
+#else
+	return mkdir(save_path.c_str(),0777)==0;
+#endif
+	//std::filesystem::create_directory(save_path);
+}
 #ifdef USE_H5
 #include <H5Cpp.h>
 #endif
@@ -109,7 +123,7 @@ void save_placeholder_data_npy(TERM ph, TERM data, string save_path,SaveFormat f
 	int goal_counter=0;
 	if(!bpx_is_list(ph) || !bpx_is_list(data)){
 	}
-	std::filesystem::create_directory(save_path);
+	create_dir(save_path);
 	json info_data=json::array();
 	string filename_json=save_path+"/placeholder.npy.json";
 	while(!bpx_is_nil(ph) && !bpx_is_nil(data)){
