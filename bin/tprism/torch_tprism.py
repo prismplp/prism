@@ -175,9 +175,10 @@ class TprismModel:
 
     def solve(self, input_data=None):
         if input_data is None:
-            self._solve_no_data()
+            return self._solve_no_data()
         else:
             print("solver with input data is not implemented")
+            return None
 
     def _solve_no_data(self):
         print("... training phase")
@@ -209,6 +210,7 @@ class TprismModel:
                 pass
             prev_loss = loss
         ##
+        return None
 
     def fit(self, input_data=None, verbose=False):
         if input_data is None:
@@ -267,6 +269,7 @@ class TprismModel:
                 best_total_loss = train_evaluator.running_loss[0]
                 self.save(self.flags.model + ".best.model")
         self.save(self.flags.model + ".last.model")
+        return train_evaluator
 
     def _build_feed(self, ph_vars, dataset, idx, verbose=True):
         if verbose:
@@ -307,17 +310,18 @@ class TprismModel:
         train_idx, valid_idx = split_goal_dataset(goal_dataset)
         loss_cls = self.loss_cls()
         print("... starting training")
+        train_evaluator = TprismEvaluator(goal_dataset)
+        valid_evaluator = TprismEvaluator(goal_dataset)
         for epoch in range(self.flags.max_iterate):
             start_t = time.time()
-            train_evaluator = TprismEvaluator(goal_dataset)
-            valid_evaluator = TprismEvaluator(goal_dataset)
+            train_evaluator.start_epoch()
+            valid_evaluator.start_epoch()
             for j, goal in enumerate(goal_dataset):
                 if verbose:
                     print(goal)
                 np.random.shuffle(train_idx[j])
                 # training update
                 num_itr = len(train_idx[j]) // batch_size
-                train_evaluator.start_epoch()
                 for itr in range(num_itr):
                     self._set_batch_input(goal, train_idx, j, itr)
                     goal_inside, loss_list = self.comp_expl_graph.forward(
@@ -340,7 +344,6 @@ class TprismModel:
                     train_evaluator.update(loss[j], loss_list, j)
                 # validation
                 num_itr = len(valid_idx[j]) // batch_size
-                valid_evaluator.start_epoch()
                 for itr in range(num_itr):
                     self._set_batch_input(goal, valid_idx, j, itr)
                     goal_inside, loss_list = self.comp_expl_graph.forward()
@@ -378,7 +381,10 @@ class TprismModel:
                     break
             train_time = time.time() - start_t
             print("train time:{0}".format(train_time) + "[sec]")
+            train_evaluator.stop_epoch()
+            valid_evaluator.stop_epoch()
         self.save(self.flags.model + ".last.model")
+        return train_evaluator, valid_evaluator
 
     def save(self, filename):
         torch.save(self.comp_expl_graph.state_dict(), filename)
