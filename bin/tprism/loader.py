@@ -118,7 +118,7 @@ def merge_input_data(input_data_list: List[InputDataType]) -> InputDataType:
     return list(merged_data.values())
 
 
-def load_explanation_graph(expl_filename: str, option_filename: str =None, args=None)-> Tuple[Any,TensorShapeMapper,Flags]:
+def load_explanation_graph(expl_filename: str, option_filename: str =None, args={})-> Tuple[Any,TensorShapeMapper,Flags]:
     """Load an explanation graph and options supporting .json format
 
     Args:

@@ -16,7 +16,6 @@ import pickle
 import h5py
 
 import tprism.expl_pb2 as expl_pb2
-import tprism.expl_graph as expl_graph
 
 
 def save_embedding_as_h5(filename: str, train_data: Dict[str,ndarray]={} , test_data:Dict[str,ndarray]={}):
@@ -74,27 +73,36 @@ class Flags(object):
                     return dict.get(self.flags, k)
             return getattr(self.args, k, None)
         return None
+    def __contains__(self, k):
+        """
+        This function only checks for containment, so it may contain None even if this function returns True
+        """
+        if k in self.internal_config:
+            return True
+        elif k in self.args:
+            return True
+        elif k in self.flags:
+            return True
+        else:
+            return False
 
     def add(self, k, v):
         self.internal_config[k] = v
 
     def build(self):
-        ##
-        batch_size = 10
-        if self.sgd_minibatch_size == "default":
-            pass
-        else:
-            batch_size = int(self.sgd_minibatch_size)
-        self.sgd_minibatch_size = batch_size
-        self.add("sgd_minibatch_size", batch_size)
-        ##
-        if self.max_iterate == "default":
-            self.max_iterate = 100
-        else:
-            self.max_iterate = int(self.max_iterate)
-        ##
-        self.sgd_learning_rate = float(self.sgd_learning_rate)
-#from collections import UserDict
+        check_items=[
+            ("sgd_minibatch_size", 10, int),
+            ("max_iterate", 100, int),
+            ("sgd_learning_rate", 0.1, float),
+                ]
+        for k, default_v, vtype in check_items:
+            v=getattr(self,k)
+            if v is not None and v != "default":
+                self.add(k,vtype(v))
+            else:
+                self.add(k,default_v)
+
+
 class TensorShapeMapper(dict):
     def __init__(self, options=None,init_dict={}):
         super().__init__(init_dict)
