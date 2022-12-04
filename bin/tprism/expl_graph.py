@@ -22,6 +22,7 @@ from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union
 
 from tprism.placeholder import PlaceholderData
 from tprism.torch_embedding_generator import BaseEmbeddingGenerator
+from tprism.util import TensorShapeMapper
 
 class ComputationalExplGraph:
     """ This class is a base class for a concrete explanation graph.
@@ -471,12 +472,9 @@ class SwitchTensorProvider:
         else:
             return False
 
-    def _build_sw_info(self, graph, options):
+    def _build_sw_info(self, graph, tensor_shapes):
         """ This function builds sw_info from the explanation graph 
         """
-        tensor_shape = {
-            el.tensor_name: [d for d in el.shape] for el in options.tensor_shape
-        }
         sw_info = {}
         for g in graph.goals:
             for path in g.paths:
@@ -487,8 +485,8 @@ class SwitchTensorProvider:
                     else:
                         sw_obj = sw_info[sw.name]
                     value_list = [el for el in sw.values]
-                    if sw.name in tensor_shape:
-                        shape = tuple(tensor_shape[sw.name])
+                    if sw.name in tensor_shapes:
+                        shape = tuple(tensor_shapes[sw.name])
                     sw_obj.add_shape(shape)
         return sw_info
 
@@ -564,7 +562,7 @@ class SwitchTensorProvider:
     def build(
         self,
         graph,
-        options,
+        tensor_shapes,
         input_data,
         flags,
         load_embeddings=False,
@@ -583,7 +581,7 @@ class SwitchTensorProvider:
         As a result, vocab_var, ph_var, and tensor_embedding in this class are constructed
         """
         # sw_info: switch name =>SwitchTensor
-        sw_info = self._build_sw_info(graph, options)
+        sw_info = self._build_sw_info(graph, tensor_shapes)
         #
         ph_graph = PlaceholderGraph()
         ph_graph.build(input_data, sw_info)

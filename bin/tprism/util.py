@@ -52,10 +52,18 @@ def to_string_goal(goal):
 
 
 class Flags(object):
-    def __init__(self, args, options):
+    """
+    integrated information of args(command line aruguments) and flags automatically/manually setted in the T-PRISM program
+    """
+    def __init__(self, args={}, options=None, with_build=True):
         self.internal_config = dict()
         self.args = args
-        self.flags = {f.key: f.value for f in options.flags}
+        if options is not None:
+            self.flags = {f.key: f.value for f in options.flags}
+        else:
+            self.flags={}
+        if with_build:
+            self.build()
 
     def __getattr__(self, k):
         if k in self.internal_config:
@@ -70,7 +78,7 @@ class Flags(object):
     def add(self, k, v):
         self.internal_config[k] = v
 
-    def update(self):
+    def build(self):
         ##
         batch_size = 10
         if self.sgd_minibatch_size == "default":
@@ -86,6 +94,16 @@ class Flags(object):
             self.max_iterate = int(self.max_iterate)
         ##
         self.sgd_learning_rate = float(self.sgd_learning_rate)
+#from collections import UserDict
+class TensorShapeMapper(dict):
+    def __init__(self, options=None,init_dict={}):
+        super().__init__(init_dict)
+        if options is not None:
+            self.update({
+                el.tensor_name: [d for d in el.shape] for el in options.tensor_shape
+            })
+    def __repr__(self):
+      return "TensorShapeMapper("+super().__repr__()+")"
 
 
 def get_goal_dataset(goal_dataset):

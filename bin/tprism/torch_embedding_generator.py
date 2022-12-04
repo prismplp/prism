@@ -22,10 +22,12 @@ import h5py
 import tprism.expl_pb2 as expl_pb2
 import tprism.op.base
 import tprism.loss.base
+from tprism.util import TensorShapeMapper
 from tprism.placeholder import PlaceholderData
 from numpy import ndarray
 from torch import Tensor
 from typing import Dict, Optional, Tuple
+
 
 EmbeddingData=Dict[str,ndarray]
 
@@ -99,17 +101,10 @@ class CycleEmbeddingGenerator(BaseEmbeddingGenerator):
     def __init__(self):
         super().__init__()
         self.embedding = {}
-        self.index_range = {}
         self.tensor_shape = {}
 
-    def load(self, options):
-        self.index_range = {el.index: el.range for el in options.index_range}
-        self.tensor_shape = {
-            el.tensor_name: [d for d in el.shape] for el in options.tensor_shape
-        }
-
-    def template2shape(self, template):
-        return [self.index_range[t] for t in template]
+    def load(self, tensor_shape: TensorShapeMapper):
+        self.tensor_shape = tensor_shape
 
     def get_embedding(self, name, shape, node_id):
         return None

@@ -25,6 +25,7 @@ import tprism.torch_embedding_generator as embed_gen
 from tprism.util import (
     to_string_goal,
     Flags,
+    TensorShapeMapper,
     build_goal_dataset,
     split_goal_dataset,
     get_goal_dataset,
@@ -127,10 +128,10 @@ class TprismModel:
 
     """
  
-    def __init__(self, flags, options, graph, loss_cls):
+    def __init__(self, flags, tensor_shapes, graph, loss_cls):
         self.graph = graph
         self.flags = flags
-        self.options = options
+        self.tensor_shapes = tensor_shapes
         self.loss_cls = loss_cls
 
     def build(self, input_data, load_embeddings, embedding_key):
@@ -151,7 +152,7 @@ class TprismModel:
         cycle_embedding_generator = None
         if self.flags.cycle:
             cycle_embedding_generator = embed_gen.CycleEmbeddingGenerator()
-            cycle_embedding_generator.load(self.options)
+            cycle_embedding_generator.load(self.tensor_shapes)
             embedding_generators.append(cycle_embedding_generator)
         self.embedding_generators = embedding_generators
         self.cycle_embedding_generator = cycle_embedding_generator
@@ -160,7 +161,7 @@ class TprismModel:
         self.tensor_provider = torch_expl_graph.TorchSwitchTensorProvider()
         self.tensor_provider.build(
             self.graph,
-            self.options,
+            self.tensor_shapes,
             input_data,
             self.flags,
             load_embeddings=load_embeddings,
@@ -529,9 +530,7 @@ def run_preparing(args):
         input_data = load_input_data(args.dataset)
     else:
         input_data = None
-    graph, options = load_explanation_graph(args.expl_graph, args.flags)
-    flags = Flags(args, options)
-    flags.update()
+    graph, tensor_shapes, flags = load_explanation_graph(args.expl_graph, args.flags, args)
     ##
     loss_loader = LossLoader()
     loss_loader.load_all("loss/")
@@ -549,7 +548,7 @@ def run_preparing(args):
         embedding_generators.append(eg)
     tensor_provider.build(
         graph,
-        options,
+        tensor_shapes,
         input_data,
         flags,
         load_embeddings=False,
@@ -562,16 +561,14 @@ def run_training(args):
         input_data = load_input_data(args.dataset)
     else:
         input_data = None
-    graph, options = load_explanation_graph(args.expl_graph, args.flags)
-    flags = Flags(args, options)
-    flags.update()
+    graph, tensor_shapes, flags = load_explanation_graph(args.expl_graph, args.flags, args)
     ##
     loss_loader = LossLoader()
     loss_loader.load_all("loss/torch*")
     loss_cls = loss_loader.get_loss(flags.sgd_loss)
     ##
     print("... computational graph")
-    model = TprismModel(flags, options, graph, loss_cls)
+    model = TprismModel(flags, tensor_shapes, graph, loss_cls)
     model.build(input_data, load_embeddings=False, embedding_key="train")
     start_t = time.time()
     if flags.cycle:
@@ -595,16 +592,14 @@ def run_test(args):
         input_data = load_input_data(args.dataset)
     else:
         input_data = None
-    graph, options = load_explanation_graph(args.expl_graph, args.flags)
-    flags = Flags(args, options)
-    flags.update()
+    graph, tensor_shapes, flags = load_explanation_graph(args.expl_graph, args.flags, args)
     ##
     loss_loader = LossLoader()
     loss_loader.load_all("loss/torch*")
     loss_cls = loss_loader.get_loss(flags.sgd_loss)
     ##
     print("... computational graph")
-    model = TprismModel(flags, options, graph, loss_cls)
+    model = TprismModel(flags, tensor_shapes, graph, loss_cls)
     model.build(input_data, load_embeddings=False, embedding_key="test")
     if flags.model is not None:
         model.load(flags.model + ".best.model")
