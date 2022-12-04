@@ -95,12 +95,20 @@ class Flags(object):
             ("max_iterate", 100, int),
             ("sgd_learning_rate", 0.1, float),
                 ]
+        check_list_items=[
+                "embedding",
+                "const_embedding"]
+
         for k, default_v, vtype in check_items:
             v=getattr(self,k)
             if v is not None and v != "default":
                 self.add(k,vtype(v))
             else:
                 self.add(k,default_v)
+        for k in check_list_items:
+            v=getattr(self,k)
+            if v is None or v == "default":
+                self.add(k,[])
 
 
 class TensorShapeMapper(dict):

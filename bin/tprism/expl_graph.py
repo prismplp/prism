@@ -565,7 +565,7 @@ class SwitchTensorProvider:
         tensor_shapes,
         input_data,
         flags,
-        load_embeddings=False,
+        load_vocab=False,
         embedding_generators=[],
         verbose=False,
     ):
@@ -587,7 +587,7 @@ class SwitchTensorProvider:
         ph_graph.build(input_data, sw_info)
 
         ## build vocab group
-        if load_embeddings:
+        if load_vocab:
             print("[LOAD]", flags.vocab)
             with open(flags.vocab, mode="rb") as f:
                 vocab_set = pickle.load(f)

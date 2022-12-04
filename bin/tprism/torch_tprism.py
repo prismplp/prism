@@ -134,9 +134,9 @@ class TprismModel:
         self.tensor_shapes = tensor_shapes
         self.loss_cls = loss_cls
 
-    def build(self, input_data, load_embeddings, embedding_key):
+    def build(self, input_data, load_vocab, embedding_key):
         self._build_embedding(embedding_key)
-        self._set_data(input_data, load_embeddings)
+        self._set_data(input_data, load_vocab)
         self._build_explanation_graph()
 
     def _build_embedding(self, embedding_key):
@@ -157,14 +157,14 @@ class TprismModel:
         self.embedding_generators = embedding_generators
         self.cycle_embedding_generator = cycle_embedding_generator
 
-    def _set_data(self, input_data, load_embeddings):
+    def _set_data(self, input_data, load_vocab):
         self.tensor_provider = torch_expl_graph.TorchSwitchTensorProvider()
         self.tensor_provider.build(
             self.graph,
             self.tensor_shapes,
             input_data,
             self.flags,
-            load_embeddings=load_embeddings,
+            load_vocab=load_vocab,
             embedding_generators=self.embedding_generators,
         )
 
@@ -551,7 +551,7 @@ def run_preparing(args):
         tensor_shapes,
         input_data,
         flags,
-        load_embeddings=False,
+        load_vocab=False,
         embedding_generators=embedding_generators,
     )
 
@@ -569,7 +569,7 @@ def run_training(args):
     ##
     print("... computational graph")
     model = TprismModel(flags, tensor_shapes, graph, loss_cls)
-    model.build(input_data, load_embeddings=False, embedding_key="train")
+    model.build(input_data, load_vocab=False, embedding_key="train")
     start_t = time.time()
     if flags.cycle:
         print("... fit with cycle")
@@ -600,7 +600,7 @@ def run_test(args):
     ##
     print("... computational graph")
     model = TprismModel(flags, tensor_shapes, graph, loss_cls)
-    model.build(input_data, load_embeddings=False, embedding_key="test")
+    model.build(input_data, load_vocab=True, embedding_key="test")
     if flags.model is not None:
         model.load(flags.model + ".best.model")
     start_t = time.time()
