@@ -151,18 +151,30 @@ Note:
                     else:
                         sw_template.append(list(sw.values))
                     if dryrun:
-                        sw_var = ("tensor_provider.get_embedding", sw.name)
+                        x = tensor_provider.get_embedding(sw.name, verbose_embedding)
+                        sw_var = {"type":"tensor_atom",
+                                "from":"tensor_provider.get_embedding",
+                                "name":sw.name,
+                                "shape":x.shape}
                     else:
                         sw_var = tensor_provider.get_embedding(sw.name, verbose_embedding)
                     sw_inside.append(sw_var)
                 if dryrun:
                     prob_sw_inside = []
                     for sw in path.prob_switches:
-                        prob_sw_inside.append(("switch", sw.inside))
+                        prob_sw_inside.append({
+                            "type":"prob_switch",
+                            "name": sw.name,
+                            "value": sw.inside,
+                            "shape":(),})
                 else:
                     prob_sw_inside = torch.tensor(1.0)
                     for sw in path.prob_switches:
-                        prob_sw_inside *= sw.inside
+                        prob_sw_inside.append({
+                            "type":"const",
+                            "name": sw.name,
+                            "value": sw.inside,
+                            "shape":(),})
 
                 ## building template and inside for nodes in the path
                 node_template = []
@@ -176,12 +188,12 @@ Note:
                         template = goal_template[node.sorted_id]["template"]
                         shape = goal_template[node.sorted_id]["shape"]
                         if dryrun:
-                            temp_goal_inside = (
-                                "cycle_embedding_generator",
-                                name,
-                                shape,
-                                node.sorted_id,
-                            )
+                            temp_goal_inside={
+                                "type":"goal",
+                                "from":"cycle_embedding_generator",
+                                "name": name,
+                                "id": node.sorted_id,
+                                "shape":shape}
                         else:
                             temp_goal_inside = cycle_embedding_generator.forward(
                                 name, shape, node.sorted_id
@@ -200,7 +212,12 @@ Note:
                     elif len(temp_goal["template"]) > 0:
                         # tensor
                         if dryrun:
-                            temp_goal_inside = ("goal_inside", node.sorted_id)
+                            temp_goal_inside={
+                                "type":"goal",
+                                "from":"goal",
+                                "name": name,
+                                "id": node.sorted_id,
+                                "shape":shape}
                         else:
                             temp_goal_inside = temp_goal["inside"]
                         temp_goal_template = temp_goal["template"]
@@ -210,7 +227,12 @@ Note:
                         node_template.append(temp_goal_template)
                     else:  # scalar
                         if dryrun:
-                            temp_goal_inside = ("goal_inside", node.sorted_id)
+                            temp_goal_inside={
+                                "type":"goal",
+                                "from":"goal",
+                                "name": name,
+                                "id": node.sorted_id,
+                                "shape":shape}
                             node_scalar_inside.append(temp_goal_inside)
                         else:
                             if type(temp_goal["inside"]) is list:
@@ -229,7 +251,12 @@ Note:
                     name = g.node.goal.name
                     if dryrun:
                         #out_inside, out_template = self._distribution_forward_dryrun
-                        out_inside=("distribution",name,dist,sw_node_inside,op)
+                        temp_goal_inside={
+                            "type": "distribution",
+                            "name": name,
+                            "dist_type": op,
+                            "path": sw_node_inside,
+                            "shape":shape}
                         out_template= sw_node_template#TODO
                     else:
                         out_inside, out_template = self._distribution_forward(
@@ -262,7 +289,11 @@ Note:
                             print("  var. :", [x.shape for x in inside])
                             #print("  var. :", inside)
                         if dryrun:
-                            out_inside = ("torch.einsum", einsum_eq, inside)
+                            out_inside = {
+                                "type":"einsum",
+                                "name":"torch.einsum",
+                                "einsum_eq":einsum_eq,
+                                "path": inside}
                         else:
                             out_inside = torch.einsum(einsum_eq, *inside) * out_inside
                     if dryrun:
@@ -278,7 +309,10 @@ Note:
                         cls = operator_loader.get_operator(op.name)
                         op_obj = cls(op.values)
                         if dryrun:
-                            out_inside = ("operator", op.name, out_inside)
+                            out_inside = {
+                                "type": "operator",
+                                "name": op.name,
+                                "path": out_inside}
                         else:
                             out_inside = op_obj.call(out_inside)
                         out_template = op_obj.get_output_template(out_template)

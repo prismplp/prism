@@ -249,12 +249,13 @@ class SwitchTensor:
         )
         return list(self.shape_set)[0]
 
-    def get_placeholder_name(self, name: str) -> List[Union[str, Any]]:
+    @staticmethod
+    def get_placeholder_name(name: str) -> List[Union[str, Any]]:
         pattern = r"(\$placeholder[0-9]+\$)"
         m = re.finditer(pattern, name)
         names = [el.group(1) for el in m]
         return names
-
+    
     def make_vocab_name(self, name: str) -> str:
         m = re.match(r"^tensor\(get\((.*),([0-9]*)\)\)$", name)
         if m:
@@ -263,8 +264,8 @@ class SwitchTensor:
         pattern = r"\$(placeholder[0-9]+)\$"
         m = re.sub(pattern, "", name)
         return self.make_var_name(m)
-
-    def make_var_name(self, name: str) -> str:
+    @staticmethod
+    def make_var_name(name: str) -> str:
         return re.sub(r"[\[\],\)\(\'$]+", "_", name)
 
 

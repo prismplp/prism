@@ -65,6 +65,11 @@ class TprismEvaluator:
         self.running_loss_dict = [{} for _ in range(self.n_goals)]
         self.running_count = [0 for _ in range(self.n_goals)]
 
+    def _check_and_detach(self, x):
+        if type(x) is torch.Tensor:
+            return x.detach().numpy()
+        else:
+            return x
     def update(self, loss, loss_dict, j):
         """
             This function is called the last of batch iteration
@@ -72,9 +77,11 @@ class TprismEvaluator:
               j: goal index of iteration
               num_itr:: number of iterations
         """
+        loss=self._check_and_detach(loss)
         self.running_loss[j] += loss
         self.running_count[j] += 1
         for k, v in loss_dict.items():
+            v=self._check_and_detach(v)
             if k in self.running_loss_dict:
                 self.running_loss_dict[j][k] += v
             else:
@@ -449,18 +456,13 @@ class TprismModel:
         if input_data:
             batch_size = self.flags.sgd_minibatch_size
             test_idx = get_goal_dataset(goal_dataset)
-            evaluator = TprismEvaluator(goal_dataset)
-        else:
-            evaluator = TprismEvaluator()
-        print("... predicting")
-        start_t = time.time()
+        print("... exporting")
         outputs = []
         labels = []
         if input_data:
             for j, goal in enumerate(goal_dataset):
                 # valid
                 num_itr = len(test_idx[j]) // batch_size
-                evaluator.start_epoch()
                 for itr in range(num_itr):
                     self._set_batch_input(goal, test_idx, j, itr)
                     goal_inside, loss_list = self.comp_expl_graph.forward(dryrun=True)
@@ -469,7 +471,6 @@ class TprismModel:
                         for path in g["inside"]:
                             print("  ", path)
         else:
-            evaluator.start_epoch()
             goal_inside, loss_list = self.comp_expl_graph.forward(dryrun=True)
             for g in goal_inside:
                 print(g)
