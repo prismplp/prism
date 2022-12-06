@@ -212,6 +212,7 @@ Note:
                     elif len(temp_goal["template"]) > 0:
                         # tensor
                         if dryrun:
+                            name = node.goal.name
                             temp_goal_inside={
                                 "type":"goal",
                                 "from":"goal",
