@@ -1,9 +1,9 @@
 #!/bin/sh
 BINDIR=`dirname $0`
-PAREA=800000000	# Size of program area
-STACK=1000000000	# Size of control stack and heap
-TRAIL=200000000	# Size of trail stack
-TABLE=1000000000	# Size of table area
+PAREA=80000000	# Size of program area
+STACK=100000000	# Size of control stack and heap
+TRAIL=100000000	# Size of trail stack
+TABLE=100000000	# Size of table area
 
 case `uname -s` in
     Linux)

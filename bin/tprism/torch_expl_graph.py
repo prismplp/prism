@@ -107,7 +107,41 @@ Note:
             print("[ERROR] unknown distribution:", dist)
         return out_inside, out_template
 
+    def make_einsum_args(self, template,out_template,path_batch_flag):
+        """
+        Example
+        template: [["i","j"],["j","k"]]
+        out_template: ["i","k"]
+        => "ij,jk->ik", out_template
+        """
+        lhs = ",".join(map(lambda x: "".join(x), template))
+        rhs = "".join(out_template)
+        if path_batch_flag:
+            rhs = "b" + rhs
+            out_template = ["b"] + out_template
+        einsum_eq = lhs + "->" + rhs
+        return einsum_eq, out_template
     
+    def make_einsum_args_sublist(self,template,inputs,out_template,path_batch_flag):
+        """
+        Example
+        template: [["i","j"],["j","k"]]
+        out_template: ["i","k"]
+        => [inputs[0], [0,1], inputs[1], [1,2], [0,2]], out_template
+        """
+        symbol_set = set([e for sublist in template for e in sublist])
+        mapping={s:i for i,s in enumerate(symbol_set)}
+        if path_batch_flag:
+            out_template = ["b"] + out_template
+        sublistform_args=[]
+        for v,input_x in zip(template,inputs):
+            l=[mapping[el] for el in v]
+            sublistform_args.append(input_x)
+            sublistform_args.append(l)
+        sublistform_args.append([mapping[el] for el in out_template])
+        return sublistform_args, out_template
+
+
     def forward(self, verbose=False,verbose_embedding=False, dryrun=False):
         """
         Args:
@@ -256,8 +290,7 @@ Note:
                             "type": "distribution",
                             "name": name,
                             "dist_type": op,
-                            "path": sw_node_inside,
-                            "shape":shape}
+                            "path": sw_node_inside}
                         out_template= sw_node_template#TODO
                     else:
                         out_inside, out_template = self._distribution_forward(
@@ -279,24 +312,22 @@ Note:
                     # print(template,out_template)
                     out_inside = prob_sw_inside
                     if len(template) > 0:  # condition for einsum
-                        lhs = ",".join(map(lambda x: "".join(x), template))
-                        rhs = "".join(out_template)
-                        if path_batch_flag:
-                            rhs = "b" + rhs
-                            out_template = ["b"] + out_template
-                        einsum_eq = lhs + "->" + rhs
                         if verbose:
+                            einsum_eq, out_template = self.make_einsum_args(template,out_template,path_batch_flag)
                             print("  index:", einsum_eq)
                             print("  var. :", [x.shape for x in inside])
                             #print("  var. :", inside)
                         if dryrun:
+                            einsum_eq, out_template = self.make_einsum_args(template,out_template,path_batch_flag)
                             out_inside = {
                                 "type":"einsum",
                                 "name":"torch.einsum",
                                 "einsum_eq":einsum_eq,
                                 "path": inside}
                         else:
-                            out_inside = torch.einsum(einsum_eq, *inside) * out_inside
+                            einsum_args, out_template = self.make_einsum_args_sublist(template,inside,out_template,path_batch_flag)
+                            #out_inside = torch.einsum(einsum_eq, *inside) * out_inside
+                            out_inside = torch.einsum(*einsum_args) * out_inside
                     if dryrun:
                         #TODO
                         pass
@@ -324,7 +355,6 @@ Note:
                 ##
             ##
             path_template_list = self._get_unique_list(path_template)
-
             if len(path_template_list) == 0: # non-tensor/non-probabilistic path
                 goal_inside[i] = {
                     "template": [],
@@ -342,6 +372,7 @@ Note:
                     }
                 else:
                     if dryrun:
+                        #shape = goal_template[g.node.sorted_id]["shape"]
                         temp_inside=path_inside
                     else:
                         temp_inside=torch.sum(torch.stack(path_inside), dim=0)
