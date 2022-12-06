@@ -151,11 +151,11 @@ Note:
                     else:
                         sw_template.append(list(sw.values))
                     if dryrun:
-                        x = tensor_provider.get_embedding(sw.name, verbose_embedding)
+                        #x = tensor_provider.get_embedding(sw.name, verbose_embedding)
                         sw_var = {"type":"tensor_atom",
                                 "from":"tensor_provider.get_embedding",
-                                "name":sw.name,
-                                "shape":x.shape}
+                                "name":sw.name,}
+                                #"shape":x.shape}
                     else:
                         sw_var = tensor_provider.get_embedding(sw.name, verbose_embedding)
                     sw_inside.append(sw_var)
