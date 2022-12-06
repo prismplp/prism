@@ -217,8 +217,8 @@ Note:
                                 "type":"goal",
                                 "from":"goal",
                                 "name": name,
-                                "id": node.sorted_id,
-                                "shape":shape}
+                                "id": node.sorted_id,}
+                                #"shape":shape}
                         else:
                             temp_goal_inside = temp_goal["inside"]
                         temp_goal_template = temp_goal["template"]
