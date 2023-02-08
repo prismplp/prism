@@ -54,12 +54,14 @@ using json = nlohmann::json;
 
 bool create_dir(const std::string& save_path){
 	//return _mkdir(save_path)==0;
+#ifdef USE_NPY
 #ifdef WIN32
 	return _mkdir(save_path.c_str())==0;
 #else
 	return mkdir(save_path.c_str(),0777)==0;
 #endif
 	//std::filesystem::create_directory(save_path);
+#endif
 }
 #ifdef USE_H5
 #include <H5Cpp.h>
@@ -468,13 +470,13 @@ string get_dataset_name(string term_name){
 }
 
 #ifdef USE_NPY
-void save_embedding_tensor_npy(const string filename, const string group_name, const string dataset_name, TERM term_list, TERM shape){
+void save_embedding_tensor_npy(const string filename, const string group_name, const string dataset_name, TERM term_list, TERM shape, bool with_value){
 	string filename_npy=filename+".npy";
 	string filename_json=filename+".npy.json";
 	TERM el   = bpx_get_car(term_list);
 	TERM next = bpx_get_cdr(term_list);
 	if(!bpx_is_list(term_list) || !bpx_is_list(shape)){
-		return;	
+		return;
 	}
 	json embedding_data;
 	// shape=[n1,n2]
@@ -497,6 +499,12 @@ void save_embedding_tensor_npy(const string filename, const string group_name, c
 		TERM el = bpx_get_car(term_list);
 		term_list = bpx_get_cdr(term_list);
 		//el=[index1,index2]
+		float value=1.0f;
+		if (with_value){
+			TERM term_value = bpx_get_car(el);
+			el = bpx_get_cdr(el);
+			value=bpx_get_float(term_value);
+		}
 		int i=0;
 		int idx=0;
 		while(!bpx_is_nil(el)){
@@ -509,7 +517,7 @@ void save_embedding_tensor_npy(const string filename, const string group_name, c
 			i++;
 			el = bpx_get_cdr(el);
 		}
-		data[idx]=1.0f;
+		data[idx]=value;
 	}
 	// save dataset
 	{
@@ -538,13 +546,19 @@ void save_embedding_matrix_hdf5(const string filename, const string group_name, 
 	while(!bpx_is_nil(term_list)){
 		TERM el = bpx_get_car(term_list);
 		term_list = bpx_get_cdr(term_list);
-		//el=[index1,index2]
+		//el=[(value),index1,index2]
+		float value=1.0f;
+		if (with_value){
+			TERM term_value = bpx_get_car(el);
+			el = bpx_get_cdr(el);
+			value=bpx_get_float(term_value);
+		}
 		TERM term_index1 = bpx_get_car(el);
 		int index1=bpx_get_integer(term_index1);
 		TERM el2 = bpx_get_cdr(el);
 		TERM term_index2 = bpx_get_car(el2);
 		int index2=bpx_get_integer(term_index2);
-		data_table[n1*index1+index2]=1.0f;
+		data_table[n1*index1+index2]=value;
 	}
 	// save dataset
 	H5::H5File file( filename, H5F_ACC_TRUNC );
@@ -561,7 +575,7 @@ void save_embedding_matrix_hdf5(const string filename, const string group_name, 
 	}
 }
 
-void save_embedding_vector_hdf5(const string filename, const string group_name, const string dataset_name, TERM term_list, TERM shape){
+void save_embedding_vector_hdf5(const string filename, const string group_name, const string dataset_name, TERM term_list, TERM shape, bool with_value){
 	TERM el   = bpx_get_car(term_list);
 	TERM next = bpx_get_cdr(term_list);
 	if(!bpx_is_list(term_list) || !bpx_is_list(shape)){
@@ -575,9 +589,17 @@ void save_embedding_vector_hdf5(const string filename, const string group_name, 
 		TERM el = bpx_get_car(term_list);
 		term_list = bpx_get_cdr(term_list);
 		//el=[index1,index2]
-		TERM term_index1 = bpx_get_car(el);
-		int index1=bpx_get_integer(term_index1);
-		data_table[index1]=1.0f;
+		if(with_value){
+			TERM term_value = bpx_get_car(el);
+			el = bpx_get_cdr(el);
+			TERM term_index1 = bpx_get_car(el);
+			int index1=bpx_get_integer(term_index1);
+			data_table[index1]=bpx_get_float(term_value);
+		}else{
+			TERM term_index1 = bpx_get_car(el);
+			int index1=bpx_get_integer(term_index1);
+			data_table[index1]=1.0f;
+		}
 	}
 	// save dataset
 	H5::H5File file( filename, H5F_ACC_TRUNC );
@@ -596,13 +618,14 @@ void save_embedding_vector_hdf5(const string filename, const string group_name, 
 
 
 extern "C"
-int pc_save_embedding_tensor_6(void) {
-	const char* filename=bpx_get_name(bpx_get_call_arg(1,6));
-	const char* group=bpx_get_name(bpx_get_call_arg(2,6));
-	const char* term_name=bpx_term_2_string(bpx_get_call_arg(3,6));
-	TERM term_list =bpx_get_call_arg(4,6);
-	TERM shape=bpx_get_call_arg(5,6);
-	SaveFormat format = (SaveFormat) bpx_get_integer(bpx_get_call_arg(6,6));
+int pc_save_embedding_tensor_7(void) {
+	const char* filename=bpx_get_name(bpx_get_call_arg(1,7));
+	const char* group=bpx_get_name(bpx_get_call_arg(2,7));
+	const char* term_name=bpx_term_2_string(bpx_get_call_arg(3,7));
+	TERM term_list =bpx_get_call_arg(4,7);
+	TERM shape=bpx_get_call_arg(5,7);
+	SaveFormat format = (SaveFormat) bpx_get_integer(bpx_get_call_arg(6,7));
+	int with_value = bpx_get_integer(bpx_get_call_arg(7,7));
 	// 
 	string dataset_name = get_dataset_name(term_name);
 	
@@ -622,9 +645,9 @@ int pc_save_embedding_tensor_6(void) {
 #ifdef USE_H5
 			// only supported matrix and FormatHDF5
 			if(length==1){
-				save_embedding_vector_hdf5(filename, group, dataset_name, term_list, shape);
+				save_embedding_vector_hdf5(filename, group, dataset_name, term_list, shape,with_value);
 			}else if(length==2){
-				save_embedding_matrix_hdf5(filename, group, dataset_name, term_list, shape);
+				save_embedding_matrix_hdf5(filename, group, dataset_name, term_list, shape,with_value);
 			}else{
 				return BP_FALSE;
 			}
@@ -634,7 +657,7 @@ int pc_save_embedding_tensor_6(void) {
 			break;
 		case FormatNPY:
 #ifdef USE_NPY
-			save_embedding_tensor_npy(filename, group, dataset_name, term_list, shape);
+			save_embedding_tensor_npy(filename, group, dataset_name, term_list, shape,with_value);
 #else
 			printf("[ERROR] npy format is not implemented (please compile prism with the USE_NPY option)\n");
 #endif
@@ -700,12 +723,15 @@ int run_save_options_json(const char* filename, SaveFormat format,TERM sw_list){
 	while(!bpx_is_nil(sw_list)){
 		//prism::TensorShape
 		json ts;
-		TERM pair=bpx_get_car(sw_list);
-		TERM tensor_atom=bpx_get_car(pair);
+		TERM tuple=bpx_get_car(sw_list);
+		TERM tensor_atom=bpx_get_car(tuple);
+		TERM shape=bpx_get_car(bpx_get_cdr(tuple));
+		TERM tensor_type=bpx_get_car(bpx_get_cdr(bpx_get_cdr(tuple)));
 		string tensor_str= bpx_term_2_string(tensor_atom);
-		TERM shape=bpx_get_car(bpx_get_cdr(pair));
+		string tensor_type_str= bpx_term_2_string(tensor_type);
 		tensor_str="tensor("+tensor_str+")";
 		ts["tensor_name"]=tensor_str;
+		ts["type"]=tensor_type_str;
 		ts["shape"]=json::array();
 		//cout<<tensor_str<<endl;
 		while(!bpx_is_nil(shape)){
@@ -740,10 +766,12 @@ int run_save_options(const char* filename, SaveFormat format,TERM sw_list){
 	//
 	while(!bpx_is_nil(sw_list)){
 		prism::TensorShape* ts=op.add_tensor_shape();
-		TERM pair=bpx_get_car(sw_list);
-		TERM tensor_atom=bpx_get_car(pair);
+		TERM tuple=bpx_get_car(sw_list);
+		TERM tensor_atom=bpx_get_car(tuple);
+		TERM shape=bpx_get_car(bpx_get_cdr(tuple));
+		TERM tensor_type=bpx_get_car(bpx_get_cdr(bpx_get_cdr(tuple)));
 		string tensor_str= bpx_term_2_string(tensor_atom);
-		TERM shape=bpx_get_car(bpx_get_cdr(pair));
+		string tensor_type_str= bpx_term_2_string(tensor_type);
 		tensor_str="tensor("+tensor_str+")";
 		ts->set_tensor_name(tensor_str);
 		//cout<<tensor_str<<endl;

@@ -91,11 +91,43 @@ $pp_save_embedding_from_pattern(Vars,Pattern,Target,Group,FileName,FileNameSymbo
 	maplist(P,E,$pp_encode_embedding(TableList,P,E),Pairs,EncPairs),
 	format("~w\n",SymbolList),
 	maplist(S,L,length(S,L),SymbolList,Shape),
-	$pc_save_embedding_tensor(FileName,Group,Target,EncPairs,Shape,Mode0),
+	$pc_save_embedding_tensor(FileName,Group,Target,EncPairs,Shape,Mode0,0),
+	%format("~w",SymbolList),
+	format("[SAVE] ~w\n",FileNameSymbol),
+	$pp_save_symbol_list(SymbolList,FileNameSymbol).
+
+save_embedding_from_pattern_with_value(Vars,Val,Pattern,Target,FileNameBase):-
+	save_embedding_from_pattern_with_value(Vars,Val,Pattern,Target,FileNameBase,hdf5).
+save_embedding_from_pattern_with_value(Vars,Val,Pattern,Target,FileNameBase,Mode):-
+	(Mode==json   ->$pp_raise_runtime_error($msg(9806),json_is_not_supportted_for_saving_flags,save_embedding_from_pattern/5)
+	;Mode==pb   ->$pp_raise_runtime_error($msg(9806),pb_is_not_supportted_for_saving_flags,save_embedding_from_pattern/5)
+	;Mode==pbtxt->$pp_raise_runtime_error($msg(9806),pbtxt_is_not_supportted_for_saving_flags,save_embedding_from_pattern/5)
+	;Mode==hdf5 ->Mode0=3
+	;Mode==npy  ->Mode0=4
+	;$pp_raise_runtime_error($msg(9804),unknown_save_format,save_embedding_from_pattern/5)),
+	(Mode0==3 -> atom_concat(FileNameBase,'.h5',FileName)
+	;Mode0==4 -> atom_concat(FileNameBase,'',FileName)),
+	atom_concat(FileNameBase,'.txt',FileNameSymbol),
+	$pp_save_embedding_from_pattern_with_value(Vars,Val,Pattern,Target,train,FileName,FileNameSymbol,Mode0).
+
+$pp_save_embedding_from_pattern_with_value(Vars,Val,Pattern,Target,Group,FileName,FileNameSymbol,Mode0):-
+	ValVars=[Val|Vars],
+	findall(ValVars,Pattern,Pairs),
+	transpose(Pairs,PairsT),
+	[_|PairsTVar]=PairsT,
+	maplist(X,Y,(unique(X,A),sort(A,Y)),PairsTVar,SymbolList),
+	maplist(Symbols,Table,
+		(new_hashtable(Table),
+		length(Symbols,L),
+		foreach((A,I) in (Symbols,0..L-1), hashtable_register(Table,A,I))),SymbolList,TableList),
+	maplist(P,E,(P=[V|P1],$pp_encode_embedding(TableList,P1,E1),E=[V|E1]),Pairs,EncPairs),
+	maplist(S,L,length(S,L),SymbolList,Shape),
+	$pc_save_embedding_tensor(FileName,Group,Target,EncPairs,Shape,Mode0,1),
 	%format("~w",SymbolList),
 	format("[SAVE] ~w\n",FileNameSymbol),
 	$pp_save_symbol_list(SymbolList,FileNameSymbol).
 	
+
 $pp_encode_embedding([],[],[]).
 $pp_encode_embedding([T0|TableList],[P0|P],[E0|E]):-
 	hashtable_get(T0,P0,E0),
@@ -249,7 +281,8 @@ $pp_trans_phase_tensor(Prog0,Prog_tensor,Info):-
 	%========
 	maplist(C,X,C=data(_,_,X,_,_),FlatCList,TAList),
 	flatten(TAList,TAL),
-	maplist(TA,Val,(copy_term(TA,TA1),Val=(values(tensor(TA1),G):-tensor_atom(TA1,Shape),length(Shape,N),$pp_index_all_combination(N,G))),TAL,ValPreds),
+	maplist(TA,Val,(copy_term(TA,TA1),Val=(
+				values(tensor(TA1),G):-tensor_atom(TA1,Shape,_),length(Shape,N),$pp_index_all_combination(N,G))),TAL,ValPreds),
 	Pred2=pred(values,2,_,_,_,ValPreds),
 	Pred1=pred(values,3,_,_,_,[values($operator(_),[$operator],fix@[1.0])]),
 	%========
@@ -270,12 +303,17 @@ $pp_trans_phase_tensor(Prog0,Prog_tensor,Info):-
 	nonground_unique(PT1List,PT2List),
 	maplist(Gs,Pred,(maplist(A,G,(G=PredName/NArg,length(Arg,NArg),A=..[PredName|Arg]),As,Gs),LBody=[msw($operator(distribution(Dist)),$operator)|As],list_to_and(LBody,Body),Pred=(prob_tensor(Dist,As):-Body)),PT2List,PTPreds),
 	Pred4=pred(prob_tensor,2,_,_,_,PTPreds),
-	%
+	%========
+	% add 
+	%========
+	Pred5_temp=(tensor_atom(A,B,no):-tensor_atom(A,B)),
+	Pred5=pred(tensor_atom,3,_,_,_,[Pred5_temp]),
 	%========
 	$pp_tensor_merge_pred(Prog_tensor0,Pred1,Prog_tensor1),
 	$pp_tensor_merge_pred(Prog_tensor1,Pred2,Prog_tensor2),
 	$pp_tensor_merge_pred(Prog_tensor2,Pred3,Prog_tensor3),
-	$pp_tensor_merge_pred(Prog_tensor3,Pred4,Prog_tensor),
+	$pp_tensor_merge_pred(Prog_tensor3,Pred4,Prog_tensor4),
+	$pp_tensor_merge_pred(Prog_tensor4,Pred5,Prog_tensor),
 	(tprism_debug_level(1)->(
 	format(">> T-PRISM before\n"),
 	maplist(X,format("~w\n",X),Prog0),
@@ -295,11 +333,19 @@ $pp_tensor_parse_clauses(Clauses,NewClauses,CollectLists):-
 		),Clauses,NewClauses,CollectLists).
 
 $pp_tensor_get_msws(Clause,MswClause,CollectList):-
-	Clause=tensor_atom(_,_) -> (
+	Clause=tensor_atom(_,_,_) -> (
+		Clause=tensor_atom(TA,_,_),
+		CollectList=data([],[],TA,[],[]),
+		MswClause=Clause);
+	Clause=(tensor_atom(_,_,_):-Body) -> (
+		Clause=(tensor_atom(TA,_,_):-Body),
+		CollectList=data([],[],TA,[],[]),
+		MswClause=Clause);
+	Clause=tensor_atom(A,B) -> (
 		Clause=tensor_atom(TA,_),
 		CollectList=data([],[],TA,[],[]),
 		MswClause=Clause);
-	Clause=(tensor_atom(_,_):-Body) -> (
+	Clause=(tensor_atom(A,B):-Body) -> (
 		Clause=(tensor_atom(TA,_):-Body),
 		CollectList=data([],[],TA,[],[]),
 		MswClause=Clause);
@@ -431,7 +477,9 @@ $pp_tensor_core(Filename,OptionFilename,Mode,OptionMode,GoalList) :-
 	$pc_prism_save_expl_graph(Filename,Mode0,NewSws),
 	maplist(S,SwName,(S=sw(_,SwIns),$pp_decode_switch_name(SwIns,SwName)),NewSws,Sws),
 	filter(tensor(_),Sws,Sws1),
-	maplist(S,Shape,(S=tensor(X)->(tensor_atom(X,Sh),Shape=[X,Sh]);Shape=unknown),Sws1,SwShape),
+	%maplist(S,Shape,(S=tensor(X)->(tensor_atom(X,Sh),Shape=[X,Sh]);Shape=unknown),Sws1,SwShape),
+	%maplist(S,Shape,(S=tensor(X)->(not tensor_atom(X,Sh,Z)->(tensor_atom(X,Sh),Shape=[X,Sh]);Shape=[X,Sh,Z]);Shape=unknown),Sws1,SwShape),
+	maplist(S,Shape,(S=tensor(X)->(tensor_atom(X,Sh,Z),Shape=[X,Sh,Z]);Shape=unknown),Sws1,SwShape),
 	cputime(EndEM),
 	save_flags(OptionFilename,OptionMode,SwShape),
 	cputime(End),!.

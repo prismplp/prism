@@ -381,6 +381,9 @@ Note:
                         "inside": temp_inside,
                         "batch_flag": path_batch_flag,
                     }
+            if dryrun:
+                goal_inside[i]["id"]=g.node.sorted_id
+                goal_inside[i]["name"]=g.node.goal.name
         return goal_inside, self.loss
 
 
