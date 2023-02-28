@@ -313,7 +313,7 @@ Note:
                     out_inside = prob_sw_inside
                     if len(template) > 0:  # condition for einsum
                         if verbose:
-                            einsum_eq, out_template = self.make_einsum_args(template,out_template,path_batch_flag)
+                            einsum_eq, out_template_v = self.make_einsum_args(template,out_template,path_batch_flag)
                             print("  index:", einsum_eq)
                             print("  var. :", [x.shape for x in inside])
                             #print("  var. :", inside)
