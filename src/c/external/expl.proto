@@ -33,6 +33,7 @@ message IndexRange {
 message TensorShape {
   string tensor_name =1;
   repeated int32 shape =2;
+  string type =3;
 }
 // explanation graph
 message ExplGraph {
