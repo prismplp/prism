@@ -22,7 +22,7 @@ import h5py
 import tprism.expl_pb2 as expl_pb2
 import tprism.op.base
 import tprism.loss.base
-from tprism.util import TensorShapeMapper
+from tprism.util import TensorInfoMapper
 from tprism.placeholder import PlaceholderData
 from numpy import ndarray
 from torch import Tensor
@@ -103,7 +103,7 @@ class CycleEmbeddingGenerator(BaseEmbeddingGenerator):
         self.embedding = {}
         self.tensor_shape = {}
 
-    def load(self, tensor_shape: TensorShapeMapper):
+    def load(self, tensor_shape: TensorInfoMapper):
         self.tensor_shape = tensor_shape
 
     def get_embedding(self, name, shape, node_id):

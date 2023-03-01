@@ -22,7 +22,6 @@ from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union
 
 from tprism.placeholder import PlaceholderData
 from tprism.torch_embedding_generator import BaseEmbeddingGenerator
-from tprism.util import TensorShapeMapper
 
 class ComputationalExplGraph:
     """ This class is a base class for a concrete explanation graph.
@@ -233,6 +232,7 @@ class SwitchTensor:
         self.value = None
         self.name = sw_name
         self.shape_set = set([])
+        self.type_set = set([])
         self.ph_names = self.get_placeholder_name(sw_name)
         self.vocab_name = self.make_vocab_name(sw_name) # update self.value
         self.var_name = self.make_var_name(sw_name)
@@ -243,11 +243,21 @@ class SwitchTensor:
     def add_shape(self, shape: Tuple[int,...]) -> None:
         self.shape_set.add(shape)
 
+    def add_type(self, tensor_type: str) -> None:
+        self.type_set.add(tensor_type)
+
     def get_shape(self) -> Tuple[int,...]:
         assert len(self.shape_set) == 1, (
             self.name + ": shape is not unique:" + str(self.shape_set)
         )
         return list(self.shape_set)[0]
+
+    def get_type(self) -> str:
+        assert len(self.type_set) == 1, (
+            self.name + ": shape is not unique:" + str(self.type_set)
+        )
+        return list(self.type_set)[0]
+
 
     @staticmethod
     def get_placeholder_name(name: str) -> List[Union[str, Any]]:
@@ -394,7 +404,7 @@ class SwitchTensorProvider:
         sw_info (Dict[str, SwitchTensor]): switch infomation
         ph_graph (PlaceholderGraph): associated placeholder graph
         input_feed_dict (Dict[PlaceholderData, Tensor]): feed_dict to replace a placeholder with a tensor
-        params (Dict[str,Parameter]): pytorch parameters associated with all switches provided by this provider
+        params (Dict[str,Tuple[Parameter,str]]): pytorch parameters associated with all switches provided by this provider
 
     """
 
@@ -445,15 +455,16 @@ class SwitchTensorProvider:
         """
         return re.sub(r"\$", "", name)
 
-    def add_param(self, name: str, param: Parameter) -> None:
+    def add_param(self, name: str, param: Parameter, tensor_type:str) -> None:
         """ This is called in the initializer of TorchTensor
         Args:
             name (str): Tensor's name
             param (Parameter): Parameter
+            tensor_type (str): tensor type like sparse
         """
-        self.params[name] = param
+        self.params[name] = (param,tensor_type)
 
-    def get_param(self, name):
+    def get_param(self, name: str) -> Tuple[Parameter,str]:
         """ 
         Args:
             name (str): Tensor's name
@@ -473,7 +484,7 @@ class SwitchTensorProvider:
         else:
             return False
 
-    def _build_sw_info(self, graph, tensor_shapes):
+    def _build_sw_info(self, graph, tensor_info: TensorInfoMapper) -> Dict[str, SwitchTensor]:
         """ This function builds sw_info from the explanation graph 
         """
         sw_info = {}
@@ -486,12 +497,15 @@ class SwitchTensorProvider:
                     else:
                         sw_obj = sw_info[sw.name]
                     value_list = [el for el in sw.values]
-                    if sw.name in tensor_shapes:
-                        shape = tuple(tensor_shapes[sw.name])
+                    if sw.name in tensor_info.shape:
+                        shape = tuple(tensor_info.shape[sw.name])
                     sw_obj.add_shape(shape)
+                    if sw.name in tensor_info.type:
+                        tensor_type = tensor_info.type[sw.name]
+                    sw_obj.add_type(tensor_type)
         return sw_info
 
-    def _build_vocab_var_type(self, ph_graph: PlaceholderGraph, vocab_set: VocabSet, embedding_generators: List[BaseEmbeddingGenerator]) -> Dict[str, VarType]:
+    def _build_vocab_var_type(self, ph_graph: PlaceholderGraph, vocab_set: VocabSet, embedding_generators: List[BaseEmbeddingGenerator], sw_info: Dict[str,SwitchTensor]) -> Dict[str, VarType]:
         """ This function builds temporal object: vocab_name =>  var_type
 
         Note:
@@ -557,6 +571,13 @@ class SwitchTensorProvider:
             else:
                 var_type["type"] = "variable"
                 var_type["shape"] = s
+                # get tensor type from sw_info
+                sw_obj=None
+                for k, sw in sw_info.items():
+                    if vocab_name==sw.vocab_name:
+                        sw_obj=sw
+                if sw_obj is not None:
+                    var_type["tensor_type"] =sw_obj.get_type()
             vocab_var_type[vocab_name] = var_type
         return vocab_var_type
 
@@ -600,7 +621,7 @@ class SwitchTensorProvider:
                 pickle.dump(vocab_set, f)
         ##
         self.vocab_var_type = self._build_vocab_var_type(
-            ph_graph, vocab_set, embedding_generators
+            ph_graph, vocab_set, embedding_generators, sw_info
         )
         self.vocab_set = vocab_set
         self.ph_graph = ph_graph
@@ -637,8 +658,11 @@ class SwitchTensorProvider:
                 var = self.tensor_onehot_class(self, var_type["shape"][0], d)
                 vocab_var[vocab_name] = var
             else:
-                print(">> variable>>", vocab_name, ":", var_type["shape"])
-                var = self.tensor_class(self, vocab_name, var_type["shape"])
+                print(">> variable>>", vocab_name, ":", var_type)
+                tensor_type = None
+                if "tensor_type" in var_type:
+                    tensor_type = var_type["tensor_type"]
+                var = self.tensor_class(self, vocab_name, var_type["shape"], tensor_type=tensor_type)
                 vocab_var[vocab_name] = var
         # converting PRISM switches to Tensorflow Variables
         # tensor_embedding: sw_name => tensor

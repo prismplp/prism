@@ -25,7 +25,6 @@ import tprism.torch_embedding_generator as embed_gen
 from tprism.util import (
     to_string_goal,
     Flags,
-    TensorShapeMapper,
     build_goal_dataset,
     split_goal_dataset,
     get_goal_dataset,

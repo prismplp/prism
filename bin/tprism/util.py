@@ -111,15 +111,19 @@ class Flags(object):
                 self.add(k,[])
 
 
-class TensorShapeMapper(dict):
+class TensorInfoMapper():
     def __init__(self, options=None,init_dict={}):
-        super().__init__(init_dict)
+        self.shape={}
+        self.type={}
         if options is not None:
-            self.update({
+            self.shape.update({
                 el.tensor_name: [d for d in el.shape] for el in options.tensor_shape
             })
+            self.type.update({
+                el.tensor_name: el.type for el in options.tensor_shape
+            })
     def __repr__(self):
-      return "TensorShapeMapper("+super().__repr__()+")"
+      return "TensorInfoMapper("+self.shape.__repr__()+"  "+self.type.__repr__()+")"
 
 
 def get_goal_dataset(goal_dataset):

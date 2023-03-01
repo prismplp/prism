@@ -85,8 +85,8 @@ Note:
         self.tensor_provider = tensor_provider
         self.cycle_embedding_generator = cycle_embedding_generator
 
-        for name, val in tensor_provider.params.items():
-            self.register_parameter(name, val)
+        for name, (param,tensor_type) in tensor_provider.params.items():
+            self.register_parameter(name, param)
 
     def _distribution_forward(self, name, dist, params, param_template, op):
         if dist == "normal":
@@ -384,6 +384,8 @@ Note:
             if dryrun:
                 goal_inside[i]["id"]=g.node.sorted_id
                 goal_inside[i]["name"]=g.node.goal.name
+
+        self.loss.update(tensor_provider.get_loss())
         return goal_inside, self.loss
 
 
@@ -404,7 +406,7 @@ class TorchTensorOnehot(TorchTensorBase):
 
 
 class TorchTensor(TorchTensorBase):
-    def __init__(self, provider: 'TorchSwitchTensorProvider', name: str, shape: List[Union[int64, int]], dtype: dtype=torch.float32) -> None:
+    def __init__(self, provider: 'TorchSwitchTensorProvider', name: str, shape: List[Union[int64, int]], dtype: dtype=torch.float32, tensor_type=None) -> None:
         self.shape = shape
         self.dtype = dtype
         if name is None:
@@ -412,10 +414,11 @@ class TorchTensor(TorchTensorBase):
         else:
             self.name = name
         self.provider = provider
+        self.tensor_type = tensor_type
         # (np.random.normal(0,1,self.shape), requires_grad=True,dtype=self.dtype)
         param = torch.nn.Parameter(torch.Tensor(*shape), requires_grad=True)
         self.param = param
-        provider.add_param(self.name, param)
+        provider.add_param(self.name, param, tensor_type)
         self.reset_parameters()
 
     def reset_parameters(self) -> None:
@@ -439,7 +442,10 @@ class TorchGather(TorchTensorBase):
             idx = self.provider.get_embedding(self.idx)
         else:
             idx = self.idx
-        if isinstance(self.var, TorchTensorBase):
+        if isinstance(self.var, TorchTensor):
+            temp = self.var()
+            v = torch.index_select(temp, 0, idx)
+        elif isinstance(self.var, TorchTensorBase):
             v = torch.index_select(self.var(), 0, idx)
         elif isinstance(self.var, PlaceholderData):
             v = self.provider.get_embedding(self.var)
@@ -459,7 +465,20 @@ class TorchSwitchTensorProvider(SwitchTensorProvider):
         super().__init__()
 
     # forward
-    def get_embedding(self, name, verbose=False):
+    def get_loss(self, verbose:bool=False):
+        loss={}
+        for name, (param,tensor_type) in self.params.items():
+            m=re.match(r"^sparse\(([0-9\.]*)\)$", tensor_type)
+            if m:
+                coeff = float(m.group(1))
+                l=coeff*torch.norm(param,1)
+                loss["sparse_"+name]=l
+            elif tensor_type=="sparse":
+                l=torch.norm(param,1)
+                loss["sparse_"+name]=l
+        return loss
+    # forward
+    def get_embedding(self, name: Union[str,PlaceholderData], verbose:bool=False):
         if verbose:
             print("[INFO] get embedding:", name)
         out = None

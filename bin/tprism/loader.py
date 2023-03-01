@@ -26,7 +26,7 @@ from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union
 
 from tprism.placeholder import PlaceholderData
 from tprism.torch_embedding_generator import EmbeddingGenerator
-from tprism.util import Flags, TensorShapeMapper
+from tprism.util import Flags, TensorInfoMapper
 
 
 #[ {"goal_id": <int>, "placeholders": <List[str]>, "records": ndarray} ]
@@ -118,14 +118,14 @@ def merge_input_data(input_data_list: List[InputDataType]) -> InputDataType:
     return list(merged_data.values())
 
 
-def load_explanation_graph(expl_filename: str, option_filename: str =None, args={})-> Tuple[Any,TensorShapeMapper,Flags]:
+def load_explanation_graph(expl_filename: str, option_filename: str =None, args={})-> Tuple[Any,TensorInfoMapper,Flags]:
     """Load an explanation graph and options supporting .json format
 
     Args:
         expl_filename: explanation graph file names
         option_filename: option(flag) file names
     Returns:
-        a tupple of graph, Flags, TensorShapeMapper objects
+        a tupple of graph, Flags, TensorInfoMapper objects
     """
  
     graph = expl_pb2.ExplGraph()
@@ -143,7 +143,7 @@ def load_explanation_graph(expl_filename: str, option_filename: str =None, args=
         options=None
     #
     flags = Flags(args, options)
-    tensor_shapes = TensorShapeMapper(options)
+    tensor_shapes = TensorInfoMapper(options)
     return graph, tensor_shapes, flags
 
 
