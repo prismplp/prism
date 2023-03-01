@@ -28,6 +28,7 @@ import math
 import tprism.expl_pb2 as expl_pb2
 import tprism.op.base
 import tprism.loss.base
+import tprism.constraint
 
 from tprism.expl_graph import ComputationalExplGraph, SwitchTensorProvider
 from tprism.expl_graph import PlaceholderGraph, VocabSet
@@ -415,12 +416,19 @@ class TorchTensor(TorchTensorBase):
             self.name = name
         self.provider = provider
         self.tensor_type = tensor_type
-        # (np.random.normal(0,1,self.shape), requires_grad=True,dtype=self.dtype)
-        param = torch.nn.Parameter(torch.Tensor(*shape), requires_grad=True)
-        self.param = param
-        provider.add_param(self.name, param, tensor_type)
-        self.reset_parameters()
+        ###
+        self.constraint_tensor=tprism.constraint.get_constraint_tensor(shape, tensor_type, device=None, dtype=None)
+        self.param = None
+        if self.constraint_tensor is None:
+            param = torch.nn.Parameter(torch.Tensor(*shape), requires_grad=True)
+            self.param = param
+            provider.add_param(self.name, param, tensor_type)
+            self.reset_parameters()
+        else:
+            param=list(self.constraint_tensor.parameters())[0] #TODO
+            provider.add_param(self.name, param, tensor_type)
 
+        ###
     def reset_parameters(self) -> None:
         if len(self.param.shape) == 2:
             torch.nn.init.kaiming_uniform_(self.param, a=math.sqrt(5))
@@ -428,7 +436,10 @@ class TorchTensor(TorchTensorBase):
             self.param.data.uniform_(-0.1, 0.1)
 
     def __call__(self):
-        return self.param
+        if self.constraint_tensor is None:
+            return self.param
+        else:
+            return self.constraint_tensor()
 
 
 class TorchGather(TorchTensorBase):
