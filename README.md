@@ -48,15 +48,27 @@ $ prism
 Press Ctrl+D to quit the interactive mode.
 
 
-# Python interface
+# PyPRISM: Python interface
+PyPRISM is a Python interface to PRISM.
+
 Please see: https://github.com/prismplp/pyprism
 
-# Pre-release Tensorized-PRISM (T-PRISM)
+# T-PRISM: Tensorized-PRISM  (Pre-release)
+T-PRISM is a new logic programming language based on tensor embeddings.
+Our embedding scheme, named tensorized semantics, is a modification of the distribution semantics in PRISM, one of the state-of-the-art probabilistic logic programming languages, by replacing distribution functions with multidimensional arrays.
 
 Tutorial: https://colab.research.google.com/drive/16yzyaglTq0nTvgzZS_nJHEPleddYgxfB?usp=sharing
 
 Documents: https://prismplp.github.io/prism/tprism/tprism.html
 
+```
+@article{kojima2019tensorized,
+  title={A tensorized logic programming language for large-scale data},
+  author={Kojima, Ryosuke and Sato, Taisuke},
+  journal={arXiv preprint arXiv:1901.08548},
+  year={2019}
+}
+```
 ## Installation
 
 Requirements: PRISM, python(Recommendation: Anaconda) and Pytorch.
