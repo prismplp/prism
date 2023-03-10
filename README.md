@@ -59,7 +59,7 @@ Our embedding scheme, named tensorized semantics, is a modification of the distr
 
 Tutorial: https://colab.research.google.com/drive/16yzyaglTq0nTvgzZS_nJHEPleddYgxfB?usp=sharing
 
-Documents: https://prismplp.github.io/prism/tprism/tprism.html
+API Documents: https://prismplp.github.io/prism/tprism/tprism.html
 
 ```
 @article{kojima2019tensorized,
