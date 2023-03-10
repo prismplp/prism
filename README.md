@@ -21,45 +21,16 @@ LICENSE and LICENSE.src.
 For the files under each directory, please read the README file
 in the directory.  For the papers or additional information
 on PRISM, please visit http://rjida.meijo-u.ac.jp/prism/ .
-# Python interface
-Please see: https://github.com/prismplp/pyprism
 
-# Pre-release Tensorized-PRISM (T-PRISM)
 ## Installation
 
-Preparation for Ubuntu18.04
-```
-sudo apt-get install libhdf5-100 libhdf5-cpp-100
-```
-Preparation for Ubuntu20.04
-
-```
-sudo apt-get install libhdf5-103 libhdf5-cpp-103
-```
-
-
-
-Installing python(Recommendation: Anaconda) and Pytorch.
-- Anaconda: https://www.anaconda.com/
-- Pytorch: https://pytorch.org/
-
-For Ubuntu18.04, download `prism_tprism_pre_linux_ubuntu18.tar.gz` from [release page](https://github.com/prismplp/prism/releases):
-```
-wget "https://github.com/prismplp/prism/releases/download/v2.4.2a(T-PRISM)-prerelease/prism_tprism_pre_linux_ubuntu18.tar.gz"
-```
-
-For Ubuntu20.04, download `prism_tprism_pre_linux_ubuntu20.tar.gz` from [release page](https://github.com/prismplp/prism/releases) 
+Pleaes download pre-build package from [release page](https://github.com/prismplp/prism/releases):
 ```
 wget "https://github.com/prismplp/prism/releases/download/v2.4.2a(T-PRISM)-prerelease/prism_tprism_pre_linux_ubuntu20.tar.gz"
 
 ```
 
-
 Extract binaries and sample programs
-```
-tar xvf prism_tprism_pre_linux_ubuntu18.tar.gz 
-```
-or
 ```
 tar xvf prism_tprism_pre_linux_ubuntu20.tar.gz 
 ```
@@ -75,6 +46,26 @@ Try!
 $ prism
 ```
 Press Ctrl+D to quit the interactive mode.
+
+
+# Python interface
+Please see: https://github.com/prismplp/pyprism
+
+# Pre-release Tensorized-PRISM (T-PRISM)
+
+Tutorial: https://colab.research.google.com/drive/16yzyaglTq0nTvgzZS_nJHEPleddYgxfB?usp=sharing
+
+Documents: https://prismplp.github.io/prism/tprism/tprism.html
+
+## Installation
+
+Installing PRISM, python(Recommendation: Anaconda) and Pytorch.
+- Anaconda: https://www.anaconda.com/
+- Pytorch: https://pytorch.org/
+
+```
+pip install "git+https://github.com/prismplp/prism.git#egg=t-prism&subdirectory=bin"
+```
 
 Please see the details in [T-PRISM manual](https://github.com/prismplp/prism/releases/download/v2.4(T-PRISM)-prerelease/tprism_manual.pdf).
 
