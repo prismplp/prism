@@ -59,10 +59,11 @@ Documents: https://prismplp.github.io/prism/tprism/tprism.html
 
 ## Installation
 
-Installing PRISM, python(Recommendation: Anaconda) and Pytorch.
+Requirements: PRISM, python(Recommendation: Anaconda) and Pytorch.
 - Anaconda: https://www.anaconda.com/
 - Pytorch: https://pytorch.org/
 
+Please Install T-PRISM by the following command:
 ```
 pip install "git+https://github.com/prismplp/prism.git#egg=t-prism&subdirectory=bin"
 ```
