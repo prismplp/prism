@@ -292,6 +292,8 @@ static int add_egraph_path(int node_id, TERM children_prolog, TERM sws_prolog) {
 			if (!bpx_is_integer(p_child))
 				RET_ERR(err_invalid_goal_id);
 			child = bpx_get_integer(p_child);
+			if (child >= max_egraph_size) expand_egraph(child + 1);
+			if (child >= egraph_size) egraph_size = child + 1;
 			children[k] = expl_graph[child];
 			k++;
 			children_prolog = bpx_get_cdr(children_prolog);
