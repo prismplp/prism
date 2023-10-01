@@ -1,4 +1,4 @@
-name: release
+name: release_old
 
 on:
   push:
@@ -22,7 +22,7 @@ jobs:
     - name: package
       run: cd tools && sh init_package.sh
     - name: zipping package
-      run: cd tools && tar cvzf prism_linux_dev.auto.tar.gz prism/
+      run: cd tools && tar cvzf prism_linux_dev_old.auto.tar.gz prism/
     - name: Release
       uses: softprops/action-gh-release@v1
       with:
