@@ -25,14 +25,17 @@ on PRISM, please visit http://rjida.meijo-u.ac.jp/prism/ .
 ## Installation
 
 Pleaes download pre-build package from [release page](https://github.com/prismplp/prism/releases):
+If you want to install the latest development version package pre-built with the latest version of ubuntu (the latest version from github is automatically built), 
+you can install it with the following command.
 ```
-wget "https://github.com/prismplp/prism/releases/download/v2.4.2a(T-PRISM)-prerelease/prism_tprism_pre_linux_ubuntu20.tar.gz"
+wget "https://github.com/prismplp/prism/releases/download/v2.4.2a(T-PRISM)-prerelease/prism_linux_dev.auto.tar.gz"
 
 ```
 
-Extract binaries and sample programs
+Please extract binaries and sample programs.
+If you downloaded a different release version, please change the file name and unzip it in the same way.
 ```
-tar xvf prism_tprism_pre_linux_ubuntu20.tar.gz 
+tar xvf prism_linux_dev.auto.tar.gz
 ```
 
 
