@@ -22,11 +22,11 @@ jobs:
     - name: package
       run: cd tools && sh init_package.sh
     - name: zipping package
-      run: cd tools && zip -r prism_linux_dev.auto.zip prism/
+      run: cd tools && tar cvzf prism_linux_dev.auto.tar.gz prism/
     - name: Release
       uses: softprops/action-gh-release@v1
       with:
-        files: tools/prism_linux_dev.auto.zip
+        files: tools/prism_linux_dev.auto.tar.gz
         tag_name: v2.4.2a(T-PRISM)-prerelease
 
       
