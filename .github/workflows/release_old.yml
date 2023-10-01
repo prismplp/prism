@@ -26,7 +26,7 @@ jobs:
     - name: Release
       uses: softprops/action-gh-release@v1
       with:
-        files: tools/prism_linux_dev.auto.tar.gz
+        files: tools/prism_linux_dev_old.auto.tar.gz
         tag_name: v2.4.2a(T-PRISM)-prerelease
 
       
