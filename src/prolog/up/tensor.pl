@@ -196,7 +196,7 @@ save_placeholder_data(Filename,Mode,Placeholders,Data):-
 
 save_flags:-save_flags('flags.json',json).
 save_flags(Filename):-save_flags(Filename,json).
-save_flags(Filename,Mode,[]):-save_flags(Filename,Mode,[]).
+save_flags(Filename,Mode):-save_flags(Filename,Mode,[]).
 save_flags(Filename,Mode,TensorList):-
 	findall([X,F],get_prism_flag(X,F),G),
 	$pc_set_export_flags(G),
@@ -205,7 +205,6 @@ save_flags(Filename,Mode,TensorList):-
 	;Mode==pbtxt->Mode0=2
 	;Mode==hdf5 ->$pp_raise_runtime_error($msg(9806),hdf5_is_not_supportted_for_saving_flags,save_flags/2)
 	;Mode==npy  ->$pp_raise_runtime_error($msg(9806),npy_is_not_supportted_for_saving_flags,save_flags/2)
-
 	;$pp_raise_runtime_error($msg(9804),unknown_save_format,save_flags/2)),
 	$pc_save_options(Filename,Mode0,TensorList).
 
