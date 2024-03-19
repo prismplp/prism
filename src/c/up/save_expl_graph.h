@@ -13,6 +13,7 @@ enum SwType{
 	SwTypeProbabilistic = 0,
 	SwTypeTensor = 1,
 	SwTypeOperator = 2,
+	SwTypeLayer = 3,
 };
 
 extern "C"

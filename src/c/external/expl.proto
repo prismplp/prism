@@ -49,6 +49,7 @@ message ExplGraphPath {
   repeated SwIns prob_switches =2;
   repeated SwIns tensor_switches =3;
   repeated SwIns operators =4;
+  repeated SwIns layers =5;
 }
 message ExplGraphNode {
   int32 id = 1;
@@ -63,6 +64,7 @@ enum SwType {
   Probabilistic = 0;
   Tensor = 1;
   Operator = 2;
+  Layer = 3;
 }
 message SwIns{
   int32 id = 1;

@@ -742,6 +742,8 @@ $pp_print_graph_paths(S,[path(TNodes,SNodes)|Paths],Conn,And,Or) :-
     append(TNodes,SNodes,AllNodes),
     $pp_filter_op_node(AllNodes,OtherNodes,OpNodes),
     append(OpNodes,OtherNodes,Nodes),
+    $pp_pp_filter_layer_node(AllNodes,OtherNodes,LayerNodes),
+    append(LayerNodes,OtherNodes,Nodes),
     $pp_print_graph_nodes(S,Nodes,Conn,And),
     nl(S),!,
     $pp_print_graph_paths(S,Paths,Or,And,Or).
@@ -759,6 +761,8 @@ $pp_print_graph_paths_aux(S,[path(TNodes,SNodes,V)|Paths],Conn,And,Or) :-
     append(TNodes,SNodes,AllNodes),
     $pp_filter_op_node_aux(AllNodes,OtherNodes,OpNodes),
     append(OpNodes,OtherNodes,Nodes),
+    $pp_pp_filter_layer_node_aux(AllNodes,OtherNodes,LayerNodes),
+    append(LayerNodes,OtherNodes,Nodes),
     $pp_print_graph_nodes_aux(S,Nodes,Conn,And),
     write(S,'  '),
     ( V = [V1,V2] ->
@@ -793,8 +797,27 @@ $pp_filter_op_node([N|Nodes],SNodes,[N|OpNodes]):-
 $pp_filter_op_node([N|Nodes],[N|SNodes],OpNodes):-
     !,$pp_filter_op_node(Nodes,SNodes,OpNodes).
 
+%%%%% layer
+$pp_filter_layer_node_aux([],[],[]).
+$pp_filter_layer_node_aux([N|Nodes],SNodes,[N|LayerNodes]):-
+    N=snode(msw($layer(_),$layer),_),!,
+    $pp_filter_layer_node_aux(Nodes,SNodes,LayerNodes).
+$pp_filter_layer_node_aux([N|Nodes],[N|SNodes],LayerNodes):-
+    !,$pp_filter_layer_node_aux(Nodes,SNodes,LayerNodes).
+
+$pp_filter_layer_node([],[],[]).
+$pp_filter_layer_node([N|Nodes],SNodes,[N|LayerNodes]):-
+    N=msw($layer(_),$layer),!,
+    $pp_filter_layer_node(Nodes,SNodes,LayerNodes).
+$pp_filter_layer_node([N|Nodes],[N|SNodes],LayerNodes):-
+    !,$pp_filter_layer_node(Nodes,SNodes,LayerNodes).
+%%%%%
+
+
+
 $pp_convert_print_node(Node,PNode):-
     (Node=msw($operator(X),$operator),PNode=operator(X)
+    ;Node=msw($layer(X),$layer),PNode=layer(X)
     ;Node=msw(tensor(X),Y),PNode=tensor(X,Y)
     ;Node=PNode).
 

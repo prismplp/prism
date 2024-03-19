@@ -284,6 +284,7 @@ $pp_trans_phase_tensor(Prog0,Prog_tensor,Info):-
 				values(tensor(TA1),G):-tensor_atom(TA1,Shape,_),length(Shape,N),$pp_index_all_combination(N,G))),TAL,ValPreds),
 	Pred2=pred(values,2,_,_,_,ValPreds),
 	Pred1=pred(values,3,_,_,_,[values($operator(_),[$operator],fix@[1.0])]),
+	Pred6=pred(values,3,_,_,_,[values($layer(_),[$layer],fix@[1.0])]),
 	%========
 	% add subgoal
 	%========
@@ -291,8 +292,15 @@ $pp_trans_phase_tensor(Prog0,Prog_tensor,Info):-
 	flatten(SGList,SG0List),
 	maplist(SG,X,(SG=subgoal(G,_),G=..[F|Args],length(Args,L),X=F/L),SG0List,SG1List),
 	nonground_unique(SG1List,SG2List),
-	maplist(G,Pred,(G=PredName/NArg,length(Arg,NArg),A=..[PredName|Arg],Pred=(subgoal(A,S):-msw($operator(reindex(S)),$operator),A)),SG2List,SGPreds),
-	Pred3=pred(subgoal,2,_,_,_,SGPreds),
+ 	%%%%%%%%
+%   maplist(G,Pred,(G=PredName/NArg,length(Arg,NArg),A=..[PredName|Arg],Pred=(subgoal(A,S):-msw($operator(reindex(S)),$operator),A)),SG2List,SGPreds),
+ 	%%%%%%%%
+    maplist(G,Pred,(G=PredName/NArg,length(Arg,NArg),A=..[PredName|Arg],Pred=(subgoal(A,S):-msw($operator(reindex(S)),$operator),A)),SG2List,SGPreds1),
+    nonground_unique(SG1List,SG3List),
+    maplist(G,Pred,(G=PredName/NArg,length(Arg,NArg),A=..[PredName|Arg],Pred=(subgoal(A,S):-msw($layer(reindex(S)),$layer),A)),SG3List,SGPreds2),
+    %%%%%%%%
+	Pred3=pred(subgoal,2,_,_,_,SGPreds1),
+	Pred7=pred(subgoal,2,_,_,_,SGPreds2),
 	%========
 	% add prob_tensor
 	%========
@@ -300,8 +308,14 @@ $pp_trans_phase_tensor(Prog0,Prog_tensor,Info):-
 	flatten(PTList,PT0List),
 	maplist(PT,Xs,(PT=prob_tensor(D,Gs),maplist(G,X,(G=..[F|Args],length(Args,L),X=F/L),Gs,Xs)),PT0List,PT1List),
 	nonground_unique(PT1List,PT2List),
-	maplist(Gs,Pred,(maplist(A,G,(G=PredName/NArg,length(Arg,NArg),A=..[PredName|Arg]),As,Gs),LBody=[msw($operator(distribution(Dist)),$operator)|As],list_to_and(LBody,Body),Pred=(prob_tensor(Dist,As):-Body)),PT2List,PTPreds),
-	Pred4=pred(prob_tensor,2,_,_,_,PTPreds),
+%   maplist(Gs,Pred,(maplist(A,G,(G=PredName/NArg,length(Arg,NArg),A=..[PredName|Arg]),As,Gs),LBody=[msw($operator(distribution(Dist)),$operator)|As],list_to_and(LBody,Body),Pred=(prob_tensor(Dist,As):-Body)),PT2List,PTPreds),
+    %%%%%%%%%%
+    maplist(Gs,Pred,(maplist(A,G,(G=PredName/NArg,length(Arg,NArg),A=..[PredName|Arg]),As,Gs),LBody=[msw($operator(distribution(Dist)),$operator)|As],list_to_and(LBody,Body),Pred=(prob_tensor(Dist,As):-Body)),PT2List,PTPreds1),
+    nonground_unique(PT1List,PT3List),
+    maplist(Gs,Pred,(maplist(A,G,(G=PredName/NArg,length(Arg,NArg),A=..[PredName|Arg]),As,Gs),LBody=[msw($layer(distribution(Dist)),$layer)|As],list_to_and(LBody,Body),Pred=(prob_tensor(Dist,As):-Body)),PT3List,PTPreds2),
+    %%%%%%%%%%
+	Pred4=pred(prob_tensor,2,_,_,_,PTPreds1),
+	Pred8=pred(prob_tensor,2,_,_,_,PTPreds2),
 	%========
 	% add 
 	%========
@@ -312,7 +326,12 @@ $pp_trans_phase_tensor(Prog0,Prog_tensor,Info):-
 	$pp_tensor_merge_pred(Prog_tensor1,Pred2,Prog_tensor2),
 	$pp_tensor_merge_pred(Prog_tensor2,Pred3,Prog_tensor3),
 	$pp_tensor_merge_pred(Prog_tensor3,Pred4,Prog_tensor4),
-	$pp_tensor_merge_pred(Prog_tensor4,Pred5,Prog_tensor),
+	$pp_tensor_merge_pred(Prog_tensor4,Pred5,Prog_tensor5),
+	%%%%%
+	$pp_tensor_merge_pred(Prog_tensor5,Pred6,Prog_tensor6),
+	$pp_tensor_merge_pred(Prog_tensor6,Pred7,Prog_tensor7),
+    $pp_tensor_merge_pred(Prog_tensor7,Pred8,Prog_tensor),
+	%%%%%
 	(tprism_debug_level(1)->(
 	format(">> T-PRISM before\n"),
 	maplist(X,format("~w\n",X),Prog0),
@@ -380,6 +399,7 @@ $pp_tensor_msw_filter([tensor(A0,A1)|Atoms],[msw(tensor(A0),A1)|Msws],[tensor(A0
 $pp_tensor_msw_filter([vector(A0,A1)|Atoms],[msw(tensor(A0),A1)|Msws],[tensor(A0,A1)|VecList]):-$pp_tensor_msw_filter(Atoms,Msws,VecList).
 $pp_tensor_msw_filter([matrix(A0,A1)|Atoms],[msw(tensor(A0),A1)|Msws],[tensor(A0,A1)|VecList]):-$pp_tensor_msw_filter(Atoms,Msws,VecList).
 $pp_tensor_msw_filter([operator(A0)|Atoms],[msw($operator(A0),$operator)|Msws],VecList):-$pp_tensor_msw_filter(Atoms,Msws,VecList).
+$pp_tensor_msw_filter([layer(A0)|Atoms],[msw($layer(A0),$layer)|Msws],VecList):-$pp_tensor_msw_filter(Atoms,Msws,VecList).
 $pp_tensor_msw_filter([A|Atoms],[A|Msws],VecList):-$pp_tensor_msw_filter(Atoms,Msws,VecList).
 
 $pp_tensor_values_filter([],[],[]).

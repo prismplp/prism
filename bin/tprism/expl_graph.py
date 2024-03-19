@@ -122,6 +122,8 @@ class ComputationalExplGraph:
              - goal_template (List[Dict[str, Any]]): a list of goal templates
              - cycle_node (List[int]): a list of cycle node (if given cycle_node, it is updated)
         """
+        # layer hacking
+        layer_cls_dict = {}
         # checking template
         goal_template = [None] * len(graph.goals)
         for i in range(len(graph.goals)):
@@ -180,9 +182,12 @@ class ComputationalExplGraph:
                 else:
                     # constructing einsum operation using template and inside
                     out_template = self._compute_output_template(sw_node_template)
-                    out_shape = self._compute_output_shape(
-                        out_template, sw_node_template, sw_node_shape
-                    )
+                    if out_template == []:
+                        out_shape = []
+                    else:
+                        out_shape = self._compute_output_shape(
+                            out_template, sw_node_template, sw_node_shape
+                        )
                     if len(sw_node_template) > 0:  # condition for einsum
                         if path_batch_flag:
                             out_template = ["b"] + out_template
@@ -191,7 +196,35 @@ class ComputationalExplGraph:
                         cls = operator_loader.get_operator(op.name)
                         op_obj = cls(op.values)
                         out_template = op_obj.get_output_template(out_template)
-                ##########
+                ################# LAYER HACK ##################
+                layers = [layer.name for layer in path.layers]
+                if "distribution" in layers:
+                    raise ValueError("I don't know what to do with distribution.")
+                else:
+                    # constructing einsum operation using template and inside
+                    out_template = self._compute_output_template(sw_node_template)
+                    if out_template == []:
+                        out_shape = []
+                    else:
+                        out_shape = self._compute_output_shape(
+                            out_template, sw_node_template, sw_node_shape
+                        )
+                    if len(sw_node_template) > 0:  # condition for einsum
+                        if path_batch_flag:
+                            out_template = ["b"] + out_template
+                    ## computing operaters
+                    for layer in path.layers:
+                        cls = operator_loader.get_operator(layer.name)
+                        if cls not in layer_cls_dict:
+                            layer_obj = cls(layer.values)
+                            layer_cls_dict[cls] = layer_obj
+                        else:
+                            layer_obj = layer_cls_dict[cls]
+                        # out_template = []
+                        out_template = layer_obj.get_output_template(out_template)
+                        for p_name, p in layer_obj.nn.named_parameters():
+                            tensor_provider.add_param("{}_{}".format(layer.name, p_name.replace('.','_dot_')), p, str(p.dtype))
+                ###############################################
                 path_template.append(out_template)
                 path_shape.append(out_shape)
                 ##

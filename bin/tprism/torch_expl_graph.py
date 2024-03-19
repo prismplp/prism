@@ -88,6 +88,7 @@ Note:
 
         for name, (param,tensor_type) in tensor_provider.params.items():
             self.register_parameter(name, param)
+        self.layer_cls_dict = {}
 
     def _distribution_forward(self, name, dist, params, param_template, op):
         if dist == "normal":
@@ -143,7 +144,7 @@ Note:
         return sublistform_args, out_template
 
 
-    def forward(self, verbose=False,verbose_embedding=False, dryrun=False):
+    def forward(self, verbose=False, verbose_embedding=False, dryrun=False):
         """
         Args:
             verbose (bool): if true, this function displays an explanation graph with forward computation
@@ -281,6 +282,7 @@ Note:
                 sw_node_inside = sw_inside + node_inside
 
                 ops = {op.name: op for op in path.operators}
+                layers = {layer.name: layer for layer in path.layers}
                 if "distribution" in ops:
                     op = ops["distribution"]
                     dist = op.values[0]
@@ -301,7 +303,8 @@ Note:
                             param_template=sw_node_template,
                             op=op,
                         )
-                    
+                elif "distribution" in layers:
+                    raise ValueError("I don't know how to handle this")
                 else:
                     path_v = sorted(
                         zip(sw_node_template, sw_node_inside), key=lambda x: x[0]
@@ -349,6 +352,24 @@ Note:
                         else:
                             out_inside = op_obj.call(out_inside)
                         out_template = op_obj.get_output_template(out_template)
+                    ## computing layers
+                    for layer in path.layers:
+                        if verbose:
+                            print("  layer:", layer.name)
+                        cls = operator_loader.get_operator(layer.name)
+                        if cls not in self.layer_cls_dict:
+                            layer_obj = cls(layer.values)
+                            self.layer_cls_dict[cls] = layer_obj
+                        else:
+                            layer_obj = self.layer_cls_dict[cls]
+                        if dryrun:
+                            out_inside = {
+                                "type": "layer",
+                                "name": layer.name,
+                                "path": out_inside}
+                        else:
+                            out_inside = layer_obj.call(out_inside)
+                        out_template = layer_obj.get_output_template(out_template)
 
                 ##
                 path_inside.append(out_inside)

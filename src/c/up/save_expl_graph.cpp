@@ -136,6 +136,20 @@ json get_swins_json(SW_INS_PTR sw_ins){
 			sw["name"]=op_name;
 			sw["sw_type"]=SwTypeOperator;
 			sw["inside"]=0.0;
+		}else if(name=="$layer"){
+			sw["name"]=name;
+			TERM op_term= bpx_get_arg(1, el1);
+			BPLONG op_arity=bpx_get_arity(op_term);
+			sw["values"]=json::array();
+			for(BPLONG j=1; j<=op_arity; j++){
+				TERM el= bpx_get_arg(j, op_term);
+				char* el_str= bpx_term_2_string(el);
+				sw["values"].push_back(el_str);
+			}
+			string op_name=bpx_get_name(op_term);
+			sw["name"]=op_name;
+			sw["sw_type"]=SwTypeLayer;
+			sw["inside"]=0.0;
 		}else{
 			sw["name"]=el1_name;
 			sw["sw_type"]=SwTypeProbabilistic;
@@ -165,6 +179,7 @@ void save_expl_graph_json(const string& outfilename,json& goals,SaveFormat forma
 }
 
 int run_save_expl_graph_json(const string& outfilename,SaveFormat format) {
+	printf("run_save_expl_graph_json start\n");
 	//config_em(em_ptr);
 	double start_time=getCPUTime();
 	init_scc();
@@ -204,6 +219,7 @@ int run_save_expl_graph_json(const string& outfilename,SaveFormat format) {
 			path["nodes"]=nodes;
 			path["prob_switches"]=json::array();
 			path["operators"]=json::array();
+			path["layers"]=json::array();
 			path["tensor_switches"]=json::array();
 			for (int k = 0; k < path_ptr->sws_len; k++) {
 				//prism::SwIns
@@ -212,6 +228,8 @@ int run_save_expl_graph_json(const string& outfilename,SaveFormat format) {
 					path["prob_switches"].push_back(sw);
 				}else if(sw["sw_type"]==SwTypeOperator){
 					path["operators"].push_back(sw);
+				}else if(sw["sw_type"]==SwTypeLayer){
+				    path["layers"].push_back(sw);
 				}else{
 					path["tensor_switches"].push_back(sw);
 				}
@@ -249,7 +267,9 @@ int run_save_expl_graph_json(const string& outfilename,SaveFormat format) {
 		rr["count"]=1;
 		goals["rootList"].push_back(rr);
 	}
+	cout << "save_expl_graph_json start" << endl;
 	save_expl_graph_json(outfilename,goals,format);
+    cout << "save_expl_graph_json completed" << endl;
 
 	//free data
 	free_scc();
@@ -338,6 +358,19 @@ prism::SwIns get_swins(SW_INS_PTR sw_ins){
 			sw.set_name(op_name);
 			sw.set_sw_type(prism::Operator);
 			sw.set_inside(0.0);
+		}else if(name=="$layer"){
+			sw.set_name(name);
+			TERM op_term= bpx_get_arg(1, el1);
+			BPLONG op_arity=bpx_get_arity(op_term);
+			for(BPLONG j=1; j<=op_arity; j++){
+				TERM el= bpx_get_arg(j, op_term);
+				char* el_str= bpx_term_2_string(el);
+				sw.add_values(el_str);
+			}
+			string op_name=bpx_get_name(op_term);
+			sw.set_name(op_name);
+			sw.set_sw_type(prism::Layer);
+			sw.set_inside(0.0);
 		}else{
 			sw.set_name(el1_name);
 			sw.set_sw_type(prism::Probabilistic);
@@ -388,6 +421,7 @@ void save_expl_graph(const string& outfilename,prism::ExplGraph& goals,SaveForma
 }
 
 int run_save_expl_graph(const string& outfilename,SaveFormat format) {
+    cout << "run_save_expl_graph_json start" << endl;
 	//config_em(em_ptr);
 	double start_time=getCPUTime();
 	init_scc();
@@ -424,6 +458,8 @@ int run_save_expl_graph(const string& outfilename,SaveFormat format) {
 					sw= path->add_prob_switches();
 				}else if(temp_sw.sw_type()==prism::Operator){
 					sw= path->add_operators();
+				}else if (temp_sw.sw_type()==prism::Layer){
+				    sw= path->add_layers();
 				}else{
 					sw= path->add_tensor_switches();
 				}
@@ -453,7 +489,9 @@ int run_save_expl_graph(const string& outfilename,SaveFormat format) {
 		}
 		rr->set_count(1);
 	}
+	cout << "save_expl_graph_json start" << endl;
 	save_expl_graph(outfilename,goals,format);
+	cout << "save_expl_graph_json completed" << endl;
 
 	//free data
 	free_scc();
