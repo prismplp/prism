@@ -177,13 +177,16 @@ class OperatorLoader:
     def load_all(self, path: str) -> None:
         search_path = os.path.dirname(__file__) + "/" + path
         for fpath in glob.glob(search_path + "*.py"):
-            print("[LOAD]", fpath)
-            name = os.path.basename(os.path.splitext(fpath)[0])
-            module_name = self.base_module_name + name
-            module = importlib.machinery.SourceFileLoader(
-                module_name, fpath
-            ).load_module()
-            self.load_module(module)
+            self.load(fpath)
+
+    def load(self, fpath: str) -> None:
+        print("[LOAD]", fpath)
+        name = os.path.basename(os.path.splitext(fpath)[0])
+        module_name = self.base_module_name + name
+        module = importlib.machinery.SourceFileLoader(
+            module_name, fpath
+        ).load_module()
+        self.load_module(module)
 
     def load_module(self, module):
         for cls_name, cls in inspect.getmembers(module, inspect.isclass):
@@ -191,6 +194,10 @@ class OperatorLoader:
                 print("[IMPORT]", cls_name)
                 op_name = self.to_op_name(cls_name)
                 self.operators[op_name] = cls
+        
+    def set_cls(self, op_name, cls):
+        self.operators[op_name] = cls
+        
 
 
 class LossLoader:
@@ -228,13 +235,16 @@ class LossLoader:
     def load_all_from_search_path(self, search_path: str) -> None:
         print("[LOAD]", search_path)
         for fpath in glob.glob(search_path + "*.py"):
-            print("[LOAD]", fpath)
-            name = os.path.basename(os.path.splitext(fpath)[0])
-            module_name = self.base_module_name + name
-            module = importlib.machinery.SourceFileLoader(
-                module_name, fpath
-            ).load_module()
-            self.load_module(module)
+            self.load(fpath)
+
+    def load(self, fpath: str) -> None:
+        print("[LOAD]", fpath)
+        name = os.path.basename(os.path.splitext(fpath)[0])
+        module_name = self.base_module_name + name
+        module = importlib.machinery.SourceFileLoader(
+            module_name, fpath
+        ).load_module()
+        self.load_module(module)
 
     def load_module(self, module):
         for cls_name, cls in inspect.getmembers(module, inspect.isclass):
@@ -242,6 +252,9 @@ class LossLoader:
                 print("[IMPORT]", cls_name)
                 op_name = self.to_op_name(cls_name)
                 self.losses[op_name] = cls
+
+    def set_cls(self,op_name,cls):
+        self.losses[op_name] = cls
 
 def main():
     loss_loader = LossLoader()

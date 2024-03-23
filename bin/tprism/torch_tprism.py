@@ -33,6 +33,7 @@ from tprism.loader import (
     load_input_data,
     load_explanation_graph,
     LossLoader,
+    OperatorLoader,
 )
 
 from tprism.torch_util import draw_graph
@@ -139,6 +140,8 @@ class TprismModel:
         self.flags = flags
         self.tensor_shapes = tensor_shapes
         self.loss_cls = loss_cls
+        self.operator_loader = OperatorLoader()
+        self.operator_loader.load_all("op/torch_")
 
     def build(self, input_data, load_vocab, embedding_key):
         self._build_embedding(embedding_key)
@@ -176,7 +179,7 @@ class TprismModel:
 
     def _build_explanation_graph(self):
         self.comp_expl_graph = torch_expl_graph.TorchComputationalExplGraph(
-            self.graph, self.tensor_provider, self.cycle_embedding_generator
+            self.graph, self.tensor_provider, self.operator_loader, self.cycle_embedding_generator
         )
 
     def solve(self, input_data=None):

@@ -44,9 +44,8 @@ class ComputationalExplGraph:
 
     """
 
-
     def __init__(self):
-        pass
+        self.operators={}
 
     def _get_unique_list(self, seq: List[List[str]]) -> List[List[str]]:
         seen = []
@@ -106,6 +105,21 @@ class ComputationalExplGraph:
                         assert path_shapes[i][j] == dim, "shape mismatching"
                 out_shape.append(dim)
             return out_shape
+
+    def _apply_operator_template(self,operator_loader, op, in_template, in_shape):
+        ## restore operator
+        key=str(op.name)+"_"+str(op.values)
+        if key in self.operators:
+            op_obj=self.operators[key]
+        else:
+            ## new operator
+            cls = operator_loader.get_operator(op.name)
+            op_obj = cls(op.values)
+            self.operators[key]=op_obj
+        ## get operator information
+        out_template = op_obj.get_output_template(in_template)
+        out_shape = op_obj.get_output_shape(in_shape)
+        return out_template, out_shape
 
     def build_explanation_graph_template(
         self, graph, tensor_provider, operator_loader=None, cycle_node=[]
@@ -188,9 +202,11 @@ class ComputationalExplGraph:
                             out_template = ["b"] + out_template
                     ## computing operaters
                     for op in path.operators:
-                        cls = operator_loader.get_operator(op.name)
-                        op_obj = cls(op.values)
-                        out_template = op_obj.get_output_template(out_template)
+                        out_template, out_shape=self._apply_operator_template(
+                            operator_loader,
+                            op,
+                            out_template,
+                            out_shape)
                 ##########
                 path_template.append(out_template)
                 path_shape.append(out_shape)

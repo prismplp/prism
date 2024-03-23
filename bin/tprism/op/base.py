@@ -11,3 +11,6 @@ class BaseOperator:
         print("[ERROR] not implemened")
         return None
 
+    def get_output_shape(self, input_shape):
+        #print("[ERROR] not implemened")
+        return input_shape

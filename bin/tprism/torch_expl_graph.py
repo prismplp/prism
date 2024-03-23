@@ -70,25 +70,46 @@ Note:
 
 
     """
-    def __init__(self, graph, tensor_provider, cycle_embedding_generator=None):
+    def __init__(self, graph, tensor_provider, operator_loader, cycle_embedding_generator=None):
         torch.nn.Module.__init__(self)
-
-        operator_loader = OperatorLoader()
-        operator_loader.load_all("op/torch_")
-        goal_template, cycle_node = self.build_explanation_graph_template(
-            graph, tensor_provider, operator_loader
-        )
-        self.operator_loader = operator_loader
-        self.goal_template = goal_template
-        self.cycle_node = cycle_node
+        ComputationalExplGraph.__init__(self)
+        ## setting
+        self.operator_loader = None
+        self.goal_template = None
+        self.cycle_node = None
+        self.param_op = None
         self.graph = graph
         self.loss = {}
         self.tensor_provider = tensor_provider
         self.cycle_embedding_generator = cycle_embedding_generator
+        """
+        if operator_loader is None:
+            operator_loader = OperatorLoader()
+            operator_loader.load_all("op/torch_")
+        """
+        self.operator_loader = operator_loader
+        ###
+        self.build()
+        
+    def build(self):
 
-        for name, (param,tensor_type) in tensor_provider.params.items():
+        ## call super class        
+        goal_template, cycle_node = self.build_explanation_graph_template(
+            self.graph, self.tensor_provider, self.operator_loader
+        )
+        self.goal_template = goal_template
+        self.cycle_node = cycle_node
+        
+        ## setting parameterized operators
+        self.param_op = torch.nn.ModuleList()
+        for k,v in self.operators.items():
+            if issubclass(v.__class__, torch.nn.Module):
+                print("Torch parameterized operator:", k)
+                self.param_op.append(v)
+        ##
+        for name, (param,tensor_type) in self.tensor_provider.params.items():
             self.register_parameter(name, param)
-
+        
     def _distribution_forward(self, name, dist, params, param_template, op):
         if dist == "normal":
             mean = params[0]
@@ -142,6 +163,24 @@ Note:
         sublistform_args.append([mapping[el] for el in out_template])
         return sublistform_args, out_template
 
+    def _apply_operator(self,op,operator_loader,out_inside, out_template, dryrun):
+        ## restore operator
+        key=str(op.name)+"_"+str(op.values)
+        if key in self.operators:
+            op_obj=self.operators[key]
+        else:
+            #cls = operator_loader.get_operator(op.name)
+            #op_obj = cls(op.values)
+            assert True, "unknown operator "+key+" has been found in forward procedure"
+        if dryrun:
+            out_inside = {
+                "type": "operator",
+                "name": op.name,
+                "path": out_inside}
+        else:
+            out_inside = op_obj.call(out_inside)
+        out_template = op_obj.get_output_template(out_template)
+        return out_inside,out_template
 
     def forward(self, verbose=False,verbose_embedding=False, dryrun=False):
         """
@@ -339,18 +378,13 @@ Note:
                     for op in path.operators:
                         if verbose:
                             print("  operator:", op.name)
-                        cls = operator_loader.get_operator(op.name)
-                        op_obj = cls(op.values)
-                        if dryrun:
-                            out_inside = {
-                                "type": "operator",
-                                "name": op.name,
-                                "path": out_inside}
-                        else:
-                            out_inside = op_obj.call(out_inside)
-                        out_template = op_obj.get_output_template(out_template)
-
-                ##
+                        out_inside,out_template=self._apply_operator(
+                            op,
+                            operator_loader,
+                            out_inside,
+                            out_template,
+                            dryrun)
+                        ##
                 path_inside.append(out_inside)
                 path_template.append(out_template)
                 ##
