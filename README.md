@@ -22,6 +22,9 @@ For the files under each directory, please read the README file
 in the directory.  For the papers or additional information
 on PRISM, please visit http://rjida.meijo-u.ac.jp/prism/ .
 
+#### Notebook tutorial 
+[Tutorial (beta, Japanese)](https://colab.research.google.com/drive/1EhnP2ApqsuchEY-k9ZFUzBZg8Enjyytz?usp=sharing)
+
 ## Installation
 
 #### 1. Download pre-build package from [release page](https://github.com/prismplp/prism/releases):
