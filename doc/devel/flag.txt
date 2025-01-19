@@ -1,0 +1,47 @@
+
+To add a new flag to the PRISM system, the following files need to be updated:
+
+1. **`src/c/core/glue.c`**  
+   Around line 225:  
+   ```c
+   +       REGISTER_CPRED(set_tprism_debug_level,1);
+   ```
+   Add the predicate.
+
+2. **`src/c/up/flags.c`**  
+   Around line 60:  
+   ```c
+   +int     tprism_debug_level       = 0;
+   ```
+   Add the variable in C.
+
+   Around line 100:  
+   ```c
+   +int pc_set_tprism_debug_level_1(void) {
+   +       tprism_debug_level = bpx_get_integer(bpx_get_call_arg(1,1));
+   +       return BP_TRUE;
+   +}
+   ```
+   Add the function to set the variable in C.
+
+3. **`src/c/up/flags.h`**  
+   Around line 44:  
+   ```c
+   +int pc_set_tprism_debug_level_1(void);
+   ```
+   Add the setter function in C.
+
+   Around line 90:  
+   ```c
+   +extern int     tprism_debug_level;
+   ```
+   Add the variable reference in C.
+
+4. **`src/prolog/up/flags.pl`**  
+   Around line 100:  
+   ```prolog
+   +$pp_prism_flag(tprism_debug_level,integer(0,+inf),0,$pc_set_tprism_debug_level).
+   ```
+   Add the configuration variable for Prolog.
+
+
