@@ -154,20 +154,20 @@
 
                         <label class="view-source-button" for="mod-torch_standard_loss-view-source"><span>View Source</span></label>
 
-                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-</span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a><span class="kn">import</span> <span class="nn">torch</span>
-</span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a><span class="kn">import</span> <span class="nn">torch.nn.functional</span> <span class="k">as</span> <span class="nn">F</span>
-</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">import</span> <span class="nn">sklearn.metrics</span>
-</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
+                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+</span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+</span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn.functional</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">F</span>
+</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">sklearn.metrics</span>
+</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span>
 </span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a>
-</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="kn">from</span> <span class="nn">tprism.loss.base</span> <span class="kn">import</span> <span class="n">BaseLoss</span>
+</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">tprism.loss.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseLoss</span>
 </span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a>
-</span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="k">class</span> <span class="nc">NLL</span><span class="p">(</span><span class="n">BaseLoss</span><span class="p">):</span>
-</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="k">class</span><span class="w"> </span><span class="nc">NLL</span><span class="p">(</span><span class="n">BaseLoss</span><span class="p">):</span>
+</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a>        <span class="k">pass</span>
 </span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a>
 </span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a>    <span class="c1"># loss: goal x minibatch</span>
-</span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a>    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">goal_inside</span><span class="p">,</span> <span class="n">tensor_provider</span><span class="p">):</span>
+</span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">goal_inside</span><span class="p">,</span> <span class="n">tensor_provider</span><span class="p">):</span>
 </span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a>        <span class="n">loss</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a>        <span class="n">output</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a>        <span class="n">gamma</span> <span class="o">=</span> <span class="mf">1.00</span>
@@ -190,12 +190,12 @@
 </span><span id="L-34"><a href="#L-34"><span class="linenos"> 34</span></a>        <span class="n">output</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
 </span><span id="L-35"><a href="#L-35"><span class="linenos"> 35</span></a>        <span class="k">return</span> <span class="n">loss</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="kc">None</span>
 </span><span id="L-36"><a href="#L-36"><span class="linenos"> 36</span></a>
-</span><span id="L-37"><a href="#L-37"><span class="linenos"> 37</span></a><span class="k">class</span> <span class="nc">CE</span><span class="p">(</span><span class="n">BaseLoss</span><span class="p">):</span>
-</span><span id="L-38"><a href="#L-38"><span class="linenos"> 38</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span id="L-37"><a href="#L-37"><span class="linenos"> 37</span></a><span class="k">class</span><span class="w"> </span><span class="nc">CE</span><span class="p">(</span><span class="n">BaseLoss</span><span class="p">):</span>
+</span><span id="L-38"><a href="#L-38"><span class="linenos"> 38</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="L-39"><a href="#L-39"><span class="linenos"> 39</span></a>        <span class="k">pass</span>
 </span><span id="L-40"><a href="#L-40"><span class="linenos"> 40</span></a>
 </span><span id="L-41"><a href="#L-41"><span class="linenos"> 41</span></a>    <span class="c1"># loss: goal x minibatch</span>
-</span><span id="L-42"><a href="#L-42"><span class="linenos"> 42</span></a>    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">goal_inside</span><span class="p">,</span> <span class="n">tensor_provider</span><span class="p">):</span>
+</span><span id="L-42"><a href="#L-42"><span class="linenos"> 42</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">goal_inside</span><span class="p">,</span> <span class="n">tensor_provider</span><span class="p">):</span>
 </span><span id="L-43"><a href="#L-43"><span class="linenos"> 43</span></a>        <span class="n">loss</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="L-44"><a href="#L-44"><span class="linenos"> 44</span></a>        <span class="n">output</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="L-45"><a href="#L-45"><span class="linenos"> 45</span></a>        <span class="n">gamma</span> <span class="o">=</span> <span class="mf">1.00</span>
@@ -214,7 +214,7 @@
 </span><span id="L-58"><a href="#L-58"><span class="linenos"> 58</span></a>        <span class="n">loss</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">cross_entropy</span><span class="p">(</span><span class="n">o_t</span><span class="p">,</span><span class="n">y_t</span><span class="p">)</span>
 </span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a>        <span class="k">return</span> <span class="n">loss</span><span class="p">,</span> <span class="n">o_t</span><span class="p">,</span> <span class="n">y_t</span>
 </span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a>
-</span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a>    <span class="k">def</span> <span class="nf">metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
+</span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
 </span><span id="L-62"><a href="#L-62"><span class="linenos"> 62</span></a>        <span class="k">if</span> <span class="n">label</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
 </span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a>            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">output</span><span class="p">)</span> <span class="ow">is</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 </span><span id="L-64"><a href="#L-64"><span class="linenos"> 64</span></a>                <span class="n">output</span><span class="o">=</span><span class="n">output</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
@@ -226,12 +226,12 @@
 </span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a>        <span class="k">return</span> <span class="p">{}</span>
 </span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a>
 </span><span id="L-72"><a href="#L-72"><span class="linenos"> 72</span></a>
-</span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a><span class="k">class</span> <span class="nc">CE_pl2</span><span class="p">(</span><span class="n">BaseLoss</span><span class="p">):</span>
-</span><span id="L-74"><a href="#L-74"><span class="linenos"> 74</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">:</span> <span class="kc">None</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a><span class="k">class</span><span class="w"> </span><span class="nc">CE_pl2</span><span class="p">(</span><span class="n">BaseLoss</span><span class="p">):</span>
+</span><span id="L-74"><a href="#L-74"><span class="linenos"> 74</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">:</span> <span class="kc">None</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 </span><span id="L-75"><a href="#L-75"><span class="linenos"> 75</span></a>        <span class="k">pass</span>
 </span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a>
 </span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a>    <span class="c1"># loss: goal x minibatch</span>
-</span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a>    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">goal_inside</span><span class="p">,</span> <span class="n">tensor_provider</span><span class="p">):</span>
+</span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">goal_inside</span><span class="p">,</span> <span class="n">tensor_provider</span><span class="p">):</span>
 </span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a>        <span class="n">loss</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a>        <span class="n">output</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a>        <span class="n">label</span> <span class="o">=</span> <span class="p">[]</span>
@@ -256,7 +256,7 @@
 </span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a>        <span class="n">label</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
 </span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a>        <span class="k">return</span> <span class="n">loss</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">label</span>
 </span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a>
-</span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a>    <span class="k">def</span> <span class="nf">metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
+</span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
 </span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a>        <span class="k">if</span> <span class="n">label</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
 </span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a>            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">output</span><span class="p">)</span> <span class="ow">is</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 </span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a>                <span class="n">output</span><span class="o">=</span><span class="n">output</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
@@ -267,12 +267,12 @@
 </span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a>            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;*accuracy&quot;</span><span class="p">:</span><span class="n">acc</span><span class="p">}</span>
 </span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a>        <span class="k">return</span> <span class="p">{}</span>
 </span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a>
-</span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a><span class="k">class</span> <span class="nc">MSE</span><span class="p">(</span><span class="n">BaseLoss</span><span class="p">):</span>
-</span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a><span class="k">class</span><span class="w"> </span><span class="nc">MSE</span><span class="p">(</span><span class="n">BaseLoss</span><span class="p">):</span>
+</span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a>        <span class="k">pass</span>
 </span><span id="L-117"><a href="#L-117"><span class="linenos">117</span></a>
 </span><span id="L-118"><a href="#L-118"><span class="linenos">118</span></a>    <span class="c1"># loss: goal x minibatch</span>
-</span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a>    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">goal_inside</span><span class="p">,</span> <span class="n">tensor_provider</span><span class="p">):</span>
+</span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">goal_inside</span><span class="p">,</span> <span class="n">tensor_provider</span><span class="p">):</span>
 </span><span id="L-120"><a href="#L-120"><span class="linenos">120</span></a>        <span class="n">loss</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a>        <span class="n">output</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a>        <span class="n">label</span> <span class="o">=</span> <span class="p">[]</span>
@@ -292,7 +292,7 @@
 </span><span id="L-136"><a href="#L-136"><span class="linenos">136</span></a>        <span class="n">output</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
 </span><span id="L-137"><a href="#L-137"><span class="linenos">137</span></a>        <span class="n">label</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
 </span><span id="L-138"><a href="#L-138"><span class="linenos">138</span></a>        <span class="k">return</span> <span class="n">loss</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">label</span>
-</span><span id="L-139"><a href="#L-139"><span class="linenos">139</span></a>    <span class="k">def</span> <span class="nf">metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
+</span><span id="L-139"><a href="#L-139"><span class="linenos">139</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
 </span><span id="L-140"><a href="#L-140"><span class="linenos">140</span></a>        <span class="k">if</span> <span class="n">label</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
 </span><span id="L-141"><a href="#L-141"><span class="linenos">141</span></a>            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">output</span><span class="p">)</span> <span class="ow">is</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 </span><span id="L-142"><a href="#L-142"><span class="linenos">142</span></a>                <span class="n">output</span><span class="o">=</span><span class="n">output</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
@@ -306,12 +306,12 @@
 </span><span id="L-150"><a href="#L-150"><span class="linenos">150</span></a>
 </span><span id="L-151"><a href="#L-151"><span class="linenos">151</span></a>
 </span><span id="L-152"><a href="#L-152"><span class="linenos">152</span></a>
-</span><span id="L-153"><a href="#L-153"><span class="linenos">153</span></a><span class="k">class</span> <span class="nc">PreferencePair</span><span class="p">(</span><span class="n">BaseLoss</span><span class="p">):</span>
-</span><span id="L-154"><a href="#L-154"><span class="linenos">154</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">:</span> <span class="kc">None</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="L-153"><a href="#L-153"><span class="linenos">153</span></a><span class="k">class</span><span class="w"> </span><span class="nc">PreferencePair</span><span class="p">(</span><span class="n">BaseLoss</span><span class="p">):</span>
+</span><span id="L-154"><a href="#L-154"><span class="linenos">154</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">:</span> <span class="kc">None</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 </span><span id="L-155"><a href="#L-155"><span class="linenos">155</span></a>        <span class="k">pass</span>
 </span><span id="L-156"><a href="#L-156"><span class="linenos">156</span></a>
 </span><span id="L-157"><a href="#L-157"><span class="linenos">157</span></a>    <span class="c1"># loss: goal x minibatch</span>
-</span><span id="L-158"><a href="#L-158"><span class="linenos">158</span></a>    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">goal_inside</span><span class="p">,</span> <span class="n">tensor_provider</span><span class="p">):</span>
+</span><span id="L-158"><a href="#L-158"><span class="linenos">158</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">goal_inside</span><span class="p">,</span> <span class="n">tensor_provider</span><span class="p">):</span>
 </span><span id="L-159"><a href="#L-159"><span class="linenos">159</span></a>        <span class="n">loss</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="L-160"><a href="#L-160"><span class="linenos">160</span></a>        <span class="n">output</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="L-161"><a href="#L-161"><span class="linenos">161</span></a>        <span class="n">gamma</span> <span class="o">=</span> <span class="mf">1.00</span>
@@ -332,12 +332,12 @@
 </span><span id="L-176"><a href="#L-176"><span class="linenos">176</span></a>        <span class="k">return</span> <span class="n">loss</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="kc">None</span>
 </span><span id="L-177"><a href="#L-177"><span class="linenos">177</span></a>
 </span><span id="L-178"><a href="#L-178"><span class="linenos">178</span></a>
-</span><span id="L-179"><a href="#L-179"><span class="linenos">179</span></a><span class="k">class</span> <span class="nc">RMSEPair</span><span class="p">(</span><span class="n">BaseLoss</span><span class="p">):</span>
-</span><span id="L-180"><a href="#L-180"><span class="linenos">180</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">:</span> <span class="kc">None</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="L-179"><a href="#L-179"><span class="linenos">179</span></a><span class="k">class</span><span class="w"> </span><span class="nc">RMSEPair</span><span class="p">(</span><span class="n">BaseLoss</span><span class="p">):</span>
+</span><span id="L-180"><a href="#L-180"><span class="linenos">180</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">:</span> <span class="kc">None</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 </span><span id="L-181"><a href="#L-181"><span class="linenos">181</span></a>        <span class="k">pass</span>
 </span><span id="L-182"><a href="#L-182"><span class="linenos">182</span></a>
 </span><span id="L-183"><a href="#L-183"><span class="linenos">183</span></a>    <span class="c1"># loss: goal x minibatch</span>
-</span><span id="L-184"><a href="#L-184"><span class="linenos">184</span></a>    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">goal_inside</span><span class="p">,</span> <span class="n">tensor_provider</span><span class="p">):</span>
+</span><span id="L-184"><a href="#L-184"><span class="linenos">184</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">goal_inside</span><span class="p">,</span> <span class="n">tensor_provider</span><span class="p">):</span>
 </span><span id="L-185"><a href="#L-185"><span class="linenos">185</span></a>        <span class="n">loss</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="L-186"><a href="#L-186"><span class="linenos">186</span></a>        <span class="n">output</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="L-187"><a href="#L-187"><span class="linenos">187</span></a>        <span class="k">for</span> <span class="n">rank_root</span> <span class="ow">in</span> <span class="n">graph</span><span class="o">.</span><span class="n">root_list</span><span class="p">:</span>
@@ -365,12 +365,12 @@
 
     </div>
     <a class="headerlink" href="#NLL"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="NLL-10"><a href="#NLL-10"><span class="linenos">10</span></a><span class="k">class</span> <span class="nc">NLL</span><span class="p">(</span><span class="n">BaseLoss</span><span class="p">):</span>
-</span><span id="NLL-11"><a href="#NLL-11"><span class="linenos">11</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="NLL-10"><a href="#NLL-10"><span class="linenos">10</span></a><span class="k">class</span><span class="w"> </span><span class="nc">NLL</span><span class="p">(</span><span class="n">BaseLoss</span><span class="p">):</span>
+</span><span id="NLL-11"><a href="#NLL-11"><span class="linenos">11</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="NLL-12"><a href="#NLL-12"><span class="linenos">12</span></a>        <span class="k">pass</span>
 </span><span id="NLL-13"><a href="#NLL-13"><span class="linenos">13</span></a>
 </span><span id="NLL-14"><a href="#NLL-14"><span class="linenos">14</span></a>    <span class="c1"># loss: goal x minibatch</span>
-</span><span id="NLL-15"><a href="#NLL-15"><span class="linenos">15</span></a>    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">goal_inside</span><span class="p">,</span> <span class="n">tensor_provider</span><span class="p">):</span>
+</span><span id="NLL-15"><a href="#NLL-15"><span class="linenos">15</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">goal_inside</span><span class="p">,</span> <span class="n">tensor_provider</span><span class="p">):</span>
 </span><span id="NLL-16"><a href="#NLL-16"><span class="linenos">16</span></a>        <span class="n">loss</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="NLL-17"><a href="#NLL-17"><span class="linenos">17</span></a>        <span class="n">output</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="NLL-18"><a href="#NLL-18"><span class="linenos">18</span></a>        <span class="n">gamma</span> <span class="o">=</span> <span class="mf">1.00</span>
@@ -407,7 +407,7 @@
 
     </div>
     <a class="headerlink" href="#NLL.__init__"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="NLL.__init__-11"><a href="#NLL.__init__-11"><span class="linenos">11</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="NLL.__init__-11"><a href="#NLL.__init__-11"><span class="linenos">11</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="NLL.__init__-12"><a href="#NLL.__init__-12"><span class="linenos">12</span></a>        <span class="k">pass</span>
 </span></pre></div>
 
@@ -426,7 +426,7 @@
 
     </div>
     <a class="headerlink" href="#NLL.call"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="NLL.call-15"><a href="#NLL.call-15"><span class="linenos">15</span></a>    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">goal_inside</span><span class="p">,</span> <span class="n">tensor_provider</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="NLL.call-15"><a href="#NLL.call-15"><span class="linenos">15</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">goal_inside</span><span class="p">,</span> <span class="n">tensor_provider</span><span class="p">):</span>
 </span><span id="NLL.call-16"><a href="#NLL.call-16"><span class="linenos">16</span></a>        <span class="n">loss</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="NLL.call-17"><a href="#NLL.call-17"><span class="linenos">17</span></a>        <span class="n">output</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="NLL.call-18"><a href="#NLL.call-18"><span class="linenos">18</span></a>        <span class="n">gamma</span> <span class="o">=</span> <span class="mf">1.00</span>
@@ -475,12 +475,12 @@
 
     </div>
     <a class="headerlink" href="#CE"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="CE-38"><a href="#CE-38"><span class="linenos">38</span></a><span class="k">class</span> <span class="nc">CE</span><span class="p">(</span><span class="n">BaseLoss</span><span class="p">):</span>
-</span><span id="CE-39"><a href="#CE-39"><span class="linenos">39</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="CE-38"><a href="#CE-38"><span class="linenos">38</span></a><span class="k">class</span><span class="w"> </span><span class="nc">CE</span><span class="p">(</span><span class="n">BaseLoss</span><span class="p">):</span>
+</span><span id="CE-39"><a href="#CE-39"><span class="linenos">39</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="CE-40"><a href="#CE-40"><span class="linenos">40</span></a>        <span class="k">pass</span>
 </span><span id="CE-41"><a href="#CE-41"><span class="linenos">41</span></a>
 </span><span id="CE-42"><a href="#CE-42"><span class="linenos">42</span></a>    <span class="c1"># loss: goal x minibatch</span>
-</span><span id="CE-43"><a href="#CE-43"><span class="linenos">43</span></a>    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">goal_inside</span><span class="p">,</span> <span class="n">tensor_provider</span><span class="p">):</span>
+</span><span id="CE-43"><a href="#CE-43"><span class="linenos">43</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">goal_inside</span><span class="p">,</span> <span class="n">tensor_provider</span><span class="p">):</span>
 </span><span id="CE-44"><a href="#CE-44"><span class="linenos">44</span></a>        <span class="n">loss</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="CE-45"><a href="#CE-45"><span class="linenos">45</span></a>        <span class="n">output</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="CE-46"><a href="#CE-46"><span class="linenos">46</span></a>        <span class="n">gamma</span> <span class="o">=</span> <span class="mf">1.00</span>
@@ -499,7 +499,7 @@
 </span><span id="CE-59"><a href="#CE-59"><span class="linenos">59</span></a>        <span class="n">loss</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">cross_entropy</span><span class="p">(</span><span class="n">o_t</span><span class="p">,</span><span class="n">y_t</span><span class="p">)</span>
 </span><span id="CE-60"><a href="#CE-60"><span class="linenos">60</span></a>        <span class="k">return</span> <span class="n">loss</span><span class="p">,</span> <span class="n">o_t</span><span class="p">,</span> <span class="n">y_t</span>
 </span><span id="CE-61"><a href="#CE-61"><span class="linenos">61</span></a>
-</span><span id="CE-62"><a href="#CE-62"><span class="linenos">62</span></a>    <span class="k">def</span> <span class="nf">metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
+</span><span id="CE-62"><a href="#CE-62"><span class="linenos">62</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
 </span><span id="CE-63"><a href="#CE-63"><span class="linenos">63</span></a>        <span class="k">if</span> <span class="n">label</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
 </span><span id="CE-64"><a href="#CE-64"><span class="linenos">64</span></a>            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">output</span><span class="p">)</span> <span class="ow">is</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 </span><span id="CE-65"><a href="#CE-65"><span class="linenos">65</span></a>                <span class="n">output</span><span class="o">=</span><span class="n">output</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
@@ -524,7 +524,7 @@
 
     </div>
     <a class="headerlink" href="#CE.__init__"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="CE.__init__-39"><a href="#CE.__init__-39"><span class="linenos">39</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="CE.__init__-39"><a href="#CE.__init__-39"><span class="linenos">39</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="CE.__init__-40"><a href="#CE.__init__-40"><span class="linenos">40</span></a>        <span class="k">pass</span>
 </span></pre></div>
 
@@ -543,7 +543,7 @@
 
     </div>
     <a class="headerlink" href="#CE.call"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="CE.call-43"><a href="#CE.call-43"><span class="linenos">43</span></a>    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">goal_inside</span><span class="p">,</span> <span class="n">tensor_provider</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="CE.call-43"><a href="#CE.call-43"><span class="linenos">43</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">goal_inside</span><span class="p">,</span> <span class="n">tensor_provider</span><span class="p">):</span>
 </span><span id="CE.call-44"><a href="#CE.call-44"><span class="linenos">44</span></a>        <span class="n">loss</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="CE.call-45"><a href="#CE.call-45"><span class="linenos">45</span></a>        <span class="n">output</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="CE.call-46"><a href="#CE.call-46"><span class="linenos">46</span></a>        <span class="n">gamma</span> <span class="o">=</span> <span class="mf">1.00</span>
@@ -578,7 +578,7 @@
 
     </div>
     <a class="headerlink" href="#CE.metrics"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="CE.metrics-62"><a href="#CE.metrics-62"><span class="linenos">62</span></a>    <span class="k">def</span> <span class="nf">metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="CE.metrics-62"><a href="#CE.metrics-62"><span class="linenos">62</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
 </span><span id="CE.metrics-63"><a href="#CE.metrics-63"><span class="linenos">63</span></a>        <span class="k">if</span> <span class="n">label</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
 </span><span id="CE.metrics-64"><a href="#CE.metrics-64"><span class="linenos">64</span></a>            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">output</span><span class="p">)</span> <span class="ow">is</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 </span><span id="CE.metrics-65"><a href="#CE.metrics-65"><span class="linenos">65</span></a>                <span class="n">output</span><span class="o">=</span><span class="n">output</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
@@ -606,12 +606,12 @@
 
     </div>
     <a class="headerlink" href="#CE_pl2"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="CE_pl2-74"><a href="#CE_pl2-74"><span class="linenos"> 74</span></a><span class="k">class</span> <span class="nc">CE_pl2</span><span class="p">(</span><span class="n">BaseLoss</span><span class="p">):</span>
-</span><span id="CE_pl2-75"><a href="#CE_pl2-75"><span class="linenos"> 75</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">:</span> <span class="kc">None</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="CE_pl2-74"><a href="#CE_pl2-74"><span class="linenos"> 74</span></a><span class="k">class</span><span class="w"> </span><span class="nc">CE_pl2</span><span class="p">(</span><span class="n">BaseLoss</span><span class="p">):</span>
+</span><span id="CE_pl2-75"><a href="#CE_pl2-75"><span class="linenos"> 75</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">:</span> <span class="kc">None</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 </span><span id="CE_pl2-76"><a href="#CE_pl2-76"><span class="linenos"> 76</span></a>        <span class="k">pass</span>
 </span><span id="CE_pl2-77"><a href="#CE_pl2-77"><span class="linenos"> 77</span></a>
 </span><span id="CE_pl2-78"><a href="#CE_pl2-78"><span class="linenos"> 78</span></a>    <span class="c1"># loss: goal x minibatch</span>
-</span><span id="CE_pl2-79"><a href="#CE_pl2-79"><span class="linenos"> 79</span></a>    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">goal_inside</span><span class="p">,</span> <span class="n">tensor_provider</span><span class="p">):</span>
+</span><span id="CE_pl2-79"><a href="#CE_pl2-79"><span class="linenos"> 79</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">goal_inside</span><span class="p">,</span> <span class="n">tensor_provider</span><span class="p">):</span>
 </span><span id="CE_pl2-80"><a href="#CE_pl2-80"><span class="linenos"> 80</span></a>        <span class="n">loss</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="CE_pl2-81"><a href="#CE_pl2-81"><span class="linenos"> 81</span></a>        <span class="n">output</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="CE_pl2-82"><a href="#CE_pl2-82"><span class="linenos"> 82</span></a>        <span class="n">label</span> <span class="o">=</span> <span class="p">[]</span>
@@ -636,7 +636,7 @@
 </span><span id="CE_pl2-101"><a href="#CE_pl2-101"><span class="linenos">101</span></a>        <span class="n">label</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
 </span><span id="CE_pl2-102"><a href="#CE_pl2-102"><span class="linenos">102</span></a>        <span class="k">return</span> <span class="n">loss</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">label</span>
 </span><span id="CE_pl2-103"><a href="#CE_pl2-103"><span class="linenos">103</span></a>
-</span><span id="CE_pl2-104"><a href="#CE_pl2-104"><span class="linenos">104</span></a>    <span class="k">def</span> <span class="nf">metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
+</span><span id="CE_pl2-104"><a href="#CE_pl2-104"><span class="linenos">104</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
 </span><span id="CE_pl2-105"><a href="#CE_pl2-105"><span class="linenos">105</span></a>        <span class="k">if</span> <span class="n">label</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
 </span><span id="CE_pl2-106"><a href="#CE_pl2-106"><span class="linenos">106</span></a>            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">output</span><span class="p">)</span> <span class="ow">is</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 </span><span id="CE_pl2-107"><a href="#CE_pl2-107"><span class="linenos">107</span></a>                <span class="n">output</span><span class="o">=</span><span class="n">output</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
@@ -661,7 +661,7 @@
 
     </div>
     <a class="headerlink" href="#CE_pl2.__init__"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="CE_pl2.__init__-75"><a href="#CE_pl2.__init__-75"><span class="linenos">75</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">:</span> <span class="kc">None</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="CE_pl2.__init__-75"><a href="#CE_pl2.__init__-75"><span class="linenos">75</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">:</span> <span class="kc">None</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 </span><span id="CE_pl2.__init__-76"><a href="#CE_pl2.__init__-76"><span class="linenos">76</span></a>        <span class="k">pass</span>
 </span></pre></div>
 
@@ -680,7 +680,7 @@
 
     </div>
     <a class="headerlink" href="#CE_pl2.call"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="CE_pl2.call-79"><a href="#CE_pl2.call-79"><span class="linenos"> 79</span></a>    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">goal_inside</span><span class="p">,</span> <span class="n">tensor_provider</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="CE_pl2.call-79"><a href="#CE_pl2.call-79"><span class="linenos"> 79</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">goal_inside</span><span class="p">,</span> <span class="n">tensor_provider</span><span class="p">):</span>
 </span><span id="CE_pl2.call-80"><a href="#CE_pl2.call-80"><span class="linenos"> 80</span></a>        <span class="n">loss</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="CE_pl2.call-81"><a href="#CE_pl2.call-81"><span class="linenos"> 81</span></a>        <span class="n">output</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="CE_pl2.call-82"><a href="#CE_pl2.call-82"><span class="linenos"> 82</span></a>        <span class="n">label</span> <span class="o">=</span> <span class="p">[]</span>
@@ -721,7 +721,7 @@
 
     </div>
     <a class="headerlink" href="#CE_pl2.metrics"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="CE_pl2.metrics-104"><a href="#CE_pl2.metrics-104"><span class="linenos">104</span></a>    <span class="k">def</span> <span class="nf">metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="CE_pl2.metrics-104"><a href="#CE_pl2.metrics-104"><span class="linenos">104</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
 </span><span id="CE_pl2.metrics-105"><a href="#CE_pl2.metrics-105"><span class="linenos">105</span></a>        <span class="k">if</span> <span class="n">label</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
 </span><span id="CE_pl2.metrics-106"><a href="#CE_pl2.metrics-106"><span class="linenos">106</span></a>            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">output</span><span class="p">)</span> <span class="ow">is</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 </span><span id="CE_pl2.metrics-107"><a href="#CE_pl2.metrics-107"><span class="linenos">107</span></a>                <span class="n">output</span><span class="o">=</span><span class="n">output</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
@@ -749,12 +749,12 @@
 
     </div>
     <a class="headerlink" href="#MSE"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MSE-115"><a href="#MSE-115"><span class="linenos">115</span></a><span class="k">class</span> <span class="nc">MSE</span><span class="p">(</span><span class="n">BaseLoss</span><span class="p">):</span>
-</span><span id="MSE-116"><a href="#MSE-116"><span class="linenos">116</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MSE-115"><a href="#MSE-115"><span class="linenos">115</span></a><span class="k">class</span><span class="w"> </span><span class="nc">MSE</span><span class="p">(</span><span class="n">BaseLoss</span><span class="p">):</span>
+</span><span id="MSE-116"><a href="#MSE-116"><span class="linenos">116</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="MSE-117"><a href="#MSE-117"><span class="linenos">117</span></a>        <span class="k">pass</span>
 </span><span id="MSE-118"><a href="#MSE-118"><span class="linenos">118</span></a>
 </span><span id="MSE-119"><a href="#MSE-119"><span class="linenos">119</span></a>    <span class="c1"># loss: goal x minibatch</span>
-</span><span id="MSE-120"><a href="#MSE-120"><span class="linenos">120</span></a>    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">goal_inside</span><span class="p">,</span> <span class="n">tensor_provider</span><span class="p">):</span>
+</span><span id="MSE-120"><a href="#MSE-120"><span class="linenos">120</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">goal_inside</span><span class="p">,</span> <span class="n">tensor_provider</span><span class="p">):</span>
 </span><span id="MSE-121"><a href="#MSE-121"><span class="linenos">121</span></a>        <span class="n">loss</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="MSE-122"><a href="#MSE-122"><span class="linenos">122</span></a>        <span class="n">output</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="MSE-123"><a href="#MSE-123"><span class="linenos">123</span></a>        <span class="n">label</span> <span class="o">=</span> <span class="p">[]</span>
@@ -774,7 +774,7 @@
 </span><span id="MSE-137"><a href="#MSE-137"><span class="linenos">137</span></a>        <span class="n">output</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
 </span><span id="MSE-138"><a href="#MSE-138"><span class="linenos">138</span></a>        <span class="n">label</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
 </span><span id="MSE-139"><a href="#MSE-139"><span class="linenos">139</span></a>        <span class="k">return</span> <span class="n">loss</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">label</span>
-</span><span id="MSE-140"><a href="#MSE-140"><span class="linenos">140</span></a>    <span class="k">def</span> <span class="nf">metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
+</span><span id="MSE-140"><a href="#MSE-140"><span class="linenos">140</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
 </span><span id="MSE-141"><a href="#MSE-141"><span class="linenos">141</span></a>        <span class="k">if</span> <span class="n">label</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
 </span><span id="MSE-142"><a href="#MSE-142"><span class="linenos">142</span></a>            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">output</span><span class="p">)</span> <span class="ow">is</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 </span><span id="MSE-143"><a href="#MSE-143"><span class="linenos">143</span></a>                <span class="n">output</span><span class="o">=</span><span class="n">output</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
@@ -800,7 +800,7 @@
 
     </div>
     <a class="headerlink" href="#MSE.__init__"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MSE.__init__-116"><a href="#MSE.__init__-116"><span class="linenos">116</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MSE.__init__-116"><a href="#MSE.__init__-116"><span class="linenos">116</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="MSE.__init__-117"><a href="#MSE.__init__-117"><span class="linenos">117</span></a>        <span class="k">pass</span>
 </span></pre></div>
 
@@ -819,7 +819,7 @@
 
     </div>
     <a class="headerlink" href="#MSE.call"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MSE.call-120"><a href="#MSE.call-120"><span class="linenos">120</span></a>    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">goal_inside</span><span class="p">,</span> <span class="n">tensor_provider</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MSE.call-120"><a href="#MSE.call-120"><span class="linenos">120</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">goal_inside</span><span class="p">,</span> <span class="n">tensor_provider</span><span class="p">):</span>
 </span><span id="MSE.call-121"><a href="#MSE.call-121"><span class="linenos">121</span></a>        <span class="n">loss</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="MSE.call-122"><a href="#MSE.call-122"><span class="linenos">122</span></a>        <span class="n">output</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="MSE.call-123"><a href="#MSE.call-123"><span class="linenos">123</span></a>        <span class="n">label</span> <span class="o">=</span> <span class="p">[]</span>
@@ -856,7 +856,7 @@
 
     </div>
     <a class="headerlink" href="#MSE.metrics"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="MSE.metrics-140"><a href="#MSE.metrics-140"><span class="linenos">140</span></a>    <span class="k">def</span> <span class="nf">metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="MSE.metrics-140"><a href="#MSE.metrics-140"><span class="linenos">140</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
 </span><span id="MSE.metrics-141"><a href="#MSE.metrics-141"><span class="linenos">141</span></a>        <span class="k">if</span> <span class="n">label</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
 </span><span id="MSE.metrics-142"><a href="#MSE.metrics-142"><span class="linenos">142</span></a>            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">output</span><span class="p">)</span> <span class="ow">is</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 </span><span id="MSE.metrics-143"><a href="#MSE.metrics-143"><span class="linenos">143</span></a>                <span class="n">output</span><span class="o">=</span><span class="n">output</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
@@ -885,12 +885,12 @@
 
     </div>
     <a class="headerlink" href="#PreferencePair"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="PreferencePair-154"><a href="#PreferencePair-154"><span class="linenos">154</span></a><span class="k">class</span> <span class="nc">PreferencePair</span><span class="p">(</span><span class="n">BaseLoss</span><span class="p">):</span>
-</span><span id="PreferencePair-155"><a href="#PreferencePair-155"><span class="linenos">155</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">:</span> <span class="kc">None</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="PreferencePair-154"><a href="#PreferencePair-154"><span class="linenos">154</span></a><span class="k">class</span><span class="w"> </span><span class="nc">PreferencePair</span><span class="p">(</span><span class="n">BaseLoss</span><span class="p">):</span>
+</span><span id="PreferencePair-155"><a href="#PreferencePair-155"><span class="linenos">155</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">:</span> <span class="kc">None</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 </span><span id="PreferencePair-156"><a href="#PreferencePair-156"><span class="linenos">156</span></a>        <span class="k">pass</span>
 </span><span id="PreferencePair-157"><a href="#PreferencePair-157"><span class="linenos">157</span></a>
 </span><span id="PreferencePair-158"><a href="#PreferencePair-158"><span class="linenos">158</span></a>    <span class="c1"># loss: goal x minibatch</span>
-</span><span id="PreferencePair-159"><a href="#PreferencePair-159"><span class="linenos">159</span></a>    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">goal_inside</span><span class="p">,</span> <span class="n">tensor_provider</span><span class="p">):</span>
+</span><span id="PreferencePair-159"><a href="#PreferencePair-159"><span class="linenos">159</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">goal_inside</span><span class="p">,</span> <span class="n">tensor_provider</span><span class="p">):</span>
 </span><span id="PreferencePair-160"><a href="#PreferencePair-160"><span class="linenos">160</span></a>        <span class="n">loss</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="PreferencePair-161"><a href="#PreferencePair-161"><span class="linenos">161</span></a>        <span class="n">output</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="PreferencePair-162"><a href="#PreferencePair-162"><span class="linenos">162</span></a>        <span class="n">gamma</span> <span class="o">=</span> <span class="mf">1.00</span>
@@ -924,7 +924,7 @@
 
     </div>
     <a class="headerlink" href="#PreferencePair.__init__"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="PreferencePair.__init__-155"><a href="#PreferencePair.__init__-155"><span class="linenos">155</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">:</span> <span class="kc">None</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="PreferencePair.__init__-155"><a href="#PreferencePair.__init__-155"><span class="linenos">155</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">:</span> <span class="kc">None</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 </span><span id="PreferencePair.__init__-156"><a href="#PreferencePair.__init__-156"><span class="linenos">156</span></a>        <span class="k">pass</span>
 </span></pre></div>
 
@@ -943,7 +943,7 @@
 
     </div>
     <a class="headerlink" href="#PreferencePair.call"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="PreferencePair.call-159"><a href="#PreferencePair.call-159"><span class="linenos">159</span></a>    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">goal_inside</span><span class="p">,</span> <span class="n">tensor_provider</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="PreferencePair.call-159"><a href="#PreferencePair.call-159"><span class="linenos">159</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">goal_inside</span><span class="p">,</span> <span class="n">tensor_provider</span><span class="p">):</span>
 </span><span id="PreferencePair.call-160"><a href="#PreferencePair.call-160"><span class="linenos">160</span></a>        <span class="n">loss</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="PreferencePair.call-161"><a href="#PreferencePair.call-161"><span class="linenos">161</span></a>        <span class="n">output</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="PreferencePair.call-162"><a href="#PreferencePair.call-162"><span class="linenos">162</span></a>        <span class="n">gamma</span> <span class="o">=</span> <span class="mf">1.00</span>
@@ -989,12 +989,12 @@
 
     </div>
     <a class="headerlink" href="#RMSEPair"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="RMSEPair-180"><a href="#RMSEPair-180"><span class="linenos">180</span></a><span class="k">class</span> <span class="nc">RMSEPair</span><span class="p">(</span><span class="n">BaseLoss</span><span class="p">):</span>
-</span><span id="RMSEPair-181"><a href="#RMSEPair-181"><span class="linenos">181</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">:</span> <span class="kc">None</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="RMSEPair-180"><a href="#RMSEPair-180"><span class="linenos">180</span></a><span class="k">class</span><span class="w"> </span><span class="nc">RMSEPair</span><span class="p">(</span><span class="n">BaseLoss</span><span class="p">):</span>
+</span><span id="RMSEPair-181"><a href="#RMSEPair-181"><span class="linenos">181</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">:</span> <span class="kc">None</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 </span><span id="RMSEPair-182"><a href="#RMSEPair-182"><span class="linenos">182</span></a>        <span class="k">pass</span>
 </span><span id="RMSEPair-183"><a href="#RMSEPair-183"><span class="linenos">183</span></a>
 </span><span id="RMSEPair-184"><a href="#RMSEPair-184"><span class="linenos">184</span></a>    <span class="c1"># loss: goal x minibatch</span>
-</span><span id="RMSEPair-185"><a href="#RMSEPair-185"><span class="linenos">185</span></a>    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">goal_inside</span><span class="p">,</span> <span class="n">tensor_provider</span><span class="p">):</span>
+</span><span id="RMSEPair-185"><a href="#RMSEPair-185"><span class="linenos">185</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">goal_inside</span><span class="p">,</span> <span class="n">tensor_provider</span><span class="p">):</span>
 </span><span id="RMSEPair-186"><a href="#RMSEPair-186"><span class="linenos">186</span></a>        <span class="n">loss</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="RMSEPair-187"><a href="#RMSEPair-187"><span class="linenos">187</span></a>        <span class="n">output</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="RMSEPair-188"><a href="#RMSEPair-188"><span class="linenos">188</span></a>        <span class="k">for</span> <span class="n">rank_root</span> <span class="ow">in</span> <span class="n">graph</span><span class="o">.</span><span class="n">root_list</span><span class="p">:</span>
@@ -1022,7 +1022,7 @@
 
     </div>
     <a class="headerlink" href="#RMSEPair.__init__"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="RMSEPair.__init__-181"><a href="#RMSEPair.__init__-181"><span class="linenos">181</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">:</span> <span class="kc">None</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="RMSEPair.__init__-181"><a href="#RMSEPair.__init__-181"><span class="linenos">181</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">:</span> <span class="kc">None</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 </span><span id="RMSEPair.__init__-182"><a href="#RMSEPair.__init__-182"><span class="linenos">182</span></a>        <span class="k">pass</span>
 </span></pre></div>
 
@@ -1041,7 +1041,7 @@
 
     </div>
     <a class="headerlink" href="#RMSEPair.call"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="RMSEPair.call-185"><a href="#RMSEPair.call-185"><span class="linenos">185</span></a>    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">goal_inside</span><span class="p">,</span> <span class="n">tensor_provider</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="RMSEPair.call-185"><a href="#RMSEPair.call-185"><span class="linenos">185</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">goal_inside</span><span class="p">,</span> <span class="n">tensor_provider</span><span class="p">):</span>
 </span><span id="RMSEPair.call-186"><a href="#RMSEPair.call-186"><span class="linenos">186</span></a>        <span class="n">loss</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="RMSEPair.call-187"><a href="#RMSEPair.call-187"><span class="linenos">187</span></a>        <span class="n">output</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="RMSEPair.call-188"><a href="#RMSEPair.call-188"><span class="linenos">188</span></a>        <span class="k">for</span> <span class="n">rank_root</span> <span class="ow">in</span> <span class="n">graph</span><span class="o">.</span><span class="n">root_list</span><span class="p">:</span>

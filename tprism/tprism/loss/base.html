@@ -88,11 +88,11 @@
 
                         <label class="view-source-button" for="mod-base-view-source"><span>View Source</span></label>
 
-                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos"> 1</span></a><span class="k">class</span> <span class="nc">BaseLoss</span><span class="p">:</span>
-</span><span id="L-2"><a href="#L-2"><span class="linenos"> 2</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos"> 1</span></a><span class="k">class</span><span class="w"> </span><span class="nc">BaseLoss</span><span class="p">:</span>
+</span><span id="L-2"><a href="#L-2"><span class="linenos"> 2</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="L-3"><a href="#L-3"><span class="linenos"> 3</span></a>        <span class="k">pass</span>
 </span><span id="L-4"><a href="#L-4"><span class="linenos"> 4</span></a>
-</span><span id="L-5"><a href="#L-5"><span class="linenos"> 5</span></a>    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">goal_inside</span><span class="p">,</span> <span class="n">tensor_provider</span><span class="p">):</span>
+</span><span id="L-5"><a href="#L-5"><span class="linenos"> 5</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">goal_inside</span><span class="p">,</span> <span class="n">tensor_provider</span><span class="p">):</span>
 </span><span id="L-6"><a href="#L-6"><span class="linenos"> 6</span></a>        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[WARN] loss is not implemened&quot;</span><span class="p">)</span>
 </span><span id="L-7"><a href="#L-7"><span class="linenos"> 7</span></a>        <span class="n">output</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a>        <span class="k">for</span> <span class="n">rank_root</span> <span class="ow">in</span> <span class="n">graph</span><span class="o">.</span><span class="n">root_list</span><span class="p">:</span>
@@ -101,7 +101,7 @@
 </span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a>                <span class="n">l1</span> <span class="o">=</span> <span class="n">goal_inside</span><span class="p">[</span><span class="n">sid</span><span class="p">][</span><span class="s2">&quot;inside&quot;</span><span class="p">]</span>
 </span><span id="L-12"><a href="#L-12"><span class="linenos">12</span></a>                <span class="n">output</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">l1</span><span class="p">)</span>
 </span><span id="L-13"><a href="#L-13"><span class="linenos">13</span></a>        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="kc">None</span>
-</span><span id="L-14"><a href="#L-14"><span class="linenos">14</span></a>    <span class="k">def</span> <span class="nf">metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
+</span><span id="L-14"><a href="#L-14"><span class="linenos">14</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
 </span><span id="L-15"><a href="#L-15"><span class="linenos">15</span></a>        <span class="k">return</span> <span class="p">{}</span>
 </span></pre></div>
 
@@ -118,11 +118,11 @@
 
     </div>
     <a class="headerlink" href="#BaseLoss"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="BaseLoss-3"><a href="#BaseLoss-3"><span class="linenos"> 3</span></a><span class="k">class</span> <span class="nc">BaseLoss</span><span class="p">:</span>
-</span><span id="BaseLoss-4"><a href="#BaseLoss-4"><span class="linenos"> 4</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="BaseLoss-3"><a href="#BaseLoss-3"><span class="linenos"> 3</span></a><span class="k">class</span><span class="w"> </span><span class="nc">BaseLoss</span><span class="p">:</span>
+</span><span id="BaseLoss-4"><a href="#BaseLoss-4"><span class="linenos"> 4</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="BaseLoss-5"><a href="#BaseLoss-5"><span class="linenos"> 5</span></a>        <span class="k">pass</span>
 </span><span id="BaseLoss-6"><a href="#BaseLoss-6"><span class="linenos"> 6</span></a>
-</span><span id="BaseLoss-7"><a href="#BaseLoss-7"><span class="linenos"> 7</span></a>    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">goal_inside</span><span class="p">,</span> <span class="n">tensor_provider</span><span class="p">):</span>
+</span><span id="BaseLoss-7"><a href="#BaseLoss-7"><span class="linenos"> 7</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">goal_inside</span><span class="p">,</span> <span class="n">tensor_provider</span><span class="p">):</span>
 </span><span id="BaseLoss-8"><a href="#BaseLoss-8"><span class="linenos"> 8</span></a>        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[WARN] loss is not implemened&quot;</span><span class="p">)</span>
 </span><span id="BaseLoss-9"><a href="#BaseLoss-9"><span class="linenos"> 9</span></a>        <span class="n">output</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="BaseLoss-10"><a href="#BaseLoss-10"><span class="linenos">10</span></a>        <span class="k">for</span> <span class="n">rank_root</span> <span class="ow">in</span> <span class="n">graph</span><span class="o">.</span><span class="n">root_list</span><span class="p">:</span>
@@ -131,7 +131,7 @@
 </span><span id="BaseLoss-13"><a href="#BaseLoss-13"><span class="linenos">13</span></a>                <span class="n">l1</span> <span class="o">=</span> <span class="n">goal_inside</span><span class="p">[</span><span class="n">sid</span><span class="p">][</span><span class="s2">&quot;inside&quot;</span><span class="p">]</span>
 </span><span id="BaseLoss-14"><a href="#BaseLoss-14"><span class="linenos">14</span></a>                <span class="n">output</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">l1</span><span class="p">)</span>
 </span><span id="BaseLoss-15"><a href="#BaseLoss-15"><span class="linenos">15</span></a>        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="kc">None</span>
-</span><span id="BaseLoss-16"><a href="#BaseLoss-16"><span class="linenos">16</span></a>    <span class="k">def</span> <span class="nf">metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
+</span><span id="BaseLoss-16"><a href="#BaseLoss-16"><span class="linenos">16</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
 </span><span id="BaseLoss-17"><a href="#BaseLoss-17"><span class="linenos">17</span></a>        <span class="k">return</span> <span class="p">{}</span>
 </span></pre></div>
 
@@ -148,7 +148,7 @@
 
     </div>
     <a class="headerlink" href="#BaseLoss.__init__"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="BaseLoss.__init__-4"><a href="#BaseLoss.__init__-4"><span class="linenos">4</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="BaseLoss.__init__-4"><a href="#BaseLoss.__init__-4"><span class="linenos">4</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 </span><span id="BaseLoss.__init__-5"><a href="#BaseLoss.__init__-5"><span class="linenos">5</span></a>        <span class="k">pass</span>
 </span></pre></div>
 
@@ -167,7 +167,7 @@
 
     </div>
     <a class="headerlink" href="#BaseLoss.call"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="BaseLoss.call-7"><a href="#BaseLoss.call-7"><span class="linenos"> 7</span></a>    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">goal_inside</span><span class="p">,</span> <span class="n">tensor_provider</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="BaseLoss.call-7"><a href="#BaseLoss.call-7"><span class="linenos"> 7</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">goal_inside</span><span class="p">,</span> <span class="n">tensor_provider</span><span class="p">):</span>
 </span><span id="BaseLoss.call-8"><a href="#BaseLoss.call-8"><span class="linenos"> 8</span></a>        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;[WARN] loss is not implemened&quot;</span><span class="p">)</span>
 </span><span id="BaseLoss.call-9"><a href="#BaseLoss.call-9"><span class="linenos"> 9</span></a>        <span class="n">output</span> <span class="o">=</span> <span class="p">[]</span>
 </span><span id="BaseLoss.call-10"><a href="#BaseLoss.call-10"><span class="linenos">10</span></a>        <span class="k">for</span> <span class="n">rank_root</span> <span class="ow">in</span> <span class="n">graph</span><span class="o">.</span><span class="n">root_list</span><span class="p">:</span>
@@ -193,7 +193,7 @@
 
     </div>
     <a class="headerlink" href="#BaseLoss.metrics"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="BaseLoss.metrics-16"><a href="#BaseLoss.metrics-16"><span class="linenos">16</span></a>    <span class="k">def</span> <span class="nf">metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="BaseLoss.metrics-16"><a href="#BaseLoss.metrics-16"><span class="linenos">16</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
 </span><span id="BaseLoss.metrics-17"><a href="#BaseLoss.metrics-17"><span class="linenos">17</span></a>        <span class="k">return</span> <span class="p">{}</span>
 </span></pre></div>
 
