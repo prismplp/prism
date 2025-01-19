@@ -308,7 +308,7 @@ Note:
                                 "from":"goal",
                                 "name": name,
                                 "id": node.sorted_id,
-                                "shape":shape}
+                                "shape":()}
                             node_scalar_inside.append(temp_goal_inside)
                         else:
                             if type(temp_goal["inside"]) is list:
