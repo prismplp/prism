@@ -302,6 +302,7 @@ Note:
                         node_template.append(temp_goal_template)
                     else:  # scalar
                         if dryrun:
+                            name = node.goal.name
                             temp_goal_inside={
                                 "type":"goal",
                                 "from":"goal",
