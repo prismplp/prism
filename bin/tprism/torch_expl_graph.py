@@ -181,6 +181,201 @@ Note:
             out_inside = op_obj.call(out_inside)
         out_template = op_obj.get_output_template(out_template)
         return out_inside,out_template
+    
+    def forward_path_node(self, path, goal_inside, verbose=False, dryrun=False):
+        goal_template = self.goal_template
+        cycle_embedding_generator = self.cycle_embedding_generator
+        cycle_node=self.cycle_node
+        node_template = []
+        node_inside = []
+        node_scalar_inside = []
+        path_batch_flag=False
+        for node in path.nodes:
+            temp_goal = goal_inside[node.sorted_id]
+            if node.sorted_id in cycle_node:
+                name = node.goal.name
+                template = goal_template[node.sorted_id]["template"]
+                shape = goal_template[node.sorted_id]["shape"]
+                if dryrun:
+                    args = node.goal.args
+                    temp_goal_inside={
+                        "type":"goal",
+                        "from":"cycle_embedding_generator",
+                        "name": name,
+                        "args": args,
+                        "id": node.sorted_id,
+                        "shape":shape}
+                else:
+                    temp_goal_inside = cycle_embedding_generator.forward(
+                        name, shape, node.sorted_id
+                    )
+                temp_goal_template = template
+                node_inside.append(temp_goal_inside)
+                node_template.append(temp_goal_template)
+            elif temp_goal is None:
+                print("  [ERROR] cycle node is detected")
+                temp_goal = goal_inside[node.sorted_id]
+                print(g.node.sorted_id)
+                print(node)
+                print(node.sorted_id)
+                print(temp_goal)
+                quit()
+            elif len(temp_goal["template"]) > 0:
+                # tensor subgoal
+                if dryrun:
+                    name = node.goal.name
+                    args = node.goal.args
+                    temp_goal_inside={
+                        "type":"goal",
+                        "from":"goal",
+                        "name": name,
+                        "args": args,
+                        "id": node.sorted_id,}
+                        #"shape":shape}
+                else:
+                    temp_goal_inside = temp_goal["inside"]
+                temp_goal_template = temp_goal["template"]
+                if temp_goal["batch_flag"]:
+                    path_batch_flag = True
+                node_inside.append(temp_goal_inside)
+                node_template.append(temp_goal_template)
+            else:  # scalar subgoal
+                if dryrun:
+                    name = node.goal.name
+                    args = node.goal.args
+                    temp_goal_inside={
+                        "type":"goal",
+                        "from":"goal",
+                        "name": name,
+                        "args": args,
+                        "id": node.sorted_id,}
+                        #"shape":()}
+                    node_scalar_inside.append(temp_goal_inside)
+                else:
+                    if type(temp_goal["inside"]) is list:
+                        a = torch.tensor(temp_goal["inside"])
+                        node_scalar_inside.append(torch.squeeze(a))
+                    else:
+                        node_scalar_inside.append(temp_goal["inside"])
+        return node_template, node_inside, node_scalar_inside, path_batch_flag
+
+    def forward_path_sw(self, path, verbose=False,verbose_embedding=False, dryrun=False):
+        tensor_provider = self.tensor_provider
+        sw_template = []
+        sw_inside = []
+        path_batch_flag=False
+        for sw in path.tensor_switches:
+            ph = tensor_provider.get_placeholder_name(sw.name)
+            if len(ph) > 0:
+                sw_template.append(["b"] + list(sw.values))
+                path_batch_flag = True
+            else:
+                sw_template.append(list(sw.values))
+            if dryrun:
+                #x = tensor_provider.get_embedding(sw.name, verbose_embedding)
+                sw_var = {"type":"tensor_atom",
+                        "from":"tensor_provider.get_embedding",
+                        "name":sw.name,}
+                        #"shape":x.shape}
+            else:
+                sw_var = tensor_provider.get_embedding(sw.name, verbose_embedding)
+            sw_inside.append(sw_var)
+        prob_sw_inside = []
+        if dryrun:
+            for sw in path.prob_switches:
+                prob_sw_inside.append({
+                    "type":"const",
+                    "name": sw.name,
+                    "value": sw.inside,
+                    "shape":(),})
+        else:
+            for sw in path.prob_switches:
+                prob_sw_inside.append(sw.inside)
+                """
+                prob_sw_inside.append({
+                    "type":"const",
+                    "name": sw.name,
+                    "value": sw.inside,
+                    "shape":(),})
+                """
+        return sw_template, sw_inside, prob_sw_inside, path_batch_flag
+    
+    def forward_path_op(self, ops,
+             sw_node_template, sw_node_inside, node_scalar_inside, prob_sw_inside,path_batch_flag, verbose=False, dryrun=False):
+      
+        if "distribution" in ops:
+            op = ops["distribution"]
+            dist = op.values[0]
+            name = g.node.goal.name
+            if dryrun:
+                #out_inside, out_template = self._distribution_forward_dryrun
+                out_inside={
+                    "type": "distribution",
+                    "name": name,
+                    "dist_type": op,
+                    "path": sw_node_inside}
+                out_template= sw_node_template#TODO
+            else:
+                out_inside, out_template = self._distribution_forward(
+                    name,
+                    dist,
+                    params=sw_node_inside,
+                    param_template=sw_node_template,
+                    op=op,
+                )
+            
+        else:# einsum operator
+            path_v = sorted(
+                zip(sw_node_template, sw_node_inside), key=lambda x: x[0]
+            )
+            template = [x[0] for x in path_v]
+            inside = [x[1] for x in path_v]
+            # constructing einsum operation using template and inside
+            out_template = self._compute_output_template(template)
+            # print(template,out_template)
+            if len(template) > 0:  # condition for einsum
+                if verbose:
+                    einsum_eq, out_template_v = self.make_einsum_args(template,out_template,path_batch_flag)
+                    print("  index:", einsum_eq)
+                    print("  var. :", [x.shape for x in inside])
+                    #print("  var. :", inside)
+                if dryrun:
+                    einsum_eq, out_template = self.make_einsum_args(template,out_template,path_batch_flag)
+                    out_inside = {
+                        "type":"einsum",
+                        "name":"torch.einsum",
+                        "einsum_eq":einsum_eq,
+                        "path": inside}
+                else:
+                    einsum_args, out_template = self.make_einsum_args_sublist(template,inside,out_template,path_batch_flag)
+                    #out_inside = torch.einsum(einsum_eq, *inside) * out_inside
+                    out_inside = torch.einsum(*einsum_args) * out_inside
+            else:  # condition for scalar
+                if dryrun:
+                    out_inside = {
+                        "type":"nop",
+                        "name":"nop",
+                        "path": inside}
+            # scalar subgoal
+            if not dryrun:
+                for scalar_inside in node_scalar_inside:
+                    out_inside = scalar_inside * out_inside
+            # prob(scalar) switch
+            if not dryrun:
+                for prob_inside in prob_sw_inside:
+                    out_inside = prob_inside * out_inside
+            ## computing operaters
+            for op_name, op in ops.items():
+                if verbose:
+                    print("  operator:", op_name)
+                out_inside,out_template=self._apply_operator(
+                    op,
+                    operator_loader,
+                    out_inside,
+                    out_template,
+                    dryrun)
+                ##
+        return out_inside,out_template
 
     def forward(self, verbose=False,verbose_embedding=False, dryrun=False):
         """
@@ -215,211 +410,71 @@ Note:
             path_batch_flag = False
             for path in g.paths:
                 ## build template and inside for switches in the path
-                sw_template = []
-                sw_inside = []
-                for sw in path.tensor_switches:
-                    ph = tensor_provider.get_placeholder_name(sw.name)
-                    if len(ph) > 0:
-                        sw_template.append(["b"] + list(sw.values))
-                        path_batch_flag = True
-                    else:
-                        sw_template.append(list(sw.values))
-                    if dryrun:
-                        #x = tensor_provider.get_embedding(sw.name, verbose_embedding)
-                        sw_var = {"type":"tensor_atom",
-                                "from":"tensor_provider.get_embedding",
-                                "name":sw.name,}
-                                #"shape":x.shape}
-                    else:
-                        sw_var = tensor_provider.get_embedding(sw.name, verbose_embedding)
-                    sw_inside.append(sw_var)
-                if dryrun:
-                    prob_sw_inside = []
-                    for sw in path.prob_switches:
-                        prob_sw_inside.append({
-                            "type":"prob_switch",
-                            "name": sw.name,
-                            "value": sw.inside,
-                            "shape":(),})
-                else:
-                    prob_sw_inside = torch.tensor(1.0)
-                    for sw in path.prob_switches:
-                        prob_sw_inside.append({
-                            "type":"const",
-                            "name": sw.name,
-                            "value": sw.inside,
-                            "shape":(),})
-
+                sw_template, sw_inside, prob_sw_inside, batch_flag = self.forward_path_sw(
+                        path, verbose, verbose_embedding, dryrun)
+                path_batch_flag = batch_flag or path_batch_flag
+                
                 ## building template and inside for nodes in the path
-                node_template = []
-                node_inside = []
-                node_scalar_inside = []
-                for node in path.nodes:
-                    temp_goal = goal_inside[node.sorted_id]
+                node_template, node_inside, node_scalar_inside, batch_flag = self.forward_path_node(
+                        path, goal_inside, verbose, dryrun)
+                path_batch_flag = batch_flag or path_batch_flag
 
-                    if node.sorted_id in cycle_node:
-                        name = node.goal.name
-                        template = goal_template[node.sorted_id]["template"]
-                        shape = goal_template[node.sorted_id]["shape"]
-                        if dryrun:
-                            temp_goal_inside={
-                                "type":"goal",
-                                "from":"cycle_embedding_generator",
-                                "name": name,
-                                "id": node.sorted_id,
-                                "shape":shape}
-                        else:
-                            temp_goal_inside = cycle_embedding_generator.forward(
-                                name, shape, node.sorted_id
-                            )
-                        temp_goal_template = template
-                        node_inside.append(temp_goal_inside)
-                        node_template.append(temp_goal_template)
-                    elif temp_goal is None:
-                        print("  [ERROR] cycle node is detected")
-                        temp_goal = goal_inside[node.sorted_id]
-                        print(g.node.sorted_id)
-                        print(node)
-                        print(node.sorted_id)
-                        print(temp_goal)
-                        quit()
-                    elif len(temp_goal["template"]) > 0:
-                        # tensor
-                        if dryrun:
-                            name = node.goal.name
-                            temp_goal_inside={
-                                "type":"goal",
-                                "from":"goal",
-                                "name": name,
-                                "id": node.sorted_id,}
-                                #"shape":shape}
-                        else:
-                            temp_goal_inside = temp_goal["inside"]
-                        temp_goal_template = temp_goal["template"]
-                        if temp_goal["batch_flag"]:
-                            path_batch_flag = True
-                        node_inside.append(temp_goal_inside)
-                        node_template.append(temp_goal_template)
-                    else:  # scalar
-                        if dryrun:
-                            name = node.goal.name
-                            temp_goal_inside={
-                                "type":"goal",
-                                "from":"goal",
-                                "name": name,
-                                "id": node.sorted_id,
-                                "shape":()}
-                            node_scalar_inside.append(temp_goal_inside)
-                        else:
-                            if type(temp_goal["inside"]) is list:
-                                a = torch.tensor(temp_goal["inside"])
-                                node_scalar_inside.append(torch.squeeze(a))
-                            else:
-                                node_scalar_inside.append(temp_goal["inside"])
                 ## building template and inside for all elements (switches and nodes) in the path
                 sw_node_template = sw_template + node_template
                 sw_node_inside = sw_inside + node_inside
 
                 ops = {op.name: op for op in path.operators}
-                if "distribution" in ops:
-                    op = ops["distribution"]
-                    dist = op.values[0]
-                    name = g.node.goal.name
-                    if dryrun:
-                        #out_inside, out_template = self._distribution_forward_dryrun
-                        temp_goal_inside={
-                            "type": "distribution",
-                            "name": name,
-                            "dist_type": op,
-                            "path": sw_node_inside}
-                        out_template= sw_node_template#TODO
-                    else:
-                        out_inside, out_template = self._distribution_forward(
-                            name,
-                            dist,
-                            params=sw_node_inside,
-                            param_template=sw_node_template,
-                            op=op,
-                        )
-                    
-                else:
-                    path_v = sorted(
-                        zip(sw_node_template, sw_node_inside), key=lambda x: x[0]
-                    )
-                    template = [x[0] for x in path_v]
-                    inside = [x[1] for x in path_v]
-                    # constructing einsum operation using template and inside
-                    out_template = self._compute_output_template(template)
-                    # print(template,out_template)
-                    out_inside = prob_sw_inside
-                    if len(template) > 0:  # condition for einsum
-                        if verbose:
-                            einsum_eq, out_template_v = self.make_einsum_args(template,out_template,path_batch_flag)
-                            print("  index:", einsum_eq)
-                            print("  var. :", [x.shape for x in inside])
-                            #print("  var. :", inside)
-                        if dryrun:
-                            einsum_eq, out_template = self.make_einsum_args(template,out_template,path_batch_flag)
-                            out_inside = {
-                                "type":"einsum",
-                                "name":"torch.einsum",
-                                "einsum_eq":einsum_eq,
-                                "path": inside}
-                        else:
-                            einsum_args, out_template = self.make_einsum_args_sublist(template,inside,out_template,path_batch_flag)
-                            #out_inside = torch.einsum(einsum_eq, *inside) * out_inside
-                            out_inside = torch.einsum(*einsum_args) * out_inside
-                    if dryrun:
-                        #TODO
-                        pass
-                    else:
-                        for scalar_inside in node_scalar_inside:
-                            out_inside = scalar_inside * out_inside
-                    ## computing operaters
-                    for op in path.operators:
-                        if verbose:
-                            print("  operator:", op.name)
-                        out_inside,out_template=self._apply_operator(
-                            op,
-                            operator_loader,
-                            out_inside,
-                            out_template,
-                            dryrun)
-                        ##
+                
+                out_inside,out_template = self.forward_path_op(ops,
+                        sw_node_template, sw_node_inside, node_scalar_inside, prob_sw_inside,
+                        path_batch_flag,
+                        verbose, dryrun)
+                
                 path_inside.append(out_inside)
                 path_template.append(out_template)
                 ##
-            ##
+            ### update inside
             path_template_list = self._get_unique_list(path_template)
             if len(path_template_list) == 0: # non-tensor/non-probabilistic path
-                goal_inside[i] = {
-                    "template": [],
-                    "inside": torch.tensor(1),
-                    "batch_flag": False,
-                }
+                if dryrun:
+                    goal_inside[i] = {
+                        "template": [],
+                        "inside": path_inside,
+                        "batch_flag": False,
+                    }
+                else:
+                    goal_inside[i] = {
+                        "template": [],
+                        "inside": torch.tensor(1),
+                        "batch_flag": False,
+                    }
             else:
                 if len(path_template_list) != 1:
                     print("[WARNING] missmatch indices:", path_template_list)
-                if len(path_template_list[0]) == 0: # scalar inside
+                if dryrun:
                     goal_inside[i] = {
                         "template": path_template_list[0],
-                        "inside": path_inside[0],
+                        "inside": path_inside,
                         "batch_flag": path_batch_flag,
                     }
                 else:
-                    if dryrun:
-                        #shape = goal_template[g.node.sorted_id]["shape"]
-                        temp_inside=path_inside
+                    if len(path_template_list[0]) == 0: # scalar inside
+                        goal_inside[i] = {
+                            "template": path_template_list[0],
+                            "inside": path_inside[0],
+                            "batch_flag": path_batch_flag,
+                        }
                     else:
                         temp_inside=torch.sum(torch.stack(path_inside), dim=0)
-                    goal_inside[i] = {
-                        "template": path_template_list[0],
-                        "inside": temp_inside,
-                        "batch_flag": path_batch_flag,
-                    }
+                        goal_inside[i] = {
+                            "template": path_template_list[0],
+                            "inside": temp_inside,
+                            "batch_flag": path_batch_flag,
+                        }
             if dryrun:
                 goal_inside[i]["id"]=g.node.sorted_id
                 goal_inside[i]["name"]=g.node.goal.name
+                goal_inside[i]["args"]=g.node.goal.args
 
         self.loss.update(tensor_provider.get_loss())
         return goal_inside, self.loss
