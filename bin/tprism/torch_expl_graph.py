@@ -356,14 +356,16 @@ Note:
                         "type":"nop",
                         "name":"nop",
                         "path": inside}
-            # scalar subgoal
-            if not dryrun:
+            if dryrun:
+                out_inside["path_scalar"]=node_scalar_inside+prob_sw_inside
+            else:
+                # scalar subgoal
                 for scalar_inside in node_scalar_inside:
                     out_inside = scalar_inside * out_inside
-            # prob(scalar) switch
-            if not dryrun:
+                # prob(scalar) switch
                 for prob_inside in prob_sw_inside:
                     out_inside = prob_inside * out_inside
+                
             ## computing operaters
             for op_name, op in ops.items():
                 if verbose:
