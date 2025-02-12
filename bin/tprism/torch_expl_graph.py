@@ -349,7 +349,7 @@ Note:
                 else:
                     einsum_args, out_template = self.make_einsum_args_sublist(template,inside,out_template,path_batch_flag)
                     #out_inside = torch.einsum(einsum_eq, *inside) * out_inside
-                    out_inside = torch.einsum(*einsum_args) * out_inside
+                    out_inside = torch.einsum(*einsum_args)
             else:  # condition for scalar
                 if dryrun:
                     out_inside = {
