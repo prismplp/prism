@@ -62,10 +62,12 @@ PyPRISM is a Python interface to PRISM.
 Please see: https://github.com/prismplp/pyprism
 
 # T-PRISM: Tensorized-PRISM  (Pre-release)
+[![arXiv](https://img.shields.io/badge/arXiv-1901.08548-b31b1b.svg)](https://arxiv.org/abs/1901.08548)
+
 T-PRISM is a new logic programming language based on tensor embeddings.
 Our embedding scheme, named tensorized semantics, is a modification of the distribution semantics in PRISM, one of the state-of-the-art probabilistic logic programming languages, by replacing distribution functions with multidimensional arrays.
 
-Tutorial: https://colab.research.google.com/drive/16yzyaglTq0nTvgzZS_nJHEPleddYgxfB?usp=sharing
+T-PRISM tutorial:　[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/16yzyaglTq0nTvgzZS_nJHEPleddYgxfB?usp=sharing)
 
 API Documents: https://prismplp.github.io/prism/tprism/tprism.html
 
