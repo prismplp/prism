@@ -300,7 +300,7 @@ Note:
                 """
         return sw_template, sw_inside, prob_sw_inside, path_batch_flag
     
-    def forward_path_op(self, ops,
+    def forward_path_op(self, ops, operator_loader,
              sw_node_template, sw_node_inside, node_scalar_inside, prob_sw_inside,path_batch_flag, verbose=False, dryrun=False):
       
         if "distribution" in ops:
@@ -427,7 +427,7 @@ Note:
 
                 ops = {op.name: op for op in path.operators}
                 
-                out_inside,out_template = self.forward_path_op(ops,
+                out_inside,out_template = self.forward_path_op(ops, operator_loader,
                         sw_node_template, sw_node_inside, node_scalar_inside, prob_sw_inside,
                         path_batch_flag,
                         verbose, dryrun)
