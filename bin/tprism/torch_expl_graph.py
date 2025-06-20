@@ -356,6 +356,8 @@ Note:
                         "type":"nop",
                         "name":"nop",
                         "path": inside}
+                else:
+                    out_inside=1 #no subgoal except for operator
             if dryrun:
                 out_inside["path_scalar"]=node_scalar_inside+prob_sw_inside
             else:
