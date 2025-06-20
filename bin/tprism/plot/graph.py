@@ -1,6 +1,6 @@
 import networkx as nx
 
-def build_and_or_graph(goal_inside, and_label="AND", or_label="OR", leaf_label="P"):
+def build_and_or_graph(goal_inside, and_label="AND", or_label="OR", leaf_label="tensor"):
     or_and_edges=[]
     inside_edges=[]
     or_nodes=set()
@@ -34,7 +34,7 @@ def build_and_or_graph(goal_inside, and_label="AND", or_label="OR", leaf_label="
                     pass #dummy
     return or_and_edges,inside_edges,or_nodes,and_nodes,t_nodes
 
-def plot_and_or_graph(goal_inside, and_label="AND", or_label="OR", leaf_label="P"):
+def plot_and_or_graph(goal_inside, and_label="AND", or_label="OR", leaf_label="tensor", pos=None):
     or_and_edges,inside_edges,or_nodes,and_nodes,t_nodes = build_and_or_graph(
             goal_inside, and_label, or_label, leaf_label)
 
@@ -42,12 +42,14 @@ def plot_and_or_graph(goal_inside, and_label="AND", or_label="OR", leaf_label="P
     G.add_edges_from(or_and_edges)
     G.add_edges_from(inside_edges)
 
+    if pos is None:
+        pos = nx.kamada_kawai_layout(G)
+        #pos = nx.circular_layout(G)
 
-    pos = nx.kamada_kawai_layout(G)
-    #pos = nx.circular_layout(G)
     nx.draw_networkx_nodes(G, pos, nodelist=or_nodes, node_color="blue")
     nx.draw_networkx_nodes(G, pos, nodelist=t_nodes, node_color="green")
     nx.draw_networkx_nodes(G, pos, nodelist=and_nodes, node_color="red",node_shape="s")
     nx.draw_networkx_edges(G,pos)
     nx.draw_networkx_labels(G,pos)
+    return G,pos
 
