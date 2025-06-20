@@ -6,6 +6,7 @@ def build_and_or_graph(goal_inside, and_label="AND", or_label="OR", leaf_label="
     or_nodes=set()
     and_nodes=set()
     t_nodes=set()
+    factor_mapping={}
     # for each all subgoals
     for i,goal in enumerate(goal_inside):
         ## make OR label
@@ -20,6 +21,7 @@ def build_and_or_graph(goal_inside, and_label="AND", or_label="OR", leaf_label="
             and_key=and_label + str(len(and_nodes))
             and_nodes.add(and_key)
             or_and_edges.append((and_key,or_key))
+            factor_mapping[and_key]=goal["inside"][j]["einsum_eq"]
             # for each node (AND) in a path
             for node in goal["inside"][j]["path"]+goal["inside"][j]["path_scalar"]:
                 if "type" in node and node["type"]=="tensor_atom":
@@ -32,10 +34,10 @@ def build_and_or_graph(goal_inside, and_label="AND", or_label="OR", leaf_label="
                     or_nodes.add(str(node["id"]))
                 else:
                     pass #dummy
-    return or_and_edges,inside_edges,or_nodes,and_nodes,t_nodes
+    return or_and_edges,inside_edges,or_nodes,and_nodes,t_nodes,factor_mapping
 
 def plot_and_or_graph(goal_inside, and_label="AND", or_label="OR", leaf_label="tensor", pos=None):
-    or_and_edges,inside_edges,or_nodes,and_nodes,t_nodes = build_and_or_graph(
+    or_and_edges,inside_edges,or_nodes,and_nodes,t_nodes,factor_mapping = build_and_or_graph(
             goal_inside, and_label, or_label, leaf_label)
 
     G = nx.DiGraph()
