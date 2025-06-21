@@ -5,11 +5,10 @@ tprism_debug_level(0).
 %%%
 atoms_concat([X|L],R):-
 	$pp_atoms_concat(L,X,R).
-atoms_concat([],'').
-$pp_toms_concat([],X,X).
+$pp_atoms_concat([],X,X).
 $pp_atoms_concat([A|L],X1,R):-
 	atom_concat(X1,A,X2),
-	atoms_concat(L,X2,R).
+	$pp_atoms_concat(L,X2,R).
 
 save_sw_tsv([],_).
 save_sw_tsv([G|Gs],St):-
