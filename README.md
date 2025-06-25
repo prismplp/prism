@@ -2,7 +2,7 @@
 [![](https://dockerbuildbadges.quelltext.eu/status.svg?organization=prismplp&repository=prism)](https://hub.docker.com/r/prismplp/prism/builds/ 'DockerHub')
 [![](https://img.shields.io/docker/stars/prismplp/prism.svg)](https://hub.docker.com/r/prismplp/prism 'DockerHub')
 [![](https://img.shields.io/docker/pulls/prismplp/prism.svg)](https://hub.docker.com/r/prismplp/prism 'DockerHub')
-# PRISM 
+# PRISM: PRogramming In Statistical Modeling
 
 This is a software package of PRISM version 2.3, a logic-based
 programming system for statistical modeling, which is built
