@@ -3,27 +3,21 @@
 [![](https://img.shields.io/docker/stars/prismplp/prism.svg)](https://hub.docker.com/r/prismplp/prism 'DockerHub')
 [![](https://img.shields.io/docker/pulls/prismplp/prism.svg)](https://hub.docker.com/r/prismplp/prism 'DockerHub')
 # PRISM: PRogramming In Statistical Modeling
+PRISM is a general programming language intended for symbolic-statistical modeling. It is a new and unprecedented programming language with learning ability for statistical parameters embedded in programs.
+Its programming system is a powerful tool for building complex statistical models. 
 
-This is a software package of PRISM version 2.3, a logic-based
-programming system for statistical modeling, which is built
-on top of B-Prolog (http://www.probp.com/).  Since version 2.0,
-the source code of the PRISM part is included in the released
-package.  Please use PRISM based on the agreement described in
-LICENSE and LICENSE.src.
-
-- LICENSE     ... license agreement of PRISM
-- LICENSE.src ... additional license agreement on the source code of PRISM
-- bin/        ... executables
-- doc/        ... documents
-- src/        ... source code
-- exs/        ... example programs
-
-For the files under each directory, please read the README file
-in the directory.  For the papers or additional information
+For the papers or additional information
 on PRISM, please visit http://rjida.meijo-u.ac.jp/prism/ .
 
-#### Notebook tutorial 
-[Tutorial (beta, Japanese)](https://colab.research.google.com/drive/1EhnP2ApqsuchEY-k9ZFUzBZg8Enjyytz?usp=sharing)
+
+## Tutorials
+
+[PRISM manual](https://github.com/prismplp/prism/releases/download/v2.4.1(T-PRISM)-prerelease/manual.pdf)
+
+Prolog tutorial (Japanese): [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1EhnP2ApqsuchEY-k9ZFUzBZg8Enjyytz?usp=sharing)
+
+PRISM tutorial (Japanese):  [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://drive.google.com/file/d/182ujzp3Z1jfwDTnd61QnrPDdwoT5CSq7/view?usp=sharing)
+
 
 ## Installation
 
@@ -55,10 +49,28 @@ $ prism
 ```
 Press Ctrl+D to quit the interactive mode.
 
+## Contents of the Package
+This is a software package of PRISM version, a logic-based
+programming system for statistical modeling, which is built
+on top of B-Prolog (http://www.probp.com/). 
+Since version 2.0,
+the source code of the PRISM part is included in the released
+package.
+Please use PRISM based on the agreement described in
+LICENSE and LICENSE.src.
 
-# PyPRISM: Python interface
-PyPRISM is a Python interface to PRISM.
+- LICENSE     ... license agreement of PRISM
+- LICENSE.src ... additional license agreement on the source code of PRISM
+- bin/        ... executables
+- doc/        ... documents
+- src/        ... source code
+- exs/        ... example programs
 
+For the files under each directory, please read the README file
+in the directory.  
+
+
+# PyPRISM: Python interface to PRISM
 Please see: https://github.com/prismplp/pyprism
 
 # T-PRISM: Tensorized-PRISM  (Pre-release)
@@ -79,7 +91,7 @@ API Documents: https://prismplp.github.io/prism/tprism/tprism.html
   year={2019}
 }
 ```
-## Installation
+### T-PRISM Installation
 
 Requirements: PRISM, python(Recommendation: Anaconda) and Pytorch.
 - Anaconda: https://www.anaconda.com/
