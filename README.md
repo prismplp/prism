@@ -16,7 +16,7 @@ on PRISM, please visit http://rjida.meijo-u.ac.jp/prism/ .
 
 Prolog tutorial (Japanese): [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1EhnP2ApqsuchEY-k9ZFUzBZg8Enjyytz?usp=sharing)
 
-PRISM tutorial (Japanese):  [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://drive.google.com/file/d/182ujzp3Z1jfwDTnd61QnrPDdwoT5CSq7/view?usp=sharing)
+PRISM tutorial (Japanese):  [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/182ujzp3Z1jfwDTnd61QnrPDdwoT5CSq7)
 
 
 ## Installation
