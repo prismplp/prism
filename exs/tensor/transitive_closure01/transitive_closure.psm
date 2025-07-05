@@ -48,7 +48,7 @@ rel2_helper:-tensor(rel1,[j,k]).
 %%  Main:
 %%
 prism_main([]):-
-	save_embedding_from_pattern([X,Y],rel1(X,Y),tensor(rel1),'transitive_closure_tmp/embedding'),
+	save_embedding_from_pattern([X,Y],rel1(X,Y),tensor(rel1),'transitive_closure_tmp/embedding',npy),
 	Gs=[rel2],
 	save_expl_graph('transitive_closure_tmp/expl.json','transitive_closure_tmp/flags.json',Gs).
 	

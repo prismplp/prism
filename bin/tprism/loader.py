@@ -54,12 +54,16 @@ def load_input_data(data_filename_list: List[str]) -> InputDataType:
         elif ext == ".json":
             _, ext2 = os.path.splitext(rest_name)
             if ext2==".npy":
+                rint("[LOAD]", filename)
                 datasets = load_input_npy(filename)
             else:
                 print("[LOAD]", filename)
                 datasets = load_input_json(filename)
+        elif ext[:5] == ".json": # e.g. .json0_1
+            print("[LOAD]", filename)
+            datasets = load_input_json(filename)
         else:
-            print("[ERROR]", filename)
+            print("[ERROR] unknown format", filename)
             datasets = None
         input_data_list.append(datasets)
     return merge_input_data(input_data_list)
@@ -99,8 +103,11 @@ def load_input_h5(filename: str) -> InputDataType:
     datasets = []
     for k in infh:
         goal_id = int(k)
-        phs = [ph.decode() for ph in infh[k]["data"].attrs.get("placeholders")]
-        rs = infh[k]["data"].value
+        # h5py <= 2.9.0
+        #phs = [ph.decode() for ph in infh[k]["data"].attrs.get("placeholders")]
+        #rs = infh[k]["data"].value
+        phs = [ph for ph in infh[k]["data"].attrs.get("placeholders")]
+        rs = infh[k]["data"][()]
         dataset = {"goal_id": goal_id, "placeholders": phs, "records": rs}
         datasets.append(dataset)
     infh.close()

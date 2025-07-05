@@ -16,7 +16,7 @@ upprism distmult_sample.psm
 tprism train \
     --input ./distmult_sample_tmp/    \
     --sgd_loss preference_pair        \
-    --dataset ./distmult_sample_tmp/data.h5  \
+    --dataset ./distmult_sample_tmp/data.json1_0  \
     --max_iterate 10          \
     --sgd_minibatch_size 5    \
     --sgd_learning_rate 0.01
