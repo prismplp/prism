@@ -21,13 +21,13 @@ import tprism.loss.base
 from numpy import int32, int64, ndarray, str_
 from torch import Tensor, dtype
 from torch.nn.parameter import Parameter
-from tprism.op.torch_standard_op import Sigmoid
+from tprism.op.base import BaseOperator
 from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union
 
 from tprism.placeholder import PlaceholderData
 from tprism.torch_embedding_generator import EmbeddingGenerator
 from tprism.util import Flags, TensorInfoMapper
-
+from tprism.loss import BaseLoss
 
 #[ {"goal_id": <int>, "placeholders": <List[str]>, "records": ndarray} ]
 InputDataType = List[Dict[str, Union[int, List[str], ndarray]]]
@@ -58,11 +58,9 @@ def load_input_data(data_filename_list: List[str]) -> InputDataType:
             else:
                 print("[LOAD]", filename)
                 datasets = load_input_json(filename)
-        elif ext[:5] == ".json":
-            print("[LOAD]", filename)
-            datasets = load_input_json(filename)
         else:
-            print("[ERROR]", data_filename)
+            print("[ERROR]", filename)
+            datasets = None
         input_data_list.append(datasets)
     return merge_input_data(input_data_list)
     # return input_data_list
@@ -80,6 +78,8 @@ def load_input_npy(filename: str) -> InputDataType:
 
 def load_input_json(filename: str) -> InputDataType:
     input_data = expl_pb2.PlaceholderData()
+    
+    
     with open(filename, "r") as fp:
         input_data = json_format.Parse(fp.read(), input_data)
     datasets = []
@@ -87,8 +87,9 @@ def load_input_json(filename: str) -> InputDataType:
         phs = [ph.name for ph in g.placeholders]
         rs = []
         for r in g.records:
-            rs.append([item for item in items])
-        dataset = {"goal_id": g.id, "placeholders": phs, "records": rs}
+            # TODO: current version only support integer records
+            rs.append([int(item) for item in r.items])
+        dataset = {"goal_id": g.id, "placeholders": phs, "records": np.array(rs)}
         datasets.append(dataset)
     return datasets
 
@@ -118,7 +119,7 @@ def merge_input_data(input_data_list: List[InputDataType]) -> InputDataType:
     return list(merged_data.values())
 
 
-def load_explanation_graph(expl_filename: str, option_filename: str =None, args={})-> Tuple[Any,TensorInfoMapper,Flags]:
+def load_explanation_graph(expl_filename: str, option_filename: Optional[str] =None, args={})-> Tuple[Any,TensorInfoMapper,Flags]:
     """Load an explanation graph and options supporting .json format
 
     Args:
@@ -168,7 +169,7 @@ class OperatorLoader:
         subbed = _underscorer1.sub(r"\1_\2", cls_name)
         return _underscorer2.sub(r"\1_\2", subbed).lower()
 
-    def get_operator(self, name: str) -> Type[Sigmoid]:
+    def get_operator(self, name: str) -> Type[BaseOperator]:
         assert name in self.operators, "%s is not found" % (name)
         cls = self.operators[name]
         assert cls is not None, "%s is not found" % (name)
@@ -221,7 +222,7 @@ class LossLoader:
         subbed = _underscorer1.sub(r"\1_\2", cls_name)
         return _underscorer2.sub(r"\1_\2", subbed).lower()
 
-    def get_loss(self, name: str) -> Union[Type[Ce_pl2], Type[PreferencePair]]:
+    def get_loss(self, name: str) -> Optional[Union[Type[BaseLoss]]]:
         if name in self.losses:
             cls = self.losses[name]
             return cls

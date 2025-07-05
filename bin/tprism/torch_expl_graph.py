@@ -215,7 +215,7 @@ Note:
             elif temp_goal is None:
                 print("  [ERROR] cycle node is detected")
                 temp_goal = goal_inside[node.sorted_id]
-                print(g.node.sorted_id)
+                print(node.sorted_id)
                 print(node)
                 print(node.sorted_id)
                 print(temp_goal)
@@ -300,24 +300,23 @@ Note:
                 """
         return sw_template, sw_inside, prob_sw_inside, path_batch_flag
     
-    def forward_path_op(self, ops, operator_loader,
+    def forward_path_op(self, path_name, ops, operator_loader,
              sw_node_template, sw_node_inside, node_scalar_inside, prob_sw_inside,path_batch_flag, verbose=False, dryrun=False):
       
         if "distribution" in ops:
             op = ops["distribution"]
             dist = op.values[0]
-            name = g.node.goal.name
             if dryrun:
                 #out_inside, out_template = self._distribution_forward_dryrun
                 out_inside={
                     "type": "distribution",
-                    "name": name,
+                    "name": path_name,
                     "dist_type": op,
                     "path": sw_node_inside}
                 out_template= sw_node_template#TODO
             else:
                 out_inside, out_template = self._distribution_forward(
-                    name,
+                    path_name,
                     dist,
                     params=sw_node_inside,
                     param_template=sw_node_template,
@@ -412,7 +411,7 @@ Note:
             path_inside = []
             path_template = []
             path_batch_flag = False
-            for path in g.paths:
+            for j, path in enumerate(g.paths):
                 ## build template and inside for switches in the path
                 sw_template, sw_inside, prob_sw_inside, batch_flag = self.forward_path_sw(
                         path, verbose, verbose_embedding, dryrun)
@@ -429,7 +428,8 @@ Note:
 
                 ops = {op.name: op for op in path.operators}
                 
-                out_inside,out_template = self.forward_path_op(ops, operator_loader,
+                path_name = g.node.goal.name+str(j)
+                out_inside,out_template = self.forward_path_op(path_name, ops, operator_loader,
                         sw_node_template, sw_node_inside, node_scalar_inside, prob_sw_inside,
                         path_batch_flag,
                         verbose, dryrun)

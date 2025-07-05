@@ -22,6 +22,7 @@ from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union
 
 from tprism.placeholder import PlaceholderData
 from tprism.torch_embedding_generator import BaseEmbeddingGenerator
+from tprism.util import TensorInfoMapper
 
 class ComputationalExplGraph:
     """ This class is a base class for a concrete explanation graph.
@@ -112,7 +113,7 @@ class ComputationalExplGraph:
         if key in self.operators:
             op_obj=self.operators[key]
         else:
-            ## new operator
+            ## new operator (add new operator)
             cls = operator_loader.get_operator(op.name)
             op_obj = cls(op.values)
             self.operators[key]=op_obj
@@ -174,8 +175,8 @@ class ComputationalExplGraph:
                             path_batch_flag = True
                         node_shape.append(temp_goal["shape"])
                         node_template.append(temp_goal["template"])
-                if cycle_detected:
-                    continue
+                #if cycle_detected:
+                #    continue
                 sw_node_template = sw_template + node_template
                 sw_node_shape = sw_shape + node_shape
 

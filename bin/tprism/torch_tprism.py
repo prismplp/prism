@@ -552,7 +552,7 @@ def run_preparing(args):
         eg.load(embedding_filename )
         embedding_generators.append(eg)
     for embedding_filename in flags.const_embedding:
-        eg = embed_gen.EmbeddingGenerator(const_flag)
+        eg = embed_gen.EmbeddingGenerator(const_flag=True)
         eg.load(embedding_filename )
         embedding_generators.append(eg)
     tensor_provider.build(
@@ -615,7 +615,7 @@ def run_test(args):
     start_t = time.time()
     print("... prediction")
     if flags.cycle:
-        model.solve(goal_dataset)
+        model.solve()
     elif input_data is not None:
         #model.export_computational_graph(input_data)
         pred_y, out = model.pred(input_data,verbose=args.verbose)
@@ -733,7 +733,7 @@ def main():
     else:
         print("[LOAD] ", args.config)
         fp = open(args.config, "r")
-        config.update(json.load(fp))
+        args.__dict__.update(json.load(fp))
 
     # gpu/cpu
     if args.cpu:
@@ -778,10 +778,6 @@ def main():
         run_preparing(args)
     if args.mode == "test" or args.mode == "pred":
         run_test(args)
-    elif args.mode == "cv":
-        run_train_cv(args)
-    if args.mode == "show":
-        run_display(args)
 
 
 if __name__ == "__main__":
