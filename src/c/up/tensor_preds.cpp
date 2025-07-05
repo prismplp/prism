@@ -530,7 +530,7 @@ void save_embedding_tensor_npy(const string filename, const string group_name, c
 #endif
 
 #ifdef USE_H5
-void save_embedding_matrix_hdf5(const string filename, const string group_name, const string dataset_name, TERM term_list, TERM shape){
+void save_embedding_matrix_hdf5(const string filename, const string group_name, const string dataset_name, TERM term_list, TERM shape, bool with_value){
 	TERM el   = bpx_get_car(term_list);
 	TERM next = bpx_get_cdr(term_list);
 	if(!bpx_is_list(term_list) || !bpx_is_list(shape)){
