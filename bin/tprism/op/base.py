@@ -7,7 +7,7 @@ class BaseOperator:
         print("[ERROR] not implemened")
         return None
 
-    def get_output_template(self, input_template):
+    def get_output_template(self, input_template:List[str])-> List[str]:
         print("[ERROR] not implemened")
         return None
 

@@ -562,12 +562,12 @@ class TorchGather(TorchTensorBase):
 
 class TorchSwitchTensorProvider(SwitchTensorProvider):
     def __init__(self) -> None:
+        super().__init__()
         self.tensor_onehot_class = TorchTensorOnehot
         self.tensor_class = TorchTensor
         self.tensor_gather_class = TorchGather
-
         self.integer_dtype = torch.int32
-        super().__init__()
+        
 
     # forward
     def get_loss(self, verbose:bool=False):

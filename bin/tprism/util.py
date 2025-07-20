@@ -28,13 +28,13 @@ def save_embedding_as_h5(filename: str, train_data: Dict[str,ndarray]={} , test_
     """
     with h5py.File(filename, "w") as fp:
         if train_data is not None:
-            fp.create_group("train")
+            train_group = fp.create_group("train")
             for key, val in train_data.items():
-                fp["train"].create_dataset(key, data=val)
+                train_group.create_dataset(key, data=val)
         if test_data is not None:
-            fp.create_group("test")
-            for key, val in train_data.items():
-                fp["test"].create_dataset(key, data=val)
+            test_group = fp.create_group("test")
+            for key, val in test_data.items():
+                test_group.create_dataset(key, data=val)
 
 
 def to_string_goal(goal):

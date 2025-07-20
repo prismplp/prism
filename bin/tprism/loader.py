@@ -22,18 +22,23 @@ from numpy import int32, int64, ndarray, str_
 from torch import Tensor, dtype
 from torch.nn.parameter import Parameter
 from tprism.op.base import BaseOperator
-from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union
+from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union, cast
 
 from tprism.placeholder import PlaceholderData
 from tprism.torch_embedding_generator import EmbeddingGenerator
 from tprism.util import Flags, TensorInfoMapper
 from tprism.loss import BaseLoss
+import dataclasses
 
 #[ {"goal_id": <int>, "placeholders": <List[str]>, "records": ndarray} ]
-InputDataType = List[Dict[str, Union[int, List[str], ndarray]]]
+@dataclasses.dataclass
+class InputData:
+    goal_id: int
+    placeholders: List[str] = dataclasses.field(default_factory=list)
+    records: ndarray = dataclasses.field(default_factory=lambda: np.array([], dtype=int32))
 
 
-def load_input_data(data_filename_list: List[str]) -> InputDataType:
+def load_input_data(data_filename_list: List[str]) -> List[InputData]:
     """Load input data supporting .h5/.json format
 
     Input data is a list of object like  [ {"goal_id": goal_id: int, "placeholders": [paceholder1: str, ...], "records": ndarray} ]
@@ -54,7 +59,7 @@ def load_input_data(data_filename_list: List[str]) -> InputDataType:
         elif ext == ".json":
             _, ext2 = os.path.splitext(rest_name)
             if ext2==".npy":
-                rint("[LOAD]", filename)
+                print("[LOAD]", filename)
                 datasets = load_input_npy(filename)
             else:
                 print("[LOAD]", filename)
@@ -70,17 +75,17 @@ def load_input_data(data_filename_list: List[str]) -> InputDataType:
     # return input_data_list
 
 
-def load_input_npy(filename: str) -> InputDataType:
+def load_input_npy(filename: str) -> List[InputData]:
     datasets = []
     with open(filename, "r") as fp:
         obj = json.load(fp)
     for goal_id, o in enumerate(obj):
         rs = np.load(o["filename"])
-        dataset = {"goal_id": goal_id, "placeholders": o["placeholders"], "records": rs}
+        dataset = InputData(goal_id,o["placeholders"],rs)
         datasets.append(dataset)
     return datasets
 
-def load_input_json(filename: str) -> InputDataType:
+def load_input_json(filename: str) -> List[InputData]:
     input_data = expl_pb2.PlaceholderData()
     
     
@@ -93,36 +98,42 @@ def load_input_json(filename: str) -> InputDataType:
         for r in g.records:
             # TODO: current version only support integer records
             rs.append([int(item) for item in r.items])
-        dataset = {"goal_id": g.id, "placeholders": phs, "records": np.array(rs)}
+        dataset = InputData(g.id, phs, np.array(rs))
         datasets.append(dataset)
     return datasets
 
 
-def load_input_h5(filename: str) -> InputDataType:
+def load_input_h5(filename: str) -> List[InputData]:
     infh = h5py.File(filename, "r")
     datasets = []
-    for k in infh:
+    for k in infh.keys():
         goal_id = int(k)
         # h5py <= 2.9.0
         #phs = [ph.decode() for ph in infh[k]["data"].attrs.get("placeholders")]
         #rs = infh[k]["data"].value
-        phs = [ph for ph in infh[k]["data"].attrs.get("placeholders")]
-        rs = infh[k]["data"][()]
-        dataset = {"goal_id": goal_id, "placeholders": phs, "records": rs}
+        # h5py >= 3.0.0
+        phs_infh=infh[str(k)+"/data"].attrs.get("placeholders")
+        if phs_infh is not None and hasattr(phs_infh, "__iter__"):
+            phs = [ph for ph in phs_infh]
+        else:
+            raise ValueError("placeholders %s is not valid" % (k))
+        #phs = [ph for ph in infh[k]["data"].attrs.get("placeholders")]
+        rs = infh[str(k)+"/data"][()] # type: ignore
+        dataset = InputData(goal_id, phs, np.array(rs))
         datasets.append(dataset)
     infh.close()
     return datasets
 
 
-def merge_input_data(input_data_list: List[InputDataType]) -> InputDataType:
+def merge_input_data(input_data_list: List[List[InputData]]) ->  List[InputData]:
     merged_data = {}
     for datasets in input_data_list:
         for data in datasets:
-            goal_id = data["goal_id"]
+            goal_id = data.goal_id
             if goal_id not in merged_data:
                 merged_data[goal_id] = data
             else:
-                merged_data[goal_id]["records"].extend(data[goal_id]["records"])
+                merged_data[goal_id].records.extend(data.records)
     return list(merged_data.values())
 
 
@@ -229,7 +240,7 @@ class LossLoader:
         subbed = _underscorer1.sub(r"\1_\2", cls_name)
         return _underscorer2.sub(r"\1_\2", subbed).lower()
 
-    def get_loss(self, name: str) -> Optional[Union[Type[BaseLoss]]]:
+    def get_loss(self, name: str) -> Optional[Type[BaseLoss]]:
         if name in self.losses:
             cls = self.losses[name]
             return cls

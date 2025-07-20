@@ -17,12 +17,14 @@ import pickle
 from numpy import int32, int64, ndarray, str_
 from torch import Tensor, dtype
 from torch.nn.parameter import Parameter # this is only used for typing 
-from tprism.op.torch_standard_op import Sigmoid
 from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union
 
 from tprism.placeholder import PlaceholderData
 from tprism.torch_embedding_generator import BaseEmbeddingGenerator
 from tprism.util import TensorInfoMapper
+from tprism.loader import OperatorLoader
+import expl_pb2
+from loader import InputData
 
 class ComputationalExplGraph:
     """ This class is a base class for a concrete explanation graph.
@@ -107,27 +109,50 @@ class ComputationalExplGraph:
                 out_shape.append(dim)
             return out_shape
 
-    def _apply_operator_template(self,operator_loader, op, in_template, in_shape):
-        ## restore operator
-        key=str(op.name)+"_"+str(op.values)
+    def _apply_operator_template(
+        self,
+        operator_loader: Optional[OperatorLoader],
+        op: expl_pb2.SwIns,
+        in_template: List[str],
+        in_shape: List[int]
+    ) -> Tuple[List[str], List[int]]:
+        """
+        Applies an operator template to the given input template and shape, restoring or creating the operator as needed.
+
+        Args:
+            operator_loader(OperatorLoader): An object responsible for loading operator classes by name.
+            op: An operator instance containing 'name' and 'values' attributes.
+            in_template: The input template to which the operator will be applied.
+            in_shape: The input shape to which the operator will be applied.
+
+        Returns:
+            tuple: A tuple (out_template, out_shape) where:
+                - out_template: The output template after applying the operator.
+                - out_shape: The output shape after applying the operator.
+
+        Side Effects:
+            Updates the self.operators dictionary with the operator instance if it does not already exist.
+
+        """
+        key: str = str(op.name) + "_" + str(op.values)
         if key in self.operators:
-            op_obj=self.operators[key]
+            op_obj = self.operators[key]
         else:
-            ## new operator (add new operator)
+            if operator_loader is None:
+                raise ValueError("operator_loader must not be None when applying operator templates.")
             cls = operator_loader.get_operator(op.name)
             op_obj = cls(op.values)
-            self.operators[key]=op_obj
-        ## get operator information
+            self.operators[key] = op_obj
         out_template = op_obj.get_output_template(in_template)
         out_shape = op_obj.get_output_shape(in_shape)
         return out_template, out_shape
 
     def build_explanation_graph_template(
-        self, graph, tensor_provider, operator_loader=None, cycle_node=[]
+        self, graph:expl_pb2.ExplGraph , tensor_provider:SwitchTensorProvider, operator_loader: Optional[OperatorLoader]=None, cycle_node=[]
     ):
         """
         Args:
-            graph: explanation graph object
+            graph(expl_pb2.ExplGraph): explanation graph object
             tensor_provider (SwitchTensorProvider): tensor provider
             operator_loader (OperatorLoader): operator loader
             cycle_node (List[int]): a list of sorted_id of cycle nodes
@@ -138,7 +163,7 @@ class ComputationalExplGraph:
              - cycle_node (List[int]): a list of cycle node (if given cycle_node, it is updated)
         """
         # checking template
-        goal_template = [None] * len(graph.goals)
+        goal_template: List[Dict[str, Any]|None] = [None] * len(graph.goals)
         for i in range(len(graph.goals)):
             g = graph.goals[i]
             path_template = []
@@ -318,6 +343,10 @@ class VocabSet:
         """
         vocab_ph = ph_graph.vocab_ph
         ph_values = ph_graph.ph_values #
+        if vocab_ph is None:
+            raise ValueError(f"vocab_ph in Placeholder graph '{ph_graph}' must not be None when building from placeholders.")
+        if ph_values is None:
+            raise ValueError(f"ph_values in Placeholder graph '{ph_graph}' must not be None when building from placeholders.")
         vocab_values = {}
         for vocab_name, phs in vocab_ph.items():
             for ph in phs:
@@ -327,21 +356,27 @@ class VocabSet:
         self.vocab_values = {k: list(v) for k, v in vocab_values.items()}
         self.value_index = self._build_value_index()
 
-    def _build_value_index(self) -> Dict[Tuple[str, int32], int]:
+    def _build_value_index(self) -> Dict[Tuple[str, int], int]:
         value_index = {}
+        if self.vocab_values is None:
+            raise ValueError(f"vocab_values in VocabSet must not be None when building value_index.")
         for vocab_name, values in self.vocab_values.items():
             for i, v in enumerate(sorted(values)):
                 value_index[(vocab_name, v)] = i
         return value_index
 
-    def get_values_index(self, vocab_name: str, value: Union[int, int32]) -> int:
+    def get_values_index(self, vocab_name: str, value: Union[int, int]) -> int:
         key = (vocab_name, value)
+        if self.value_index is None:
+            raise ValueError(f"value_index in VocabSet must not be None when getting value_index.")
         if key in self.value_index:
             return self.value_index[key]
         else:
             return 0
 
-    def get_values(self, vocab_name: str) -> Optional[List[int32]]:
+    def get_values(self, vocab_name: str) -> Optional[List[int]]:
+        if self.vocab_values is None:
+            raise ValueError(f"vocab_values in VocabSet must not be None when getting values.")
         if vocab_name not in self.vocab_values:
             return None
         return self.vocab_values[vocab_name]
@@ -366,14 +401,14 @@ class PlaceholderGraph:
         self.ph_values = None #Dict[str,Set[Any]]
         self.vocab_shape = None
 
-    def _build_ph_values(self, input_data: List[Dict[str, Union[int, List[str], ndarray]]]) -> None:
+    def _build_ph_values(self, input_data: List[InputData]) -> None:
         ph_values = {}
         for g in input_data:
-            for ph in g["placeholders"]:
+            for ph in g.placeholders:
                 if ph not in ph_values:
                     ph_values[ph] = set()
-            placeholders = [ph for ph in g["placeholders"]]
-            rt = np.transpose(g["records"])
+            placeholders = [ph for ph in g.placeholders]
+            rt = np.transpose(g.records)
             for i, item in enumerate(rt):
                 ph_values[placeholders[i]] |= set(item)
         self.ph_values = ph_values
@@ -401,11 +436,13 @@ class PlaceholderGraph:
         self.vocab_shape = vocab_shape
         ##
 
-    def build(self, input_data: List[Dict[str, Union[int, List[str], ndarray]]], sw_info: Dict[str, SwitchTensor]) -> None:
+    def build(self, input_data: List[InputData]|None, sw_info: Dict[str, SwitchTensor]) -> None:
         if input_data is not None:
             self._build_ph_values(input_data)
         else:
             self.ph_values = {}
+        if self.ph_values is None:
+            raise ValueError(f"ph_values in PlaceholderGraph must not be None in build.")
         self._build_vocab_ph(self.ph_values, sw_info)
 
 VarType = Union[
@@ -426,20 +463,37 @@ class SwitchTensorProvider:
     """
 
     def __init__(self) -> None:
-        self.tensor_embedding = None
+        self.tensor_embedding:Dict[str, Tensor|PlaceholderData]|None = None
         self.sw_info = None
         self.ph_graph = None
-        self.input_feed_dict = None
+        self.input_feed_dict:Dict[PlaceholderData, Tensor]|None = None
         self.params = {}
+        # override this in the subclass
+        self.integer_dtype = None 
+        self.tensor_onehot_class = None
+        self.tensor_class = None
+        self.tensor_gather_class = None
+        
 
-    def get_embedding(self, name):
+    def get_embedding(self, name: str)->Tensor:
+        if self.tensor_embedding is None:
+            raise ValueError("tensor_embedding must not be None when getting embedding.")
         if self.input_feed_dict is None:
-            return self.tensor_embedding[name]
+            out=self.tensor_embedding[name]
+            if isinstance(out, Tensor):
+                return out
+            else:
+                raise TypeError(f"Expected Tensor as key, got {type(out)} for '{name}'")
         else:
             key = self.tensor_embedding[name]
-            return self.input_feed_dict[key]
+            if isinstance(key, PlaceholderData):
+                return self.input_feed_dict[key]
+            else:
+                raise TypeError(f"Expected PlaceholderData as key, got {type(key)} for '{name}'")
 
     def set_embedding(self, name, var):
+        if self.tensor_embedding is None:
+            raise ValueError("tensor_embedding must not be None when getting embedding.")
         self.tensor_embedding[name] = var
 
     def set_input(self, feed_dict: Dict[PlaceholderData, Tensor]) -> None:
@@ -452,6 +506,8 @@ class SwitchTensorProvider:
         Returns:
             placeholder name
         """
+        if self.sw_info is None:
+            raise ValueError("sw_info must not be None in get_placeholder_name.")
         return self.sw_info[name].ph_names
 
     def get_switch(self, name: str) -> SwitchTensor:
@@ -461,6 +517,8 @@ class SwitchTensorProvider:
         Returns:
             switch tensor
         """
+        if self.sw_info is None:
+            raise ValueError("sw_info must not be None in get_switch.")
         return self.sw_info[name]
 
     def get_placeholder_var_name(self, name: str) -> str:
@@ -488,16 +546,26 @@ class SwitchTensorProvider:
         """
         return self.params[name]
 
-    def convert_value_to_index(self, value: Union[int, int32], ph_name: Union[str, str_]) -> int:
+    def convert_value_to_index(self, value: int, ph_name: str) -> int:
+        if self.ph_graph is None:
+            raise ValueError("ph_graph must not be None in convert_value_to_index.")
         ph_vocab = self.ph_graph.ph_vocab
-        vocab_name = self.ph_graph.ph_vocab[ph_name]
+        if ph_vocab is None:
+            raise ValueError("ph_vocab must not be None in convert_value_to_index.")
+        vocab_name = ph_vocab[ph_name]
         vocab_name = list(vocab_name)[0]
         index = self.vocab_set.get_values_index(vocab_name, value)
         return index
 
     def is_convertable_value(self, ph_name: str) -> bool:
-        if ph_name in self.ph_graph.ph_vocab:
-            return len(self.ph_graph.ph_vocab[ph_name]) > 0
+        if self.ph_graph is None:
+            raise ValueError("ph_graph must not be None in convert_value_to_index.")
+        ph_vocab = self.ph_graph.ph_vocab
+        if ph_vocab is None:
+            raise ValueError("ph_vocab must not be None in convert_value_to_index.")
+        
+        if ph_name in ph_vocab:
+            return len(ph_vocab[ph_name]) > 0
         else:
             return False
 
@@ -516,10 +584,10 @@ class SwitchTensorProvider:
                     value_list = [el for el in sw.values]
                     if sw.name in tensor_info.shape:
                         shape = tuple(tensor_info.shape[sw.name])
-                    sw_obj.add_shape(shape)
+                        sw_obj.add_shape(shape)
                     if sw.name in tensor_info.type:
                         tensor_type = tensor_info.type[sw.name]
-                    sw_obj.add_type(tensor_type)
+                        sw_obj.add_type(tensor_type)
         return sw_info
 
     def _build_vocab_var_type(self, ph_graph: PlaceholderGraph, vocab_set: VocabSet, embedding_generators: List[BaseEmbeddingGenerator], sw_info: Dict[str,SwitchTensor]) -> Dict[str, VarType]:
@@ -547,6 +615,8 @@ class SwitchTensorProvider:
                 }
 
         """
+        if ph_graph.vocab_shape is None:
+            raise ValueError("ph_graph.vocab_shape must not be None in _build_vocab_var_type.")
         vocab_var_type = {}
         for vocab_name, shapes in ph_graph.vocab_shape.items():
             values = vocab_set.get_values(vocab_name)
@@ -602,7 +672,7 @@ class SwitchTensorProvider:
         self,
         graph,
         tensor_shapes,
-        input_data,
+        input_data:List[InputData]|None,
         flags,
         load_vocab=False,
         embedding_generators=[],
@@ -648,6 +718,8 @@ class SwitchTensorProvider:
         # ph_var    : ph_name => placeholder
         ph_var = {}
         batch_size = flags.sgd_minibatch_size
+        if ph_graph.ph_values is None:
+            raise ValueError("ph_graph.ph_values must not be None when building placeholders.")
         for ph_name in ph_graph.ph_values.keys():
             ph_var_name = self.get_placeholder_var_name(ph_name)
             ph_var[ph_name] = PlaceholderData(
@@ -720,6 +792,7 @@ class SwitchTensorProvider:
                     tensor_embedding[sw_name] = var
             elif len(ph_list) == 1:
                 dataset_flag = False
+                shape=None
                 for eg in embedding_generators:
                     if eg.is_embedding(vocab_name):
                         dataset_flag = True
