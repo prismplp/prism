@@ -25,33 +25,34 @@ import tprism.loss.base
 import tprism.constraint
 
 from tprism.expl_graph import ComputationalExplGraph
-from tprism.expl_tensor import PlaceholderGraph, VocabSet, SwitchTensorProvider
+from tprism.expl_tensor import PlaceholderGraph, VocabSet, SwitchTensorProvider, TorchTensorBase
 from tprism.loader import OperatorLoader
 from tprism.placeholder import PlaceholderData
 from numpy import int64
-from torch import dtype
-from typing import Any, Dict, List, Tuple, Union
+from torch import dtype, Tensor
+from typing import Any, Dict, List, Tuple, Union, Optional, Type
 
 
-
- 
-class TorchTensorBase:
-    def __init__(self):
-        pass
 
 
 class TorchTensorOnehot(TorchTensorBase):
-    def __init__(self, provider, shape, value):
+    def __init__(self, provider: SwitchTensorProvider,
+                  shape: List[int], value:Any):
         self.shape = shape
         self.value = value
 
+    @staticmethod
+    def builder_func(provider: SwitchTensorProvider,
+                  shape: List[int], value:Any) -> TorchTensorBase:
+        return TorchTensorOnehot(provider, shape, value)
+
     def __call__(self):
-        v = torch.eye(self.shape)[self.value]
+        v = torch.eye(self.shape[0])[self.value]
         return v
 
 
 class TorchTensor(TorchTensorBase):
-    def __init__(self, provider: 'TorchSwitchTensorProvider', name: str, shape: List[Union[int64, int]], dtype: dtype=torch.float32, tensor_type: str="") -> None:
+    def __init__(self, provider: SwitchTensorProvider, name: str, shape: List[int], dtype: dtype=torch.float32, tensor_type: str="") -> None:
         self.shape = shape
         self.dtype = dtype
         if name is None:
@@ -73,11 +74,18 @@ class TorchTensor(TorchTensorBase):
             provider.add_param(self.name, param, tensor_type)
 
         ###
+
+    @staticmethod
+    def builder_func(provider: SwitchTensorProvider,
+                  name: str, shape: List[int], dtype: dtype=torch.float32, tensor_type: str="") -> TorchTensorBase:
+        return TorchTensor(provider, name, shape, dtype, tensor_type)
+
     def reset_parameters(self) -> None:
-        if len(self.param.shape) == 2:
-            torch.nn.init.kaiming_uniform_(self.param, a=math.sqrt(5))
-        else:
-            self.param.data.uniform_(-0.1, 0.1)
+        if self.param is not None:
+            if len(self.param.shape) == 2:
+                torch.nn.init.kaiming_uniform_(self.param, a=math.sqrt(5))
+            else:
+                self.param.data.uniform_(-0.1, 0.1)
 
     def __call__(self):
         if self.constraint_tensor is None:
@@ -87,35 +95,39 @@ class TorchTensor(TorchTensorBase):
 
 
 class TorchGather(TorchTensorBase):
-    def __init__(self, provider: 'TorchSwitchTensorProvider', var: TorchTensor, idx: PlaceholderData) -> None:
-        self.var = var
-        self.idx = idx
+    def __init__(self, provider: SwitchTensorProvider, var: PlaceholderData|TorchTensorBase, idx: PlaceholderData|TorchTensorBase|int) -> None:
+        self.var:PlaceholderData|TorchTensorBase = var
+        self.idx:PlaceholderData|TorchTensorBase|int = idx
         self.provider = provider
 
+    @staticmethod
+    def builder_func(provider: SwitchTensorProvider, var: PlaceholderData|TorchTensorBase, idx: PlaceholderData|TorchTensorBase|int) -> TorchTensorBase:
+        return TorchGather(provider, var, idx)
+    
     def __call__(self):
         if isinstance(self.idx, PlaceholderData):
-            idx = self.provider.get_embedding(self.idx)
+            idx_embed = self.provider.get_embedding(self.idx)
         else:
-            idx = self.idx
+            idx_embed = self.idx
         if isinstance(self.var, TorchTensor):
             temp = self.var()
-            v = torch.index_select(temp, 0, idx)
+            v = torch.index_select(temp, 0, idx_embed)
         elif isinstance(self.var, TorchTensorBase):
-            v = torch.index_select(self.var(), 0, idx)
+            v = torch.index_select(self.var(), 0, idx_embed)
         elif isinstance(self.var, PlaceholderData):
             v = self.provider.get_embedding(self.var)
-            v = v[idx]
+            v = v[idx_embed]
         else:
-            v = torch.index_select(self.var, 0, idx)
+            v = torch.index_select(self.var, 0, idx_embed)
         return v
 
 
 class TorchSwitchTensorProvider(SwitchTensorProvider):
     def __init__(self) -> None:
         super().__init__()
-        self.tensor_onehot_class = TorchTensorOnehot
-        self.tensor_class = TorchTensor
-        self.tensor_gather_class = TorchGather
+        self.tensor_onehot_class = TorchTensorOnehot.builder_func
+        self.tensor_class = TorchTensor.builder_func
+        self.tensor_gather_class = TorchGather.builder_func
         self.integer_dtype = torch.int32
         
 
@@ -133,7 +145,7 @@ class TorchSwitchTensorProvider(SwitchTensorProvider):
                 loss["sparse_"+name]=l
         return loss
     # forward
-    def get_embedding(self, name: Union[str,PlaceholderData], verbose:bool=False):
+    def get_embedding(self, name: Union[str,PlaceholderData], verbose:bool=False)->Optional[Tensor]:
         if verbose:
             print("[INFO] get embedding:", name)
         out = None
@@ -141,11 +153,14 @@ class TorchSwitchTensorProvider(SwitchTensorProvider):
         if self.input_feed_dict is None:
             if verbose:
                 print("[INFO] from tensor_embedding", name)
-            obj = self.tensor_embedding[name]
-            if isinstance(obj, TorchTensorBase):
-                out = obj()
+            if  type(name) is str:
+                obj = self.tensor_embedding[name]
+                if isinstance(obj, TorchTensorBase):
+                    out = obj()
+                else:
+                    raise Exception("Unknown embedding key", name, type(obj))
             else:
-                raise Exception("Unknoen embedding type", name, type(obj))
+                raise Exception("Unknown embedding key", name)
         elif type(name) is str:
             key = self.tensor_embedding[name]
             if type(key) is PlaceholderData:

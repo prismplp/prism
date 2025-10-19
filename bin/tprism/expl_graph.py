@@ -28,6 +28,30 @@ from tprism.loader import OperatorLoader
 import tprism.expl_pb2 as expl_pb2
 from tprism.loader import InputData
 from tprism.expl_tensor import SwitchTensorProvider
+from dataclasses import dataclass
+from tprism.op.base import BaseOperator
+
+@dataclass
+class GoalTemplate:
+    """
+    Structured goal template.
+      - template: index symbols
+      - batch_flag: whether 'b' batch dim is present
+      - shape: unified output shape per goal (dimension may contain None)
+    Backward compatible with dict-style access via __getitem__.
+    """
+    template: List[str]
+    batch_flag: bool
+    shape: List[int]
+
+    def __getitem__(self, key: str):
+        if key == "template":
+            return self.template
+        if key == "batch_flag":
+            return self.batch_flag
+        if key == "shape":
+            return self.shape
+        raise KeyError(key)
 
 class ComputationalExplGraph:
     """ This class is a base class for a concrete explanation graph.
@@ -51,7 +75,7 @@ class ComputationalExplGraph:
     """
 
     def __init__(self):
-        self.operators={}
+        self.operators:Dict[str, BaseOperator]={}
 
     def _get_unique_list(self, seq: List[List[str]]) -> List[List[str]]:
         seen = []
@@ -151,8 +175,12 @@ class ComputationalExplGraph:
         return out_template, out_shape
 
     def build_explanation_graph_template(
-        self, graph:expl_pb2.ExplGraph , tensor_provider:SwitchTensorProvider, operator_loader: Optional[OperatorLoader]=None, cycle_node=[]
-    ):
+        self,
+        graph: expl_pb2.ExplGraph,
+        tensor_provider: SwitchTensorProvider,
+        operator_loader: Optional[OperatorLoader] = None,
+        cycle_node: List[int] = [],
+    ) -> Tuple[List[Optional[GoalTemplate]], List[int]]:
         """
         Args:
             graph(expl_pb2.ExplGraph): explanation graph object
@@ -161,12 +189,12 @@ class ComputationalExplGraph:
             cycle_node (List[int]): a list of sorted_id of cycle nodes
 
         Returns:
-            A tuple containing goal_template and cycle_node
-             - goal_template (List[Dict[str, Any]]): a list of goal templates
-             - cycle_node (List[int]): a list of cycle node (if given cycle_node, it is updated)
+        A tuple containing goal_template and cycle_node
+            - goal_template (List[GoalTemplate]): a list of goal templates
+            - cycle_node (List[int]): a list of cycle node (if given cycle_node, it is updated)
         """
         # checking template
-        goal_template: List[Dict[str, Any]|None] = [None] * len(graph.goals)
+        goal_template: List[Optional[GoalTemplate]] = [None] * len(graph.goals)
         for i in range(len(graph.goals)):
             g = graph.goals[i]
             path_template = []
@@ -198,11 +226,11 @@ class ComputationalExplGraph:
                             cycle_node.append(node.sorted_id)
                         cycle_detected = True
                         continue
-                    if len(temp_goal["template"]) > 0:
-                        if temp_goal["batch_flag"]:
+                    if len(temp_goal.template) > 0:
+                        if temp_goal.batch_flag:
                             path_batch_flag = True
-                        node_shape.append(temp_goal["shape"])
-                        node_template.append(temp_goal["template"])
+                        node_shape.append(temp_goal.shape)
+                        node_template.append(temp_goal.template)
                 #if cycle_detected:
                 #    continue
                 sw_node_template = sw_template + node_template
@@ -244,19 +272,19 @@ class ComputationalExplGraph:
             path_template_list = self._get_unique_list(path_template)
             path_shape = self._unify_shapes(path_shape)
             if len(path_template_list) == 0:
-                goal_template[i] = {
-                    "template": [],
-                    "batch_flag": False,
-                    "shape": path_shape,
-                }
+                goal_template[i] = GoalTemplate(
+                    template=[],
+                    batch_flag=False,
+                    shape=path_shape,
+                )
             else:
                 if len(path_template_list) != 1:
                     print("[WARNING] missmatch indices:", path_template_list)
-                goal_template[i] = {
-                    "template": path_template_list[0],
-                    "batch_flag": path_batch_flag,
-                    "shape": path_shape,
-                }
+                goal_template[i] = GoalTemplate(
+                    template=path_template_list[0],
+                    batch_flag=path_batch_flag,
+                    shape=path_shape,
+                )
         ##
         return goal_template, cycle_node
 

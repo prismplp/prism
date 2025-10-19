@@ -36,8 +36,12 @@ from tprism.loader import OperatorLoader
 from tprism.placeholder import PlaceholderData
 from numpy import int64
 from torch import dtype
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Dict, List, Tuple, Union, Optional
+from tprism.torch_embedding_generator import BaseEmbeddingGenerator
+from tprism.torch_expl_tensor import TorchSwitchTensorProvider
 
+from tprism.expl_graph import GoalTemplate
+from tprism.op.base import BaseOperator
 
 class ExplNode:
     """
@@ -185,18 +189,24 @@ Note:
 Note:
     Each goal in the explanation graph is represented by GoalInsideEntry instead of a dict.
     """
-    def __init__(self, graph, tensor_provider, operator_loader, cycle_embedding_generator=None):
+    def __init__(
+        self,
+        graph: expl_pb2.ExplGraph,
+        tensor_provider: TorchSwitchTensorProvider,
+        operator_loader: OperatorLoader,
+        cycle_embedding_generator: Optional[BaseEmbeddingGenerator] = None,
+    ) -> None:
         torch.nn.Module.__init__(self)
         ComputationalExplGraph.__init__(self)
         ## setting
-        self.operator_loader = None
-        self.goal_template = None
-        self.cycle_node = None
-        self.param_op = None
-        self.graph = graph
-        self.loss = {}
-        self.tensor_provider = tensor_provider
-        self.cycle_embedding_generator = cycle_embedding_generator
+        self.operator_loader: Optional[OperatorLoader] = None
+        self.goal_template: List[Optional[GoalTemplate]] = []
+        self.cycle_node: List[int] = []
+        self.param_op: Optional[torch.nn.ModuleList] = None
+        self.graph: "expl_pb2.ExplGraph" = graph
+        self.loss: Dict[str, torch.Tensor] = {}
+        self.tensor_provider: TorchSwitchTensorProvider = tensor_provider
+        self.cycle_embedding_generator: Optional[BaseEmbeddingGenerator] = cycle_embedding_generator
         """
         if operator_loader is None:
             operator_loader = OperatorLoader()
@@ -206,14 +216,14 @@ Note:
         ###
         self.build()
         
-    def build(self):
+    def build(self) -> None:
 
         ## call super class        
         goal_template, cycle_node = self.build_explanation_graph_template(
             self.graph, self.tensor_provider, self.operator_loader
         )
-        self.goal_template = goal_template
-        self.cycle_node = cycle_node
+        self.goal_template:List[Optional[GoalTemplate]] = goal_template
+        self.cycle_node:List[int] = cycle_node
         
         ## setting parameterized operators
         self.param_op = torch.nn.ModuleList()
@@ -225,7 +235,14 @@ Note:
         for name, (param,tensor_type) in self.tensor_provider.params.items():
             self.register_parameter(name, param)
         
-    def _distribution_forward(self, name, dist, params, param_template, op):
+    def _distribution_forward(
+        self,
+        name: str,
+        dist: str,
+        params: List[torch.Tensor],
+        param_template: List[List[str]],
+        op: "expl_pb2.SwIns",
+    ) -> Tuple[torch.Tensor, List[str]]:
         if dist == "normal":
             mean = params[0]
             var = params[1]
@@ -244,7 +261,12 @@ Note:
             print("[ERROR] unknown distribution:", dist)
         return out_inside, out_template
 
-    def make_einsum_args(self, template,out_template,path_batch_flag):
+    def make_einsum_args(
+        self,
+        template: List[List[str]],
+        out_template: List[str],
+        path_batch_flag: bool,
+    ) -> Tuple[str, List[str]]:
         """
         Example
         template: [["i","j"],["j","k"]]
@@ -259,7 +281,13 @@ Note:
         einsum_eq = lhs + "->" + rhs
         return einsum_eq, out_template
     
-    def make_einsum_args_sublist(self,template,inputs,out_template,path_batch_flag):
+    def make_einsum_args_sublist(
+        self,
+        template: List[List[str]],
+        inputs: List[torch.Tensor],
+        out_template: List[str],
+        path_batch_flag: bool,
+    ) -> Tuple[List[Union[torch.Tensor, List[int]]], List[str]]:
         """
         Example
         template: [["i","j"],["j","k"]]
@@ -278,14 +306,23 @@ Note:
         sublistform_args.append([mapping[el] for el in out_template])
         return sublistform_args, out_template
 
-    def _apply_operator(self, op, operator_loader, out_node: ExplNode, out_template, dryrun):
+    def _apply_operator(
+        self,
+        op: expl_pb2.SwIns,
+        operator_loader: Optional["OperatorLoader"],
+        out_node: ExplNode,
+        out_template: List[str],
+        dryrun: bool,
+    ) -> Tuple[ExplNode, List[str]]:
         ## restore operator
         key=str(op.name)+"_"+str(op.values)
-        op_obj=None
+        op_obj:Optional[BaseOperator]=None
         if key in self.operators:
             op_obj=self.operators[key]
         else:
             assert True, "unknown operator "+key+" has been found in forward procedure"
+        if op_obj is None:
+            raise Exception("Unknown operator: ", key)
         if dryrun:
             desc = {
                 "type": "operator",
@@ -299,7 +336,13 @@ Note:
         out_template = op_obj.get_output_template(out_template)
         return out_node, out_template
     
-    def forward_path_node(self, path, goal_inside, verbose=False, dryrun=False):
+    def forward_path_node(
+        self,
+        path: expl_pb2.ExplGraphPath,
+        goal_inside: List[Optional[GoalInsideEntry]],
+        verbose: bool = False,
+        dryrun: bool = False,
+    ) -> Tuple[List[List[str]], List[ExplNode], List[ExplNode], bool]:
         goal_template = self.goal_template
         cycle_embedding_generator = self.cycle_embedding_generator
         cycle_node=self.cycle_node
@@ -311,8 +354,11 @@ Note:
             temp_goal = goal_inside[node.sorted_id]
             if node.sorted_id in cycle_node:
                 name = node.goal.name
-                template = goal_template[node.sorted_id]["template"]
-                shape = goal_template[node.sorted_id]["shape"]
+                gt=goal_template[node.sorted_id]
+                if  gt is None:
+                    raise Exception("goal_template[", node.sorted_id,"] is None in cycle node")
+                template = gt["template"]
+                shape = gt["shape"]
                 if dryrun:
                     args = node.goal.args
                     temp_goal_inside = ExplNode.from_desc("goal", {
@@ -369,7 +415,13 @@ Note:
                     node_scalar_inside.append(ExplNode.from_value("goal_scalar", temp_goal.get_scalar_inside()))
         return node_template, node_inside, node_scalar_inside, path_batch_flag
 
-    def forward_path_sw(self, path, verbose=False,verbose_embedding=False, dryrun=False):
+    def forward_path_sw(
+        self,
+        path: expl_pb2.ExplGraphPath,
+        verbose: bool = False,
+        verbose_embedding: bool = False,
+        dryrun: bool = False,
+    ) -> Tuple[List[List[str]], List[ExplNode], List[ExplNode], bool]:
         tensor_provider = self.tensor_provider
         sw_template = []
         sw_inside = []
@@ -403,8 +455,19 @@ Note:
                 prob_sw_inside.append(ExplNode.from_value("const", sw.inside))
         return sw_template, sw_inside, prob_sw_inside, path_batch_flag
     
-    def forward_path_op(self, path_name, ops, operator_loader,
-             sw_node_template, sw_node_inside, node_scalar_inside, prob_sw_inside,path_batch_flag, verbose=False, dryrun=False):
+    def forward_path_op(
+        self,
+        path_name: str,
+        ops: Dict[str, "expl_pb2.SwIns"],
+        operator_loader: Optional[OperatorLoader],
+        sw_node_template: List[List[str]],
+        sw_node_inside: List[ExplNode],
+        node_scalar_inside: List[ExplNode],
+        prob_sw_inside: List[ExplNode],
+        path_batch_flag: bool,
+        verbose: bool = False,
+        dryrun: bool = False,
+    ) -> Tuple[ExplNode, List[str]]:
       
         if "distribution" in ops:
             op = ops["distribution"]
@@ -480,11 +543,16 @@ Note:
                 ##
         return out_node, out_template
 
-    def forward(self, verbose=False,verbose_embedding=False, dryrun=False):
+    def forward(
+        self,
+        verbose: bool = False,
+        verbose_embedding: bool = False,
+        dryrun: bool = False,
+    ) -> Tuple[List[Optional[GoalInsideEntry]], Dict[str, torch.Tensor]]:
         """
-        Args:
-            verbose (bool): if true, this function displays an explanation graph with forward computation
-            dryrun (bool):  if true, this function outputs information required for calculation as goal_inside instead of computational graph
+         Args:
+             verbose (bool): if true, this function displays an explanation graph with forward computation
+             dryrun (bool):  if true, this function outputs information required for calculation as goal_inside instead of computational graph
 
         Returns:
             Tuple[List[GoalInsideEntry],Dict]: a pair of goal_inside and loss:
@@ -500,7 +568,7 @@ Note:
         self.loss = {}
         # goal_template
         # converting explanation graph to computational graph
-        goal_inside = [None] * len(graph.goals)
+        goal_inside: List[Optional[GoalInsideEntry]] = [None] * len(graph.goals)
         for i in range(len(graph.goals)):
             g = graph.goals[i]
             if verbose:
@@ -547,4 +615,3 @@ Note:
         self.loss.update(tensor_provider.get_loss())
         return goal_inside, self.loss
 
-   
