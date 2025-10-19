@@ -31,12 +31,140 @@ import tprism.loss.base
 import tprism.constraint
 
 from tprism.expl_graph import ComputationalExplGraph, SwitchTensorProvider
-from tprism.expl_graph import PlaceholderGraph, VocabSet
+from tprism.expl_tensor import PlaceholderGraph, VocabSet
 from tprism.loader import OperatorLoader
 from tprism.placeholder import PlaceholderData
 from numpy import int64
 from torch import dtype
 from typing import Any, Dict, List, Tuple, Union
+
+
+class ExplNode:
+    """
+    A container for intermediate values and dryrun descriptors.
+    - If dryrun=False: holds a concrete value (tensor/scalar) in `value`.
+    - If dryrun=True: holds a descriptor dict in `desc`.
+    """
+    def __init__(self, kind: str, dryrun: bool, value: Any = None, desc: Dict[str, Any] = {}) -> None:
+        self.kind = kind
+        self.dryrun = dryrun
+        self.value = value
+        self.desc = {} if desc is None else desc
+
+    @staticmethod
+    def from_value(kind: str, value: Any) -> "ExplNode":
+        return ExplNode(kind=kind, dryrun=False, value=value)
+
+    @staticmethod
+    def from_desc(kind: str, desc: Dict[str, Any]) -> "ExplNode":
+        return ExplNode(kind=kind, dryrun=True, desc=desc)
+
+    def as_value(self) -> Any:
+        if self.dryrun:
+            raise RuntimeError("Attempted to access concrete value from a dryrun ExplNode")
+        return self.value
+
+    def as_desc(self) -> Dict[str, Any]:
+        if self.dryrun:
+            return self.desc
+        # Optional lightweight descriptor when not in dryrun (used rarely)
+        return {"type": self.kind}
+
+    def add_path_scalar_descriptors(self, scalars: List["ExplNode"]) -> None:
+        """
+        Attach scalar path descriptors (for dryrun pretty output).
+        """
+        if self.dryrun:
+            lst = []
+            for s in scalars:
+                if isinstance(s, ExplNode):
+                    lst.append(s.as_desc())
+                else:
+                    lst.append(s)
+            self.desc["path_scalar"] = lst
+
+
+class GoalInsideEntry:
+    """
+    A unified container for goal_inside entries to replace the previous dict-based structure.
+
+    Fields:
+      - template: List[str]
+      - inside: Any (tensor in non-dryrun, list of path descriptions in dryrun)
+      - batch_flag: bool
+      - dryrun: bool
+      - id, name, args: optional meta information (set in dryrun mode)
+    """
+    def __init__(self, template: List[str], inside: Any, batch_flag: bool, dryrun: bool) -> None:
+        self.template: List[str] = template
+        self.inside: Any = inside
+        self.batch_flag: bool = batch_flag
+        self.dryrun: bool = dryrun
+        self.id: Union[int, None] = None
+        self.name: Union[str, None] = None
+        self.args: Any = None
+
+    def set_meta(self, goal_id: int, name: str, args: Any) -> "GoalInsideEntry":
+        self.id = goal_id
+        self.name = name
+        self.args = args
+        return self
+
+    def is_tensor_goal(self) -> bool:
+        return len(self.template) > 0
+
+    def is_scalar_goal(self) -> bool:
+        return len(self.template) == 0
+
+    def get_scalar_inside(self) -> Any:
+        """
+        Return a scalar usable in computations (non-dryrun only).
+        If inside is a list, convert to tensor and squeeze.
+        """
+        if self.dryrun:
+            # In dryrun, scalar usage is handled by caller constructing descriptors.
+            return self.inside
+        v = self.inside
+        if isinstance(v, list):
+            a = torch.tensor(v)
+            return torch.squeeze(a)
+        return v
+
+    @classmethod
+    def merge_paths(
+        cls,
+        path_template_list: List[List[str]],
+        path_inside: List["ExplNode"],
+        path_batch_flag: bool,
+        dryrun: bool,
+    ) -> "GoalInsideEntry":
+        """
+        Merge paths into a single GoalInsideEntry adhering to the previous behavior.
+        Supports lists of ExplNode.
+        """
+        def normalize_list(items: List["ExplNode"], is_dry: bool) -> List[Any]:
+            return [it.as_desc() if is_dry else it.as_value() for it in items]
+
+        if len(path_template_list) == 0:
+            template: List[str] = []
+            inside_list = normalize_list(path_inside, dryrun)
+            inside: Any = inside_list if dryrun else torch.tensor(1)
+            # batch_flag must be False for this case (keep original behavior)
+            return cls(template, inside, False, dryrun)
+
+        if len(path_template_list) != 1:
+            print("[WARNING] missmatch indices:", path_template_list)
+
+        template = path_template_list[0]
+        if dryrun:
+            inside = normalize_list(path_inside, True)
+        else:
+            items = normalize_list(path_inside, False)
+            if len(template) == 0:
+                inside = items[0]
+            else:
+                inside = torch.sum(torch.stack(items), dim=0)
+        return cls(template, inside, path_batch_flag, dryrun)
 
 
 class TorchComputationalExplGraph(ComputationalExplGraph, torch.nn.Module):
@@ -55,20 +183,7 @@ Note:
         }
         ```
 Note:
-    A goal in the explanation graph is represented as the following format:
-        ```
-         goal_inside[sorted_id] = {
-            "template": path_template,      template: List[str]
-            "inside": path_inside,          torch.tensor
-            "batch_flag": path_batch_flag,  bool
-         }
-        ```
-    
-    Regarding the path template of goals, the T-PRISM's assumption requires that all pathes have equal tensor size.
-    However, index symbols need not be equal for all paths.
-    So the system display a warning in case of different index symbols and only uses the index symbols in the first path.
-
-
+    Each goal in the explanation graph is represented by GoalInsideEntry instead of a dict.
     """
     def __init__(self, graph, tensor_provider, operator_loader, cycle_embedding_generator=None):
         torch.nn.Module.__init__(self)
@@ -163,24 +278,26 @@ Note:
         sublistform_args.append([mapping[el] for el in out_template])
         return sublistform_args, out_template
 
-    def _apply_operator(self,op,operator_loader,out_inside, out_template, dryrun):
+    def _apply_operator(self, op, operator_loader, out_node: ExplNode, out_template, dryrun):
         ## restore operator
         key=str(op.name)+"_"+str(op.values)
+        op_obj=None
         if key in self.operators:
             op_obj=self.operators[key]
         else:
-            #cls = operator_loader.get_operator(op.name)
-            #op_obj = cls(op.values)
             assert True, "unknown operator "+key+" has been found in forward procedure"
         if dryrun:
-            out_inside = {
+            desc = {
                 "type": "operator",
                 "name": op.name,
-                "path": out_inside}
+                "path": out_node.as_desc(),
+            }
+            out_node = ExplNode.from_desc("operator", desc)
         else:
-            out_inside = op_obj.call(out_inside)
+            out_val = op_obj.call(out_node.as_value())
+            out_node = ExplNode.from_value("operator", out_val)
         out_template = op_obj.get_output_template(out_template)
-        return out_inside,out_template
+        return out_node, out_template
     
     def forward_path_node(self, path, goal_inside, verbose=False, dryrun=False):
         goal_template = self.goal_template
@@ -198,17 +315,16 @@ Note:
                 shape = goal_template[node.sorted_id]["shape"]
                 if dryrun:
                     args = node.goal.args
-                    temp_goal_inside={
+                    temp_goal_inside = ExplNode.from_desc("goal", {
                         "type":"goal",
                         "from":"cycle_embedding_generator",
                         "name": name,
                         "args": args,
                         "id": node.sorted_id,
-                        "shape":shape}
+                        "shape":shape})
                 else:
-                    temp_goal_inside = cycle_embedding_generator.forward(
-                        name, shape, node.sorted_id
-                    )
+                    v = cycle_embedding_generator.forward(name, shape, node.sorted_id)
+                    temp_goal_inside = ExplNode.from_value("goal", v)
                 temp_goal_template = template
                 node_inside.append(temp_goal_inside)
                 node_template.append(temp_goal_template)
@@ -220,22 +336,21 @@ Note:
                 print(node.sorted_id)
                 print(temp_goal)
                 quit()
-            elif len(temp_goal["template"]) > 0:
+            elif len(temp_goal.template) > 0:
                 # tensor subgoal
                 if dryrun:
                     name = node.goal.name
                     args = node.goal.args
-                    temp_goal_inside={
+                    temp_goal_inside = ExplNode.from_desc("goal", {
                         "type":"goal",
                         "from":"goal",
                         "name": name,
                         "args": args,
-                        "id": node.sorted_id,}
-                        #"shape":shape}
+                        "id": node.sorted_id,})
                 else:
-                    temp_goal_inside = temp_goal["inside"]
-                temp_goal_template = temp_goal["template"]
-                if temp_goal["batch_flag"]:
+                    temp_goal_inside = ExplNode.from_value("goal", temp_goal.inside)
+                temp_goal_template = temp_goal.template
+                if temp_goal.batch_flag:
                     path_batch_flag = True
                 node_inside.append(temp_goal_inside)
                 node_template.append(temp_goal_template)
@@ -243,20 +358,15 @@ Note:
                 if dryrun:
                     name = node.goal.name
                     args = node.goal.args
-                    temp_goal_inside={
+                    temp_goal_inside = ExplNode.from_desc("goal", {
                         "type":"goal",
                         "from":"goal",
                         "name": name,
                         "args": args,
-                        "id": node.sorted_id,}
-                        #"shape":()}
+                        "id": node.sorted_id,})
                     node_scalar_inside.append(temp_goal_inside)
                 else:
-                    if type(temp_goal["inside"]) is list:
-                        a = torch.tensor(temp_goal["inside"])
-                        node_scalar_inside.append(torch.squeeze(a))
-                    else:
-                        node_scalar_inside.append(temp_goal["inside"])
+                    node_scalar_inside.append(ExplNode.from_value("goal_scalar", temp_goal.get_scalar_inside()))
         return node_template, node_inside, node_scalar_inside, path_batch_flag
 
     def forward_path_sw(self, path, verbose=False,verbose_embedding=False, dryrun=False):
@@ -272,32 +382,25 @@ Note:
             else:
                 sw_template.append(list(sw.values))
             if dryrun:
-                #x = tensor_provider.get_embedding(sw.name, verbose_embedding)
-                sw_var = {"type":"tensor_atom",
-                        "from":"tensor_provider.get_embedding",
-                        "name":sw.name,}
-                        #"shape":x.shape}
+                sw_var = ExplNode.from_desc("tensor_atom", {
+                    "type":"tensor_atom",
+                    "from":"tensor_provider.get_embedding",
+                    "name":sw.name,})
             else:
-                sw_var = tensor_provider.get_embedding(sw.name, verbose_embedding)
+                v = tensor_provider.get_embedding(sw.name, verbose_embedding)
+                sw_var = ExplNode.from_value("tensor_atom", v)
             sw_inside.append(sw_var)
         prob_sw_inside = []
         if dryrun:
             for sw in path.prob_switches:
-                prob_sw_inside.append({
+                prob_sw_inside.append(ExplNode.from_desc("const", {
                     "type":"const",
                     "name": sw.name,
                     "value": sw.inside,
-                    "shape":(),})
+                    "shape":(),}))
         else:
             for sw in path.prob_switches:
-                prob_sw_inside.append(sw.inside)
-                """
-                prob_sw_inside.append({
-                    "type":"const",
-                    "name": sw.name,
-                    "value": sw.inside,
-                    "shape":(),})
-                """
+                prob_sw_inside.append(ExplNode.from_value("const", sw.inside))
         return sw_template, sw_inside, prob_sw_inside, path_batch_flag
     
     def forward_path_op(self, path_name, ops, operator_loader,
@@ -307,78 +410,75 @@ Note:
             op = ops["distribution"]
             dist = op.values[0]
             if dryrun:
-                #out_inside, out_template = self._distribution_forward_dryrun
-                out_inside={
+                desc = {
                     "type": "distribution",
                     "name": path_name,
                     "dist_type": op,
-                    "path": sw_node_inside}
-                out_template= sw_node_template#TODO
+                    "path": [x.as_desc() if isinstance(x, ExplNode) else x for x in sw_node_inside],
+                }
+                out_node = ExplNode.from_desc("distribution", desc)
+                out_template= sw_node_template  # TODO: refine if needed
             else:
-                out_inside, out_template = self._distribution_forward(
+                params = [x.as_value() if isinstance(x, ExplNode) else x for x in sw_node_inside]
+                out_val, out_template = self._distribution_forward(
                     path_name,
                     dist,
-                    params=sw_node_inside,
+                    params=params,
                     param_template=sw_node_template,
                     op=op,
                 )
+                out_node = ExplNode.from_value("distribution", out_val)
             
-        else:# einsum operator
-            path_v = sorted(
-                zip(sw_node_template, sw_node_inside), key=lambda x: x[0]
-            )
+        else:  # einsum operator
+            path_v = sorted(zip(sw_node_template, sw_node_inside), key=lambda x: x[0])
             template = [x[0] for x in path_v]
-            inside = [x[1] for x in path_v]
-            # constructing einsum operation using template and inside
+            inside_nodes = [x[1] for x in path_v]
             out_template = self._compute_output_template(template)
-            # print(template,out_template)
-            if len(template) > 0:  # condition for einsum
-                if verbose:
-                    einsum_eq, out_template_v = self.make_einsum_args(template,out_template,path_batch_flag)
-                    print("  index:", einsum_eq)
-                    print("  var. :", [x.shape for x in inside])
-                    #print("  var. :", inside)
+            if len(template) > 0:
                 if dryrun:
                     einsum_eq, out_template = self.make_einsum_args(template,out_template,path_batch_flag)
-                    out_inside = {
+                    desc = {
                         "type":"einsum",
                         "name":"torch.einsum",
                         "einsum_eq":einsum_eq,
-                        "path": inside}
+                        "path":[n.as_desc() if isinstance(n, ExplNode) else n for n in inside_nodes],
+                    }
+                    out_node = ExplNode.from_desc("einsum", desc)
                 else:
-                    einsum_args, out_template = self.make_einsum_args_sublist(template,inside,out_template,path_batch_flag)
-                    #out_inside = torch.einsum(einsum_eq, *inside) * out_inside
-                    out_inside = torch.einsum(*einsum_args)
-            else:  # condition for scalar
-                if dryrun:
-                    out_inside = {
-                        "type":"nop",
-                        "name":"nop",
-                        "path": inside}
-                else:
-                    out_inside=1 #no subgoal except for operator
-            if dryrun:
-                out_inside["path_scalar"]=node_scalar_inside+prob_sw_inside
+                    inside_vals = [n.as_value() if isinstance(n, ExplNode) else n for n in inside_nodes]
+                    einsum_args, out_template = self.make_einsum_args_sublist(template, inside_vals, out_template, path_batch_flag)
+                    out_val = torch.einsum(*einsum_args)
+                    out_node = ExplNode.from_value("einsum", out_val)
             else:
-                # scalar subgoal
-                for scalar_inside in node_scalar_inside:
-                    out_inside = scalar_inside * out_inside
-                # prob(scalar) switch
-                for prob_inside in prob_sw_inside:
-                    out_inside = prob_inside * out_inside
+                if dryrun:
+                    out_node = ExplNode.from_desc("nop", {"type":"nop","name":"nop","path":[n.as_desc() if isinstance(n, ExplNode) else n for n in inside_nodes]})
+                else:
+                    out_node = ExplNode.from_value("nop", 1)
+            if dryrun:
+                out_node.add_path_scalar_descriptors(node_scalar_inside + prob_sw_inside)
+            else:
+                # multiply scalar subgoals and prob switches
+                v = out_node.as_value()
+                for s in node_scalar_inside:
+                    v = s.as_value() * v
+                for p in prob_sw_inside:
+                    v = p.as_value() * v
+                out_node = ExplNode.from_value(out_node.kind, v)
                 
             ## computing operaters
             for op_name, op in ops.items():
+                if op_name == "distribution":
+                    continue
                 if verbose:
                     print("  operator:", op_name)
-                out_inside,out_template=self._apply_operator(
+                out_node, out_template = self._apply_operator(
                     op,
                     operator_loader,
-                    out_inside,
+                    out_node,
                     out_template,
                     dryrun)
                 ##
-        return out_inside,out_template
+        return out_node, out_template
 
     def forward(self, verbose=False,verbose_embedding=False, dryrun=False):
         """
@@ -387,8 +487,8 @@ Note:
             dryrun (bool):  if true, this function outputs information required for calculation as goal_inside instead of computational graph
 
         Returns:
-            Tuple[List[Dict],Dict]: a pair of goal_inside and loss:
-                - goal_inside: tensors assigned for each goal
+            Tuple[List[GoalInsideEntry],Dict]: a pair of goal_inside and loss:
+                - goal_inside: entries assigned for each goal
                 - loss: loss derived from explanation graph: key = loss name and value = loss
         """
         graph = self.graph
@@ -429,194 +529,22 @@ Note:
                 ops = {op.name: op for op in path.operators}
                 
                 path_name = g.node.goal.name+str(j)
-                out_inside,out_template = self.forward_path_op(path_name, ops, operator_loader,
+                out_node,out_template = self.forward_path_op(path_name, ops, operator_loader,
                         sw_node_template, sw_node_inside, node_scalar_inside, prob_sw_inside,
                         path_batch_flag,
                         verbose, dryrun)
                 
-                path_inside.append(out_inside)
+                path_inside.append(out_node)
                 path_template.append(out_template)
                 ##
             ### update inside
             path_template_list = self._get_unique_list(path_template)
-            if len(path_template_list) == 0: # non-tensor/non-probabilistic path
-                if dryrun:
-                    goal_inside[i] = {
-                        "template": [],
-                        "inside": path_inside,
-                        "batch_flag": False,
-                    }
-                else:
-                    goal_inside[i] = {
-                        "template": [],
-                        "inside": torch.tensor(1),
-                        "batch_flag": False,
-                    }
-            else:
-                if len(path_template_list) != 1:
-                    print("[WARNING] missmatch indices:", path_template_list)
-                if dryrun:
-                    goal_inside[i] = {
-                        "template": path_template_list[0],
-                        "inside": path_inside,
-                        "batch_flag": path_batch_flag,
-                    }
-                else:
-                    if len(path_template_list[0]) == 0: # scalar inside
-                        goal_inside[i] = {
-                            "template": path_template_list[0],
-                            "inside": path_inside[0],
-                            "batch_flag": path_batch_flag,
-                        }
-                    else:
-                        temp_inside=torch.sum(torch.stack(path_inside), dim=0)
-                        goal_inside[i] = {
-                            "template": path_template_list[0],
-                            "inside": temp_inside,
-                            "batch_flag": path_batch_flag,
-                        }
+            entry = GoalInsideEntry.merge_paths(path_template_list, path_inside, path_batch_flag, dryrun)
             if dryrun:
-                goal_inside[i]["id"]=g.node.sorted_id
-                goal_inside[i]["name"]=g.node.goal.name
-                goal_inside[i]["args"]=g.node.goal.args
+                entry.set_meta(g.node.sorted_id, g.node.goal.name, g.node.goal.args)
+            goal_inside[i] = entry
 
         self.loss.update(tensor_provider.get_loss())
         return goal_inside, self.loss
 
-
-    
-class TorchTensorBase:
-    def __init__(self):
-        pass
-
-
-class TorchTensorOnehot(TorchTensorBase):
-    def __init__(self, provider, shape, value):
-        self.shape = shape
-        self.value = value
-
-    def __call__(self):
-        v = torch.eye(self.shape)[self.value]
-        return v
-
-
-class TorchTensor(TorchTensorBase):
-    def __init__(self, provider: 'TorchSwitchTensorProvider', name: str, shape: List[Union[int64, int]], dtype: dtype=torch.float32, tensor_type=None) -> None:
-        self.shape = shape
-        self.dtype = dtype
-        if name is None:
-            self.name = "tensor%04d" % (np.random.randint(0, 10000),)
-        else:
-            self.name = name
-        self.provider = provider
-        self.tensor_type = tensor_type
-        ###
-        self.constraint_tensor=tprism.constraint.get_constraint_tensor(shape, tensor_type, device=None, dtype=None)
-        self.param = None
-        if self.constraint_tensor is None:
-            param = torch.nn.Parameter(torch.Tensor(*shape), requires_grad=True)
-            self.param = param
-            provider.add_param(self.name, param, tensor_type)
-            self.reset_parameters()
-        else:
-            param=list(self.constraint_tensor.parameters())[0] #TODO
-            provider.add_param(self.name, param, tensor_type)
-
-        ###
-    def reset_parameters(self) -> None:
-        if len(self.param.shape) == 2:
-            torch.nn.init.kaiming_uniform_(self.param, a=math.sqrt(5))
-        else:
-            self.param.data.uniform_(-0.1, 0.1)
-
-    def __call__(self):
-        if self.constraint_tensor is None:
-            return self.param
-        else:
-            return self.constraint_tensor()
-
-
-class TorchGather(TorchTensorBase):
-    def __init__(self, provider: 'TorchSwitchTensorProvider', var: TorchTensor, idx: PlaceholderData) -> None:
-        self.var = var
-        self.idx = idx
-        self.provider = provider
-
-    def __call__(self):
-        if isinstance(self.idx, PlaceholderData):
-            idx = self.provider.get_embedding(self.idx)
-        else:
-            idx = self.idx
-        if isinstance(self.var, TorchTensor):
-            temp = self.var()
-            v = torch.index_select(temp, 0, idx)
-        elif isinstance(self.var, TorchTensorBase):
-            v = torch.index_select(self.var(), 0, idx)
-        elif isinstance(self.var, PlaceholderData):
-            v = self.provider.get_embedding(self.var)
-            v = v[idx]
-        else:
-            v = torch.index_select(self.var, 0, idx)
-        return v
-
-
-class TorchSwitchTensorProvider(SwitchTensorProvider):
-    def __init__(self) -> None:
-        super().__init__()
-        self.tensor_onehot_class = TorchTensorOnehot
-        self.tensor_class = TorchTensor
-        self.tensor_gather_class = TorchGather
-        self.integer_dtype = torch.int32
-        
-
-    # forward
-    def get_loss(self, verbose:bool=False):
-        loss={}
-        for name, (param,tensor_type) in self.params.items():
-            m=re.match(r"^sparse\(([0-9\.]*)\)$", tensor_type)
-            if m:
-                coeff = float(m.group(1))
-                l=coeff*torch.norm(param,1)
-                loss["sparse_"+name]=l
-            elif tensor_type=="sparse":
-                l=torch.norm(param,1)
-                loss["sparse_"+name]=l
-        return loss
-    # forward
-    def get_embedding(self, name: Union[str,PlaceholderData], verbose:bool=False):
-        if verbose:
-            print("[INFO] get embedding:", name)
-        out = None
-        ## TODO:
-        if self.input_feed_dict is None:
-            if verbose:
-                print("[INFO] from tensor_embedding", name)
-            obj = self.tensor_embedding[name]
-            if isinstance(obj, TorchTensorBase):
-                out = obj()
-            else:
-                raise Exception("Unknoen embedding type", name, type(obj))
-        elif type(name) is str:
-            key = self.tensor_embedding[name]
-            if type(key) is PlaceholderData:
-                if verbose:
-                    print("[INFO] from PlaceholderData", name, "==>", key.name)
-                out = self.input_feed_dict[key]
-            elif isinstance(key, TorchTensorBase):
-                if verbose:
-                    print("[INFO] from Tensor", name, "==>")
-                out = key()
-            else:
-                raise Exception("Unknoen embedding type", name, key)
-        elif type(name) is PlaceholderData:
-            if verbose:
-                print("[INFO] from PlaceholderData", name)
-            out = self.input_feed_dict[name]
-        else:
-            raise Exception("Unknoen embedding", name)
-        if verbose:
-            print(out)
-            print(type(out))
-            print("sum:", out.sum())
-        return out
-
+   

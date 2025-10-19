@@ -26,16 +26,9 @@ from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union, cast
 
 from tprism.placeholder import PlaceholderData
 from tprism.torch_embedding_generator import EmbeddingGenerator
-from tprism.util import Flags, TensorInfoMapper
+from tprism.util import Flags, TensorInfoMapper, InputData
 from tprism.loss import BaseLoss
-import dataclasses
 
-#[ {"goal_id": <int>, "placeholders": <List[str]>, "records": ndarray} ]
-@dataclasses.dataclass
-class InputData:
-    goal_id: int
-    placeholders: List[str] = dataclasses.field(default_factory=list)
-    records: ndarray = dataclasses.field(default_factory=lambda: np.array([], dtype=int32))
 
 
 def load_input_data(data_filename_list: List[str]) -> List[InputData]:

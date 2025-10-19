@@ -17,6 +17,15 @@ import h5py
 
 import tprism.expl_pb2 as expl_pb2
 
+import dataclasses
+
+#[ {"goal_id": <int>, "placeholders": <List[str]>, "records": ndarray} ]
+@dataclasses.dataclass
+class InputData:
+    goal_id: int
+    placeholders: List[str] = dataclasses.field(default_factory=list)
+    records: ndarray = dataclasses.field(default_factory=lambda: np.array([], dtype=np.int32))
+
 
 def save_embedding_as_h5(filename: str, train_data: Dict[str,ndarray]={} , test_data:Dict[str,ndarray]={}):
     """ save embedding dataset as h5fs format
@@ -153,7 +162,7 @@ def split_goal_dataset(goal_dataset, valid_ratio=0.1):
 # goal_dataset["placeholders"] => ph_vars
 # goal_dataset["dataset"]: dataset
 # dataset contains indeces: values in the given dataset is coverted into index
-def build_goal_dataset(input_data, tensor_provider):
+def build_goal_dataset(input_data: List[InputData], tensor_provider):
     goal_dataset = []
 
     def to_index(value, ph_name):
@@ -161,14 +170,14 @@ def build_goal_dataset(input_data, tensor_provider):
 
     to_index_func = np.vectorize(to_index)
     for d in input_data:
-        ph_names = d["placeholders"]
+        ph_names = d.placeholders
         # TODO: multiple with different placeholders
         ph_vars = [tensor_provider.ph_var[ph_name] for ph_name in ph_names]
         dataset = [None for _ in ph_names]
         goal_data = {"placeholders": ph_vars, "dataset": dataset}
         goal_dataset.append(goal_data)
         for i, ph_name in enumerate(ph_names):
-            rec = d["records"]
+            rec = d.records
             if tensor_provider.is_convertable_value(ph_name):
                 print("[INFO]", ph_name, "converted!!")
                 dataset[i] = to_index_func(rec[:, i], ph_name)

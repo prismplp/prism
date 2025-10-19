@@ -3,7 +3,9 @@ import torch
 import torch.nn.functional as F
 import sklearn.metrics
 from typing import Optional
-
+from typing import List
+#from tprism.expl_graph import ComputationalExplGraph, SwitchTensorProvider
+#from tprism.torch_expl_graph import GoalInsideEntry
 from tprism.loss.base import BaseLoss
 
 class NLL(BaseLoss):
@@ -11,7 +13,7 @@ class NLL(BaseLoss):
         pass
 
     # loss: goal x minibatch
-    def call(self, graph, goal_inside, tensor_provider):
+    def call(self, graph:'ComputationalExplGraph', goal_inside:List['GoalInsideEntry'], tensor_provider:'SwitchTensorProvider'):
         loss = []
         output = []
         gamma = 1.00
@@ -23,7 +25,7 @@ class NLL(BaseLoss):
             goal_ids = [el.sorted_id for el in rank_root.roots]
             o=[]
             for sid in goal_ids:
-                l1 = goal_inside[sid]["inside"]
+                l1 = goal_inside[sid].inside
                 nll = -1.0 * torch.log(l1 + 1.0e-10)
                 o.append(l1)
             o=torch.stack(o)
@@ -39,7 +41,7 @@ class CE(BaseLoss):
         pass
 
     # loss: goal x minibatch
-    def call(self, graph, goal_inside, tensor_provider):
+    def call(self, graph:'ComputationalExplGraph', goal_inside:List['GoalInsideEntry'], tensor_provider:'SwitchTensorProvider'):
         loss = []
         output = []
         gamma = 1.00
@@ -50,7 +52,7 @@ class CE(BaseLoss):
             for sid in goal_ids:
                 args = graph.goals[sid].node.goal.args
                 label=int(args[0])
-                out = goal_inside[sid]["inside"]
+                out = goal_inside[sid].inside
                 o.append(out)
                 y.append(label)
         o_t=torch.stack(o)
@@ -75,7 +77,7 @@ class CE_pl2(BaseLoss):
         pass
 
     # loss: goal x minibatch
-    def call(self, graph, goal_inside, tensor_provider):
+    def call(self, graph:'ComputationalExplGraph', goal_inside:List['GoalInsideEntry'], tensor_provider:'SwitchTensorProvider'):
         loss = []
         output = []
         label = []
@@ -88,7 +90,7 @@ class CE_pl2(BaseLoss):
         for rank_root in graph.root_list:
             goal_ids = [el.sorted_id for el in rank_root.roots]
             for sid in goal_ids:
-                l1 = goal_inside[sid]["inside"]
+                l1 = goal_inside[sid].inside
                 #print(F.softmax(l1,dim=1).shape, label_ph_var.shape)
                 #lo = F.nll_loss(F.softmax(l1,dim=1), label_ph_var)
                 lo = F.nll_loss(F.log_softmax(l1,dim=1), label_ph_var)
@@ -126,8 +128,8 @@ class MSE(BaseLoss):
         beta = 1.0e-4
         for rank_root in graph.root_list:
             goal_ids = [el.sorted_id for el in rank_root.roots]
-            l1 = goal_inside[goal_ids[0]]["inside"]
-            l2 = goal_inside[goal_ids[1]]["inside"]
+            l1 = goal_inside[goal_ids[0]].inside
+            l2 = goal_inside[goal_ids[1]].inside
             lo = (l1-l2)**2
             loss.append(lo.sum())
             output.append(l1)
@@ -162,8 +164,8 @@ class PreferencePair(BaseLoss):
 
         for rank_root in graph.root_list:
             goal_ids = [el.sorted_id for el in rank_root.roots]
-            l1 = goal_inside[goal_ids[0]]["inside"]
-            l2 = goal_inside[goal_ids[1]]["inside"]
+            l1 = goal_inside[goal_ids[0]].inside
+            l2 = goal_inside[goal_ids[1]].inside
             l = torch.nn.functional.relu(l2 - l1 + gamma)
             # l=tf.exp(l2-l1)
             # l=- 1.0/(tf.exp(l2-l1)+1)+reg_loss
@@ -186,8 +188,8 @@ class RMSEPair(BaseLoss):
         output = []
         for rank_root in graph.root_list:
             goal_ids = [el.sorted_id for el in rank_root.roots]
-            output1 = goal_inside[goal_ids[0]]["inside"]
-            output2 = goal_inside[goal_ids[1]]["inside"]
+            output1 = goal_inside[goal_ids[0]].inside
+            output2 = goal_inside[goal_ids[1]].inside
             l=output1-output2
             loss.append(torch.sqrt(torch.mean(l**2)))
             output.append(torch.stack([output1, output2]))

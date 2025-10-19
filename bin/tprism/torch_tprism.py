@@ -23,6 +23,8 @@ import tprism.expl_pb2 as expl_pb2
 import tprism.expl_graph as expl_graph
 import tprism.torch_expl_graph as torch_expl_graph
 import tprism.torch_embedding_generator as embed_gen
+import tprism.torch_expl_tensor as torch_expl_tensor
+
 from tprism.util import (
     to_string_goal,
     Flags,
@@ -172,7 +174,7 @@ class TprismModel:
         self.cycle_embedding_generator = cycle_embedding_generator
 
     def _set_data(self, input_data, load_vocab):
-        self.tensor_provider = torch_expl_graph.TorchSwitchTensorProvider()
+        self.tensor_provider = torch_expl_tensor.TorchSwitchTensorProvider()
         self.tensor_provider.build(
             self.graph,
             self.tensor_shapes,
@@ -552,7 +554,7 @@ def run_preparing(args):
     loss_loader.load_all("loss/")
     loss_cls = loss_loader.get_loss(cast(str,flags.sgd_loss))
     ##
-    tensor_provider = torch_expl_graph.TorchSwitchTensorProvider()
+    tensor_provider = torch_expl_tensor.TorchSwitchTensorProvider()
     embedding_generators = []
     for embedding_filename in cast(list,flags.embedding):
         eg = embed_gen.EmbeddingGenerator()
