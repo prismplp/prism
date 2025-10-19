@@ -23,9 +23,9 @@ upprism transitive_closure.psm
 ## --cycle option is required to solve a fixed point in the cyclic explanation graph.
 ## In this case, the loss function is not required.
 
-tprism train \
+tprism test \
     --input transitive_closure_tmp/ \
-    --embedding transitive_closure_tmp/embedding.h5 \
+    --embedding transitive_closure_tmp/embedding.npy.json \
     --cycle \
     --cpu
 

@@ -4,6 +4,7 @@ This module contains pytorch T-PRISM main
 """
 
 
+from typing import cast
 import torch
 import torch.optim as optim
 import torch.nn.functional as F
@@ -22,6 +23,8 @@ import tprism.expl_pb2 as expl_pb2
 import tprism.expl_graph as expl_graph
 import tprism.torch_expl_graph as torch_expl_graph
 import tprism.torch_embedding_generator as embed_gen
+import tprism.torch_expl_tensor as torch_expl_tensor
+
 from tprism.util import (
     to_string_goal,
     Flags,
@@ -111,10 +114,14 @@ class TprismEvaluator:
 
     def get_msg(self, prefix="train"):
         msg = []
-        for key, val in self.get_dict(prefix=prefix).items():
-            m = "{:s}: {:.3f}".format(key, val)
-            msg.append(m)
-        return "  ".join(msg)
+        loss_dict=self.get_dict(prefix=prefix)
+        if loss_dict is not None:
+            for key, val in loss_dict.items():
+                m = "{:s}: {:.3f}".format(key, val)
+                msg.append(m)
+            return "  ".join(msg)
+        else:
+           return ""
 
     def get_loss(self):
         return self.running_loss
@@ -167,7 +174,7 @@ class TprismModel:
         self.cycle_embedding_generator = cycle_embedding_generator
 
     def _set_data(self, input_data, load_vocab):
-        self.tensor_provider = torch_expl_graph.TorchSwitchTensorProvider()
+        self.tensor_provider = torch_expl_tensor.TorchSwitchTensorProvider()
         self.tensor_provider.build(
             self.graph,
             self.tensor_shapes,
@@ -321,6 +328,7 @@ class TprismModel:
         print("... starting training")
         train_evaluator = TprismEvaluator(goal_dataset)
         valid_evaluator = TprismEvaluator(goal_dataset)
+        check_point_flag= False
         for epoch in range(self.flags.max_iterate):
             start_t = time.time()
             train_evaluator.start_epoch()
@@ -448,6 +456,7 @@ class TprismModel:
 
     def export_computational_graph(self, input_data=None, verbose=False):
         print("... prediction")
+        goal_dataset=None
         if input_data:
             goal_dataset = build_goal_dataset(input_data, self.tensor_provider)
         print("... loaded variables")
@@ -461,7 +470,7 @@ class TprismModel:
         print("... exporting")
         outputs = []
         labels = []
-        if input_data:
+        if input_data and goal_dataset is not None:
             for j, goal in enumerate(goal_dataset):
                 # valid
                 num_itr = len(test_idx[j]) // batch_size
@@ -543,16 +552,16 @@ def run_preparing(args):
     ##
     loss_loader = LossLoader()
     loss_loader.load_all("loss/")
-    loss_cls = loss_loader.get_loss(flags.sgd_loss)
+    loss_cls = loss_loader.get_loss(cast(str,flags.sgd_loss))
     ##
-    tensor_provider = torch_expl_graph.TorchSwitchTensorProvider()
+    tensor_provider = torch_expl_tensor.TorchSwitchTensorProvider()
     embedding_generators = []
-    for embedding_filename in flags.embedding:
+    for embedding_filename in cast(list,flags.embedding):
         eg = embed_gen.EmbeddingGenerator()
         eg.load(embedding_filename )
         embedding_generators.append(eg)
-    for embedding_filename in flags.const_embedding:
-        eg = embed_gen.EmbeddingGenerator(const_flag)
+    for embedding_filename in cast(list,flags.const_embedding):
+        eg = embed_gen.EmbeddingGenerator(const_flag=True)
         eg.load(embedding_filename )
         embedding_generators.append(eg)
     tensor_provider.build(
@@ -574,7 +583,7 @@ def run_training(args):
     ##
     loss_loader = LossLoader()
     loss_loader.load_all("loss/torch*")
-    loss_cls = loss_loader.get_loss(flags.sgd_loss)
+    loss_cls = loss_loader.get_loss(cast(str,flags.sgd_loss))
     ##
     print("... computational graph")
     model = TprismModel(flags, tensor_shapes, graph, loss_cls)
@@ -605,7 +614,7 @@ def run_test(args):
     ##
     loss_loader = LossLoader()
     loss_loader.load_all("loss/torch*")
-    loss_cls = loss_loader.get_loss(flags.sgd_loss)
+    loss_cls = loss_loader.get_loss(cast(str,flags.sgd_loss))
     ##
     print("... computational graph")
     model = TprismModel(flags, tensor_shapes, graph, loss_cls)
@@ -615,7 +624,7 @@ def run_test(args):
     start_t = time.time()
     print("... prediction")
     if flags.cycle:
-        model.solve(goal_dataset)
+        model.solve()
     elif input_data is not None:
         #model.export_computational_graph(input_data)
         pred_y, out = model.pred(input_data,verbose=args.verbose)
@@ -625,7 +634,7 @@ def run_test(args):
     train_time = time.time() - start_t
     print("total training time:{0}".format(train_time) + "[sec]")
     print("... output")
-    np.save(flags.output,out)
+    np.save(cast(str,flags.output),out)
     print("[SAVE]", flags.output)
     data = {}
     for j, root_obj in enumerate(graph.root_list):
@@ -733,7 +742,7 @@ def main():
     else:
         print("[LOAD] ", args.config)
         fp = open(args.config, "r")
-        config.update(json.load(fp))
+        args.__dict__.update(json.load(fp))
 
     # gpu/cpu
     if args.cpu:
@@ -778,10 +787,6 @@ def main():
         run_preparing(args)
     if args.mode == "test" or args.mode == "pred":
         run_test(args)
-    elif args.mode == "cv":
-        run_train_cv(args)
-    if args.mode == "show":
-        run_display(args)
 
 
 if __name__ == "__main__":

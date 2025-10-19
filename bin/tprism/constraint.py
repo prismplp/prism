@@ -48,7 +48,11 @@ def get_constraint_tensor(shape, tensor_type, device=None, dtype=None):
             rank = int(m.group(1))
         return FixedLowRankTensor(shape,rank)
     elif tensor_type=="invertible":
-        return InvertibleTensor(shape)
+        rank=1
+        m=re.match(r"^\(([0-9\.]*)\)$", tensor_type[len("low_rank"):])
+        if m:
+            rank = int(m.group(1))
+        return InvertibleTensor(shape,rank)
     elif tensor_type=="sln":
         return SLnTensor(shape)
     elif tensor_type=="positive_definite":

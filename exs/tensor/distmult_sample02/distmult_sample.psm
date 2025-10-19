@@ -35,6 +35,6 @@ prism_main([]):-
 	load_clauses('sample.dat',Gs),
 	generate_preference_pair(Gs,GoalPairList),
 	GoalPlaceholder=[[rel(_,_,0),rel(_,_,0)]],
-	save_placeholder_goals('distmult_sample_tmp/data.h5',GoalPlaceholder,GoalPairList),
+	save_placeholder_goals('distmult_sample_tmp/data.json',json,GoalPlaceholder,GoalPairList),
 	save_expl_graph('distmult_sample_tmp/expl.json','distmult_sample_tmp/flags.json',GoalPlaceholder).
 
