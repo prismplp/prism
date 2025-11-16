@@ -38,6 +38,7 @@ from tprism.loader import (
     LossLoader,
     OperatorLoader,
 )
+from tprism.loss.base import BaseLoss 
 
 from tprism.torch_util import draw_graph
 import re
@@ -48,6 +49,15 @@ import sklearn.metrics
 
 This is called by tprism command (pytorch based tprism)
 """
+
+def _check_and_detach(output):
+    if output is None:
+        return None
+    elif type(output) is list:
+        output=[o.detach().numpy() if type(o) != np.ndarray else o for o in output]
+    elif type(output) is torch.Tensor:
+        output=output.detach().numpy()
+    return output
 
 class TprismEvaluator:
     """Evaluator for pytorch system
@@ -67,12 +77,7 @@ class TprismEvaluator:
         self.running_loss = [0.0 for _ in range(self.n_goals)]
         self.running_loss_dict = [{} for _ in range(self.n_goals)]
         self.running_count = [0 for _ in range(self.n_goals)]
-
-    def _check_and_detach(self, x):
-        if type(x) is torch.Tensor:
-            return x.detach().numpy()
-        else:
-            return x
+    
     def update(self, loss, loss_dict, j):
         """
             This function is called the last of batch iteration
@@ -80,11 +85,11 @@ class TprismEvaluator:
               j: goal index of iteration
               num_itr:: number of iterations
         """
-        loss=self._check_and_detach(loss)
+        loss=_check_and_detach(loss)
         self.running_loss[j] += loss
         self.running_count[j] += 1
         for k, v in loss_dict.items():
-            v=self._check_and_detach(v)
+            v=_check_and_detach(v)
             if k in self.running_loss_dict:
                 self.running_loss_dict[j][k] += v
             else:
@@ -127,13 +132,10 @@ class TprismEvaluator:
         return self.running_loss
 
     def update_data(self, output, label, j):
-        if type(output[j]) == list:  # preference
-            _o = [o.detach().numpy() for o in output[j]]
-        else:
-            _o = output[j].detach().numpy()
+        _o = _check_and_detach(output[j])
         self.output[j].extend(_o)
         if label is not None:
-            _l = label[j].detach().numpy()
+            _l = _check_and_detach(label[j])
             self.label[j].extend(_l)
 
 
@@ -146,7 +148,10 @@ class TprismModel:
         self.graph = graph
         self.flags = flags
         self.tensor_shapes = tensor_shapes
-        self.loss_cls = loss_cls
+        if loss_cls is None:
+            self.loss_cls = BaseLoss
+        else:
+            self.loss_cls = loss_cls
         self.operator_loader = OperatorLoader()
         self.operator_loader.load_all("op/torch_")
 
@@ -349,10 +354,11 @@ class TprismModel:
                     )
                     if label is not None:
                         metrics = loss_cls.metrics(
-                            output[j].detach().numpy(), label[j].detach().numpy()
+                            _check_and_detach(output[j]), 
+                            _check_and_detach(label[j])
                         )
                     else:
-                        metrics = loss_cls.metrics(output[j].detach().numpy(), None)
+                        metrics = loss_cls.metrics(_check_and_detach(output[j]), None)
                     loss_list.update(metrics)
                     # display_graph(output[j],'graph_pytorch')
                     optimizer.zero_grad()
@@ -369,10 +375,11 @@ class TprismModel:
                     )
                     if label is not None:
                         metrics = loss_cls.metrics(
-                            output[j].detach().numpy(), label[j].detach().numpy()
+                            _check_and_detach(output[j]), 
+                            _check_and_detach(label[j])
                         )
                     else:
-                        metrics = loss_cls.metrics(output[j].detach().numpy(), None)
+                        metrics = loss_cls.metrics(_check_and_detach(output[j]), None)
                     loss_list.update(metrics)
                     valid_evaluator.update(loss[j], loss_list, j)
                 # checking validation loss for early stopping
@@ -417,7 +424,7 @@ class TprismModel:
             return self._pred(input_data, verbose)
         else:
             return self._pred_no_data(verbose)
-
+        
     def _pred_no_data(self, verbose):
         print("... prediction")
         print("... loaded variables")
@@ -446,12 +453,9 @@ class TprismModel:
         if loss is not None:
             print("loss:", torch.sum(loss))
         print("metrics:", metrics)
-        if label is not None:
-            label=label.detach().numpy()
-        if type(output) is list:
-            output=[o.detach().numpy() for o in output]
-        else:
-            output=output.detach().numpy()
+        # 
+        label  = _check_and_detach(label)
+        output = _check_and_detach(output)
         return label, output
 
     def export_computational_graph(self, input_data=None, verbose=False):
@@ -518,10 +522,7 @@ class TprismModel:
                 )
                 if loss is not None:
                     evaluator.update(loss[j], loss_list, j)
-                _o = output[j].detach().numpy()
-                print(_o)
-                _l = label[j].detach().numpy() if label is not None else None
-                metrics = loss_cls.metrics(_o, _l)
+                _o = _check_and_detach(output[j])
                 evaluator.update_data(output, label, j)
             ##
             print(evaluator.get_msg("test"))
