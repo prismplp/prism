@@ -40,13 +40,15 @@ LD          = gcc
 
 ifeq ($(MATRIX),lapack)
 CFLAGS     = -O3 -fomit-frame-pointer -fno-strict-aliasing -Wall -I../bp4prism/include -I.. -I../resource/lapack -I../resource -I../up
-LDFLAGS    = -lm -lpthread -lstdc++fs -lgfortran
-CXXFLAGS=$(CFLAGS)
+LDFLAGS    = -lm -lpthread -lgfortran
+#-lstdc++fs is no longer required
+CXXFLAGS += $(CFLAGS)
 LD         = g++
 else
 CFLAGS     = -fomit-frame-pointer -fno-strict-aliasing -Wall -I../bp4prism/include -I.. -I../resource -I../up
-LDFLAGS    = -lm -lpthread -lstdc++fs
-CXXFLAGS=$(CFLAGS)
+LDFLAGS    = -lm -lpthread 
+#-lstdc++fs is no longer required
+CXXFLAGS +=$(CFLAGS)
 LD         = g++
 endif
 
@@ -83,20 +85,22 @@ CFLAGS     += -DMPI
 endif
 
 ifeq ($(PLATFORM),linux)
-CFLAGS     += -DMALLOC_TRACE -DLINUX -DPOSIX -Dunix -DM64BITS -m64 -std=c++11
+CFLAGS     += -DMALLOC_TRACE -DLINUX -DPOSIX -Dunix -DM64BITS -m64
+CXXFLAGS += -std=c++11
 # -no-pie is requireed for gcc>=6
 LDFLAGS    += -m64 -no-pie
 endif
 
 ifeq ($(PLATFORM),darwin)
 ifndef ARCH
-ARCH=x86_64
+#ARCH=x86_64
 endif
 CFLAGS     += -DDARWIN
-CFLAGS     += -arch $(ARCH)
-LDFLAGS    += -arch $(ARCH)
-CFLAGS     += -mmacosx-version-min=10.4
-LDFLAGS    += -mmacosx-version-min=10.4
+CXXFLAGS += -std=c++11
+#CFLAGS     += -arch $(ARCH)
+#LDFLAGS    += -arch $(ARCH)
+#CFLAGS     += -mmacosx-version-min=10.4
+#LDFLAGS    += -mmacosx-version-min=10.4
 endif
 
 ifeq ($(PLATFORM),cygwin)
