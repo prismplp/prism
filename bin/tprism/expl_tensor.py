@@ -482,7 +482,7 @@ class SwitchTensorProvider:
         ## assigning tensor variable
         ## vocab_var: vocab_name => variable
         ##
-        vocab_var = {}
+        vocab_var: Dict[str, PlaceholderData | TorchTensorBase] = {}
         for vocab_name, var_type in self.vocab_var_type.items():
             values = vocab_set.get_values(vocab_name)
             if var_type.type == "dataset":
@@ -535,7 +535,60 @@ class SwitchTensorProvider:
                                 raise ValueError(f"var_ds must not be None for '{vocab_name}' when sw.value is None.")
                         else:
                             var_ds = eg.get_embedding(vocab_name)
-                            if verbose:        self.vocab_var = vocab_var
+                            if verbose:
+                                print("ph_list==0 and value enbabled")
+                                if var_ds is not None:
+                                    print((vocab_name, ":", var_ds.shape, "=>", shape))
+                            index = vocab_set.get_values_index(vocab_name, sw.value)
+                            if verbose:
+                                print(index, sw.value)
+                            if self.tensor_gather_class is None:
+                                 raise ValueError("tensor_gather_class must not be None")
+                            if var_ds is not None:
+                                tensor_embedding[sw_name] = self.tensor_gather_class(self, var_ds, sw.value)
+                            else:
+                                raise ValueError(f"var_ds must not be None for '{vocab_name}' when sw.value is enabled.")
+                if not dataset_flag:
+                    # trainig variable without placeholder
+                    var = vocab_var[vocab_name]
+                    if verbose:
+                        print("ph_list==0 and no dataset")
+                        print((vocab_name, ":", var.shape))
+                    tensor_embedding[sw_name] = var
+            elif len(ph_list) == 1:
+                dataset_flag = False
+                shape=None
+                for eg in embedding_generators:
+                    if eg.is_embedding(vocab_name):
+                        dataset_flag = True
+                        # dataset with placeholder
+                        shape = [batch_size] + list(list(sw.shape_set)[0])
+                        var_ds = eg.get_embedding(vocab_name)
+                        # var = eg.get_embedding(vocab_name, shape)
+                        if verbose:
+                            print("ph_list==1 and dataset enabled")
+                            if var_ds is not None:
+                                print((vocab_name, ":", var_ds.shape, "=>", shape))
+                        if var_ds is not None:
+                            tensor_embedding[sw_name] = var_ds
+                        else:
+                            raise ValueError(f"var_ds must not be None for '{vocab_name}' when building tensor_embedding.")
+                if not dataset_flag:
+                    # trainig variable with placeholder
+                    var_ = vocab_var[vocab_name]
+                    if var_ is None or type(var_) is not PlaceholderData:
+                        raise ValueError(f"var_ must be PlaceholderData for '{vocab_name}' when ph_list==1.")
+                    if verbose:
+                        print("ph_list==1 and dataset disabled")
+                        if var_ is not None:
+                            print((vocab_name, ":", var_.shape, "=>", shape))
+                    ph = ph_var[ph_list[0]]
+                    if self.tensor_gather_class is None:
+                        raise ValueError("tensor_gather_class must not be None")
+                    tensor_embedding[sw_name] = self.tensor_gather_class(self, var_, ph)
+            else:
+                print("[WARM] unknown embedding:", sw_name)
+        self.vocab_var = vocab_var
         self.ph_var = ph_var
         self.tensor_embedding = tensor_embedding
         return tensor_embedding
