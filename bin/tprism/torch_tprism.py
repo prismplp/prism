@@ -222,7 +222,7 @@ class TprismModel:
         self.operator_loader = OperatorLoader()
         self.operator_loader.load_all("op/torch_")
 
-    def build(self, input_data: Optional[List[InputData]], load_vocab: bool, embedding_key: str, verbose: bool) -> None:
+    def build(self, input_data: Optional[List[InputData]], load_vocab: bool, embedding_key: str, verbose: bool=False) -> None:
         """Initialize embeddings, data provider, and computational graph.
 
         Args:

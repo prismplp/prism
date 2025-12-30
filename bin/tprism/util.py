@@ -77,7 +77,7 @@ class Flags:
     # others
     cycle: bool = False
     verbose: bool = False
-    def __init__(self, args: Any = None, options: Any = None):
+    def build(self, args: Any = None, options: Any = None):
         if args is not None:
             if type(args) != dict:
                 args_dict = vars(args)
@@ -87,14 +87,14 @@ class Flags:
             flags = {f.key: f.value for f in options.flags}
         else:
             flags = {}
-        self.build(args_dict, flags)
+        self._build(args_dict, flags)
             
     def __contains__(self, k: str) -> bool:
         return hasattr(self, k) and getattr(self, k) is not None
     def add(self, k: str, v: Any) -> None:
         if hasattr(self, k):
             setattr(self, k, v)
-    def build(self, args_dict, flags) -> None:
+    def _build(self, args_dict, flags) -> None:
         for k, v in args_dict.items():
             if v is not None:
                 self.add(k, v)
