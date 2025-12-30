@@ -79,7 +79,10 @@ class Flags:
     verbose: bool = False
     def __init__(self, args: Any = None, options: Any = None):
         if args is not None:
-           args_dict=vars(args)
+            if type(args) != dict:
+                args_dict = vars(args)
+            else:
+                args_dict = args
         if options is not None:
             flags = {f.key: f.value for f in options.flags}
         else:
