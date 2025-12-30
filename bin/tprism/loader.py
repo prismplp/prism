@@ -163,7 +163,7 @@ def load_explanation_graph(expl_filename: str, option_filename: Optional[str] =N
             options = json_format.Parse(fp.read(), options)
     #
     flags = Flags()
-    flags = flags.build(args, options)
+    flags.build(args, options)
     tensor_shapes = TensorInfoMapper(options)
     return graph, tensor_shapes, flags
 
