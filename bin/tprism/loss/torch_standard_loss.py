@@ -4,8 +4,6 @@ import torch.nn.functional as F
 import sklearn.metrics
 from typing import Optional
 from typing import List
-from tprism.expl_graph import SwitchTensorProvider
-from tprism.torch_expl_graph import GoalInsideEntry
 import tprism.expl_pb2 as expl_pb2
 
 from tprism.loss.base import BaseLoss
@@ -13,6 +11,10 @@ from typing import Any, List, Optional, Tuple
 
 from torch import Tensor
 
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from tprism.expl_graph import SwitchTensorProvider
+    from tprism.torch_expl_graph import GoalInsideEntry
 
 class NLL(BaseLoss):
     def __init__(self, parameters=None):

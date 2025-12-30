@@ -1,10 +1,12 @@
 
 from typing import Any, List, Optional, Tuple
-from tprism.expl_graph import SwitchTensorProvider
-from tprism.torch_expl_graph import GoalInsideEntry
 import tprism.expl_pb2 as expl_pb2
 from torch import Tensor
 import torch
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from tprism.expl_graph import SwitchTensorProvider
+    from tprism.torch_expl_graph import GoalInsideEntry
 
 class BaseLoss:
     def __init__(self, parameters=None):

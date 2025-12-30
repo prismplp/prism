@@ -1,18 +1,9 @@
 #!/usr/bin/env python
 
-import json
-import os
-import re
 import numpy as np
 from numpy import ndarray
 from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union
 
-from google.protobuf import json_format
-from itertools import chain
-import collections
-import argparse
-import time
-import pickle
 import h5py
 
 import tprism.expl_pb2 as expl_pb2
@@ -58,8 +49,7 @@ def to_string_goal(goal):
     s += ",".join([str(arg) for arg in goal.args])
     return s
 
-from __future__ import annotations
-from typing import Any, Dict, List
+
 
 class Flags(object):
     """
