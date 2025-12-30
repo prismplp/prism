@@ -4,32 +4,25 @@ which assign a tensor to an atom.
 """
 import torch
 import json
-import re
 import numpy as np
-from google.protobuf import json_format
 
-from itertools import chain
-import collections
-
-import inspect
-import importlib
-import glob
 import os
-import re
-import pickle
 import h5py
 
-import tprism.expl_pb2 as expl_pb2
-import tprism.op.base
-import tprism.loss.base
 from tprism.util import TensorInfoMapper
 from tprism.placeholder import PlaceholderData
 from numpy import ndarray
 from torch import Tensor
-from typing import Dict, Optional, Tuple
+from typing import Any, Dict, Optional, Sequence, Tuple, TypedDict
 
 
 EmbeddingData=Dict[str,ndarray]
+
+
+class CycleEmbeddingEntry(TypedDict):
+    tensor: PlaceholderData
+    data: Tensor
+    id: int
 
 def load_embedding_data(filename: str, key: str, verb: bool) -> EmbeddingData:
     """Load input data supporting .h5/.json format
@@ -41,7 +34,7 @@ def load_embedding_data(filename: str, key: str, verb: bool) -> EmbeddingData:
 
     """
     _, ext = os.path.splitext(filename)
-    dataset=None
+    dataset:EmbeddingData = {}
     if ext == ".h5":
         print("[LOAD]", filename)
         dataset = load_embedding_h5(filename, key, verb)
@@ -53,8 +46,8 @@ def load_embedding_data(filename: str, key: str, verb: bool) -> EmbeddingData:
     return dataset
 
 def load_embedding_h5(filename, key, verb)-> EmbeddingData:
-    infh = h5py.File(filename, "r")
-    dataset={}
+    infh:Any = h5py.File(filename, "r")
+    dataset:EmbeddingData = {}
     if key in infh:
         for vocab_name in infh[key]:
             rs = infh[key][vocab_name][()]
@@ -67,8 +60,8 @@ def load_embedding_h5(filename, key, verb)-> EmbeddingData:
 
 def load_embedding_npy(filename: str, key: str, verb: bool) -> EmbeddingData:
     fp = open(filename, "r")
-    obj=json.load(fp)
-    dataset={}
+    obj = json.load(fp)
+    dataset:EmbeddingData = {}
     if key in obj["group"]:
         tensor=np.load(obj["filename"])
         name=obj["name"]
@@ -84,51 +77,62 @@ class BaseEmbeddingGenerator:
         self.get_verb  = False
         self.info_verb = False
 
-    def is_embedding(self, vocab_name):
+    def is_embedding(self, vocab_name: str) -> bool:
         return False
 
-    def get_shape(self, vocab_name):
+    def get_shape(self, vocab_name: str) -> Tuple[int, ...]:
+        return ()
+
+    def get_embedding(self, vocab_name: str, shape: Optional[Tuple[int, ...]] = None, node_id = None) -> Optional[PlaceholderData]:
         return None
 
-    def get_embedding(self, name, shape, node_id):
-        return None
-
-    def update(self, out_inside):
-        pass
+    def update(self, out_inside: Sequence[Tensor]) -> Tensor:
+        return torch.tensor(0.0)
+    
+    def forward(self, name: str, shape: Sequence[int], node_id: int) -> Tensor:
+        return torch.tensor(0.0)
+    
+    def build_feed(self, feed_dict: Dict[PlaceholderData, Tensor], idx: Optional[ndarray]=None) -> Dict[PlaceholderData, Tensor]:
+        return feed_dict
 
 
 class CycleEmbeddingGenerator(BaseEmbeddingGenerator):
     def __init__(self):
         super().__init__()
-        self.embedding = {}
-        self.tensor_shape = {}
+        self.embedding: Dict[str, CycleEmbeddingEntry] = {}
+        self.tensor_shape: TensorInfoMapper = TensorInfoMapper()
 
-    def load(self, tensor_shape: TensorInfoMapper):
+    def load(self, tensor_shape: TensorInfoMapper) -> None:
         self.tensor_shape = tensor_shape
 
-    def get_embedding(self, name, shape, node_id):
+    def get_embedding(
+        self,
+        vocab_name: str,
+        shape: Optional[Tuple[int, ...]] = None,
+        node_id: Optional[int] = None,
+    ) -> Optional[PlaceholderData]:
         return None
 
-    def forward(self, name, shape, node_id):
-        ph_name = name + "_cyc"
+    def forward(self, name: str, shape: Sequence[int], node_id: int) -> Tensor:
+        ph_name: str = name + "_cyc"
+        shape_tuple: Tuple[int, ...] = tuple(shape)
         if ph_name in self.embedding:
             if self.get_verb:
                 print("[GET cycle]>", ph_name, ":", self.embedding[ph_name]["tensor"])
             return torch.tensor(self.embedding[ph_name]["data"])
         else:
             if self.info_verb:
-                print("[CREATE cycle]>", ph_name, ":", shape)
-            self.embedding[ph_name] = {}
-            self.embedding[ph_name]["tensor"] = PlaceholderData(
-                name=ph_name, shape=shape, dtype=torch.float32
-            )
-            self.embedding[ph_name]["data"] = torch.tensor(
-                np.zeros(shape=shape, dtype=np.float32)
-            )
-            self.embedding[ph_name]["id"] = node_id
+                print("[CREATE cycle]>", ph_name, ":", shape_tuple)
+            self.embedding[ph_name] = {
+                "tensor": PlaceholderData(
+                    name=ph_name, shape=shape_tuple, dtype=torch.float32
+                ),
+                "data": torch.tensor(np.zeros(shape=shape_tuple, dtype=np.float32)),
+                "id": node_id,
+            }
             return torch.tensor(self.embedding[ph_name]["data"])
 
-    def build_feed(self, feed_dict, idx=None):  ## idx is not used
+    def build_feed(self, feed_dict: Dict[PlaceholderData, Tensor], idx: Optional[ndarray]=None) -> Dict[PlaceholderData, Tensor]: ## idx is not used
         for ph_name, data in self.embedding.items():
             batch_data = data["data"]
             ph_var = data["tensor"]
@@ -137,10 +141,10 @@ class CycleEmbeddingGenerator(BaseEmbeddingGenerator):
             feed_dict[ph_var] = torch.Tensor(batch_data)
         return feed_dict
 
-    def update(self, out_inside):
-        total_loss = 0
+    def update(self, out_inside: Sequence[Tensor]) -> Tensor:
+        total_loss: Tensor = torch.tensor(0.0)
         for ph_name, data in self.embedding.items():
-            node_id = data["id"]
+            node_id: int = data["id"]
             if self.info_verb:
                 print("[INFO: cycle update] node_id:", node_id, "=>", ph_name)
             ##
@@ -169,8 +173,8 @@ class EmbeddingGenerator(BaseEmbeddingGenerator):
     """
     def __init__(self, const_flag:bool=False) -> None:
         super().__init__()
-        self.dataset = {}
-        self.created_ph_var = {}
+        self.dataset: EmbeddingData = {}
+        self.created_ph_var: Dict[str, PlaceholderData] = {}
         self.const_flag=const_flag
 
     def load(self, filename: str, key: str="train") -> None:
@@ -182,7 +186,7 @@ class EmbeddingGenerator(BaseEmbeddingGenerator):
     def get_shape(self, vocab_name: str) -> Tuple[int, ...]:
         return self.dataset[vocab_name].shape
 
-    def get_embedding(self, vocab_name: str, shape: Optional[Tuple[int, ...]] =None) -> Optional[PlaceholderData]:
+    def get_embedding(self, vocab_name: str, shape: Optional[Tuple[int, ...]] =None, node_id = None) -> Optional[PlaceholderData]:
         if not self.is_embedding(vocab_name):
             if self.info_verb:
                 print("[SKIP]>", vocab_name)
@@ -209,7 +213,8 @@ class EmbeddingGenerator(BaseEmbeddingGenerator):
                 else:
                     print("[CREATE ]>", ph_name, ":", shape, "ref:", vocab_name)
             return self.created_ph_var[ph_name]
-
+        return None
+    
     def build_feed(self, feed_dict: Dict[PlaceholderData, Tensor], idx: Optional[ndarray]=None) -> Dict[PlaceholderData, Tensor]:
         for vocab_name, data in self.dataset.items():
             ph_name = vocab_name + "_ph"
@@ -223,4 +228,3 @@ class EmbeddingGenerator(BaseEmbeddingGenerator):
             if self.feed_verb:
                 print("[INFO: feed]", vocab_name, "=>", ph_name)
         return feed_dict
-

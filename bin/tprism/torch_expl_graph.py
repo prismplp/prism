@@ -36,7 +36,7 @@ from tprism.loader import OperatorLoader
 from tprism.placeholder import PlaceholderData
 from numpy import int64
 from torch import dtype
-from typing import Any, Dict, List, Tuple, Union, Optional
+from typing import Any, Dict, List, Tuple, Union, Optional, cast
 from tprism.torch_embedding_generator import BaseEmbeddingGenerator
 from tprism.torch_expl_tensor import TorchSwitchTensorProvider
 
@@ -222,17 +222,17 @@ Note:
         goal_template, cycle_node = self.build_explanation_graph_template(
             self.graph, self.tensor_provider, self.operator_loader
         )
-        self.goal_template:List[Optional[GoalTemplate]] = goal_template
-        self.cycle_node:List[int] = cycle_node
+        self.goal_template = goal_template
+        self.cycle_node = cycle_node
         
         ## setting parameterized operators
         self.param_op = torch.nn.ModuleList()
-        for k,v in self.operators.items():
-            if issubclass(v.__class__, torch.nn.Module):
+        for k, v in self.operators.items():
+            if isinstance(v, torch.nn.Module):
                 print("Torch parameterized operator:", k)
-                self.param_op.append(v)
+                self.param_op.append(cast(torch.nn.Module, v))
         ##
-        for name, (param,tensor_type) in self.tensor_provider.params.items():
+        for name, (param, tensor_type) in self.tensor_provider.params.items():
             self.register_parameter(name, param)
         
     def _distribution_forward(
@@ -287,18 +287,19 @@ Note:
         inputs: List[torch.Tensor],
         out_template: List[str],
         path_batch_flag: bool,
-    ) -> Tuple[List[Union[torch.Tensor, List[int]]], List[str]]:
+    ) -> Tuple[List[torch.Tensor| List[int]], List[str]]:
         """
         Example
         template: [["i","j"],["j","k"]]
         out_template: ["i","k"]
         => [inputs[0], [0,1], inputs[1], [1,2], [0,2]], out_template
         """
+        
         symbol_set = set([e for sublist in template for e in sublist])
         mapping={s:i for i,s in enumerate(symbol_set)}
         if path_batch_flag:
             out_template = ["b"] + out_template
-        sublistform_args=[]
+        sublistform_args: List[torch.Tensor| List[int]] = []
         for v,input_x in zip(template,inputs):
             l=[mapping[el] for el in v]
             sublistform_args.append(input_x)
@@ -358,7 +359,7 @@ Note:
                 if  gt is None:
                     raise Exception("goal_template[", node.sorted_id,"] is None in cycle node")
                 template = gt["template"]
-                shape = gt["shape"]
+                shape = cast(Tuple[int], gt["shape"])
                 if dryrun:
                     args = node.goal.args
                     temp_goal_inside = ExplNode.from_desc("goal", {
@@ -369,8 +370,11 @@ Note:
                         "id": node.sorted_id,
                         "shape":shape})
                 else:
-                    v = cycle_embedding_generator.forward(name, shape, node.sorted_id)
-                    temp_goal_inside = ExplNode.from_value("goal", v)
+                    if cycle_embedding_generator is None:
+                        raise Exception("cycle_embedding_generator is None in cycle node")
+                    else:
+                        v = cycle_embedding_generator.forward(name, shape, node.sorted_id)
+                        temp_goal_inside = ExplNode.from_value("goal", v)
                 temp_goal_template = template
                 node_inside.append(temp_goal_inside)
                 node_template.append(temp_goal_template)
@@ -480,26 +484,28 @@ Note:
                     "path": [x.as_desc() if isinstance(x, ExplNode) else x for x in sw_node_inside],
                 }
                 out_node = ExplNode.from_desc("distribution", desc)
-                out_template= sw_node_template  # TODO: refine if needed
+                out_template= sw_node_template[0]  # TODO: refine if needed
             else:
                 params = [x.as_value() if isinstance(x, ExplNode) else x for x in sw_node_inside]
-                out_val, out_template = self._distribution_forward(
+                out_val, out_template_temp = self._distribution_forward(
                     path_name,
                     dist,
                     params=params,
                     param_template=sw_node_template,
                     op=op,
                 )
+                out_template = out_template_temp
                 out_node = ExplNode.from_value("distribution", out_val)
             
         else:  # einsum operator
             path_v = sorted(zip(sw_node_template, sw_node_inside), key=lambda x: x[0])
             template = [x[0] for x in path_v]
             inside_nodes = [x[1] for x in path_v]
-            out_template = self._compute_output_template(template)
+            out_template = self._compute_output_template(template)  # out_template is List[str]
             if len(template) > 0:
                 if dryrun:
-                    einsum_eq, out_template = self.make_einsum_args(template,out_template,path_batch_flag)
+                    einsum_eq, out_template_einsum = self.make_einsum_args(
+                        template, out_template, path_batch_flag)
                     desc = {
                         "type":"einsum",
                         "name":"torch.einsum",
@@ -507,11 +513,13 @@ Note:
                         "path":[n.as_desc() if isinstance(n, ExplNode) else n for n in inside_nodes],
                     }
                     out_node = ExplNode.from_desc("einsum", desc)
+                    out_template = out_template_einsum
                 else:
                     inside_vals = [n.as_value() if isinstance(n, ExplNode) else n for n in inside_nodes]
-                    einsum_args, out_template = self.make_einsum_args_sublist(template, inside_vals, out_template, path_batch_flag)
+                    einsum_args, out_template_temp = self.make_einsum_args_sublist(template, inside_vals, out_template, path_batch_flag)
                     out_val = torch.einsum(*einsum_args)
                     out_node = ExplNode.from_value("einsum", out_val)
+                    out_template = out_template_temp
             else:
                 if dryrun:
                     out_node = ExplNode.from_desc("nop", {"type":"nop","name":"nop","path":[n.as_desc() if isinstance(n, ExplNode) else n for n in inside_nodes]})

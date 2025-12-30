@@ -58,66 +58,87 @@ def to_string_goal(goal):
     s += ",".join([str(arg) for arg in goal.args])
     return s
 
+from __future__ import annotations
+from typing import Any, Dict, List
 
 class Flags(object):
     """
     integrated information of args(command line aruguments) and flags automatically/manually setted in the T-PRISM program
     """
-    def __init__(self, args={}, options=None, with_build=True):
-        self.internal_config = dict()
-        self.args = args
+
+    # ここで「ドットアクセスできてほしいキー」を型と共に宣言する
+    sgd_minibatch_size: int
+    max_iterate: int
+    sgd_learning_rate: float
+    embedding: List[Any]
+    const_embedding: List[Any]
+
+    def __init__(self, args: Any = None, options: Any = None, with_build: bool = True):
+        self.internal_config: Dict[str, Any] = {}
+        self.args = args or {}
         if options is not None:
             self.flags = {f.key: f.value for f in options.flags}
         else:
-            self.flags={}
+            self.flags = {}
+
         if with_build:
             self.build()
 
-    def __getattr__(self, k):
+    def __getattr__(self, k: str) -> Any:  # ここは Any で OK（動的属性用）
         if k in self.internal_config:
-            return  dict.get(self.internal_config, k)
-        elif k in self.args:
-            if not getattr(self.args, k, None):
-                if k in self.flags:
-                    return dict.get(self.flags, k)
-            return getattr(self.args, k, None)
+            return dict.get(self.internal_config, k)
+        elif hasattr(self.args, k):
+            v = getattr(self.args, k, None)
+            if not v and k in self.flags:
+                return dict.get(self.flags, k)
+            return v
+        elif isinstance(self.args, dict) and k in self.args:
+            # args が dict の場合にも対応しておきたいなら
+            return self.args.get(k)
         return None
-    def __contains__(self, k):
+
+    def __contains__(self, k: str) -> bool:
         """
         This function only checks for containment, so it may contain None even if this function returns True
         """
         if k in self.internal_config:
             return True
-        elif k in self.args:
+        elif isinstance(self.args, dict) and k in self.args:
+            return True
+        elif hasattr(self.args, k):
             return True
         elif k in self.flags:
             return True
         else:
             return False
 
-    def add(self, k, v):
+    def add(self, k: str, v: Any) -> None:
         self.internal_config[k] = v
+        # 型付きで宣言した属性なら、実際の属性にも代入しておくと補完も動く
+        setattr(self, k, v)
 
-    def build(self):
-        check_items=[
+    def build(self) -> None:
+        check_items = [
             ("sgd_minibatch_size", 10, int),
             ("max_iterate", 100, int),
             ("sgd_learning_rate", 0.1, float),
-                ]
-        check_list_items=[
-                "embedding",
-                "const_embedding"]
+        ]
+        check_list_items = [
+            "embedding",
+            "const_embedding",
+        ]
 
         for k, default_v, vtype in check_items:
-            v=getattr(self,k)
+            v = getattr(self, k)
             if v is not None and v != "default":
-                self.add(k,vtype(v))
+                self.add(k, vtype(v))
             else:
-                self.add(k,default_v)
+                self.add(k, default_v)
+
         for k in check_list_items:
-            v=getattr(self,k)
+            v = getattr(self, k)
             if v is None or v == "default":
-                self.add(k,[])
+                self.add(k, [])
 
 
 class TensorInfoMapper():
@@ -163,7 +184,7 @@ def split_goal_dataset(goal_dataset, valid_ratio=0.1):
 # goal_dataset["dataset"]: dataset
 # dataset contains indeces: values in the given dataset is coverted into index
 def build_goal_dataset(input_data: List[InputData], tensor_provider):
-    goal_dataset = []
+    goal_dataset: List[Dict[str, Any]] = []
 
     def to_index(value, ph_name):
         return tensor_provider.convert_value_to_index(value, ph_name)
@@ -173,7 +194,7 @@ def build_goal_dataset(input_data: List[InputData], tensor_provider):
         ph_names = d.placeholders
         # TODO: multiple with different placeholders
         ph_vars = [tensor_provider.ph_var[ph_name] for ph_name in ph_names]
-        dataset = [None for _ in ph_names]
+        dataset: List[Any] = [None for _ in ph_names]
         goal_data = {"placeholders": ph_vars, "dataset": dataset}
         goal_dataset.append(goal_data)
         for i, ph_name in enumerate(ph_names):

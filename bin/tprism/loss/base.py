@@ -1,22 +1,28 @@
 
-from typing import List
-#from tprism.expl_graph import ComputationalExplGraph, SwitchTensorProvider
-#from tprism.torch_expl_graph import GoalInsideEntry
+from typing import Any, List, Optional, Tuple
+from tprism.expl_graph import SwitchTensorProvider
+from tprism.torch_expl_graph import GoalInsideEntry
+import tprism.expl_pb2 as expl_pb2
+from torch import Tensor
+import torch
 
 class BaseLoss:
     def __init__(self, parameters=None):
         pass
 
-    def call(self, graph:'ComputationalExplGraph', goal_inside:List['GoalInsideEntry'], tensor_provider:'SwitchTensorProvider'):
+    def call(self, graph:'expl_pb2.ExplGraph', goal_inside:List[Optional['GoalInsideEntry']], tensor_provider:'SwitchTensorProvider')-> Tuple[Optional[Tensor], Optional[Tensor], Optional[Tensor]]:
         print("[WARN] loss is not implemened")
         output = []
         for rank_root in graph.root_list:
             goal_ids = [el.sorted_id for el in rank_root.roots]
             for sid in goal_ids:
-                l1 = goal_inside[sid].inside
+                gnode=goal_inside[sid]
+                if gnode is None:
+                    raise RuntimeError("goal_inside[%d] is None" % (sid,))
+                l1 = gnode.inside
                 output.append(l1)
         # loss, output, label
-        return None, output, None
+        return None, torch.stack(output), None
     def metrics(self, output, label):
         return {}
 
