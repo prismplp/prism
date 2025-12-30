@@ -49,87 +49,55 @@ def to_string_goal(goal):
     s += ",".join([str(arg) for arg in goal.args])
     return s
 
+@dataclasses.dataclass(slots=True)
+class Flags:
+    # data / dataset
+    dataset: Optional[List[str]] = None
+    # intermediate data
+    input: Optional[str] = None
+    # prolog related
+    expl_graph: Optional[str] = None
+    # model / vocab
+    model: Optional[str] = None
+    vocab: Optional[str] = None
+    # embeddings
+    embedding: Optional[List[str]] = None
+    const_embedding: Optional[List[str]]  = None
 
+    # graph / output
+    output: Optional[str] = None
 
-class Flags(object):
-    """
-    integrated information of args(command line aruguments) and flags automatically/manually setted in the T-PRISM program
-    """
+    # SGD / training (prolog flags)
+    sgd_minibatch_size: int = 1
+    max_iterate: int = 10
+    sgd_learning_rate: float = 0.01
+    sgd_loss: str = "base_loss"
+    sgd_patience: int = 3
 
-    # ここで「ドットアクセスできてほしいキー」を型と共に宣言する
-    sgd_minibatch_size: int
-    max_iterate: int
-    sgd_learning_rate: float
-    embedding: List[Any]
-    const_embedding: List[Any]
-
-    def __init__(self, args: Any = None, options: Any = None, with_build: bool = True):
-        self.internal_config: Dict[str, Any] = {}
-        self.args = args or {}
+    # others
+    cycle: bool = False
+    verbose: bool = False
+    def __init__(self, args: Any = None, options: Any = None):
+        if args is not None:
+           args_dict=vars(args)
         if options is not None:
-            self.flags = {f.key: f.value for f in options.flags}
+            flags = {f.key: f.value for f in options.flags}
         else:
-            self.flags = {}
-
-        if with_build:
-            self.build()
-
-    def __getattr__(self, k: str) -> Any:  # ここは Any で OK（動的属性用）
-        if k in self.internal_config:
-            return dict.get(self.internal_config, k)
-        elif hasattr(self.args, k):
-            v = getattr(self.args, k, None)
-            if not v and k in self.flags:
-                return dict.get(self.flags, k)
-            return v
-        elif isinstance(self.args, dict) and k in self.args:
-            # args が dict の場合にも対応しておきたいなら
-            return self.args.get(k)
-        return None
-
+            flags = {}
+        self.build(args_dict, flags)
+            
     def __contains__(self, k: str) -> bool:
-        """
-        This function only checks for containment, so it may contain None even if this function returns True
-        """
-        if k in self.internal_config:
-            return True
-        elif isinstance(self.args, dict) and k in self.args:
-            return True
-        elif hasattr(self.args, k):
-            return True
-        elif k in self.flags:
-            return True
-        else:
-            return False
-
+        return hasattr(self, k) and getattr(self, k) is not None
     def add(self, k: str, v: Any) -> None:
-        self.internal_config[k] = v
-        # 型付きで宣言した属性なら、実際の属性にも代入しておくと補完も動く
-        setattr(self, k, v)
-
-    def build(self) -> None:
-        check_items = [
-            ("sgd_minibatch_size", 10, int),
-            ("max_iterate", 100, int),
-            ("sgd_learning_rate", 0.1, float),
-        ]
-        check_list_items = [
-            "embedding",
-            "const_embedding",
-        ]
-
-        for k, default_v, vtype in check_items:
-            v = getattr(self, k)
-            if v is not None and v != "default":
-                self.add(k, vtype(v))
-            else:
-                self.add(k, default_v)
-
-        for k in check_list_items:
-            v = getattr(self, k)
-            if v is None or v == "default":
-                self.add(k, [])
-
+        if hasattr(self, k):
+            setattr(self, k, v)
+    def build(self, args_dict, flags) -> None:
+        for k, v in args_dict.items():
+            if v is not None:
+                self.add(k, v)
+        for k, v in flags.items():
+            if v is not None:
+                self.add(k, v)
 
 class TensorInfoMapper():
     def __init__(self, options=None,init_dict={}):

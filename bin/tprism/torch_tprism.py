@@ -40,13 +40,10 @@ from tprism.loader import (
     LossLoader,
     OperatorLoader,
 )
-from tprism.loss.base import BaseLoss 
-
-from tprism.torch_util import draw_graph
-import re
+from tprism.loss.base import BaseLoss
 import numpy as np
 from numpy import ndarray
-import sklearn.metrics
+
 
 """ Main module for command line interface
 
@@ -766,19 +763,6 @@ class TprismModel:
         pred_time = time.time() - start_t
         print("test time:{0}".format(pred_time) + "[sec]")
         return labels, outputs
-
-    def save_draw_graph(self, g: Any, base_name: str) -> None:
-        """Save the computational graph as HTML and DOT files.
-
-        Args:
-            g: Graph object to render.
-            base_name: Base filename (without extension) for outputs.
-        """
-        html = draw_graph.show_graph(g)
-        fp = open(base_name + ".html", "w")
-        fp.write(html)
-        dot = draw_graph.tf_to_dot(g)
-        dot.render(base_name)
 
 
 def run_preparing(args: argparse.Namespace) -> None:
