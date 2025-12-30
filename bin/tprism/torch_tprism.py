@@ -1,29 +1,29 @@
 #!/usr/bin/env python
-"""
-This module contains pytorch T-PRISM main 
+"""PyTorch T-PRISM main module.
+
+This module provides the PyTorch implementation of T-PRISM including the
+model wrapper, training/evaluation loops, and command-line entrypoints.
+All public functions and methods include Google-style docstrings.
 """
 
 
-from typing import cast
+from typing import Any, Dict, List, Optional, Sequence, Tuple, Type, cast
 import torch
 import torch.optim as optim
-import torch.nn.functional as F
 import json
 import os
-import re
 import numpy as np
-from google.protobuf import json_format
-from itertools import chain
-import collections
 import argparse
 import time
 import pickle
 
 import tprism.expl_pb2 as expl_pb2
-import tprism.expl_graph as expl_graph
 import tprism.torch_expl_graph as torch_expl_graph
 import tprism.torch_embedding_generator as embed_gen
 import tprism.torch_expl_tensor as torch_expl_tensor
+from tprism.placeholder import PlaceholderData
+from torch import Tensor
+
 
 from tprism.util import (
     to_string_goal,
@@ -31,6 +31,8 @@ from tprism.util import (
     build_goal_dataset,
     split_goal_dataset,
     get_goal_dataset,
+    InputData,
+    TensorInfoMapper,
 )
 from tprism.loader import (
     load_input_data,
@@ -38,59 +40,87 @@ from tprism.loader import (
     LossLoader,
     OperatorLoader,
 )
-
-from tprism.torch_util import draw_graph
-import re
+from tprism.loss.base import BaseLoss
 import numpy as np
-import sklearn.metrics
+from numpy import ndarray
+
 
 """ Main module for command line interface
 
 This is called by tprism command (pytorch based tprism)
 """
 
-class TprismEvaluator:
-    """Evaluator for pytorch system
+def _check_and_detach(output: Any) -> ndarray|List[ndarray]|None:
+    """Detach and convert tensors to NumPy arrays.
 
+    Detaches any `torch.Tensor` or a list of tensors from the autograd graph
+    and converts them to NumPy arrays. Non-tensor inputs are returned
+    unchanged.
+
+    Args:
+        output: A `torch.Tensor`, a list of tensors, an `np.ndarray`, or any
+            other value.
+
+    Returns:
+        Any: If a tensor, returns a NumPy array. If a list of tensors, returns
+        a list of NumPy arrays. Otherwise, returns the input unchanged.
     """
-    def __init__(self, goal_dataset=None):
+    if output is None:
+        return None
+    elif type(output) is list:
+        output = [o.detach().numpy() if type(o) != np.ndarray else o for o in output]
+    elif type(output) is torch.Tensor:
+        output = output.detach().numpy()
+    return output
+
+class TprismEvaluator:
+    """Lightweight metrics accumulator for PyTorch training/evaluation.
+
+    Tracks running losses, metric dictionaries, labels, and outputs per goal,
+    and exposes helpers to format and retrieve the latest values.
+    """
+
+    def __init__(self, goal_dataset: Optional[Sequence[Any]] = None) -> None:
         if goal_dataset is not None:
             self.n_goals = len(goal_dataset)
         else:
             self.n_goals = 1
-        self.loss_history = [[] for _ in range(self.n_goals)]
-        self.loss_dict_history = [[] for _ in range(self.n_goals)]
-        self.label = [[] for _ in range(self.n_goals)]
-        self.output = [[] for _ in range(self.n_goals)]
+        self.loss_history:List[List[Any]] = [[] for _ in range(self.n_goals)]
+        self.loss_dict_history:List[List[Any]] = [[] for _ in range(self.n_goals)]
+        self.label:List[List[Any]] = [[] for _ in range(self.n_goals)]
+        self.output:List[List[Any]] = [[] for _ in range(self.n_goals)]
 
-    def start_epoch(self):
-        self.running_loss = [0.0 for _ in range(self.n_goals)]
-        self.running_loss_dict = [{} for _ in range(self.n_goals)]
-        self.running_count = [0 for _ in range(self.n_goals)]
+    def start_epoch(self) -> None:
+        """Initialize running counters at the beginning of an epoch."""
+        self.running_loss:List[Any] = [0.0 for _ in range(self.n_goals)]
+        self.running_loss_dict:List[Dict[str,Any]] = [{} for _ in range(self.n_goals)]
+        self.running_count:List[int] = [0 for _ in range(self.n_goals)]
+    
+    def update(self, loss: Any, loss_dict: Dict[str, Any], j: int) -> None:
+        """Accumulate loss and metrics for a batch.
 
-    def _check_and_detach(self, x):
-        if type(x) is torch.Tensor:
-            return x.detach().numpy()
-        else:
-            return x
-    def update(self, loss, loss_dict, j):
+        Args:
+            loss: Loss value for the batch (tensor or numeric).
+            loss_dict: Mapping from metric name to value for the batch.
+            j: Goal index to update.
         """
-            This function is called the last of batch iteration
-              loss,output, label: return values of forward
-              j: goal index of iteration
-              num_itr:: number of iterations
-        """
-        loss=self._check_and_detach(loss)
+        loss=_check_and_detach(loss)
         self.running_loss[j] += loss
         self.running_count[j] += 1
         for k, v in loss_dict.items():
-            v=self._check_and_detach(v)
+            v=_check_and_detach(v)
             if k in self.running_loss_dict:
                 self.running_loss_dict[j][k] += v
             else:
                 self.running_loss_dict[j][k] = v
 
-    def stop_epoch(self, j=0, mean_flag=True):
+    def stop_epoch(self, j: int = 0, mean_flag: bool = True) -> None:
+        """Average running values and push to history at epoch end.
+
+        Args:
+            j: Goal index.
+            mean_flag: Whether to average accumulated values over batches.
+        """
         if mean_flag:
             self.running_loss[j] /= self.running_count[j]
             for k in self.running_loss_dict[j].keys():
@@ -98,10 +128,20 @@ class TprismEvaluator:
         self.loss_history[j].append(self.running_loss[j])
         self.loss_dict_history[j].append(self.running_loss_dict[j])
 
-    def get_dict(self, prefix="train"):
+    def get_dict(self, prefix: str = "train") -> Dict[str, float]:
+        """Get the latest loss/metrics as a dictionary.
+
+        Args:
+            prefix: Prefix for output keys (e.g., "train" or "valid").
+
+        Returns:
+            Dict[str, float]: Mapping of metric names to their latest values.
+        """
         result = {}
         for j in range(self.n_goals):
             key = "{:s}-loss".format(prefix)
+            if self.n_goals > 1:
+                key = "goal{:d}-{:s}-loss".format(j,prefix)
             val = self.running_loss[j]
             result[key] = float(val)
             for k, v in self.running_loss_dict[j].items():
@@ -110,9 +150,17 @@ class TprismEvaluator:
                 else:
                     m = "*{:s}-{:s}".format(prefix, k[1:])
                 result[m] = float(v)
-            return result
+        return result
 
-    def get_msg(self, prefix="train"):
+    def get_msg(self, prefix: str = "train") -> str:
+        """Format losses/metrics as a single-line message.
+
+        Args:
+            prefix: Prefix for output keys (e.g., "train" or "valid").
+
+        Returns:
+            str: Message like "key: value" joined by double spaces.
+        """
         msg = []
         loss_dict=self.get_dict(prefix=prefix)
         if loss_dict is not None:
@@ -123,48 +171,87 @@ class TprismEvaluator:
         else:
            return ""
 
-    def get_loss(self):
+    def get_loss(self) -> List[float]:
+        """Return the latest per-goal loss.
+
+        Returns:
+            List[float]: Per-goal running loss values.
+        """
         return self.running_loss
 
-    def update_data(self, output, label, j):
-        if type(output[j]) == list:  # preference
-            _o = [o.detach().numpy() for o in output[j]]
-        else:
-            _o = output[j].detach().numpy()
+    def update_data(self, output: Sequence[Any]|Tensor, label: Optional[Sequence[Any]]|Tensor, j: int) -> None:
+        """Append predictions and labels to accumulation buffers.
+
+        Args:
+            output: Model outputs (sequence indexed by goal).
+            label: Ground-truth labels (sequence indexed by goal) or None.
+            j: Goal index.
+        """
+        _o = cast(Sequence[Any], _check_and_detach(output[j]))
         self.output[j].extend(_o)
         if label is not None:
-            _l = label[j].detach().numpy()
+            _l = cast(Sequence[Any],_check_and_detach(label[j]))
             self.label[j].extend(_l)
 
 
-class TprismModel:
-    """T-PRISM model for pytorch
 
+class TprismModel:
+    """T-PRISM model implemented with PyTorch with training/inference wrappers.
+
+    Args:
+        flags: Runtime flags/hyperparameters (`tprism.util.Flags`).
+        tensor_shapes: Mapping of tensor names to shapes.
+        graph: Explanation graph object.
+        loss_cls: Loss class (subclass of `BaseLoss`). If None, `BaseLoss` is used.
     """
- 
-    def __init__(self, flags, tensor_shapes, graph, loss_cls):
+
+    def __init__(
+        self,
+        flags: Flags,
+        tensor_shapes: TensorInfoMapper,
+        graph: expl_pb2.ExplGraph,
+        loss_cls: Optional[Type[BaseLoss]],
+    ) -> None:
         self.graph = graph
         self.flags = flags
         self.tensor_shapes = tensor_shapes
-        self.loss_cls = loss_cls
+        if loss_cls is None:
+            self.loss_cls = BaseLoss
+        else:
+            self.loss_cls = loss_cls
         self.operator_loader = OperatorLoader()
         self.operator_loader.load_all("op/torch_")
 
-    def build(self, input_data, load_vocab, embedding_key):
+    def build(self, input_data: Optional[List[InputData]], load_vocab: bool, embedding_key: str, verbose: bool) -> None:
+        """Initialize embeddings, data provider, and computational graph.
+
+        Args:
+            input_data: Input dataset or None.
+            load_vocab: Whether to load vocabulary.
+            embedding_key: Embedding key (e.g., "train" or "test").
+            verbose: Whether to print verbose output.
+        """
         self._build_embedding(embedding_key)
-        self._set_data(input_data, load_vocab)
+        self._set_data(input_data, load_vocab, verbose)
         self._build_explanation_graph()
 
-    def _build_embedding(self, embedding_key):
-        embedding_generators = []
-        for embedding_filename in self.flags.embedding:
-            eg = embed_gen.EmbeddingGenerator()
-            eg.load(embedding_filename, key=embedding_key)
-            embedding_generators.append(eg)
-        for embedding_filename in self.flags.const_embedding:
-            eg = embed_gen.EmbeddingGenerator(const_flag=True)
-            eg.load(embedding_filename)
-            embedding_generators.append(eg)
+    def _build_embedding(self, embedding_key: str) -> None:
+        """Construct and load embedding generators.
+
+        Args:
+            embedding_key: Embedding key used when loading variable embeddings.
+        """
+        embedding_generators:List[embed_gen.BaseEmbeddingGenerator] = []
+        if self.flags.embedding is not None:
+            for embedding_filename in self.flags.embedding:
+                eg = embed_gen.EmbeddingGenerator()
+                eg.load(embedding_filename, key=embedding_key)
+                embedding_generators.append(eg)
+        if self.flags.const_embedding is not None:
+            for embedding_filename in self.flags.const_embedding:
+                eg = embed_gen.EmbeddingGenerator(const_flag=True)
+                eg.load(embedding_filename)
+                embedding_generators.append(eg)
         cycle_embedding_generator = None
         if self.flags.cycle:
             cycle_embedding_generator = embed_gen.CycleEmbeddingGenerator()
@@ -173,7 +260,13 @@ class TprismModel:
         self.embedding_generators = embedding_generators
         self.cycle_embedding_generator = cycle_embedding_generator
 
-    def _set_data(self, input_data, load_vocab):
+    def _set_data(self, input_data: Optional[List[InputData]], load_vocab: bool, verbose: bool) -> None:
+        """Build tensor provider and set input data/vocabulary.
+
+        Args:
+            input_data: Input dataset or None.
+            load_vocab: Whether to load vocabulary.
+        """
         self.tensor_provider = torch_expl_tensor.TorchSwitchTensorProvider()
         self.tensor_provider.build(
             self.graph,
@@ -182,21 +275,32 @@ class TprismModel:
             self.flags,
             load_vocab=load_vocab,
             embedding_generators=self.embedding_generators,
+            verbose=verbose,
         )
 
-    def _build_explanation_graph(self):
+    def _build_explanation_graph(self) -> None:
+        """Build the PyTorch computational explanation graph."""
         self.comp_expl_graph = torch_expl_graph.TorchComputationalExplGraph(
             self.graph, self.tensor_provider, self.operator_loader, self.cycle_embedding_generator
         )
 
-    def solve(self, input_data=None):
+    def solve(self, input_data: Optional[List[InputData]] = None)->None:
+        """Optimization loop for cyclic settings (embedding adjustment).
+
+        Args:
+            input_data: Input dataset. Currently unsupported; use None.
+
+        Returns:
+            Optional[Any]: Currently returns None (side effects only).
+        """
         if input_data is None:
-            return self._solve_no_data()
+            self._solve_no_data()
         else:
             print("solver with input data is not implemented")
-            return None
+            
 
-    def _solve_no_data(self):
+    def _solve_no_data(self) -> None:
+        """Run simple optimization for cycles without input data."""
         print("... training phase")
         print("... training variables")
         for key, param in self.comp_expl_graph.state_dict().items():
@@ -204,7 +308,7 @@ class TprismModel:
         print("... building explanation graph")
         prev_loss = None
         for step in range(self.flags.max_iterate):
-            feed_dict = {}
+            feed_dict:Dict[PlaceholderData, Tensor] = {}
             for embedding_generator in self.embedding_generators:
                 if embedding_generator is not None:
                     feed_dict = embedding_generator.build_feed(feed_dict, None)
@@ -213,13 +317,17 @@ class TprismModel:
             goal_inside, loss_list = self.comp_expl_graph.forward(verbose=True)
             inside = []
             for goal in goal_inside:
-                l1 = goal["inside"]
+                if goal is None:
+                    raise RuntimeError("goal_inside contains None")
+                l1 = goal.inside
                 inside.append(l1)
-            loss = 0
+            loss = Tensor(0)
             for embedding_generator in self.embedding_generators:
                 if embedding_generator is not None:
                     loss = embedding_generator.update(inside)
             print("step", step, "loss:", loss)
+            if loss is None:
+                raise RuntimeError("loss is None")
             if loss < 1.0e-20:
                 break
             if prev_loss is not None and not loss < prev_loss:
@@ -228,13 +336,31 @@ class TprismModel:
         ##
         return None
 
-    def fit(self, input_data=None, verbose=False):
+    def fit(self, input_data: Optional[List[InputData]] = None, verbose: bool = False) -> Any:
+        """Train the model.
+
+        Args:
+            input_data: Dataset or None for no-data training.
+            verbose: Whether to print verbose logs.
+
+        Returns:
+            TprismEvaluator | Tuple[TprismEvaluator, TprismEvaluator]:
+            Training evaluator only (no-data) or a tuple of (train, valid).
+        """
         if input_data is None:
             return self._fit_no_data(verbose)
         else:
             return self._fit(input_data, verbose)
 
-    def _fit_no_data(self, verbose):
+    def _fit_no_data(self, verbose: bool) -> TprismEvaluator:
+        """Train without input data and return training metrics.
+
+        Args:
+            verbose: Whether to print verbose logs.
+
+        Returns:
+            TprismEvaluator: Training evaluator with recorded metrics.
+        """
         print("... training phase")
         print("... training variables")
         for key, param in self.comp_expl_graph.state_dict().items():
@@ -253,41 +379,67 @@ class TprismModel:
         for epoch in range(self.flags.max_iterate):
             start_t = time.time()
             # train
-            feed_dict = {}
+            feed_dict:Dict[PlaceholderData, Tensor] = {}
             for embedding_generator in self.embedding_generators:
                 if embedding_generator is not None:
                     feed_dict = embedding_generator.build_feed(feed_dict, None)
             self.tensor_provider.set_input(feed_dict)
             # print("... iteration")
             goal_inside, loss_list = self.comp_expl_graph.forward()
-            loss, output, label = loss_cls.call(
-                self.graph, goal_inside, self.tensor_provider
-            )
-            optimizer.zero_grad()
-            total_loss = torch.sum(loss, dim=0)
-            total_loss.backward()
-            optimizer.step()
-            metrics = loss_cls.metrics(output, label)
-            metrics.update(loss_list)
-            train_evaluator.start_epoch()
-            train_evaluator.update(total_loss, metrics, 0)
-            train_evaluator.stop_epoch()
-            # display_graph(output[j],'graph_pytorch')
+            if goal_inside is not None:
+                loss, output, label = loss_cls.call(
+                    self.graph, goal_inside, self.tensor_provider
+                )
+                optimizer.zero_grad()
+                if loss is None:
+                    raise RuntimeError("loss is None")
+                total_loss = torch.sum(loss, dim=0)
+                total_loss.backward()
+                optimizer.step()
+                metrics = loss_cls.metrics(output, label)
+                metrics.update(loss_list)
+                train_evaluator.start_epoch()
+                train_evaluator.update(total_loss, metrics, 0)
+                train_evaluator.stop_epoch()
+                # display_graph(output[j],'graph_pytorch')
 
-            # train_acc=sklearn.metrics.accuracy_score(all_label,all_output)
-            train_time = time.time() - start_t
-            print("[{:4d}] ".format(epoch + 1), train_evaluator.get_msg("train"))
-            print("train time:{0}".format(train_time) + "[sec]")
-            if (
-                best_total_loss is None
-                or train_evaluator.running_loss[0] < best_total_loss
-            ):
-                best_total_loss = train_evaluator.running_loss[0]
-                self.save(self.flags.model + ".best.model")
-        self.save(self.flags.model + ".last.model")
+                # train_acc=sklearn.metrics.accuracy_score(all_label,all_output)
+                train_time = time.time() - start_t
+                print("[{:4d}] ".format(epoch + 1), train_evaluator.get_msg("train"))
+                print("train time:{0}".format(train_time) + "[sec]")
+                if (
+                    best_total_loss is None
+                    or train_evaluator.running_loss[0] < best_total_loss
+                ):
+                    best_total_loss = train_evaluator.running_loss[0]
+                    if self.flags.model is not None:
+                        print("... saving best model to", self.flags.model + ".best.model")
+                        self.save(self.flags.model + ".best.model")
+            else:
+                raise RuntimeError("goal_inside is None")
+        if self.flags.model is not None:
+            print("... saving last model to", self.flags.model + ".last.model")
+            self.save(self.flags.model + ".last.model")
         return train_evaluator
 
-    def _build_feed(self, ph_vars, dataset, idx, verbose=True):
+    def _build_feed(
+        self,
+        ph_vars: Sequence[Any],
+        dataset: Any,
+        idx: Sequence[int]|ndarray,
+        verbose: bool = True,
+    ) -> Dict[Any, torch.Tensor]:
+        """Build a batch feed dict for placeholders.
+
+        Args:
+            ph_vars: Placeholder variables.
+            dataset: Dataset supporting slicing `dataset[i, idx]`.
+            idx: Indices to slice the dataset.
+            verbose: Whether to print input shapes.
+
+        Returns:
+            Dict[Any, torch.Tensor]: Mapping from placeholder to tensors.
+        """
         if verbose:
             for i, ph in enumerate(ph_vars):
                 print("[INFO feed]", ph, ph.name)
@@ -295,11 +447,25 @@ class TprismModel:
         feed_dict = {ph: torch.tensor(dataset[i, idx]) for i, ph in enumerate(ph_vars)}
         return feed_dict
 
-    def _set_batch_input(self, goal, train_idx, j, itr):
+    def _set_batch_input(
+        self,
+        goal: Dict[str, Any],
+        train_idx: Sequence[Sequence[int]],
+        j: int,
+        itr: int,
+    ) -> None:
+        """Set the specified batch inputs into the tensor provider.
+
+        Args:
+            goal: Goal object containing placeholders and dataset.
+            train_idx: Indices for train/valid/test split per goal.
+            j: Goal index.
+            itr: Batch iteration index.
+        """
         batch_size = self.flags.sgd_minibatch_size
         ph_vars = goal["placeholders"]
         dataset = goal["dataset"]
-        batch_idx = train_idx[j][itr * batch_size : (itr + 1) * batch_size]
+        batch_idx = np.array(train_idx[j][itr * batch_size : (itr + 1) * batch_size])
         feed_dict = self._build_feed(ph_vars, dataset, batch_idx)
         # for k,v in feed_dict.items():
         #    print(k,v.shape)
@@ -308,7 +474,16 @@ class TprismModel:
                 feed_dict = embedding_generator.build_feed(feed_dict, batch_idx)
         self.tensor_provider.set_input(feed_dict)
 
-    def _fit(self, input_data, verbose):
+    def _fit(self, input_data: List[InputData], verbose: bool) -> Tuple[TprismEvaluator, TprismEvaluator]:
+        """Train with input data, performing train/validation loops.
+
+        Args:
+            input_data: Training dataset.
+            verbose: Whether to print verbose logs.
+
+        Returns:
+            Tuple[TprismEvaluator, TprismEvaluator]: (train_evaluator, valid_evaluator).
+        """
         print("... training phase")
         goal_dataset = build_goal_dataset(input_data, self.tensor_provider)
         print("... training variables")
@@ -344,21 +519,27 @@ class TprismModel:
                     goal_inside, loss_list = self.comp_expl_graph.forward(
                         verbose=verbose
                     )
-                    loss, output, label = loss_cls.call(
-                        self.graph, goal_inside, self.tensor_provider
-                    )
-                    if label is not None:
-                        metrics = loss_cls.metrics(
-                            output[j].detach().numpy(), label[j].detach().numpy()
+                    if goal_inside is not None:
+                        loss, output, label = loss_cls.call(
+                            self.graph, goal_inside, self.tensor_provider
                         )
+                        if output is None or loss is None:
+                            raise RuntimeError("output/loss is None in training")
+                        if label is not None:
+                            metrics = loss_cls.metrics(
+                                _check_and_detach(output[j]), 
+                                _check_and_detach(label[j])
+                            )
+                        else:
+                            metrics = loss_cls.metrics(_check_and_detach(output[j]), None)
+                        loss_list.update(metrics)
+                        # display_graph(output[j],'graph_pytorch')
+                        optimizer.zero_grad()
+                        loss[j].backward()
+                        optimizer.step()
+                        train_evaluator.update(loss[j], loss_list, j)
                     else:
-                        metrics = loss_cls.metrics(output[j].detach().numpy(), None)
-                    loss_list.update(metrics)
-                    # display_graph(output[j],'graph_pytorch')
-                    optimizer.zero_grad()
-                    loss[j].backward()
-                    optimizer.step()
-                    train_evaluator.update(loss[j], loss_list, j)
+                        raise RuntimeError("goal_inside is None")
                 # validation
                 num_itr = len(valid_idx[j]) // batch_size
                 for itr in range(num_itr):
@@ -367,12 +548,15 @@ class TprismModel:
                     loss, output, label = loss_cls.call(
                         self.graph, goal_inside, self.tensor_provider
                     )
+                    if output is None or loss is None:
+                        raise RuntimeError("output/loss is None in training")
                     if label is not None:
                         metrics = loss_cls.metrics(
-                            output[j].detach().numpy(), label[j].detach().numpy()
+                            _check_and_detach(output[j]), 
+                            _check_and_detach(label[j])
                         )
                     else:
-                        metrics = loss_cls.metrics(output[j].detach().numpy(), None)
+                        metrics = loss_cls.metrics(_check_and_detach(output[j]), None)
                     loss_list.update(metrics)
                     valid_evaluator.update(loss[j], loss_list, j)
                 # checking validation loss for early stopping
@@ -383,7 +567,12 @@ class TprismModel:
                     best_valid_loss[j] = valid_evaluator.running_loss[j]
                     patient_count = 0
                     check_point_flag = True
-                    self.save(self.flags.model + ".best.model")
+                    if self.flags.model is not None:
+                        print(
+                            "... saving best model to",
+                            self.flags.model + ".best.model",
+                        )
+                        self.save(self.flags.model + ".best.model")
                 else:
                     patient_count += 1
                 ckpt_msg = "*" if check_point_flag else ""
@@ -400,25 +589,54 @@ class TprismModel:
             print("train time:{0}".format(train_time) + "[sec]")
             train_evaluator.stop_epoch()
             valid_evaluator.stop_epoch()
-        self.save(self.flags.model + ".last.model")
+        if self.flags.model is not None:
+            print("... saving last model to", self.flags.model + ".last.model")
+            self.save(self.flags.model + ".last.model")
         return train_evaluator, valid_evaluator
 
-    def save(self, filename):
+    def save(self, filename: str) -> None:
+        """Save current model parameters to a file.
+
+        Args:
+            filename: Path to save the model parameters.
+        """
         torch.save(self.comp_expl_graph.state_dict(), filename)
 
-    def load(self, filename):
+    def load(self, filename: str) -> None:
+        """Load model parameters from a file and set them.
+
+        Args:
+            filename: Path to a saved model parameters file.
+        """
         if os.path.isfile(filename):
             self.comp_expl_graph.load_state_dict(torch.load(filename))
         else:
             print("[SKIP] skip loading")
 
-    def pred(self, input_data=None, verbose=False):
+    def pred(self, input_data: Optional[List[InputData]] = None, verbose: bool = False) -> Tuple[Any, Any]:
+        """Run prediction (inference).
+
+        Args:
+            input_data: Dataset or None for no-data inference.
+            verbose: Whether to print verbose logs.
+
+        Returns:
+            Tuple[Any, Any]: (labels, outputs), usually converted to NumPy.
+        """
         if input_data is not None:
             return self._pred(input_data, verbose)
         else:
             return self._pred_no_data(verbose)
+        
+    def _pred_no_data(self, verbose: bool) -> Tuple[Optional[Any], Optional[Any]]:
+        """Infer without input data.
 
-    def _pred_no_data(self, verbose):
+        Args:
+            verbose: Whether to print verbose logs.
+
+        Returns:
+            Tuple[Optional[Any], Optional[Any]]: (labels, outputs) detached and converted.
+        """
         print("... prediction")
         print("... loaded variables")
         for key, param in self.comp_expl_graph.state_dict().items():
@@ -427,7 +645,7 @@ class TprismModel:
         loss_cls = self.loss_cls()
         evaluator = TprismEvaluator()
         ###
-        feed_dict = {}
+        feed_dict: Dict[PlaceholderData, Tensor] = {}
         for embedding_generator in self.embedding_generators:
             if embedding_generator is not None:
                 feed_dict = embedding_generator.build_feed(feed_dict, None)
@@ -446,15 +664,18 @@ class TprismModel:
         if loss is not None:
             print("loss:", torch.sum(loss))
         print("metrics:", metrics)
-        if label is not None:
-            label=label.detach().numpy()
-        if type(output) is list:
-            output=[o.detach().numpy() for o in output]
-        else:
-            output=output.detach().numpy()
-        return label, output
+        # 
+        label_  = _check_and_detach(label)
+        output_ = _check_and_detach(output)
+        return label_, output_
 
-    def export_computational_graph(self, input_data=None, verbose=False):
+    def export_computational_graph(self, input_data: Optional[List[InputData]] = None, verbose: bool = False) -> None:
+        """Debug helper: print computational graph paths to stdout.
+
+        Args:
+            input_data: Dataset to build batches from, or None.
+            verbose: Whether to print verbose logs.
+        """
         print("... prediction")
         goal_dataset=None
         if input_data:
@@ -468,8 +689,6 @@ class TprismModel:
             batch_size = self.flags.sgd_minibatch_size
             test_idx = get_goal_dataset(goal_dataset)
         print("... exporting")
-        outputs = []
-        labels = []
         if input_data and goal_dataset is not None:
             for j, goal in enumerate(goal_dataset):
                 # valid
@@ -478,17 +697,28 @@ class TprismModel:
                     self._set_batch_input(goal, test_idx, j, itr)
                     goal_inside, loss_list = self.comp_expl_graph.forward(dryrun=True)
                     for g in goal_inside:
-                        print(g)
-                        for path in g["inside"]:
-                            print("  ", path)
+                        if g is not None:
+                            print(g)
+                            for path in g.inside:
+                                print("  ", path)
         else:
             goal_inside, loss_list = self.comp_expl_graph.forward(dryrun=True)
             for g in goal_inside:
-                print(g)
-                for path in g["inside"]:
-                    print("  ", path)
+                if g is not None:
+                    print(g)
+                    for path in g.inside:
+                        print("  ", path)
 
-    def _pred(self, input_data, verbose):
+    def _pred(self, input_data: List[InputData], verbose: bool) -> Tuple[List[Any], List[Any]]:
+        """Infer with input data.
+
+        Args:
+            input_data: Dataset for prediction.
+            verbose: Whether to print verbose logs.
+
+        Returns:
+            Tuple[List[Any], List[Any]]: (labels, outputs) per goal.
+        """
         print("... prediction")
         goal_dataset = build_goal_dataset(input_data, self.tensor_provider)
         print("... loaded variables")
@@ -518,11 +748,10 @@ class TprismModel:
                 )
                 if loss is not None:
                     evaluator.update(loss[j], loss_list, j)
-                _o = output[j].detach().numpy()
-                print(_o)
-                _l = label[j].detach().numpy() if label is not None else None
-                metrics = loss_cls.metrics(_o, _l)
-                evaluator.update_data(output, label, j)
+                if output is not None:
+                    evaluator.update_data(output, label, j)
+                else:
+                    raise RuntimeError("output is None in prediction")
             ##
             print(evaluator.get_msg("test"))
             # print(evaluator.output[j],evaluator.label[j])
@@ -535,15 +764,15 @@ class TprismModel:
         print("test time:{0}".format(pred_time) + "[sec]")
         return labels, outputs
 
-    def save_draw_graph(self, g, base_name):
-        html = draw_graph.show_graph(g)
-        fp = open(base_name + ".html", "w")
-        fp.write(html)
-        dot = draw_graph.tf_to_dot(g)
-        dot.render(base_name)
 
+def run_preparing(args: argparse.Namespace) -> None:
+    """Run preparation steps.
 
-def run_preparing(args):
+    Sets up embeddings/tensors and, if needed, vocabulary for the model.
+
+    Args:
+        args: Parsed CLI arguments.
+    """
     if args.dataset is not None:
         input_data = load_input_data(args.dataset)
     else:
@@ -555,7 +784,7 @@ def run_preparing(args):
     loss_cls = loss_loader.get_loss(cast(str,flags.sgd_loss))
     ##
     tensor_provider = torch_expl_tensor.TorchSwitchTensorProvider()
-    embedding_generators = []
+    embedding_generators: List[embed_gen.BaseEmbeddingGenerator] = []
     for embedding_filename in cast(list,flags.embedding):
         eg = embed_gen.EmbeddingGenerator()
         eg.load(embedding_filename )
@@ -574,7 +803,12 @@ def run_preparing(args):
     )
 
 
-def run_training(args):
+def run_training(args: argparse.Namespace) -> None:
+    """Run training and optionally validation/saving.
+
+    Args:
+        args: Parsed CLI arguments.
+    """
     if args.dataset is not None:
         input_data = load_input_data(args.dataset)
     else:
@@ -587,7 +821,7 @@ def run_training(args):
     ##
     print("... computational graph")
     model = TprismModel(flags, tensor_shapes, graph, loss_cls)
-    model.build(input_data, load_vocab=False, embedding_key="train")
+    model.build(input_data, load_vocab=False, embedding_key="train", verbose=False)
     start_t = time.time()
     if flags.cycle:
         print("... fit with cycle")
@@ -605,7 +839,12 @@ def run_training(args):
     print("total training time:{0}".format(train_time) + "[sec]")
 
 
-def run_test(args):
+def run_test(args: argparse.Namespace) -> None:
+    """Run inference with a trained model and save outputs.
+
+    Args:
+        args: Parsed CLI arguments.
+    """
     if args.dataset is not None:
         input_data = load_input_data(args.dataset)
     else:
@@ -618,7 +857,7 @@ def run_test(args):
     ##
     print("... computational graph")
     model = TprismModel(flags, tensor_shapes, graph, loss_cls)
-    model.build(input_data, load_vocab=True, embedding_key="test")
+    model.build(input_data, load_vocab=True, embedding_key="test", verbose=False)
     if flags.model is not None:
         model.load(flags.model + ".best.model")
     start_t = time.time()
@@ -655,7 +894,11 @@ def run_test(args):
     pickle.dump(data, fp)
 
 
-def main():
+def main() -> None:
+    """CLI entrypoint.
+
+    Parses arguments and dispatches to train/prepare/test modes.
+    """
     # set random seed
     seed = 1234
     np.random.seed(seed)

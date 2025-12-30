@@ -1,6 +1,10 @@
 import networkx as nx
-from typing import List, Optional, Tuple, Set, Dict, Any
+from typing import Any, Dict, List, Optional, Set, Tuple
 from tprism.torch_expl_graph import GoalInsideEntry
+
+
+PathNode = Dict[str, Any]
+
 
 def build_and_or_graph(
     goal_inside: List[Optional[GoalInsideEntry]],
@@ -15,43 +19,66 @@ def build_and_or_graph(
     Set[str],
     Dict[str, str],
 ]:
+    """
+    Build an AND-OR graph representation from a dryrun goal expansion.
+
+    Args:
+        goal_inside: Sequence of goal entries containing inside path descriptions.
+            Only entries produced by dryrun (``goal.dryrun is True``) are considered.
+        and_label: Prefix for generated AND node identifiers.
+        or_label: Prefix for OR node identifiers. Goal ids are used when available.
+        leaf_label: Prefix for leaf tensor node identifiers.
+
+    Returns:
+        A tuple of:
+            - or_and_edges: Edges from AND nodes to OR nodes.
+            - inside_edges: Edges from tensor/goal leaves to AND nodes.
+            - or_nodes: Set of OR node identifiers.
+            - and_nodes: Set of AND node identifiers.
+            - t_nodes: Set of tensor leaf node identifiers.
+            - factor_mapping: Mapping from AND node id to einsum equation or name.
+    """
     or_and_edges: List[Tuple[str, str]] = []
     inside_edges: List[Tuple[str, str]] = []
     or_nodes: Set[str] = set()
     and_nodes: Set[str] = set()
     t_nodes: Set[str] = set()
     factor_mapping: Dict[str, str] = {}
-    # for each all subgoals
+    # Traverse every subgoal collected from dryrun output.
     for i, goal in enumerate(goal_inside):
         if goal is None:
             continue
-        # Only meaningful in dryrun mode (inside holds descriptors)
+        # Only meaningful in dryrun mode (inside holds descriptors).
         if getattr(goal, "dryrun", False) is False:
             continue
-        # make OR label
+        # Create OR node label (prefer goal id when present).
         or_id = str(goal.id) if goal.id is not None else str(i)
         or_key = or_id  # keep node id as label as before
         or_nodes.add(or_key)
-        # subgoal without path (constant)
+        # Skip constant subgoals that do not carry paths.
         inside_list = goal.inside if isinstance(goal.inside, list) else []
         if len(inside_list) == 0:
             continue
-        # for each paths(OR) in a subgoal
-        for j, path_desc in enumerate(inside_list):
+        # Each element in inside_list represents a path (OR branch) in the subgoal.
+        for path_desc in inside_list:
             if not isinstance(path_desc, dict):
                 continue
-            # make AND label
+            # Build AND node for the current path.
             and_key = and_label + str(len(and_nodes))
             and_nodes.add(and_key)
             or_and_edges.append((and_key, or_key))
-            # try to show einsum eq if present; otherwise fallback to name
-            factor_mapping[and_key] = str(path_desc.get("einsum_eq", path_desc.get("name", "")))
-            # for each node (AND) in a path
-            path_nodes = list(path_desc.get("path", [])) + list(path_desc.get("path_scalar", []))
+            # Try to show einsum equation if present; otherwise fall back to name.
+            factor_mapping[and_key] = str(
+                path_desc.get("einsum_eq", path_desc.get("name", ""))
+            )
+            # Walk through each node referenced by the path.
+            path_nodes: List[PathNode] = list(path_desc.get("path", [])) + list(
+                path_desc.get("path_scalar", [])
+            )
             for node in path_nodes:
                 if isinstance(node, dict) and node.get("type") == "tensor_atom":
                     nm = node.get("name", "")
-                    # keep previous convention of trimming 'tensor' prefix in label display
+                    # Keep previous convention of trimming 'tensor' prefix in label display.
                     n = leaf_label + (nm[6:] if nm.startswith("tensor") else nm)
                     inside_edges.append((n, and_key))
                     t_nodes.add(n)
@@ -88,4 +115,3 @@ def plot_and_or_graph(
     nx.draw_networkx_edges(G,pos)
     nx.draw_networkx_labels(G,pos)
     return G,pos
-

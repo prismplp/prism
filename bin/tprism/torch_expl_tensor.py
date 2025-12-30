@@ -2,33 +2,16 @@
 
 import torch
 import torch.nn.functional as F
-import json
 import re
 import numpy as np
-from google.protobuf import json_format
 
-from itertools import chain
-import collections
-
-import inspect
-import importlib
-import glob
-import os
 import re
-import pickle
-import h5py
 import math
 
-import tprism.expl_pb2 as expl_pb2
-import tprism.op.base
-import tprism.loss.base
 import tprism.constraint
 
-from tprism.expl_graph import ComputationalExplGraph
 from tprism.expl_tensor import PlaceholderGraph, VocabSet, SwitchTensorProvider, TorchTensorBase
-from tprism.loader import OperatorLoader
 from tprism.placeholder import PlaceholderData
-from numpy import int64
 from torch import dtype, Tensor
 from typing import Any, Dict, List, Tuple, Union, Optional, Type
 
@@ -38,7 +21,7 @@ from typing import Any, Dict, List, Tuple, Union, Optional, Type
 class TorchTensorOnehot(TorchTensorBase):
     def __init__(self, provider: SwitchTensorProvider,
                   shape: List[int], value:Any):
-        self.shape = shape
+        self.shape:Tuple[int, ...] = tuple(shape)
         self.value = value
 
     @staticmethod
@@ -53,12 +36,13 @@ class TorchTensorOnehot(TorchTensorBase):
 
 class TorchTensor(TorchTensorBase):
     def __init__(self, provider: SwitchTensorProvider, name: str, shape: List[int], dtype: dtype=torch.float32, tensor_type: str="") -> None:
-        self.shape = shape
+        self.shape:Tuple[int, ...] = tuple(shape)
         self.dtype = dtype
+        self.name: str = ""
         if name is None:
-            self.name = "tensor%04d" % (np.random.randint(0, 10000),)
+            self.name= "tensor%04d" % (np.random.randint(0, 10000),)
         else:
-            self.name = name
+            self.name= name
         self.provider = provider
         self.tensor_type = tensor_type
         ###
@@ -77,7 +61,11 @@ class TorchTensor(TorchTensorBase):
 
     @staticmethod
     def builder_func(provider: SwitchTensorProvider,
-                  name: str, shape: List[int], dtype: dtype=torch.float32, tensor_type: str="") -> TorchTensorBase:
+                  name: str, shape: List[int], dtype: Optional[dtype]=torch.float32, tensor_type: Optional[str]="") -> TorchTensorBase:
+        if tensor_type is None:
+            tensor_type = ""
+        if dtype is None:
+            dtype=torch.float32
         return TorchTensor(provider, name, shape, dtype, tensor_type)
 
     def reset_parameters(self) -> None:
@@ -123,6 +111,8 @@ class TorchGather(TorchTensorBase):
 
 
 class TorchSwitchTensorProvider(SwitchTensorProvider):
+    integer_dtype: Optional[torch.dtype] = None
+
     def __init__(self) -> None:
         super().__init__()
         self.tensor_onehot_class = TorchTensorOnehot.builder_func
@@ -145,7 +135,7 @@ class TorchSwitchTensorProvider(SwitchTensorProvider):
                 loss["sparse_"+name]=l
         return loss
     # forward
-    def get_embedding(self, name: Union[str,PlaceholderData], verbose:bool=False)->Optional[Tensor]:
+    def get_embedding(self, name: Union[str,PlaceholderData], verbose:bool=False)->Optional[TorchTensorBase|Tensor]:
         if verbose:
             print("[INFO] get embedding:", name)
         out = None
@@ -182,6 +172,7 @@ class TorchSwitchTensorProvider(SwitchTensorProvider):
         if verbose:
             print(out)
             print(type(out))
-            print("sum:", out.sum())
+            if isinstance(out, torch.Tensor):
+                print("sum:", out.sum())
         return out
 

@@ -43,7 +43,7 @@ def load_input_data(data_filename_list: List[str]) -> List[InputData]:
 
     
     """
-    input_data_list = []
+    input_data_list:List[List[InputData]] = []
     for filename in data_filename_list:
         rest_name, ext = os.path.splitext(filename)
         if ext == ".h5":
@@ -62,7 +62,7 @@ def load_input_data(data_filename_list: List[str]) -> List[InputData]:
             datasets = load_input_json(filename)
         else:
             print("[ERROR] unknown format", filename)
-            datasets = None
+            datasets = []
         input_data_list.append(datasets)
     return merge_input_data(input_data_list)
     # return input_data_list
@@ -126,11 +126,21 @@ def merge_input_data(input_data_list: List[List[InputData]]) ->  List[InputData]
             if goal_id not in merged_data:
                 merged_data[goal_id] = data
             else:
-                merged_data[goal_id].records.extend(data.records)
+                # merged_data[goal_id].records.extend(data.records)
+                # Merge numpy arrays along the first axis
+                try:
+                    merged_data[goal_id].records = np.concatenate(
+                        (merged_data[goal_id].records, data.records), axis=0
+                    )
+                except ValueError:
+                    # Fallback to vstack for compatible shapes (e.g., 1-D arrays)
+                    merged_data[goal_id].records = np.vstack(
+                        (merged_data[goal_id].records, data.records)
+                    )
     return list(merged_data.values())
 
 
-def load_explanation_graph(expl_filename: str, option_filename: Optional[str] =None, args={})-> Tuple[Any,TensorInfoMapper,Flags]:
+def load_explanation_graph(expl_filename: str, option_filename: Optional[str] =None, args={})-> Tuple[expl_pb2.ExplGraph,TensorInfoMapper,Flags]:
     """Load an explanation graph and options supporting .json format
 
     Args:
@@ -151,8 +161,6 @@ def load_explanation_graph(expl_filename: str, option_filename: Optional[str] =N
         print("[LOAD]", option_filename)
         with open(option_filename, "r") as fp:
             options = json_format.Parse(fp.read(), options)
-    else:
-        options=None
     #
     flags = Flags(args, options)
     tensor_shapes = TensorInfoMapper(options)
@@ -164,12 +172,12 @@ class OperatorLoader:
     This class is used to load custom operators
     """
     def __init__(self) -> None:
-        self.operators = {}
+        self.operators:Dict[str,Type[BaseOperator]] = {}
         self.base_module_name = "tprism.op."
         self.module = None
 
     # a snake case operator name to class name
-    def to_class_name(self, snake_str):
+    def to_class_name(self, snake_str: str) -> str:
         components = snake_str.split("_")
         return "".join(x.title() for x in components)
 
@@ -219,7 +227,7 @@ class LossLoader:
     def __init__(self) -> None:
         self.module = None
         self.base_module_name = "tprism.loss."
-        self.losses = {}
+        self.losses:Dict[str,Any] = {}
 
     # a snake case operator name to class name
     def to_class_name(self, snake_str):
