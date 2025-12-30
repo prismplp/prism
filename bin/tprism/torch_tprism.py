@@ -225,16 +225,17 @@ class TprismModel:
         self.operator_loader = OperatorLoader()
         self.operator_loader.load_all("op/torch_")
 
-    def build(self, input_data: Optional[List[InputData]], load_vocab: bool, embedding_key: str) -> None:
+    def build(self, input_data: Optional[List[InputData]], load_vocab: bool, embedding_key: str, verbose: bool) -> None:
         """Initialize embeddings, data provider, and computational graph.
 
         Args:
             input_data: Input dataset or None.
             load_vocab: Whether to load vocabulary.
             embedding_key: Embedding key (e.g., "train" or "test").
+            verbose: Whether to print verbose output.
         """
         self._build_embedding(embedding_key)
-        self._set_data(input_data, load_vocab)
+        self._set_data(input_data, load_vocab, verbose)
         self._build_explanation_graph()
 
     def _build_embedding(self, embedding_key: str) -> None:
@@ -262,7 +263,7 @@ class TprismModel:
         self.embedding_generators = embedding_generators
         self.cycle_embedding_generator = cycle_embedding_generator
 
-    def _set_data(self, input_data: Optional[List[InputData]], load_vocab: bool) -> None:
+    def _set_data(self, input_data: Optional[List[InputData]], load_vocab: bool, verbose: bool) -> None:
         """Build tensor provider and set input data/vocabulary.
 
         Args:
@@ -277,6 +278,7 @@ class TprismModel:
             self.flags,
             load_vocab=load_vocab,
             embedding_generators=self.embedding_generators,
+            verbose=verbose,
         )
 
     def _build_explanation_graph(self) -> None:
@@ -835,7 +837,7 @@ def run_training(args: argparse.Namespace) -> None:
     ##
     print("... computational graph")
     model = TprismModel(flags, tensor_shapes, graph, loss_cls)
-    model.build(input_data, load_vocab=False, embedding_key="train")
+    model.build(input_data, load_vocab=False, embedding_key="train", verbose=False)
     start_t = time.time()
     if flags.cycle:
         print("... fit with cycle")
@@ -871,7 +873,7 @@ def run_test(args: argparse.Namespace) -> None:
     ##
     print("... computational graph")
     model = TprismModel(flags, tensor_shapes, graph, loss_cls)
-    model.build(input_data, load_vocab=True, embedding_key="test")
+    model.build(input_data, load_vocab=True, embedding_key="test", verbose=False)
     if flags.model is not None:
         model.load(flags.model + ".best.model")
     start_t = time.time()
