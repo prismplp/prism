@@ -366,15 +366,26 @@ $expl_interp_single_call(Goal,Depth,Gid) :- % suppress re-computation
 $prism_eg_path(Pid,CIDs,SWs) :- $pc_add_egraph_path(Pid,CIDs,SWs).
 
 $prism_expl_msw(Sw,V,SwInsId) :-
-    get_values1(Sw,Values),
-    ( $pc_prism_sw_id_get(Sw,SwId) -> true
-    ; $pc_prism_sw_id_register(Sw,SwId),
-      $pp_export_switch(SwId,Sw,Values)
-    ),!,
-    member(V,Values),
-    $pc_prism_sw_ins_id_get(msw(Sw,V),SwInsId).
+    get_prism_flag(fail_on_outcomes,EVal),
+    EVal=on ->(
+	get_values1(Sw,Values),
+	( $pc_prism_sw_id_get(Sw,SwId) -> true
+	; $pc_prism_sw_id_register(Sw,SwId),
+	  $pp_export_switch(SwId,Sw,Values)
+	),!,
+	member(V,Values),
+        $pc_prism_sw_ins_id_get(msw(Sw,V),SwInsId))
+    ;(  ($pc_prism_sw_id_get(Sw,SwId) -> $pp_export_switch1(SwId,Sw,V)
+        ; $pc_prism_sw_id_register(Sw,SwId),$pp_export_switch1(SwId,Sw,V)
+        ),!,
+        %
+        $pc_prism_sw_ins_id_get(msw(Sw,V),SwInsId)).
 
 %%----------------------------------------------------------------------------
+
+$pp_export_switch1(SwId,Sw,Value) :-
+    $pc_prism_sw_ins_id_register(msw(Sw,Value),SwInsId),
+    $pc_export_switch(SwId,[SwInsId]).
 
 $pp_export_switch(SwId,Sw,Values) :-
     $pp_encode_switch_instances(Sw,Values,SwInsIds),
