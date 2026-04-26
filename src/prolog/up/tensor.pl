@@ -457,7 +457,7 @@ $pp_tensor_core(Filename,OptionFilename,Mode,OptionMode,GoalList) :-
 	cputime(EndExpl),
 	$pp_format_if(MsgM,"Exporting switch information ... "),
 	flush_output,
-	$pp_export_sw_info,
+	%$pp_export_sw_info,
 	$pp_format_if(MsgM,"done~n"),
 	$pp_observed_facts(GoalCountPairs,GidCountPairs,
 					   0,Len,0,NGoals,-1,FailRootIndex),
@@ -477,7 +477,7 @@ $pp_tensor_core(Filename,OptionFilename,Mode,OptionMode,GoalList) :-
 	filter(tensor(_),Sws,Sws1),
 	%maplist(S,Shape,(S=tensor(X)->(tensor_atom(X,Sh),Shape=[X,Sh]);Shape=unknown),Sws1,SwShape),
 	%maplist(S,Shape,(S=tensor(X)->(not tensor_atom(X,Sh,Z)->(tensor_atom(X,Sh),Shape=[X,Sh]);Shape=[X,Sh,Z]);Shape=unknown),Sws1,SwShape),
-	maplist(S,Shape,(S=tensor(X)->(tensor_atom(X,Sh,Z),Shape=[X,Sh,Z]);Shape=unknown),Sws1,SwShape),
+	maplist(S,Shape,(S=tensor(X)->(tensor_atom(X,Sh,Z)->Shape=[X,Sh,Z];Shape=[X,unknown,unknown]);Shape=unknown),Sws1,SwShape),
 	cputime(EndEM),
 	save_flags(OptionFilename,OptionMode,SwShape),
 	cputime(End),!.

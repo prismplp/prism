@@ -3,7 +3,7 @@
 import numpy as np
 from numpy import ndarray
 from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union
-
+from typing import get_origin, get_args, get_type_hints
 import h5py
 
 import tprism.expl_pb2 as expl_pb2
@@ -49,6 +49,37 @@ def to_string_goal(goal):
     s += ",".join([str(arg) for arg in goal.args])
     return s
 
+
+
+def cast_value(value: Any, typ: Any) -> Any:
+    origin = get_origin(typ)
+    args = get_args(typ)
+
+    # Optional[T] is regarded as Union[T, None]
+    if origin is Union and type(None) in args:
+        if value is None:
+            return None
+
+        inner_types = [t for t in args if t is not type(None)]
+        if len(inner_types) != 1:
+            raise TypeError(f"Unsupported Optional type: {typ}")
+
+        return cast_value(value, inner_types[0])
+
+    # List[T] / list[T]
+    if origin in (list, List):
+        if not isinstance(value, list):
+            raise TypeError(f"Expected list, got {type(value).__name__}")
+
+        (elem_type,) = args
+        return [cast_value(v, elem_type) for v in value]
+
+    # primitive type
+    try:
+        return typ(value)
+    except Exception as e:
+        raise TypeError(f"Cannot cast {value!r} to {typ}") from e
+
 @dataclasses.dataclass(slots=True)
 class Flags:
     # data / dataset
@@ -91,9 +122,16 @@ class Flags:
             
     def __contains__(self, k: str) -> bool:
         return hasattr(self, k) and getattr(self, k) is not None
+
     def add(self, k: str, v: Any) -> None:
         if hasattr(self, k):
-            setattr(self, k, v)
+            hints = get_type_hints(type(self))
+            if k not in hints:
+                raise AttributeError(f"{k} is not defined")
+            elif type(v) is str and v=="default":
+                return
+            setattr(self, k, cast_value(v, hints[k]))
+
     def _build(self, args_dict, flags) -> None:
         for k, v in args_dict.items():
             if v is not None:

@@ -91,7 +91,7 @@ void save_message(const string& outfilename,::google::protobuf::Message* msg,Sav
 			fstream output(outfilename.c_str(), ios::out | ios::trunc);
 			io::OstreamOutputStream* oss = new io::OstreamOutputStream(&output); 
 			if (!TextFormat::Print(*msg, oss)) {     
-				cerr << "Failed to write explanation graph." << endl;  
+				cerr << "[ERROR] Failed to write explanation graph." << endl;  
 			}
 			delete oss;
 			cout<<"[SAVE:PBTxt]"<<outfilename<<endl;
@@ -101,7 +101,7 @@ void save_message(const string& outfilename,::google::protobuf::Message* msg,Sav
 		{
 			fstream output(outfilename.c_str(), ios::out | ios::trunc | ios::binary);
 			if (!msg->SerializeToOstream(&output)) {
-				cerr << "Failed to write explanation graph." << endl;  
+				cerr << "[ERROR] Failed to write explanation graph." << endl;  
 			}
 			cout<<"[SAVE:PB]"<<outfilename<<endl;
 			break;
@@ -734,6 +734,10 @@ int run_save_options_json(const char* filename, SaveFormat format,TERM sw_list){
 		ts["type"]=tensor_type_str;
 		ts["shape"]=json::array();
 		//cout<<tensor_str<<endl;
+		//
+		if(!bpx_is_list(shape)){
+			cerr << "[ERROR] Shape is not specified:"<< tensor_str << endl;  
+		}
 		while(!bpx_is_nil(shape)){
 			int dim=bpx_get_integer(bpx_get_car(shape));
 			ts["shape"].push_back(dim);
