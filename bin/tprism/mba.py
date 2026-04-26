@@ -1,12 +1,14 @@
 from importlib import import_module
 import json
+from types import ModuleType
 from typing import Any, Dict, Iterable, List, MutableMapping, Sequence, Tuple
 
 import numpy as np
 from tprism.expl_print import node2str, sw2str, remap_index
+from tprism.expl_print import print_expl
 
 try:
-    legendre_decomp = import_module("legendre_decomp")
+    legendre_decomp: ModuleType | None = import_module("legendre_decomp")
     print("[legendre_decomp] enabled")
 except ModuleNotFoundError:
     legendre_decomp = None
@@ -33,6 +35,8 @@ def local_index_remap(out_index,in_index_list):
 
 def run_subgoal(g, X_subgoal,mapping_index,n_iter=1000, lr=0.5, gpu=False,verbose=False,verbose_ld=False):
   verb_index=False
+  if legendre_decomp is None:
+    raise RuntimeError("legendre_decomp module is not available.")
   gg=g["node"]
   gI= gg["new_index"]
   #print(node2str2(gg, mapping_index,mapping_values),"<=>")
@@ -86,7 +90,7 @@ def run_subgoal(g, X_subgoal,mapping_index,n_iter=1000, lr=0.5, gpu=False,verbos
           print(node_s,":",k,"=> shape:",x.shape)
         out[node_s]=x
     return out,recons
-  return None
+  return out,recons
 
 def run_mba(goals, X_goal, n_iter=1000, lr=0.5, gpu=False, verbose=False, verbose_ld=False):
   mapping_index =remap_index(goals)
@@ -126,7 +130,7 @@ def run(X, X_index, expl_filename, n_iter=1000, lr=0.5, gpu=False, verbose=False
   # run MBA
   if verbose_expl:
     print_expl(goals,True,mapping_index)
-  goal_dict,recons_dict=run_mba(goals, X_, n_iter=n_iter, lr=lr, gpu=gpu, verbose=verbose, verbose_ld=verbose_ld)
+  goal_dict, recons_dict=run_mba(goals, X_, n_iter=n_iter, lr=lr, gpu=gpu, verbose=verbose, verbose_ld=verbose_ld)
   recons_out, last_node=recons(goals, recons_dict, verbose=verbose_recons)
   # output transpose
   recons_index, recons_X=recons_out[last_node]  
@@ -136,6 +140,8 @@ def run(X, X_index, expl_filename, n_iter=1000, lr=0.5, gpu=False, verbose=False
 
 
 def recons(goals, recons_dict, verbose=False):
+  if legendre_decomp is None:
+    raise RuntimeError("legendre_decomp module is not available.")
   recons_out={}
   last_g_node_s=None
   for g in goals:
