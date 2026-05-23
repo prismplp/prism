@@ -297,17 +297,17 @@ Note:
         => [inputs[0], [0,1], inputs[1], [1,2], [0,2]], out_template
         """
         
-        symbol_set = set([e for sublist in template for e in sublist])
+        symbol_set = set([e.symbol for sublist in template for e in sublist])
         mapping={s:i for i,s in enumerate(symbol_set)}
         if path_batch_flag:
             out_template = [TensorIndexRef("symbol", 0, -1, 1, "b")] + out_template
         sublistform_args: List[torch.Tensor| List[int]] = []
         for v,input_x in zip(template,inputs):
-            l=[mapping[el] for el in v]
+            l=[mapping[el.symbol] for el in v]
             slice_x, index_tuple, out_symbols=extract_tensor(input_x, v)
             sublistform_args.append(slice_x)
             sublistform_args.append(l)
-        sublistform_args.append([mapping[el] for el in out_template])
+        sublistform_args.append([mapping[el.symbol] for el in out_template])
         return sublistform_args, out_template
 
     def _apply_operator(
