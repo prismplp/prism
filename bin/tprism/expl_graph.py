@@ -30,6 +30,9 @@ from tprism.loader import InputData
 from tprism.expl_tensor import SwitchTensorProvider
 from dataclasses import dataclass
 from tprism.op.base import BaseOperator
+from tprism.tensor_index import  TensorIndexRef, parse_tensor_index
+
+from tprism.tensor_index import extract_tensor_shape
 
 @dataclass
 class GoalTemplate:
@@ -40,9 +43,10 @@ class GoalTemplate:
       - shape: unified output shape per goal (dimension may contain None)
     Backward compatible with dict-style access via __getitem__.
     """
-    template: List[str]
+    template: List[TensorIndexRef]
     batch_flag: bool
-    shape: List[int]
+    shape: Tuple[Optional[int], ...]
+    
 
     def __getitem__(self, key: str):
         if key == "template":
@@ -66,9 +70,9 @@ class ComputationalExplGraph:
 
             a goal template=
             {
-                "template": List[str],
+                "template": List[TensorIndexRef],
                 "batch_flag": Boolean,
-                "shape": List[int ...],
+                "shape": Tuple[Optional[int], ...],
             }
 
 
@@ -77,50 +81,61 @@ class ComputationalExplGraph:
     def __init__(self):
         self.operators:Dict[str, BaseOperator]={}
 
-    def _get_unique_list(self, seq: List[List[str]]) -> List[List[str]]:
-        seen = []
-        return [x for x in seq if x not in seen and not seen.append(x)]
+    def _get_unique_symbol_list(self, seq: List[List[TensorIndexRef]]) -> List[List[TensorIndexRef]]:
+        seen: List[Tuple[str, ...]] = []
+        seen_: List[List[TensorIndexRef]] = []
+        for ts in seq:
+            symbols = tuple([t.symbol for t in ts])
+            if symbols not in seen:
+                seen.append(symbols)
+                seen_.append(ts)
+        return seen_
 
     # [['i'], ['i','l', 'j'], ['j','k']] => ['l','k']
-    def _compute_output_template(self, template: List[List[str]]) -> List[Union[str, Any]]:
-        counter = collections.Counter(chain.from_iterable(template))
-        out_template = [k for k, cnt in counter.items() if cnt == 1 and k != "b"]
-        return sorted(out_template)
+    def _compute_output_template(self, template: List[List[TensorIndexRef]]) -> List[TensorIndexRef]:
+        template_=[[t.symbol for t in ts]for ts in template]
+        counter = collections.Counter(chain.from_iterable(template_))
+        out_template_ = [k for k, cnt in counter.items() if cnt == 1 and k != "b"]
+        out_template = [TensorIndexRef("symbol", 0, -1, 1, e) for e in sorted(out_template_)]
+        return out_template
 
     # [['i'], ['i','l', 'j'], ['j','k']] => ['l','k']
     # [[3], [3, 4, 5], [5,6]] => [4,6]
-    def _compute_output_shape(self, out_template: List[Union[str, Any]], sw_node_template: List[List[str]], sw_node_shape: List[Union[Tuple[int, int], List[int], List[Optional[int]], Tuple[int]]]) -> List[Union[int, Any]]:
+    def _compute_output_shape(self, out_template: List[TensorIndexRef], sw_node_template: List[List[TensorIndexRef]], sw_node_shape: List[Tuple[Optional[int], ...]]) -> Tuple[Optional[int],...]:
         symbol_shape = {}
         for template_list, shape_list in zip(sw_node_template, sw_node_shape):
-            for t, s in zip(template_list, shape_list):
-                if t not in symbol_shape:
-                    symbol_shape[t] = s
-                elif symbol_shape[t] is None:
-                    symbol_shape[t] = s
+            extracted_shape = extract_tensor_shape(shape_list, template_list)
+            
+            for t, s in zip(template_list, extracted_shape):
+                if t.symbol not in symbol_shape:
+                    symbol_shape[t.symbol] = s
+                elif symbol_shape[t.symbol] is None:
+                    symbol_shape[t.symbol] = s
                 else:
-                    assert symbol_shape[t] == s, (
+                    assert symbol_shape[t.symbol] == s, (
                         "index symbol mismatch:"
                         + str(t)
                         + ":"
-                        + str(symbol_shape[t])
+                        + str(symbol_shape[t.symbol])
                         + "!="
                         + str(s)
                     )
         out_shape = []
-        for symbol in out_template:
+        for el in out_template:
+            symbol = el.symbol
             if symbol in symbol_shape:
                 out_shape.append(symbol_shape[symbol])
             else:
                 out_shape.append(None)
-        return out_shape
+        return tuple(out_shape)
 
-    def _unify_shapes(self, path_shapes: List[List[Union[int, Any]]]) -> List[Union[int, Any]]:
+    def _unify_shapes(self, path_shapes: List[Tuple[Optional[int],...]]) -> Tuple[Optional[int],...]:
         """
         This method is used to unify shapes for all paths
         """
         n = len(path_shapes)
         if n == 0:
-            return []
+            return ()
         else:
             m = len(path_shapes[0])
             out_shape = []
@@ -134,15 +149,15 @@ class ComputationalExplGraph:
                     else:
                         assert path_shapes[i][j] == dim, "shape mismatching"
                 out_shape.append(dim)
-            return out_shape
+            return tuple(out_shape)
 
     def _apply_operator_template(
         self,
         operator_loader: Optional[OperatorLoader],
         op: expl_pb2.SwIns,
-        in_template: List[str],
-        in_shape: List[int]
-    ) -> Tuple[List[str], List[int]]:
+        in_template: List[TensorIndexRef],
+        in_shape: Tuple[Optional[int], ...]
+    ) -> Tuple[List[TensorIndexRef], Tuple[Optional[int], ...]]:
         """
         Applies an operator template to the given input template and shape, restoring or creating the operator as needed.
 
@@ -202,21 +217,22 @@ class ComputationalExplGraph:
             path_batch_flag = False
             for path in g.paths:
                 ## build template and inside for switches in the path
-                sw_template = []
-                sw_shape = []
+                sw_template: List[List[TensorIndexRef]] = []
+                sw_shape: List[Tuple[Optional[int],...]] = []
                 for sw in path.tensor_switches:
                     ph = tensor_provider.get_placeholder_name(sw.name)
                     sw_obj = tensor_provider.get_switch(sw.name)
+                    sw_index_list=[parse_tensor_index(el) for el in sw.values]
                     if len(ph) > 0:
-                        sw_template.append(["b"] + list(sw.values))
+                        sw_template.append([TensorIndexRef("symbol", 0, -1, 1, "b")] + sw_index_list)
                         path_batch_flag = True
-                        sw_shape.append([None] + list(sw_obj.get_shape()))
+                        sw_shape.append(tuple([None] + list(sw_obj.get_shape())))
                     else:
-                        sw_template.append(list(sw.values))
+                        sw_template.append(sw_index_list)
                         sw_shape.append(sw_obj.get_shape())
                 ## building template and inside for nodes in the path
-                node_template = []
-                node_shape = []
+                node_template: List[List[TensorIndexRef]] = []
+                node_shape: List[Tuple[Optional[int],...]] = []
                 cycle_detected = False
                 for node in path.nodes:
                     temp_goal = goal_template[node.sorted_id]
@@ -229,7 +245,7 @@ class ComputationalExplGraph:
                     if len(temp_goal.template) > 0:
                         if temp_goal.batch_flag:
                             path_batch_flag = True
-                        node_shape.append(temp_goal.shape)
+                        node_shape.append(tuple(temp_goal.shape))
                         node_template.append(temp_goal.template)
                 #if cycle_detected:
                 #    continue
@@ -256,7 +272,7 @@ class ComputationalExplGraph:
                     )
                     if len(sw_node_template) > 0:  # condition for einsum
                         if path_batch_flag:
-                            out_template = ["b"] + out_template
+                            out_template = [TensorIndexRef("symbol", 0, -1, 1, "b")] + out_template
                     ## computing operaters
                     for op in path.operators:
                         out_template, out_shape=self._apply_operator_template(
@@ -269,21 +285,21 @@ class ComputationalExplGraph:
                 path_shape.append(out_shape)
                 ##
             ##
-            path_template_list = self._get_unique_list(path_template)
-            path_shape = self._unify_shapes(path_shape)
+            path_template_list = self._get_unique_symbol_list(path_template)
+            path_shape_ = self._unify_shapes(path_shape)
             if len(path_template_list) == 0:
                 goal_template[i] = GoalTemplate(
                     template=[],
                     batch_flag=False,
-                    shape=path_shape,
+                    shape=path_shape_,
                 )
             else:
                 if len(path_template_list) != 1:
                     print("[WARNING] missmatch indices:", path_template_list)
                 goal_template[i] = GoalTemplate(
-                    template=path_template_list[0],
+                    template=path_template[0],
                     batch_flag=path_batch_flag,
-                    shape=path_shape,
+                    shape=path_shape_,
                 )
         ##
         return goal_template, cycle_node

@@ -43,6 +43,8 @@ from tprism.torch_expl_tensor import TorchSwitchTensorProvider
 from tprism.expl_graph import GoalTemplate
 from tprism.op.base import BaseOperator
 
+from tprism.tensor_index import parse_tensor_index, TensorIndexRef, extract_tensor
+
 class ExplNode:
     """
     A container for intermediate values and dryrun descriptors.
@@ -93,14 +95,14 @@ class GoalInsideEntry:
     A unified container for goal_inside entries to replace the previous dict-based structure.
 
     Fields:
-      - template: List[str]
+      - template: List[TensorIndexRef]
       - inside: Any (tensor in non-dryrun, list of path descriptions in dryrun)
       - batch_flag: bool
       - dryrun: bool
       - id, name, args: optional meta information (set in dryrun mode)
     """
-    def __init__(self, template: List[str], inside: Any, batch_flag: bool, dryrun: bool) -> None:
-        self.template: List[str] = template
+    def __init__(self, template: List[TensorIndexRef], inside: Any, batch_flag: bool, dryrun: bool) -> None:
+        self.template: List[TensorIndexRef] = template
         self.inside: Any = inside
         self.batch_flag: bool = batch_flag
         self.dryrun: bool = dryrun
@@ -137,7 +139,7 @@ class GoalInsideEntry:
     @classmethod
     def merge_paths(
         cls,
-        path_template_list: List[List[str]],
+        path_template_list: List[List[TensorIndexRef]],
         path_inside: List["ExplNode"],
         path_batch_flag: bool,
         dryrun: bool,
@@ -150,7 +152,7 @@ class GoalInsideEntry:
             return [it.as_desc() if is_dry else it.as_value() for it in items]
 
         if len(path_template_list) == 0:
-            template: List[str] = []
+            template: List[TensorIndexRef] = []
             inside_list = normalize_list(path_inside, dryrun)
             inside: Any = inside_list if dryrun else torch.tensor(1)
             # batch_flag must be False for this case (keep original behavior)
@@ -240,9 +242,9 @@ Note:
         name: str,
         dist: str,
         params: List[torch.Tensor],
-        param_template: List[List[str]],
+        param_template: List[List[TensorIndexRef]],
         op: "expl_pb2.SwIns",
-    ) -> Tuple[torch.Tensor, List[str]]:
+    ) -> Tuple[torch.Tensor, List[TensorIndexRef]]:
         if dist == "normal":
             mean = params[0]
             var = params[1]
@@ -263,31 +265,31 @@ Note:
 
     def make_einsum_args(
         self,
-        template: List[List[str]],
-        out_template: List[str],
+        template: List[List[TensorIndexRef]],
+        out_template: List[TensorIndexRef],
         path_batch_flag: bool,
-    ) -> Tuple[str, List[str]]:
+    ) -> Tuple[str, List[TensorIndexRef]]:
         """
         Example
         template: [["i","j"],["j","k"]]
         out_template: ["i","k"]
         => "ij,jk->ik", out_template
         """
-        lhs = ",".join(map(lambda x: "".join(x), template))
-        rhs = "".join(out_template)
+        lhs = ",".join(map(lambda x: "".join([el.symbol for el in x]), template))
+        rhs = "".join([el.symbol for el in out_template])
         if path_batch_flag:
             rhs = "b" + rhs
-            out_template = ["b"] + out_template
+            out_template = [TensorIndexRef("symbol", 0, -1, 1, "b")] + out_template
         einsum_eq = lhs + "->" + rhs
         return einsum_eq, out_template
     
     def make_einsum_args_sublist(
         self,
-        template: List[List[str]],
+        template: List[List[TensorIndexRef]],
         inputs: List[torch.Tensor],
-        out_template: List[str],
+        out_template: List[TensorIndexRef],
         path_batch_flag: bool,
-    ) -> Tuple[List[torch.Tensor| List[int]], List[str]]:
+    ) -> Tuple[List[torch.Tensor| List[int]], List[TensorIndexRef]]:
         """
         Example
         template: [["i","j"],["j","k"]]
@@ -298,11 +300,12 @@ Note:
         symbol_set = set([e for sublist in template for e in sublist])
         mapping={s:i for i,s in enumerate(symbol_set)}
         if path_batch_flag:
-            out_template = ["b"] + out_template
+            out_template = [TensorIndexRef("symbol", 0, -1, 1, "b")] + out_template
         sublistform_args: List[torch.Tensor| List[int]] = []
         for v,input_x in zip(template,inputs):
             l=[mapping[el] for el in v]
-            sublistform_args.append(input_x)
+            slice_x, index_tuple, out_symbols=extract_tensor(input_x, v)
+            sublistform_args.append(slice_x)
             sublistform_args.append(l)
         sublistform_args.append([mapping[el] for el in out_template])
         return sublistform_args, out_template
@@ -312,9 +315,9 @@ Note:
         op: expl_pb2.SwIns,
         operator_loader: Optional["OperatorLoader"],
         out_node: ExplNode,
-        out_template: List[str],
+        out_template: List[TensorIndexRef],
         dryrun: bool,
-    ) -> Tuple[ExplNode, List[str]]:
+    ) -> Tuple[ExplNode, List[TensorIndexRef]]:
         ## restore operator
         key=str(op.name)+"_"+str(op.values)
         op_obj:Optional[BaseOperator]=None
@@ -343,7 +346,7 @@ Note:
         goal_inside: List[Optional[GoalInsideEntry]],
         verbose: bool = False,
         dryrun: bool = False,
-    ) -> Tuple[List[List[str]], List[ExplNode], List[ExplNode], bool]:
+    ) -> Tuple[List[List[TensorIndexRef]], List[ExplNode], List[ExplNode], bool]:
         goal_template = self.goal_template
         cycle_embedding_generator = self.cycle_embedding_generator
         cycle_node=self.cycle_node
@@ -425,18 +428,19 @@ Note:
         verbose: bool = False,
         verbose_embedding: bool = False,
         dryrun: bool = False,
-    ) -> Tuple[List[List[str]], List[ExplNode], List[ExplNode], bool]:
+    ) -> Tuple[List[List[TensorIndexRef]], List[ExplNode], List[ExplNode], bool]:
         tensor_provider = self.tensor_provider
-        sw_template = []
-        sw_inside = []
+        sw_template: List[List[TensorIndexRef]] = []
+        sw_inside: List[ExplNode] = []
         path_batch_flag=False
         for sw in path.tensor_switches:
             ph = tensor_provider.get_placeholder_name(sw.name)
+            sw_index_list=[parse_tensor_index(el) for el in sw.values]
             if len(ph) > 0:
-                sw_template.append(["b"] + list(sw.values))
+                sw_template.append([TensorIndexRef("symbol", 0, -1, 1, "b")] + sw_index_list)
                 path_batch_flag = True
             else:
-                sw_template.append(list(sw.values))
+                sw_template.append(sw_index_list)
             if dryrun:
                 sw_var = ExplNode.from_desc("tensor_atom", {
                     "type":"tensor_atom",
@@ -446,7 +450,7 @@ Note:
                 v = tensor_provider.get_embedding(sw.name, verbose_embedding)
                 sw_var = ExplNode.from_value("tensor_atom", v)
             sw_inside.append(sw_var)
-        prob_sw_inside = []
+        prob_sw_inside: List[ExplNode] = []
         if dryrun:
             for sw in path.prob_switches:
                 prob_sw_inside.append(ExplNode.from_desc("const", {
@@ -464,14 +468,14 @@ Note:
         path_name: str,
         ops: Dict[str, "expl_pb2.SwIns"],
         operator_loader: Optional[OperatorLoader],
-        sw_node_template: List[List[str]],
+        sw_node_template: List[List[TensorIndexRef]],
         sw_node_inside: List[ExplNode],
         node_scalar_inside: List[ExplNode],
         prob_sw_inside: List[ExplNode],
         path_batch_flag: bool,
         verbose: bool = False,
         dryrun: bool = False,
-    ) -> Tuple[ExplNode, List[str]]:
+    ) -> Tuple[ExplNode, List[TensorIndexRef]]:
       
         if "distribution" in ops:
             op = ops["distribution"]
@@ -504,6 +508,8 @@ Note:
             out_template = self._compute_output_template(template)  # out_template is List[str]
             if len(template) > 0:
                 if dryrun:
+                    #print(">in>",template)
+                    #print(">out>",out_template)
                     einsum_eq, out_template_einsum = self.make_einsum_args(
                         template, out_template, path_batch_flag)
                     desc = {
@@ -515,6 +521,9 @@ Note:
                     out_node = ExplNode.from_desc("einsum", desc)
                     out_template = out_template_einsum
                 else:
+                    #print(">in>",template)
+                    #print(">out>",out_template)
+                    
                     inside_vals = [n.as_value() if isinstance(n, ExplNode) else n for n in inside_nodes]
                     einsum_args, out_template_temp = self.make_einsum_args_sublist(template, inside_vals, out_template, path_batch_flag)
                     out_val = torch.einsum(*einsum_args)
@@ -585,7 +594,7 @@ Note:
                     % (g.node.sorted_id, g.node.goal.name)
                 )
             path_inside = []
-            path_template = []
+            path_template: List[List[TensorIndexRef]] = []
             path_batch_flag = False
             for j, path in enumerate(g.paths):
                 ## build template and inside for switches in the path
@@ -614,7 +623,7 @@ Note:
                 path_template.append(out_template)
                 ##
             ### update inside
-            path_template_list = self._get_unique_list(path_template)
+            path_template_list = self._get_unique_symbol_list(path_template)
             entry = GoalInsideEntry.merge_paths(path_template_list, path_inside, path_batch_flag, dryrun)
             if dryrun:
                 entry.set_meta(g.node.sorted_id, g.node.goal.name, g.node.goal.args)

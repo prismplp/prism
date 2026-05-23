@@ -1,4 +1,5 @@
 from typing import List
+from tprism.tensor_index import TensorIndexRef
 
 class BaseOperator:
     def __init__(self, parameters):
@@ -8,7 +9,7 @@ class BaseOperator:
         print("[ERROR] not implemened")
         return None
 
-    def get_output_template(self, input_template:List[str])-> List[str]:
+    def get_output_template(self, input_template:List[TensorIndexRef])-> List[TensorIndexRef]:
         print("[ERROR] not implemened")
         return []
 
