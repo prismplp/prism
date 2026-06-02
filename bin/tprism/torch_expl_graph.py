@@ -276,7 +276,12 @@ Note:
         => "ij,jk->ik", out_template
         """
         lhs = ",".join(map(lambda x: "".join([el.symbol for el in x]), template))
-        rhs = "".join([el.symbol for el in out_template])
+        ## skip index
+        rhs_list=[]
+        for el in out_template:
+            if el.index_type!="index":  # Literal["symbol", "range", "index"]
+                rhs_list.append(el.symbol)
+        rhs = "".join(rhs_list)
         if path_batch_flag:
             rhs = "b" + rhs
             out_template = [TensorIndexRef("symbol", 0, -1, 1, "b")] + out_template
@@ -303,7 +308,12 @@ Note:
             out_template = [TensorIndexRef("symbol", 0, -1, 1, "b")] + out_template
         sublistform_args: List[torch.Tensor| List[int]] = []
         for v,input_x in zip(template,inputs):
-            l=[mapping[el.symbol] for el in v]
+            ## skip index
+            l=[]
+            for el in v:
+                if el.index_type!="index":  # Literal["symbol", "range", "index"]
+                    l.append(mapping[el.symbol])
+            ##
             slice_x, index_tuple, out_symbols=extract_tensor(input_x, v)
             sublistform_args.append(slice_x)
             sublistform_args.append(l)
@@ -528,7 +538,8 @@ Note:
                     except Exception as e:
                         print("[ERROR] einsum failed for path:", path_name)
                         print("in  >",template)
-                        print("out >",out_template)
+                        print("out_org  >",out_template)
+                        print("out_list >",out_template_temp)
                         print("inside_vals:", inside_vals)
                         print("einsum_args:", einsum_args)
                         raise e

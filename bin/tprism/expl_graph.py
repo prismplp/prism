@@ -93,7 +93,15 @@ class ComputationalExplGraph:
 
     # [['i'], ['i','l', 'j'], ['j','k']] => ['l','k']
     def _compute_output_template(self, template: List[List[TensorIndexRef]]) -> List[TensorIndexRef]:
-        template_=[[t.symbol for t in ts]for ts in template]
+        # skip index
+        template_=[]
+        for ts in template:
+            l=[]
+            for t in ts:
+                if t.index_type!="index":  # Literal["symbol", "range", "index"]
+                    l.append(t.symbol)
+            template_.append(l)
+        # counting
         counter = collections.Counter(chain.from_iterable(template_))
         out_template_ = [k for k, cnt in counter.items() if cnt == 1 and k != "b"]
         out_template = [TensorIndexRef("symbol", 0, -1, 1, e) for e in sorted(out_template_)]
