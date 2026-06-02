@@ -521,12 +521,17 @@ Note:
                     out_node = ExplNode.from_desc("einsum", desc)
                     out_template = out_template_einsum
                 else:
-                    #print(">in>",template)
-                    #print(">out>",out_template)
-                    
                     inside_vals = [n.as_value() if isinstance(n, ExplNode) else n for n in inside_nodes]
                     einsum_args, out_template_temp = self.make_einsum_args_sublist(template, inside_vals, out_template, path_batch_flag)
-                    out_val = torch.einsum(*einsum_args)
+                    try:
+                        out_val = torch.einsum(*einsum_args)
+                    except Exception as e:
+                        print("[ERROR] einsum failed for path:", path_name)
+                        print("in  >",template)
+                        print("out >",out_template)
+                        print("inside_vals:", inside_vals)
+                        print("einsum_args:", einsum_args)
+                        raise e
                     out_node = ExplNode.from_value("einsum", out_val)
                     out_template = out_template_temp
             else:

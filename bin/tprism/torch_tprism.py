@@ -70,7 +70,7 @@ def _check_and_detach(output: Any) -> ndarray|List[ndarray]|None:
     elif type(output) is list:
         output = [o.detach().numpy() if type(o) != np.ndarray else o for o in output]
     elif type(output) is torch.Tensor:
-        output = output.detach().numpy()
+        output = output.detach().numpy(force = True)
     return output
 
 class TprismEvaluator:
