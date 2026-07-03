@@ -25,7 +25,7 @@ from tprism.op.base import BaseOperator
 from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union, cast
 
 from tprism.placeholder import PlaceholderData
-from tprism.torch_embedding_generator import EmbeddingGenerator
+from tprism.embedding_generator import EmbeddingGenerator
 from tprism.util import Flags, TensorInfoMapper, InputData
 from tprism.loss import BaseLoss
 

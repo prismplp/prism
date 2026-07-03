@@ -18,9 +18,9 @@ import time
 import pickle
 
 import tprism.expl_pb2 as expl_pb2
-import tprism.torch_expl_graph as torch_expl_graph
-import tprism.torch_embedding_generator as embed_gen
-import tprism.torch_expl_tensor as torch_expl_tensor
+import tprism.embedding_generator as embed_gen
+from tprism.expl_graph import ComputationalExplGraph
+from tprism.expl_tensor import SwitchTensorProvider
 from tprism.placeholder import PlaceholderData
 from torch import Tensor
 
@@ -224,7 +224,7 @@ class TprismModel:
         else:
             self.loss_obj = loss_obj
         self.operator_loader = OperatorLoader()
-        self.operator_loader.load_all("op/torch_")
+        self.operator_loader.load_all("op/")
 
     def build(self, input_data: Optional[List[InputData]], load_vocab: bool, embedding_key: str, verbose: bool=False) -> None:
         """Initialize embeddings, data provider, and computational graph.
@@ -271,7 +271,7 @@ class TprismModel:
             input_data: Input dataset or None.
             load_vocab: Whether to load vocabulary.
         """
-        self.tensor_provider = torch_expl_tensor.TorchSwitchTensorProvider()
+        self.tensor_provider = SwitchTensorProvider()
         self.tensor_provider.build(
             self.graph,
             self.tensor_shapes,
@@ -284,7 +284,7 @@ class TprismModel:
 
     def _build_explanation_graph(self) -> None:
         """Build the PyTorch computational explanation graph."""
-        self.comp_expl_graph = torch_expl_graph.TorchComputationalExplGraph(
+        self.comp_expl_graph = ComputationalExplGraph(
             self.graph, self.tensor_provider, self.operator_loader, self.cycle_embedding_generator
         )
 
@@ -474,7 +474,6 @@ class TprismModel:
         for embedding_generator in self.embedding_generators:
             if embedding_generator is not None:
                 feed_dict = embedding_generator.build_feed(feed_dict, batch_idx)
-        print("feed_dict:",feed_dict)
         self.tensor_provider.set_input(feed_dict)
 
     def _fit(self, input_data: List[InputData], verbose: bool) -> Tuple[TprismEvaluator, TprismEvaluator]:
@@ -785,7 +784,7 @@ def run_preparing(args: argparse.Namespace) -> None:
     if loss_cls is not None:
         loss_obj=loss_cls(loss_params)
     ##
-    tensor_provider = torch_expl_tensor.TorchSwitchTensorProvider()
+    tensor_provider = SwitchTensorProvider()
     embedding_generators: List[embed_gen.BaseEmbeddingGenerator] = []
     for embedding_filename in cast(list,flags.embedding):
         eg = embed_gen.EmbeddingGenerator()
@@ -818,7 +817,7 @@ def run_training(args: argparse.Namespace) -> None:
     graph, tensor_shapes, flags = load_explanation_graph(args.expl_graph, args.flags, args)
     ##
     loss_loader = LossLoader()
-    loss_loader.load_all("loss/torch*")
+    loss_loader.load_all("loss/")
     loss_cls, loss_params = loss_loader.get_loss(cast(str,flags.sgd_loss))
     loss_obj=None
     if loss_cls is not None:
@@ -857,7 +856,7 @@ def run_test(args: argparse.Namespace) -> None:
     graph, tensor_shapes, flags = load_explanation_graph(args.expl_graph, args.flags, args)
     ##
     loss_loader = LossLoader()
-    loss_loader.load_all("loss/torch*")
+    loss_loader.load_all("loss/")
     loss_cls,loss_params = loss_loader.get_loss(cast(str,flags.sgd_loss))
     loss_obj=None
     if loss_cls is not None:

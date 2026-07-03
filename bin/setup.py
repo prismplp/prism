@@ -17,7 +17,7 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     entry_points = {
         'console_scripts' : [
-            'tprism = tprism.torch_tprism:main',
+            'tprism = tprism.main:main',
             ],
     },
     classifiers=[

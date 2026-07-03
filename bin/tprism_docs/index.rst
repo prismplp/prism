@@ -23,14 +23,13 @@ Subpackages
 
    tprism.loss
    tprism.op
+   tprism.embedding_generator
    tprism.expl_graph
+   tprism.expl_tensor
    tprism.expl_pb2
    tprism.loader
+   tprism.main
    tprism.placeholder
-   tprism.torch_embedding_generator
-   tprism.torch_expl_graph
-   tprism.torch_tprism
-   tprism.torch_util
    tprism.util
 
 

@@ -1,28 +1,32 @@
-    
+""" This module associates switches in an explanation graph with tensors.
 
-import torch.nn.functional as F
-import re
-import numpy as np
+It contains switch/placeholder/vocabulary management classes and the
+tensor classes (parameters, one-hot constants, and gather operations)
+provided to the computational explanation graph.
+"""
 
-import re
+import math
 import pickle
+import re
 
-from tprism.placeholder import PlaceholderData
-from tprism.util import TensorInfoMapper, Flags
-from typing import Any, Dict, List, Tuple, Union, Optional, Set, Callable, cast
-from dataclasses import dataclass
-from tprism.loader import InputData
+import numpy as np
+import torch
 
-
-# this is only used for typing
-from torch import Tensor, dtype
-from torch.nn.parameter import Parameter 
-from tprism.torch_embedding_generator import BaseEmbeddingGenerator
+import tprism.constraint
 import tprism.expl_pb2 as expl_pb2
+from tprism.embedding_generator import BaseEmbeddingGenerator
+from tprism.placeholder import PlaceholderData
+from tprism.util import TensorInfoMapper, Flags, InputData
+
+from torch import Tensor, dtype
+from torch.nn.parameter import Parameter
+from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from dataclasses import dataclass
+
 
 class SwitchTensor:
     """ This class connect a tensor with a switch
-    
+
     Attributes:
         name (str): switch name
         shape_set (Set[Tuple[int,...]]): a set of tensor shapes associated with this switch
@@ -69,7 +73,7 @@ class SwitchTensor:
         m = re.finditer(pattern, name)
         names = [el.group(1) for el in m]
         return names
-    
+
     def make_vocab_name(self, name: str) -> str:
         m: Optional[re.Match] = re.match(r"^tensor\(get\((.*),([0-9]*)\)\)$", name)
         if m:
@@ -78,7 +82,7 @@ class SwitchTensor:
         pattern = r"\$(placeholder[0-9]+)\$"
         name_no_ph: str = re.sub(pattern, "", name)
         return self.make_var_name(name_no_ph)
-    
+
     @staticmethod
     def make_var_name(name: str) -> str:
         return re.sub(r"[\[\],\)\(\'$]+", "_", name)
@@ -209,14 +213,93 @@ class PlaceholderGraph:
         self._build_vocab_ph(self.ph_values, sw_info)
     def __repr__(self) -> str:
         return f"PlaceholderGraph(ph_vocab={self.ph_vocab}, vocab_ph={self.vocab_ph}, ph_values={self.ph_values}, vocab_shape={self.vocab_shape})"
-    
+
+
 class TorchTensorBase:
     def __init__(self, shape: Optional[Tuple[int, ...]] = None) -> None:
         # Provide a common shape attribute so callers can access .shape safely.
         self.shape: Optional[Tuple[int, ...]] = shape
-    
+
     def __call__(self) -> Optional[Tensor]:
         return None
+
+
+class TorchTensorOnehot(TorchTensorBase):
+    def __init__(self, provider: 'SwitchTensorProvider',
+                  shape: List[int], value:Any):
+        self.shape:Tuple[int, ...] = tuple(shape)
+        self.value = value
+
+    def __call__(self):
+        v = torch.eye(self.shape[0])[self.value]
+        return v
+
+
+class TorchTensor(TorchTensorBase):
+    def __init__(self, provider: 'SwitchTensorProvider', name: str, shape: List[int], dtype: Optional[dtype]=torch.float32, tensor_type: Optional[str]="") -> None:
+        if dtype is None:
+            dtype = torch.float32
+        if tensor_type is None:
+            tensor_type = ""
+        self.shape:Tuple[int, ...] = tuple(shape)
+        self.dtype = dtype
+        self.name: str = ""
+        if name is None:
+            self.name= "tensor%04d" % (np.random.randint(0, 10000),)
+        else:
+            self.name= name
+        self.provider = provider
+        self.tensor_type = tensor_type
+        ###
+        self.constraint_tensor=tprism.constraint.get_constraint_tensor(shape, tensor_type, device=None, dtype=None)
+        self.param = None
+        if self.constraint_tensor is None:
+            param = torch.nn.Parameter(torch.Tensor(*shape), requires_grad=True)
+            self.param = param
+            provider.add_param(self.name, param, tensor_type)
+            self.reset_parameters()
+        else:
+            param=list(self.constraint_tensor.parameters())[0] #TODO
+            provider.add_param(self.name, param, tensor_type)
+
+        ###
+
+    def reset_parameters(self) -> None:
+        if self.param is not None:
+            if len(self.param.shape) == 2:
+                torch.nn.init.kaiming_uniform_(self.param, a=math.sqrt(5))
+            else:
+                self.param.data.uniform_(-0.1, 0.1)
+
+    def __call__(self):
+        if self.constraint_tensor is None:
+            return self.param
+        else:
+            return self.constraint_tensor()
+
+
+class TorchGather(TorchTensorBase):
+    def __init__(self, provider: 'SwitchTensorProvider', var: PlaceholderData|TorchTensorBase, idx: PlaceholderData|TorchTensorBase|int) -> None:
+        self.var:PlaceholderData|TorchTensorBase = var
+        self.idx:PlaceholderData|TorchTensorBase|int = idx
+        self.provider = provider
+
+    def __call__(self):
+        if isinstance(self.idx, PlaceholderData):
+            idx_embed = self.provider.get_embedding(self.idx)
+        else:
+            idx_embed = self.idx
+        if isinstance(self.var, TorchTensor):
+            temp = self.var()
+            v = torch.index_select(temp, 0, idx_embed)
+        elif isinstance(self.var, TorchTensorBase):
+            v = torch.index_select(self.var(), 0, idx_embed)
+        elif isinstance(self.var, PlaceholderData):
+            v = self.provider.get_embedding(self.var)
+            v = v[idx_embed]
+        else:
+            v = torch.index_select(self.var, 0, idx_embed)
+        return v
 
 
 @dataclass
@@ -247,33 +330,63 @@ class SwitchTensorProvider:
         self.ph_graph: Optional[PlaceholderGraph] = None
         self.input_feed_dict:Dict[PlaceholderData, Tensor] = {}
         self.params: Dict[str, Tuple[Parameter, str]] = {}
-        # override this in the subclass
-        self.integer_dtype: Optional[dtype] = None 
-        self.tensor_onehot_class:Optional[Callable[[SwitchTensorProvider,List[int], Any], TorchTensorBase]] = None
-        self.tensor_class:Optional[Callable[[SwitchTensorProvider,str, List[int], Optional[dtype], Optional[str]], TorchTensorBase]] = None
-        self.tensor_gather_class:Optional[Callable[[SwitchTensorProvider,PlaceholderData|TorchTensorBase, PlaceholderData|TorchTensorBase|int], TorchTensorBase]] = None
-        
+        self.integer_dtype: dtype = torch.int32
 
-    def get_embedding(self, name: Union[str,PlaceholderData], verbose:bool=False)->Optional[Tensor|TorchTensorBase]:
+    # forward
+    def get_loss(self, verbose:bool=False):
+        loss={}
+        for name, (param,tensor_type) in self.params.items():
+            m=re.match(r"^sparse\(([0-9\.]*)\)$", tensor_type)
+            if m:
+                coeff = float(m.group(1))
+                l=coeff*torch.norm(param,1)
+                loss["sparse_"+name]=l
+            elif tensor_type=="sparse":
+                l=torch.norm(param,1)
+                loss["sparse_"+name]=l
+        return loss
+
+    # forward
+    def get_embedding(self, name: Union[str,PlaceholderData], verbose:bool=False)->Optional[TorchTensorBase|Tensor]:
+        if verbose:
+            print("[INFO] get embedding:", name)
+        out = None
+        ## TODO:
         if self.input_feed_dict is None:
-            out=None
-            if isinstance(name, PlaceholderData):
-                raise TypeError(f"Expected Tensor as key, got {type(out)} for '{name}'")                
-            else:
-                out=self.tensor_embedding[name]
-                if isinstance(out, Tensor):
-                    return out
+            if verbose:
+                print("[INFO] from tensor_embedding", name)
+            if  type(name) is str:
+                obj = self.tensor_embedding[name]
+                if isinstance(obj, TorchTensorBase):
+                    out = obj()
                 else:
-                    raise TypeError(f"Expected Tensor as key, got {type(out)} for '{name}'")
+                    raise Exception("Unknown embedding key", name, type(obj))
+            else:
+                raise Exception("Unknown embedding key", name)
+        elif type(name) is str:
+            key = self.tensor_embedding[name]
+            if type(key) is PlaceholderData:
+                if verbose:
+                    print("[INFO] from PlaceholderData", name, "==>", key.name)
+                out = self.input_feed_dict[key]
+            elif isinstance(key, TorchTensorBase):
+                if verbose:
+                    print("[INFO] from Tensor", name, "==>")
+                out = key()
+            else:
+                raise Exception("Unknoen embedding type", name, key)
+        elif type(name) is PlaceholderData:
+            if verbose:
+                print("[INFO] from PlaceholderData", name)
+            out = self.input_feed_dict[name]
         else:
-            if isinstance(name, PlaceholderData):
-                return self.input_feed_dict[name]
-            else:
-                key = self.tensor_embedding[name]
-                if isinstance(key, PlaceholderData):
-                    return self.input_feed_dict[key]
-                else:
-                    return key
+            raise Exception("Unknoen embedding", name)
+        if verbose:
+            print(out)
+            print(type(out))
+            if isinstance(out, torch.Tensor):
+                print("sum:", out.sum())
+        return out
 
     def set_embedding(self, name, var):
         if name not in self.tensor_embedding:
@@ -284,7 +397,7 @@ class SwitchTensorProvider:
         self.input_feed_dict = feed_dict
 
     def get_placeholder_name(self, name: str) -> List[Union[str, Any]]:
-        """ 
+        """
         Args:
             switch name (str): switch name
         Returns:
@@ -295,7 +408,7 @@ class SwitchTensorProvider:
         return self.sw_info[name].ph_names
 
     def get_switch(self, name: str) -> 'SwitchTensor':
-        """ 
+        """
         Args:
             switch name (str): switch name
         Returns:
@@ -306,7 +419,7 @@ class SwitchTensorProvider:
         return self.sw_info[name]
 
     def get_placeholder_var_name(self, name: str) -> str:
-        """ 
+        """
         Args:
             name (str): placeholder name
         Returns:
@@ -324,7 +437,7 @@ class SwitchTensorProvider:
         self.params[name] = (param,tensor_type)
 
     def get_param(self, name: str) -> Tuple[Parameter,str]:
-        """ 
+        """
         Args:
             name (str): Tensor's name
         """
@@ -347,14 +460,14 @@ class SwitchTensorProvider:
         ph_vocab = self.ph_graph.ph_vocab
         if ph_vocab is None:
             raise ValueError("ph_vocab must not be None in convert_value_to_index.")
-        
+
         if ph_name in ph_vocab:
             return len(ph_vocab[ph_name]) > 0
         else:
             return False
 
     def _build_sw_info(self, graph, tensor_info: TensorInfoMapper) -> Dict[str, SwitchTensor]:
-        """ This function builds sw_info from the explanation graph 
+        """ This function builds sw_info from the explanation graph
         """
         sw_info = {}
         for g in graph.goals:
@@ -435,13 +548,13 @@ class SwitchTensorProvider:
     ):
         """
         As a preparation before creating a computational graph, associate switches and tensors
-        
+
          1. building PlaceholderGraph
          2. building/loading VocabSet
          3. associating VocabSet with variable types such as dataset, constant one-hot, and variables.
          4. building placeholders
          5. associating switches with tensors using embedding generators
-        
+
         As a result, vocab_var, ph_var, and tensor_embedding in this class are constructed
         """
         # sw_info: switch name =>SwitchTensor
@@ -450,7 +563,7 @@ class SwitchTensorProvider:
         ph_graph = PlaceholderGraph()
         ph_graph.build(input_data, sw_info)
         print("ph_graph:", ph_graph)
-        
+
         ## build vocab group
         if load_vocab:
             print("[LOAD]", flags.vocab)
@@ -500,18 +613,14 @@ class SwitchTensorProvider:
             elif var_type.type == "onehot":
                 print(">> onehot  >>", vocab_name, ":", var_type.shape)
                 d = var_type.value
-                if self.tensor_onehot_class is None:
-                    raise ValueError("tensor_onehot_class must not be None")
-                var_onehot = self.tensor_onehot_class(self, var_type.shape, d)
+                var_onehot = TorchTensorOnehot(self, var_type.shape, d)
                 vocab_var[vocab_name] = var_onehot
             else:
                 print(">> variable>>", vocab_name, ":", var_type)
                 tensor_type = var_type.tensor_type
-                if self.tensor_class is None:
-                    raise ValueError("tensor_class must not be None")
-                var_tensor = self.tensor_class(self, vocab_name, var_type.shape, None, tensor_type)
+                var_tensor = TorchTensor(self, vocab_name, var_type.shape, None, tensor_type)
                 vocab_var[vocab_name] = var_tensor
-        # converting PRISM switches to Tensorflow Variables
+        # converting PRISM switches to torch tensors
         # tensor_embedding: sw_name => tensor
         tensor_embedding: Dict[str, PlaceholderData | TorchTensorBase] = {}
         for sw_name, sw in sw_info.items():
@@ -545,10 +654,8 @@ class SwitchTensorProvider:
                             index = vocab_set.get_values_index(vocab_name, sw.value)
                             if verbose:
                                 print(index, sw.value)
-                            if self.tensor_gather_class is None:
-                                 raise ValueError("tensor_gather_class must not be None")
                             if var_ds is not None:
-                                tensor_embedding[sw_name] = self.tensor_gather_class(self, var_ds, sw.value)
+                                tensor_embedding[sw_name] = TorchGather(self, var_ds, sw.value)
                             else:
                                 raise ValueError(f"var_ds must not be None for '{vocab_name}' when sw.value is enabled.")
                 if not dataset_flag:
@@ -584,9 +691,7 @@ class SwitchTensorProvider:
                         if var_ is not None:
                             print((vocab_name, ":", var_.shape, "=>", shape))
                     ph = ph_var[ph_list[0]]
-                    if self.tensor_gather_class is None:
-                        raise ValueError("tensor_gather_class must not be None")
-                    tensor_embedding[sw_name] = self.tensor_gather_class(self, var_, ph)
+                    tensor_embedding[sw_name] = TorchGather(self, var_, ph)
             else:
                 print("[WARM] unknown embedding:", sw_name)
         self.vocab_var = vocab_var
