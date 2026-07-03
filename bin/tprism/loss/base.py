@@ -1,5 +1,5 @@
 
-from typing import Any, List, Optional, Tuple
+from typing import Any, List, Optional, Tuple, Any
 import tprism.expl_pb2 as expl_pb2
 from torch import Tensor
 import torch
@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from tprism.torch_expl_graph import GoalInsideEntry
 
 class BaseLoss:
-    def __init__(self, parameters=None):
+    def __init__(self, parameters: Optional[List[Any]]=None):
         pass
 
     def call(self, graph:'expl_pb2.ExplGraph', goal_inside:List[Optional['GoalInsideEntry']], tensor_provider:'SwitchTensorProvider')-> Tuple[Optional[Tensor], Optional[Tensor], Optional[Tensor]]:

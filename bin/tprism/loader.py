@@ -242,12 +242,20 @@ class LossLoader:
         subbed = _underscorer1.sub(r"\1_\2", cls_name)
         return _underscorer2.sub(r"\1_\2", subbed).lower()
 
-    def get_loss(self, name: str) -> Optional[Type[BaseLoss]]:
+    def get_loss(self, name: str) -> Tuple[Optional[Type[BaseLoss]], List[str]]:
+        m=re.match(r"^(.*)\(([0-9e\-\.]*)\)$", name)
+        if m:
+            # TODO: parer.pyを使って複数オプションに対応する
+            loss_name=m.group(1)
+            loss_params=[m.group(2)]
+        else:
+            loss_name=name
+            loss_params=[]
         if name in self.losses:
             cls = self.losses[name]
-            return cls
+            return cls, loss_params
         else:
-            return None
+            return None, loss_params
 
     def load_all(self, path: str) -> None:
         search_path = os.path.dirname(__file__) + "/" + path

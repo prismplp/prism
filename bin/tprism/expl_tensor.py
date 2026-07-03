@@ -207,7 +207,9 @@ class PlaceholderGraph:
         if self.ph_values is None:
             raise ValueError(f"ph_values in PlaceholderGraph must not be None in build.")
         self._build_vocab_ph(self.ph_values, sw_info)
-
+    def __repr__(self) -> str:
+        return f"PlaceholderGraph(ph_vocab={self.ph_vocab}, vocab_ph={self.vocab_ph}, ph_values={self.ph_values}, vocab_shape={self.vocab_shape})"
+    
 class TorchTensorBase:
     def __init__(self, shape: Optional[Tuple[int, ...]] = None) -> None:
         # Provide a common shape attribute so callers can access .shape safely.
@@ -447,7 +449,8 @@ class SwitchTensorProvider:
         #
         ph_graph = PlaceholderGraph()
         ph_graph.build(input_data, sw_info)
-
+        print("ph_graph:", ph_graph)
+        
         ## build vocab group
         if load_vocab:
             print("[LOAD]", flags.vocab)
@@ -576,8 +579,6 @@ class SwitchTensorProvider:
                 if not dataset_flag:
                     # trainig variable with placeholder
                     var_ = vocab_var[vocab_name]
-                    if var_ is None or type(var_) is not PlaceholderData:
-                        raise ValueError(f"var_ must be PlaceholderData for '{vocab_name}' when ph_list==1.")
                     if verbose:
                         print("ph_list==1 and dataset disabled")
                         if var_ is not None:
