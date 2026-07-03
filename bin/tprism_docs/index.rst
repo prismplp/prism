@@ -29,7 +29,9 @@ Subpackages
    tprism.expl_pb2
    tprism.loader
    tprism.main
+   tprism.model
    tprism.placeholder
+   tprism.tensor
    tprism.util
 
 
