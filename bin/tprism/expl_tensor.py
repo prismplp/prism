@@ -450,15 +450,18 @@ class SwitchTensorProvider:
 
     def _load_or_build_vocab(self, ph_graph: PlaceholderGraph, flags: Flags, load_vocab: bool) -> VocabSet:
         """Load VocabSet from flags.vocab or build (and save) it from the placeholder graph."""
+        vocab_filename = flags.vocab
+        if vocab_filename is None:
+            raise ValueError("flags.vocab must not be None when loading/building the vocabulary.")
         if load_vocab:
-            print("[LOAD]", flags.vocab)
-            with open(flags.vocab, mode="rb") as f:
+            print("[LOAD]", vocab_filename)
+            with open(vocab_filename, mode="rb") as f:
                 vocab_set = pickle.load(f)
         else:
             vocab_set = VocabSet()
             vocab_set.build_from_ph(ph_graph)
-            print("[SAVE]", flags.vocab)
-            with open(flags.vocab, mode="wb") as f:
+            print("[SAVE]", vocab_filename)
+            with open(vocab_filename, mode="wb") as f:
                 pickle.dump(vocab_set, f)
         return vocab_set
 

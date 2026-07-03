@@ -101,7 +101,7 @@ def plot_and_or_graph(
         goal_inside, and_label, or_label, leaf_label
     )
 
-    G = nx.DiGraph()
+    G: "nx.DiGraph" = nx.DiGraph()
     G.add_edges_from(or_and_edges)
     G.add_edges_from(inside_edges)
 

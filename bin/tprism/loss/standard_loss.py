@@ -92,6 +92,8 @@ class CE_pl2(BaseLoss):
         label = []
         label_ph = tensor_provider.ph_var["$placeholder2$"]
         label_ph_var =tensor_provider.get_embedding(label_ph)
+        if not isinstance(label_ph_var, Tensor):
+            raise TypeError("label placeholder must be a Tensor, got %s" % (type(label_ph_var),))
         #reg_losses = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
         #reg_loss = beta * tf.reduce_mean(reg_losses)
         for rank_root in graph.root_list:
