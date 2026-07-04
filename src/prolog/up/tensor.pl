@@ -196,8 +196,18 @@ save_placeholder_data(Filename,Mode,Placeholders,Data):-
 save_flags:-save_flags('flags.json',json).
 save_flags(Filename):-save_flags(Filename,json).
 save_flags(Filename,Mode):-save_flags(Filename,Mode,[]).
+
+% the C-side term-to-string conversion prints floats in fixed %f notation,
+% which truncates small values (e.g. 1.0e-8 -> "0.000000"); convert floats
+% to atoms via number_codes beforehand to keep full precision
+$pp_format_flag_value(F,F1):-
+	float(F),!,
+	number_codes(F,C),
+	atom_codes(F1,C).
+$pp_format_flag_value(F,F).
+
 save_flags(Filename,Mode,TensorList):-
-	findall([X,F],get_prism_flag(X,F),G),
+	findall([X,F1],(get_prism_flag(X,F),$pp_format_flag_value(F,F1)),G),
 	$pc_set_export_flags(G),
 	(Mode==json ->Mode0=0
 	;Mode==pb   ->Mode0=1

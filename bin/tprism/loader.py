@@ -266,11 +266,26 @@ class LossLoader(PluginLoader):
         else:
             return None, loss_params
 
-def main():
+def check_loss():
     loss_loader = LossLoader()
-    loss_loader.load_all_from_search_path("./loss/")
+    loss_loader.load_all("loss/")
     print(loss_loader.losses)
-    #loss_cls = loss_loader.get_loss(flags.sgd_loss)
+    loss_cls, loss_params = loss_loader.get_loss("ce")
+    if loss_cls is not None:
+        print(loss_cls, loss_params)
+    else:
+        print("loss function not found")
+
+def check_operators():
+    operator_loader = OperatorLoader()
+    operator_loader.load_all("op/")
+    print(operator_loader.operators)
+    cls = operator_loader.get_operator("sigmoid")
+    print(cls)
+    
+def main():
+    check_loss()
+    check_operators()
 
 if __name__ == "__main__":
     main()

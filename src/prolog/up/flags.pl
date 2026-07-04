@@ -108,8 +108,11 @@ $pp_prism_flag(sgd_adam_gamma,float(0,+inf),0.999,$pc_set_sgd_adam_gamma).
 $pp_prism_flag(sgd_adadelta_epsilon,float(0,+inf),1.0e-8,$pc_set_sgd_adadelta_epsilon).
 $pp_prism_flag(sgd_adadelta_gamma,float(0,+inf),0.95,$pc_set_sgd_adadelta_gamma).
 $pp_prism_flag(sgd_learning_rate,float(-inf,+inf),0.0001,$pc_set_sgd_learning_rate).
+$pp_prism_flag(sgd_loss,special($pp_check_sgd_loss),default,$none).
 $pp_prism_flag(sgd_optimizer,enum([sgd,adadelta,adam]),adam,$pc_set_sgd_optimizer).
-$pp_prism_flag(sgd_penalty,float(-inf,+inf),0.01,$pc_set_sgd_penalty).
+$pp_prism_flag(sgd_patience,special($pp_check_sgd_patience),default,$none).
+$pp_prism_flag(sgd_valid_ratio,special($pp_check_sgd_valid_ratio),default,$none).
+$pp_prism_flag(sgd_weight_decay,float(-inf,+inf),0.01,$pc_set_sgd_penalty).
 $pp_prism_flag(show_itemp,bool,off,$pc_set_show_itemp).
 $pp_prism_flag(sort_hindsight,enum([by_goal,by_prob]),by_goal,$none).
 $pp_prism_flag(std_ratio,float(@0,+inf),0.2,$pc_set_std_ratio).
@@ -124,6 +127,7 @@ $pp_prism_flag(fail_on_outcomes,bool,on,$none).
 $pp_prism_flag_exclusive([default_sw_d,default_sw_a]).
 
 $pp_prism_flag_renamed(default_sw_h,default_sw_d).
+$pp_prism_flag_renamed(sgd_penalty,sgd_weight_decay).
 
 $pp_prism_flag_deleted(avg_branch,'1.11').
 $pp_prism_flag_deleted(em_message,'2.0.1').
@@ -300,6 +304,22 @@ $pp_check_mcmc_message(X,Y,Y)  :- $pp_mcmc_message_events(X,Y),!.
 
 $pp_check_sgd_minibatch_size(default,default,-1).
 $pp_check_sgd_minibatch_size(N,N,N) :- integer(N), N > 0.
+
+%% T-PRISM flags: these are not used by the built-in learners; they are
+%% exported to flags.json (save_expl_graph/save_flags) and interpreted by
+%% the tprism command (see Flags in bin/tprism/util.py).
+
+% loss function name, optionally with parameters, e.g. ce, nll, ce(0.1)
+$pp_check_sgd_loss(default,default,-1).
+$pp_check_sgd_loss(V,V,V) :- atom(V) ; compound(V).
+
+% early-stopping patience (in epochs)
+$pp_check_sgd_patience(default,default,-1).
+$pp_check_sgd_patience(N,N,N) :- integer(N), N >= 0.
+
+% ratio of validation data used for early stopping (0.0 disables validation)
+$pp_check_sgd_valid_ratio(default,default,-1).
+$pp_check_sgd_valid_ratio(V,V,V) :- number(V), V >= 0.0, V < 1.0.
 
 %% disable competitors
 

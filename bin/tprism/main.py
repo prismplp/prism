@@ -232,17 +232,50 @@ def main() -> None:
         "--sgd_minibatch_size", type=str, default=None, help="[prolog flag]"
     )
     parser.add_argument("--max_iterate", type=str, default=None, help="[prolog flag]")
-    parser.add_argument("--epoch", type=str, default=None, help="[prolog flag]")
+    parser.add_argument("--epoch", type=str, default=None, help="alias of --max_iterate")
     parser.add_argument(
-        "--sgd_learning_rate", type=float, default=0.01, help="[prolog flag]"
+        "--sgd_learning_rate", type=float, default=None, help="[prolog flag]"
     )
     parser.add_argument(
         "--sgd_loss",
         type=str,
-        default="base_loss",
+        default=None,
         help="[prolog flag] nll/preference_pair",
     )
-    parser.add_argument("--sgd_patience", type=int, default=3, help="[prolog flag] ")
+    parser.add_argument("--sgd_patience", type=int, default=None, help="[prolog flag] ")
+    parser.add_argument(
+        "--sgd_valid_ratio",
+        type=float,
+        default=None,
+        help="[prolog flag] ratio of validation data used for early stopping (0 disables validation)",
+    )
+    parser.add_argument(
+        "--sgd_optimizer",
+        type=str,
+        default=None,
+        help="[prolog flag] sgd/adadelta/adam",
+    )
+    parser.add_argument(
+        "--sgd_weight_decay",
+        type=float,
+        default=None,
+        help="[prolog flag] weight decay",
+    )
+    parser.add_argument(
+        "--sgd_adam_beta", type=float, default=None, help="[prolog flag]"
+    )
+    parser.add_argument(
+        "--sgd_adam_gamma", type=float, default=None, help="[prolog flag]"
+    )
+    parser.add_argument(
+        "--sgd_adam_epsilon", type=float, default=None, help="[prolog flag]"
+    )
+    parser.add_argument(
+        "--sgd_adadelta_gamma", type=float, default=None, help="[prolog flag]"
+    )
+    parser.add_argument(
+        "--sgd_adadelta_epsilon", type=float, default=None, help="[prolog flag]"
+    )
 
     parser.add_argument("--cycle", action="store_true", help="cycle")
     parser.add_argument("--verbose", action="store_true", help="verbose")
@@ -261,6 +294,10 @@ def main() -> None:
         os.environ["CUDA_VISIBLE_DEVICES"] = ""
     elif args.gpu is not None:
         os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
+
+    # aliases
+    if args.max_iterate is None and args.epoch is not None:
+        args.max_iterate = args.epoch
 
     # deprecated
     if args.data is not None:

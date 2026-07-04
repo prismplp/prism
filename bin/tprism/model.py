@@ -323,6 +323,41 @@ class TprismModel:
         ##
         return None
 
+    def _build_optimizer(self) -> optim.Optimizer:
+        """Create the optimizer selected by the sgd_optimizer flag.
+
+        Honors the prism flags sgd_optimizer, sgd_learning_rate,
+        sgd_weight_decay, sgd_adam_beta/gamma/epsilon, and
+        sgd_adadelta_gamma/epsilon.
+
+        Returns:
+            optim.Optimizer: A configured optimizer over the model parameters.
+        """
+        params = self.comp_expl_graph.parameters()
+        name = self.flags.sgd_optimizer
+        lr = self.flags.sgd_learning_rate
+        weight_decay = self.flags.sgd_weight_decay
+        if name == "adam":
+            return optim.Adam(
+                params,
+                lr,
+                betas=(self.flags.sgd_adam_beta, self.flags.sgd_adam_gamma),
+                eps=self.flags.sgd_adam_epsilon,
+                weight_decay=weight_decay,
+            )
+        elif name == "adadelta":
+            return optim.Adadelta(
+                params,
+                lr,
+                rho=self.flags.sgd_adadelta_gamma,
+                eps=self.flags.sgd_adadelta_epsilon,
+                weight_decay=weight_decay,
+            )
+        elif name == "sgd":
+            return optim.SGD(params, lr, weight_decay=weight_decay)
+        else:
+            raise ValueError(f"unknown sgd_optimizer: {name}")
+
     def fit(self, input_data: Optional[List[InputData]] = None, verbose: bool = False) -> Any:
         """Train the model.
 
@@ -352,11 +387,7 @@ class TprismModel:
         print("... training variables")
         for key, param in self.comp_expl_graph.state_dict().items():
             print(key, param.shape)
-        optimizer = optim.Adam(
-            self.comp_expl_graph.parameters(),
-            self.flags.sgd_learning_rate,
-            weight_decay=1.0e-10,
-        )
+        optimizer = self._build_optimizer()
         print("... building explanation graph")
 
         best_total_loss = None
@@ -504,24 +535,30 @@ class TprismModel:
         print("... training variables")
         for key, param in self.comp_expl_graph.state_dict().items():
             print(key, param.shape)
-        optimizer = optim.Adam(
-            self.comp_expl_graph.parameters(),
-            self.flags.sgd_learning_rate,
-            weight_decay=1.0e-10,
-        )
-        best_valid_loss = [None for _ in range(len(goal_dataset))]
+        optimizer = self._build_optimizer()
+        best_valid_loss: List[Optional[Any]] = [None for _ in range(len(goal_dataset))]
+        best_train_loss: Optional[float] = None
         patient_count = 0
         batch_size = self.flags.sgd_minibatch_size
         print("... splitting data")
-        train_idx, valid_idx = split_goal_dataset(goal_dataset)
+        train_idx, valid_idx = split_goal_dataset(
+            goal_dataset, valid_ratio=self.flags.sgd_valid_ratio
+        )
+        # early stopping is enabled only when validation batches are available
+        has_valid = any(
+            len(valid_idx[j]) // batch_size > 0 for j in range(len(goal_dataset))
+        )
+        if not has_valid:
+            print("... no validation data: early stopping is disabled")
         print("... starting training")
         train_evaluator = TprismEvaluator(goal_dataset)
         valid_evaluator = TprismEvaluator(goal_dataset)
-        check_point_flag= False
+        early_stop = False
         for epoch in range(self.flags.max_iterate):
             start_t = time.time()
             train_evaluator.start_epoch()
             valid_evaluator.start_epoch()
+            improved = False
             for j, goal in enumerate(goal_dataset):
                 if verbose:
                     print(goal)
@@ -542,14 +579,30 @@ class TprismModel:
                     self._set_batch_input(goal, valid_idx, j, itr)
                     loss, loss_list = self._evaluate_batch(j)
                     valid_evaluator.update(loss[j], loss_list, j)
-                # checking validation loss for early stopping
-                if (
-                    best_valid_loss[j] is None
-                    or best_valid_loss[j] > valid_evaluator.running_loss[j]
-                ):
-                    best_valid_loss[j] = valid_evaluator.running_loss[j]
+                # checking improvement of the validation loss
+                if num_itr > 0:
+                    if (
+                        best_valid_loss[j] is None
+                        or best_valid_loss[j] > valid_evaluator.running_loss[j]
+                    ):
+                        best_valid_loss[j] = valid_evaluator.running_loss[j]
+                        improved = True
+                    print(
+                        "[{:4d}] ".format(epoch + 1),
+                        train_evaluator.get_msg("train"),
+                        valid_evaluator.get_msg("valid"),
+                        "({:2d})".format(patient_count),
+                        "*" if improved else "",
+                    )
+                else:
+                    print(
+                        "[{:4d}] ".format(epoch + 1),
+                        train_evaluator.get_msg("train"),
+                    )
+            # checkpointing and early stopping (epoch level)
+            if has_valid:
+                if improved:
                     patient_count = 0
-                    check_point_flag = True
                     if self.flags.model is not None:
                         print(
                             "... saving best model to",
@@ -558,20 +611,30 @@ class TprismModel:
                         self.save(self.flags.model + ".best.model")
                 else:
                     patient_count += 1
-                ckpt_msg = "*" if check_point_flag else ""
-                print(
-                    "[{:4d}] ".format(epoch + 1),
-                    train_evaluator.get_msg("train"),
-                    valid_evaluator.get_msg("valid"),
-                    "({:2d})".format(patient_count),
-                    ckpt_msg,
-                )
-                if patient_count == self.flags.sgd_patience:
-                    break
+                if patient_count >= self.flags.sgd_patience:
+                    print(
+                        "... early stopping: no improvement in validation loss"
+                        " for {:d} epochs".format(patient_count)
+                    )
+                    early_stop = True
+            else:
+                # no validation data: save the best model based on the training loss
+                total_train_loss = float(np.sum(train_evaluator.get_loss()))
+                if best_train_loss is None or total_train_loss < best_train_loss:
+                    best_train_loss = total_train_loss
+                    if self.flags.model is not None:
+                        print(
+                            "... saving best model to",
+                            self.flags.model + ".best.model",
+                        )
+                        self.save(self.flags.model + ".best.model")
             train_time = time.time() - start_t
             print("train time:{0}".format(train_time) + "[sec]")
             train_evaluator.stop_epoch()
-            valid_evaluator.stop_epoch()
+            if has_valid:
+                valid_evaluator.stop_epoch()
+            if early_stop:
+                break
         if self.flags.model is not None:
             print("... saving last model to", self.flags.model + ".last.model")
             self.save(self.flags.model + ".last.model")

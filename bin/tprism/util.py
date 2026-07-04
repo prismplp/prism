@@ -74,14 +74,52 @@ def cast_value(value: Any, typ: Any) -> Any:
         (elem_type,) = args
         return [cast_value(v, elem_type) for v in value]
 
+    # bool: prolog flags use on/off, JSON configs may use true/false
+    if typ is bool and isinstance(value, str):
+        v = value.strip().lower()
+        if v in ("on", "true", "yes", "1"):
+            return True
+        if v in ("off", "false", "no", "0"):
+            return False
+        raise TypeError(f"Cannot cast {value!r} to bool")
+
+    # int: prolog flags such as max_iterate accept `inf`
+    if typ is int and isinstance(value, str) and value.strip() in ("inf", "+inf"):
+        return 2 ** 31 - 1
+
     # primitive type
     try:
         return typ(value)
     except Exception as e:
         raise TypeError(f"Cannot cast {value!r} to {typ}") from e
 
+
+# Values used by the Prolog side (src/prolog/up/flags.pl) to mean "unset":
+# `default` is the sentinel of max_iterate / sgd_minibatch_size / sgd_loss /
+# sgd_patience / sgd_valid_ratio, and `$disabled` marks a flag disabled by an
+# exclusive competitor (e.g. default_sw_a vs default_sw_d).
+PROLOG_UNSET_VALUES = ("default", "$disabled", "'$disabled'")
+
+# Renamed prism flags (old name -> new name), mirroring
+# $pp_prism_flag_renamed/2 in src/prolog/up/flags.pl; lets flags.json files
+# exported by an older PRISM build still be understood.
+RENAMED_FLAGS = {
+    "sgd_penalty": "sgd_weight_decay",
+}
+
 @dataclasses.dataclass(slots=True)
 class Flags:
+    """Runtime configuration merged from defaults, flags.json, and CLI args.
+
+    The fields commented as "prolog flag" correspond one-to-one to the prism
+    flags defined in src/prolog/up/flags.pl: they can be set in a .psm program
+    with set_prism_flag/2 and reach this class through the exported flags.json.
+
+    Precedence (weakest first): dataclass defaults < prism flags (flags.json)
+    < explicitly given CLI arguments. Prolog-side sentinel values (`default`,
+    `$disabled`) are ignored.
+    """
+
     # data / dataset
     dataset: Optional[List[str]] = None
     # intermediate data
@@ -104,39 +142,59 @@ class Flags:
     sgd_learning_rate: float = 0.01
     sgd_loss: str = "base_loss"
     sgd_patience: int = 3
+    sgd_valid_ratio: float = 0.1
+
+    # optimizer (prolog flags)
+    sgd_optimizer: str = "adam"
+    # weight decay; when a flags.json is given, its value (prolog default: 0.01)
+    # takes precedence over this fallback
+    sgd_weight_decay: float = 1.0e-10
+    sgd_adam_beta: float = 0.9
+    sgd_adam_gamma: float = 0.999
+    sgd_adam_epsilon: float = 1.0e-8
+    sgd_adadelta_gamma: float = 0.95
+    sgd_adadelta_epsilon: float = 1.0e-8
 
     # others
     cycle: bool = False
     verbose: bool = False
     def build(self, args: Any = None, options: Any = None):
-        if args is not None:
-            if type(args) != dict:
-                args_dict = vars(args)
-            else:
-                args_dict = args
+        if args is None:
+            args_dict = {}
+        elif type(args) != dict:
+            args_dict = vars(args)
+        else:
+            args_dict = args
         if options is not None:
             flags = {f.key: f.value for f in options.flags}
         else:
             flags = {}
         self._build(args_dict, flags)
-            
+
     def __contains__(self, k: str) -> bool:
         return hasattr(self, k) and getattr(self, k) is not None
 
     def add(self, k: str, v: Any) -> None:
+        k = RENAMED_FLAGS.get(k, k)
         if hasattr(self, k):
             hints = get_type_hints(type(self))
             if k not in hints:
                 raise AttributeError(f"{k} is not defined")
-            elif type(v) is str and v=="default":
-                return
+            if type(v) is str:
+                # prolog atoms may be exported with quotes, e.g. '0.005'
+                if len(v) >= 2 and v[0] == "'" and v[-1] == "'":
+                    v = v[1:-1]
+                if v in PROLOG_UNSET_VALUES:
+                    return
             setattr(self, k, cast_value(v, hints[k]))
 
     def _build(self, args_dict, flags) -> None:
-        for k, v in args_dict.items():
+        # flags.json first, CLI arguments second: an explicitly given CLI
+        # argument overrides a prism flag
+        for k, v in flags.items():
             if v is not None:
                 self.add(k, v)
-        for k, v in flags.items():
+        for k, v in args_dict.items():
             if v is not None:
                 self.add(k, v)
 
