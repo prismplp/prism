@@ -213,7 +213,7 @@ class PluginLoader:
 
     def load_module(self, module) -> None:
         for cls_name, cls in inspect.getmembers(module, inspect.isclass):
-            if issubclass(cls, self.base_class):
+            if issubclass(cls, self.base_class) and cls is not self.base_class:
                 print("[IMPORT]", cls_name)
                 op_name = self.to_op_name(cls_name)
                 self.plugins[op_name] = cls
