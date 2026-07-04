@@ -177,7 +177,8 @@ class PluginLoader:
     """
     base_class: type = object
     base_module_name: str = ""
-
+    verbose_debug: bool = False
+    
     def __init__(self) -> None:
         self.plugins: Dict[str, Any] = {}
 
@@ -216,13 +217,14 @@ class PluginLoader:
     
     def load_module(self, module) -> None:
         for cls_name, cls in inspect.getmembers(module, inspect.isclass):
-            print("CLASS:", cls_name)
-            print("  cls:", cls)
-            print("  cls id:", id(cls))
-            print("  base:", self.base_class)
-            print("  base id:", id(self.base_class))
-            print("  mro:", cls.__mro__)
-            print("  issubclass:", issubclass(cls, self.base_class))
+            if self.verbose_debug:
+                print("CLASS:", cls_name)
+                print("  cls:", cls)
+                print("  cls id:", id(cls))
+                print("  base:", self.base_class)
+                print("  base id:", id(self.base_class))
+                print("  mro:", cls.__mro__)
+                print("  issubclass:", issubclass(cls, self.base_class))
             if cls.__module__ != module.__name__:
                 continue
             if issubclass(cls, self.base_class) and cls is not self.base_class:
