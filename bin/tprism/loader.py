@@ -217,6 +217,8 @@ class PluginLoader:
                 print("[IMPORT]", cls_name)
                 op_name = self.to_op_name(cls_name)
                 self.plugins[op_name] = cls
+            else:
+                print("[SKIP]", cls_name, cls, self.base_class)
 
     def set_cls(self, op_name, cls) -> None:
         self.plugins[op_name] = cls
