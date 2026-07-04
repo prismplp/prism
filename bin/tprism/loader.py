@@ -199,7 +199,10 @@ class PluginLoader:
 
     def load_all_from_search_path(self, search_path: str) -> None:
         print("[LOAD]", search_path)
-        for fpath in glob.glob(search_path + "*.py"):
+        for fpath in glob.glob(os.path.join(search_path, "*.py")):
+            name = os.path.basename(os.path.splitext(fpath)[0])
+            if name in ("__init__", "base"):
+                continue
             self.load(fpath)
 
     def load(self, fpath: str) -> None:
@@ -210,9 +213,18 @@ class PluginLoader:
             module_name, fpath
         ).load_module()
         self.load_module(module)
-
+    
     def load_module(self, module) -> None:
         for cls_name, cls in inspect.getmembers(module, inspect.isclass):
+            print("CLASS:", cls_name)
+            print("  cls:", cls)
+            print("  cls id:", id(cls))
+            print("  base:", self.base_class)
+            print("  base id:", id(self.base_class))
+            print("  mro:", cls.__mro__)
+            print("  issubclass:", issubclass(cls, self.base_class))
+            if cls.__module__ != module.__name__:
+                continue
             if issubclass(cls, self.base_class) and cls is not self.base_class:
                 print("[IMPORT]", cls_name)
                 op_name = self.to_op_name(cls_name)
