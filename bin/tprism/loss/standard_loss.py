@@ -81,16 +81,20 @@ class CE(BaseLoss):
         return {}
 
 
-class CE_pl2(BaseLoss):
+class CE_pl(BaseLoss):
     def __init__(self, parameters: Optional[List[Any]]=None) -> None:
-        pass
+        if parameters is not None and len(parameters):
+            self.label_placeholder=parameters[0]
+        else:
+            self.label_placeholder="$placeholder1$"
+
 
     # loss: goal x minibatch
     def call(self, graph:'expl_pb2.ExplGraph', goal_inside:List[Optional['GoalInsideEntry']], tensor_provider:'SwitchTensorProvider')-> Tuple[Optional[Tensor], Optional[Tensor], Optional[Tensor]]:
         loss = []
         output = []
         label = []
-        label_ph = tensor_provider.ph_var["$placeholder2$"]
+        label_ph = tensor_provider.ph_var[self.label_placeholder]
         label_ph_var =tensor_provider.get_embedding(label_ph)
         if not isinstance(label_ph_var, Tensor):
             raise TypeError("label placeholder must be a Tensor, got %s" % (type(label_ph_var),))
@@ -170,10 +174,11 @@ class MSE(BaseLoss):
 
 
 class PreferencePair(BaseLoss):
-    def __init__(self, parameters: Optional[List[Any]]=None) -> None:
+g   def __init__(self, parameters: Optional[List[Any]]=None) -> None:
         if parameters is not None and len(parameters)>0:
             self.gamma=float(parameters[0])
-        self.gamma=1.0
+        else:
+            self.gamma=1.0
     # loss: goal x minibatch
     def call(self, graph:'expl_pb2.ExplGraph', goal_inside:List[Optional['GoalInsideEntry']], tensor_provider:'SwitchTensorProvider')-> Tuple[Optional[Tensor], Optional[Tensor], Optional[Tensor]]:
         loss = []
