@@ -28,6 +28,7 @@ from tprism.util import (
     split_goal_dataset,
     get_goal_dataset,
     debug_logger,
+    set_log_level,
     InputData,
     TensorInfoMapper,
 )
@@ -99,7 +100,7 @@ class TprismEvaluator:
         self.running_count[j] += 1
         for k, v in loss_dict.items():
             v=_check_and_detach(v)
-            if k in self.running_loss_dict:
+            if k in self.running_loss_dict[j]:
                 self.running_loss_dict[j][k] += v
             else:
                 self.running_loss_dict[j][k] = v
@@ -133,13 +134,13 @@ class TprismEvaluator:
             if self.n_goals > 1:
                 key = "goal{:d}-{:s}-loss".format(j,prefix)
             val = self.running_loss[j]
-            result[key] = float(val)
+            result[key] = float(val) / self.running_count[j]
             for k, v in self.running_loss_dict[j].items():
                 if k[0] != "*":
                     m = "{:s}-{:s}-loss".format(prefix, k)
                 else:
                     m = "*{:s}-{:s}".format(prefix, k[1:])
-                result[m] = float(v)
+                result[m] = float(v) / self.running_count[j]
         return result
 
     def get_msg(self, prefix: str = "train") -> str:
@@ -193,6 +194,10 @@ class TprismModel:
         tensor_shapes: Mapping of tensor names to shapes.
         graph: Explanation graph object.
         loss_cls: Loss class (subclass of `BaseLoss`). If None, `BaseLoss` is used.
+        log_level: Optional log level for the tprism package, as a `logging`
+            constant or name ("debug", "info", "warning", "error", ...). The
+            default (None) keeps the current configuration (INFO for library
+            use). See `tprism.util.set_log_level`.
     """
 
     def __init__(
@@ -202,7 +207,10 @@ class TprismModel:
         graph: expl_pb2.ExplGraph,
         loss_cls: Optional[Type[BaseLoss]]=None,
         loss_obj: Optional[BaseLoss]=None,
+        log_level: Optional[int|str]=None,
     ) -> None:
+        if log_level is not None:
+            set_log_level(log_level)
         self.graph = graph
         self.flags = flags
         self.tensor_shapes = tensor_shapes

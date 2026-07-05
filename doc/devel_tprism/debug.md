@@ -26,9 +26,41 @@ output to the listed categories. All three options can also be set through a
 Everything is attached to the `"tprism"` package logger: `setup_logging` sets
 its level, installs a single `StreamHandler` (stderr), and disables
 propagation to the root logger, so the package never interferes with a host
-application's logging configuration. Library users who do not call
-`setup_logging` get standard `logging` default behavior (warnings and errors
-via `lastResort`).
+application's logging configuration.
+
+## Library use (importing tprism from Python)
+
+INFO-level console logging is the default as soon as the package is imported:
+the bottom of `bin/tprism/util.py` calls `setup_logging()` at import time,
+guarded by `if not logging.getLogger("tprism").handlers` so that a
+configuration made *before* the first tprism import is kept. Since `util` is
+imported by every functional module, `from tprism.model import TprismModel`
+is enough to get the default.
+
+The level can be changed in two equivalent ways:
+
+```python
+from tprism.model import TprismModel
+
+# 1. per-model constructor argument (package-wide effect)
+model = TprismModel(flags, tensor_shapes, graph, loss_obj=loss_obj,
+                    log_level="debug")   # "debug"/"info"/"warning"/"error"
+                                         # or a logging constant (logging.DEBUG)
+
+# 2. explicitly, without constructing a model
+from tprism.util import set_log_level, setup_logging
+set_log_level("warning")
+setup_logging(debug=["feed", "graph"])   # category-restricted debug output
+```
+
+`TprismModel(..., log_level=...)` simply calls `tprism.util.set_log_level` at
+the beginning of `__init__` (so plugin-loading debug messages of that model
+are already affected); `log_level=None` (the default) keeps the current
+configuration. `set_log_level` accepts a level name or `logging` constant,
+raises `ValueError` for unknown names, and internally reconfigures via
+`setup_logging` so that the output format follows the level (verbose format
+for DEBUG, quiet format for WARNING+). For category-restricted debug output,
+call `setup_logging(debug=[...])` directly.
 
 ## Logger structure
 
@@ -105,9 +137,9 @@ Guidelines:
   do not add new `verbose` parameters.
 - `--no_verb` historically did nothing; it is now the quiet mode.
 - Messages emitted at *import time* (e.g. the geotorch availability check in
-  `constraint.py`) run before `setup_logging`; only WARNING and above are
-  visible then (via `logging.lastResort`). Do not rely on INFO/DEBUG working
-  during import.
+  `constraint.py`) run under the default INFO configuration installed by
+  `util.py`, before the CLI applies `--verbose`/`--debug_verb`; DEBUG
+  messages are therefore never visible during import.
 - `main.py` resolves its logger as
   `logging.getLogger(__name__ if __name__ != "__main__" else "tprism.main")`
   so that `python -m tprism.main` (where `__name__` is `"__main__"`) still
@@ -158,8 +190,9 @@ Guidelines:
 
 | Role | Location |
 |---|---|
-| `setup_logging`, `DEBUG_CATEGORIES`, `debug_logger` | `bin/tprism/util.py` |
+| `setup_logging`, `set_log_level`, `DEBUG_CATEGORIES`, `debug_logger`, import-time default (INFO) | `bin/tprism/util.py` |
 | CLI options (`--verbose`, `--debug_verb`, `--no_verb`) | `bin/tprism/main.py` (`main()`) |
+| `log_level` constructor argument | `bin/tprism/model.py` (`TprismModel.__init__`) |
 | `feed`/`minibatch`/`param` emitters | `bin/tprism/model.py` |
 | `module` emitters (plugin loading) | `bin/tprism/loader.py`, `bin/tprism/constraint.py` |
 | `embedding` emitters | `bin/tprism/expl_tensor.py`, `bin/tprism/embedding_generator.py` |

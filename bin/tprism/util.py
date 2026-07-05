@@ -92,6 +92,40 @@ def setup_logging(
                 ", ".join(DEBUG_CATEGORIES),
             )
 
+
+def set_log_level(level: Union[int, str]) -> None:
+    """Set the log level of the tprism package logger.
+
+    A convenience wrapper around `setup_logging` for library use
+    (e.g. `TprismModel(..., log_level="debug")`).
+
+    Args:
+        level: A `logging` level constant (e.g. `logging.DEBUG`) or its
+            name as a string ("debug", "info", "warning", "error", ...).
+    """
+    if isinstance(level, str):
+        resolved = logging.getLevelName(level.upper())
+        if not isinstance(resolved, int):
+            raise ValueError(
+                f"unknown log level: {level!r} (use debug/info/warning/error)"
+            )
+        level_no = resolved
+    else:
+        level_no = int(level)
+    setup_logging(
+        verbose=level_no <= logging.DEBUG,
+        quiet=level_no >= logging.WARNING,
+    )
+    logging.getLogger("tprism").setLevel(level_no)
+
+
+# Default configuration for library use: INFO-level console logging as soon
+# as tprism is imported (`from tprism.model import TprismModel`, ...). The
+# guard keeps a configuration made before this import; the CLI (`main()`)
+# reconfigures via setup_logging according to the command-line options.
+if not logging.getLogger("tprism").handlers:
+    setup_logging()
+
 #[ {"goal_id": <int>, "placeholders": <List[str]>, "records": ndarray} ]
 @dataclasses.dataclass
 class InputData:
