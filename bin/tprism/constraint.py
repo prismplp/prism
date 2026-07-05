@@ -1,3 +1,4 @@
+import logging
 import torch
 import math
 import sys
@@ -5,11 +6,15 @@ import re
 
 from importlib import import_module
 
+from tprism.util import debug_logger
+
+logger = logging.getLogger(__name__)
+
 try:
     geotorch = import_module("geotorch")
-    print('[geotorch] enabled')
+    debug_logger("module").debug('[geotorch] enabled')
 except ModuleNotFoundError:
-    print('[geotorch] disabled (Installation: pip install git+https://github.com/Lezcano/geotorch/)')
+    logger.warning('[geotorch] disabled (Installation: pip install git+https://github.com/Lezcano/geotorch/)')
 
 class BasicTensor(torch.nn.Module):
     def __init__(self, shape,  device=None, dtype=None):

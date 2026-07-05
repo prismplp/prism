@@ -9,6 +9,7 @@ operation with optional operators.
 
 from __future__ import annotations
 import collections
+import logging
 
 from itertools import chain
 from dataclasses import dataclass
@@ -28,6 +29,10 @@ from tprism.tensor_index import (
     extract_tensor,
     extract_tensor_shape,
 )
+from tprism.util import debug_logger
+
+logger = logging.getLogger(__name__)
+graph_logger = debug_logger("graph")
 
 
 @dataclass
@@ -168,7 +173,7 @@ class GoalInsideEntry:
             return cls(template, inside, False, dryrun)
 
         if len(path_template_list) != 1:
-            print("[WARNING] missmatch indices:", path_template_list)
+            logger.warning("missmatch indices: %s", path_template_list)
 
         template = path_template_list[0]
         if dryrun:
@@ -410,14 +415,14 @@ Note:
                 ops = [op.name for op in path.operators]
                 if "distribution" in ops:
                     # distributino clause
-                    print("=== distribution ===")
-                    print(sw_node_template)
-                    print(sw_node_shape)
+                    graph_logger.debug("=== distribution ===")
+                    graph_logger.debug("%s", sw_node_template)
+                    graph_logger.debug("%s", sw_node_shape)
                     ##
                     out_template = sw_node_template[0]
                     out_shape = sw_node_shape[0]
-                    print(out_template)
-                    print(out_shape)
+                    graph_logger.debug("%s", out_template)
+                    graph_logger.debug("%s", out_shape)
                 else:
                     # constructing einsum operation using template and inside
                     out_template = self._compute_output_template(sw_node_template)
@@ -449,7 +454,7 @@ Note:
                 )
             else:
                 if len(path_template_list) != 1:
-                    print("[WARNING] missmatch indices:", path_template_list)
+                    logger.warning("missmatch indices: %s", path_template_list)
                 goal_template[i] = GoalTemplate(
                     template=path_template[0],
                     batch_flag=path_batch_flag,
@@ -470,7 +475,7 @@ Note:
         self.param_op = torch.nn.ModuleList()
         for k, v in self.operators.items():
             if isinstance(v, torch.nn.Module):
-                print("Torch parameterized operator:", k)
+                debug_logger("module").debug("Torch parameterized operator: %s", k)
                 self.param_op.append(cast(torch.nn.Module, v))
         ##
         for name, (param, tensor_type) in self.tensor_provider.params.items():
@@ -499,7 +504,7 @@ Note:
         else:
             out_inside = params[0]
             out_template = param_template[0]
-            print("[ERROR] unknown distribution:", dist)
+            logger.error("unknown distribution: %s", dist)
         return out_inside, out_template
 
     def make_einsum_args(
@@ -593,7 +598,6 @@ Note:
         self,
         path: expl_pb2.ExplGraphPath,
         goal_inside: List[Optional[GoalInsideEntry]],
-        verbose: bool = False,
         dryrun: bool = False,
     ) -> Tuple[List[List[TensorIndexRef]], List[ExplNode], List[ExplNode], bool]:
         goal_template = self.goal_template
@@ -631,12 +635,12 @@ Note:
                 node_inside.append(temp_goal_inside)
                 node_template.append(temp_goal_template)
             elif temp_goal is None:
-                print("  [ERROR] cycle node is detected")
-                temp_goal = goal_inside[node.sorted_id]
-                print(node.sorted_id)
-                print(node)
-                print(node.sorted_id)
-                print(temp_goal)
+                logger.error(
+                    "cycle node is detected: sorted_id=%s node=%s temp_goal=%s",
+                    node.sorted_id,
+                    node,
+                    goal_inside[node.sorted_id],
+                )
                 quit()
             elif len(temp_goal.template) > 0:
                 # tensor subgoal
@@ -674,8 +678,6 @@ Note:
     def forward_path_sw(
         self,
         path: expl_pb2.ExplGraphPath,
-        verbose: bool = False,
-        verbose_embedding: bool = False,
         dryrun: bool = False,
     ) -> Tuple[List[List[TensorIndexRef]], List[ExplNode], List[ExplNode], bool]:
         tensor_provider = self.tensor_provider
@@ -696,7 +698,7 @@ Note:
                     "from":"tensor_provider.get_embedding",
                     "name":sw.name,})
             else:
-                v = tensor_provider.get_embedding(sw.name, verbose_embedding)
+                v = tensor_provider.get_embedding(sw.name)
                 sw_var = ExplNode.from_value("tensor_atom", v)
             sw_inside.append(sw_var)
         prob_sw_inside: List[ExplNode] = []
@@ -722,7 +724,6 @@ Note:
         node_scalar_inside: List[ExplNode],
         prob_sw_inside: List[ExplNode],
         path_batch_flag: bool,
-        verbose: bool = False,
         dryrun: bool = False,
     ) -> Tuple[ExplNode, List[TensorIndexRef]]:
 
@@ -775,12 +776,12 @@ Note:
                     try:
                         out_val = torch.einsum(*einsum_args)
                     except Exception as e:
-                        print("[ERROR] einsum failed for path:", path_name)
-                        print("in  >",template)
-                        print("out_org  >",out_template)
-                        print("out_list >",out_template_temp)
-                        print("inside_vals:", inside_vals)
-                        print("einsum_args:", einsum_args)
+                        logger.error("einsum failed for path: %s", path_name)
+                        logger.error("in  > %s", template)
+                        logger.error("out_org  > %s", out_template)
+                        logger.error("out_list > %s", out_template_temp)
+                        logger.error("inside_vals: %s", inside_vals)
+                        logger.error("einsum_args: %s", einsum_args)
                         raise e
                     out_node = ExplNode.from_value("einsum", out_val)
                     out_template = out_template_temp
@@ -804,8 +805,7 @@ Note:
             for op_name, op in ops.items():
                 if op_name == "distribution":
                     continue
-                if verbose:
-                    print("  operator:", op_name)
+                graph_logger.debug("  operator: %s", op_name)
                 out_node, out_template = self._apply_operator(
                     op,
                     operator_loader,
@@ -823,7 +823,8 @@ Note:
     ) -> Tuple[List[Optional[GoalInsideEntry]], Dict[str, torch.Tensor]]:
         """
          Args:
-             verbose (bool): if true, this function displays an explanation graph with forward computation
+             verbose (bool): deprecated and ignored; verbosity is controlled by the logging level (see `tprism.util.setup_logging`)
+             verbose_embedding (bool): deprecated and ignored; same as verbose
              dryrun (bool):  if true, this function outputs information required for calculation as goal_inside instead of computational graph
 
         Returns:
@@ -843,23 +844,23 @@ Note:
         goal_inside: List[Optional[GoalInsideEntry]] = [None] * len(graph.goals)
         for i in range(len(graph.goals)):
             g = graph.goals[i]
-            if verbose:
-                print(
-                    "=== tensor equation (node_id:%d, %s) ==="
-                    % (g.node.sorted_id, g.node.goal.name)
-                )
+            graph_logger.debug(
+                "=== tensor equation (node_id:%d, %s) ===",
+                g.node.sorted_id,
+                g.node.goal.name,
+            )
             path_inside = []
             path_template: List[List[TensorIndexRef]] = []
             path_batch_flag = False
             for j, path in enumerate(g.paths):
                 ## build template and inside for switches in the path
                 sw_template, sw_inside, prob_sw_inside, batch_flag = self.forward_path_sw(
-                        path, verbose, verbose_embedding, dryrun)
+                        path, dryrun)
                 path_batch_flag = batch_flag or path_batch_flag
 
                 ## building template and inside for nodes in the path
                 node_template, node_inside, node_scalar_inside, batch_flag = self.forward_path_node(
-                        path, goal_inside, verbose, dryrun)
+                        path, goal_inside, dryrun)
                 path_batch_flag = batch_flag or path_batch_flag
 
                 ## building template and inside for all elements (switches and nodes) in the path
@@ -872,7 +873,7 @@ Note:
                 out_node,out_template = self.forward_path_op(path_name, ops, operator_loader,
                         sw_node_template, sw_node_inside, node_scalar_inside, prob_sw_inside,
                         path_batch_flag,
-                        verbose, dryrun)
+                        dryrun)
 
                 path_inside.append(out_node)
                 path_template.append(out_template)

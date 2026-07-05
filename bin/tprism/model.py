@@ -7,6 +7,7 @@ Google-style docstrings.
 
 
 from typing import Any, Dict, List, Optional, Sequence, Tuple, Type, cast
+import logging
 import os
 import time
 
@@ -26,11 +27,17 @@ from tprism.util import (
     build_goal_dataset,
     split_goal_dataset,
     get_goal_dataset,
+    debug_logger,
     InputData,
     TensorInfoMapper,
 )
 from tprism.loader import OperatorLoader
 from tprism.loss.base import BaseLoss
+
+logger = logging.getLogger(__name__)
+feed_logger = debug_logger("feed")
+minibatch_logger = debug_logger("minibatch")
+param_logger = debug_logger("param")
 
 
 def _check_and_detach(output: Any) -> ndarray|List[ndarray]|None:
@@ -216,10 +223,11 @@ class TprismModel:
             input_data: Input dataset or None.
             load_vocab: Whether to load vocabulary.
             embedding_key: Embedding key (e.g., "train" or "test").
-            verbose: Whether to print verbose output.
+            verbose: Deprecated and ignored; verbosity is controlled by the
+                logging level (see `tprism.util.setup_logging`).
         """
         self._build_embedding(embedding_key)
-        self._set_data(input_data, load_vocab, verbose)
+        self._set_data(input_data, load_vocab)
         self._build_explanation_graph()
 
     def _build_embedding(self, embedding_key: str) -> None:
@@ -247,7 +255,7 @@ class TprismModel:
         self.embedding_generators = embedding_generators
         self.cycle_embedding_generator = cycle_embedding_generator
 
-    def _set_data(self, input_data: Optional[List[InputData]], load_vocab: bool, verbose: bool) -> None:
+    def _set_data(self, input_data: Optional[List[InputData]], load_vocab: bool) -> None:
         """Build tensor provider and set input data/vocabulary.
 
         Args:
@@ -262,7 +270,6 @@ class TprismModel:
             self.flags,
             load_vocab=load_vocab,
             embedding_generators=self.embedding_generators,
-            verbose=verbose,
         )
 
     def _build_explanation_graph(self) -> None:
@@ -283,16 +290,16 @@ class TprismModel:
         if input_data is None:
             self._solve_no_data()
         else:
-            print("solver with input data is not implemented")
-            
+            logger.error("solver with input data is not implemented")
+
 
     def _solve_no_data(self) -> None:
         """Run simple optimization for cycles without input data."""
-        print("... training phase")
-        print("... training variables")
+        logger.info("... training phase")
+        logger.info("... training variables")
         for key, param in self.comp_expl_graph.state_dict().items():
-            print(key, param.shape)
-        print("... building explanation graph")
+            param_logger.debug("%s %s", key, param.shape)
+        logger.info("... building explanation graph")
         prev_loss = None
         for step in range(self.flags.max_iterate):
             feed_dict:Dict[PlaceholderData, Tensor] = {}
@@ -301,7 +308,7 @@ class TprismModel:
                     feed_dict = embedding_generator.build_feed(feed_dict, None)
             self.tensor_provider.set_input(feed_dict)
             # out_inside = self.sess.run(inside, feed_dict=feed_dict)
-            goal_inside, loss_list = self.comp_expl_graph.forward(verbose=True)
+            goal_inside, loss_list = self.comp_expl_graph.forward()
             inside = []
             for goal in goal_inside:
                 if goal is None:
@@ -312,7 +319,7 @@ class TprismModel:
             for embedding_generator in self.embedding_generators:
                 if embedding_generator is not None:
                     loss = embedding_generator.update(inside)
-            print("step", step, "loss:", loss)
+            logger.info("step %d loss: %s", step, loss)
             if loss is None:
                 raise RuntimeError("loss is None")
             if loss < 1.0e-20:
@@ -363,32 +370,30 @@ class TprismModel:
 
         Args:
             input_data: Dataset or None for no-data training.
-            verbose: Whether to print verbose logs.
+            verbose: Deprecated and ignored; verbosity is controlled by the
+                logging level (see `tprism.util.setup_logging`).
 
         Returns:
             TprismEvaluator | Tuple[TprismEvaluator, TprismEvaluator]:
             Training evaluator only (no-data) or a tuple of (train, valid).
         """
         if input_data is None:
-            return self._fit_no_data(verbose)
+            return self._fit_no_data()
         else:
-            return self._fit(input_data, verbose)
+            return self._fit(input_data)
 
-    def _fit_no_data(self, verbose: bool) -> TprismEvaluator:
+    def _fit_no_data(self) -> TprismEvaluator:
         """Train without input data and return training metrics.
-
-        Args:
-            verbose: Whether to print verbose logs.
 
         Returns:
             TprismEvaluator: Training evaluator with recorded metrics.
         """
-        print("... training phase")
-        print("... training variables")
+        logger.info("... training phase")
+        logger.info("... training variables")
         for key, param in self.comp_expl_graph.state_dict().items():
-            print(key, param.shape)
+            param_logger.debug("%s %s", key, param.shape)
         optimizer = self._build_optimizer()
-        print("... building explanation graph")
+        logger.info("... building explanation graph")
 
         best_total_loss = None
         train_evaluator = TprismEvaluator()
@@ -421,20 +426,20 @@ class TprismModel:
 
                 # train_acc=sklearn.metrics.accuracy_score(all_label,all_output)
                 train_time = time.time() - start_t
-                print("[{:4d}] ".format(epoch + 1), train_evaluator.get_msg("train"))
-                print("train time:{0}".format(train_time) + "[sec]")
+                logger.info("[%4d]  %s", epoch + 1, train_evaluator.get_msg("train"))
+                logger.info("train time:%s[sec]", train_time)
                 if (
                     best_total_loss is None
                     or train_evaluator.running_loss[0] < best_total_loss
                 ):
                     best_total_loss = train_evaluator.running_loss[0]
                     if self.flags.model is not None:
-                        print("... saving best model to", self.flags.model + ".best.model")
+                        logger.info("... saving best model to %s", self.flags.model + ".best.model")
                         self.save(self.flags.model + ".best.model")
             else:
                 raise RuntimeError("goal_inside is None")
         if self.flags.model is not None:
-            print("... saving last model to", self.flags.model + ".last.model")
+            logger.info("... saving last model to %s", self.flags.model + ".last.model")
             self.save(self.flags.model + ".last.model")
         return train_evaluator
 
@@ -443,7 +448,6 @@ class TprismModel:
         ph_vars: Sequence[Any],
         dataset: Any,
         idx: Sequence[int]|ndarray,
-        verbose: bool = True,
     ) -> Dict[Any, torch.Tensor]:
         """Build a batch feed dict for placeholders.
 
@@ -451,15 +455,13 @@ class TprismModel:
             ph_vars: Placeholder variables.
             dataset: Dataset supporting slicing `dataset[i, idx]`.
             idx: Indices to slice the dataset.
-            verbose: Whether to print input shapes.
 
         Returns:
             Dict[Any, torch.Tensor]: Mapping from placeholder to tensors.
         """
-        if verbose:
+        if feed_logger.isEnabledFor(logging.DEBUG):
             for i, ph in enumerate(ph_vars):
-                print("[INFO feed]", ph, ph.name)
-                print("[INFO feed]", dataset[i, idx].shape)
+                feed_logger.debug("[feed] %s %s: shape=%s", ph, ph.name, dataset[i, idx].shape)
         feed_dict = {ph: torch.tensor(dataset[i, idx]) for i, ph in enumerate(ph_vars)}
         return feed_dict
 
@@ -490,19 +492,18 @@ class TprismModel:
                 feed_dict = embedding_generator.build_feed(feed_dict, batch_idx)
         self.tensor_provider.set_input(feed_dict)
 
-    def _evaluate_batch(self, j: int, verbose: bool = False) -> Tuple[Tensor, Dict[str, Any]]:
+    def _evaluate_batch(self, j: int) -> Tuple[Tensor, Dict[str, Any]]:
         """Forward the current batch and compute loss/metrics for goal j.
 
         The batch inputs must be set beforehand via `_set_batch_input`.
 
         Args:
             j: Goal index.
-            verbose: Whether to print verbose logs.
 
         Returns:
             Tuple[Tensor, Dict[str, Any]]: (per-goal loss tensor, metrics dict).
         """
-        goal_inside, loss_list = self.comp_expl_graph.forward(verbose=verbose)
+        goal_inside, loss_list = self.comp_expl_graph.forward()
         if goal_inside is None:
             raise RuntimeError("goal_inside is None")
         loss, output, label = self.loss_obj.call(
@@ -520,27 +521,26 @@ class TprismModel:
         loss_list.update(metrics)
         return loss, loss_list
 
-    def _fit(self, input_data: List[InputData], verbose: bool) -> Tuple[TprismEvaluator, TprismEvaluator]:
+    def _fit(self, input_data: List[InputData]) -> Tuple[TprismEvaluator, TprismEvaluator]:
         """Train with input data, performing train/validation loops.
 
         Args:
             input_data: Training dataset.
-            verbose: Whether to print verbose logs.
 
         Returns:
             Tuple[TprismEvaluator, TprismEvaluator]: (train_evaluator, valid_evaluator).
         """
-        print("... training phase")
+        logger.info("... training phase")
         goal_dataset = build_goal_dataset(input_data, self.tensor_provider)
-        print("... training variables")
+        logger.info("... training variables")
         for key, param in self.comp_expl_graph.state_dict().items():
-            print(key, param.shape)
+            param_logger.debug("%s %s", key, param.shape)
         optimizer = self._build_optimizer()
         best_valid_loss: List[Optional[Any]] = [None for _ in range(len(goal_dataset))]
         best_train_loss: Optional[float] = None
         patient_count = 0
         batch_size = self.flags.sgd_minibatch_size
-        print("... splitting data")
+        logger.info("... splitting data")
         train_idx, valid_idx = split_goal_dataset(
             goal_dataset, valid_ratio=self.flags.sgd_valid_ratio
         )
@@ -549,8 +549,8 @@ class TprismModel:
             len(valid_idx[j]) // batch_size > 0 for j in range(len(goal_dataset))
         )
         if not has_valid:
-            print("... no validation data: early stopping is disabled")
-        print("... starting training")
+            logger.info("... no validation data: early stopping is disabled")
+        logger.info("... starting training")
         train_evaluator = TprismEvaluator(goal_dataset)
         valid_evaluator = TprismEvaluator(goal_dataset)
         early_stop = False
@@ -560,14 +560,13 @@ class TprismModel:
             valid_evaluator.start_epoch()
             improved = False
             for j, goal in enumerate(goal_dataset):
-                if verbose:
-                    print(goal)
+                minibatch_logger.debug("%s", goal)
                 np.random.shuffle(train_idx[j])
                 # training update
                 num_itr = len(train_idx[j]) // batch_size
                 for itr in range(num_itr):
                     self._set_batch_input(goal, train_idx, j, itr)
-                    loss, loss_list = self._evaluate_batch(j, verbose)
+                    loss, loss_list = self._evaluate_batch(j)
                     # display_graph(output[j],'graph_pytorch')
                     optimizer.zero_grad()
                     loss[j].backward()
@@ -587,16 +586,18 @@ class TprismModel:
                     ):
                         best_valid_loss[j] = valid_evaluator.running_loss[j]
                         improved = True
-                    print(
-                        "[{:4d}] ".format(epoch + 1),
+                    logger.info(
+                        "[%4d]  %s %s (%2d) %s",
+                        epoch + 1,
                         train_evaluator.get_msg("train"),
                         valid_evaluator.get_msg("valid"),
-                        "({:2d})".format(patient_count),
+                        patient_count,
                         "*" if improved else "",
                     )
                 else:
-                    print(
-                        "[{:4d}] ".format(epoch + 1),
+                    logger.info(
+                        "[%4d]  %s",
+                        epoch + 1,
                         train_evaluator.get_msg("train"),
                     )
             # checkpointing and early stopping (epoch level)
@@ -604,17 +605,18 @@ class TprismModel:
                 if improved:
                     patient_count = 0
                     if self.flags.model is not None:
-                        print(
-                            "... saving best model to",
+                        logger.info(
+                            "... saving best model to %s",
                             self.flags.model + ".best.model",
                         )
                         self.save(self.flags.model + ".best.model")
                 else:
                     patient_count += 1
                 if patient_count >= self.flags.sgd_patience:
-                    print(
+                    logger.info(
                         "... early stopping: no improvement in validation loss"
-                        " for {:d} epochs".format(patient_count)
+                        " for %d epochs",
+                        patient_count,
                     )
                     early_stop = True
             else:
@@ -623,20 +625,20 @@ class TprismModel:
                 if best_train_loss is None or total_train_loss < best_train_loss:
                     best_train_loss = total_train_loss
                     if self.flags.model is not None:
-                        print(
-                            "... saving best model to",
+                        logger.info(
+                            "... saving best model to %s",
                             self.flags.model + ".best.model",
                         )
                         self.save(self.flags.model + ".best.model")
             train_time = time.time() - start_t
-            print("train time:{0}".format(train_time) + "[sec]")
+            logger.info("train time:%s[sec]", train_time)
             train_evaluator.stop_epoch()
             if has_valid:
                 valid_evaluator.stop_epoch()
             if early_stop:
                 break
         if self.flags.model is not None:
-            print("... saving last model to", self.flags.model + ".last.model")
+            logger.info("... saving last model to %s", self.flags.model + ".last.model")
             self.save(self.flags.model + ".last.model")
         return train_evaluator, valid_evaluator
 
@@ -657,37 +659,35 @@ class TprismModel:
         if os.path.isfile(filename):
             self.comp_expl_graph.load_state_dict(torch.load(filename))
         else:
-            print("[SKIP] skip loading")
+            logger.warning("[SKIP] skip loading: %s is not found", filename)
 
     def pred(self, input_data: Optional[List[InputData]] = None, verbose: bool = False) -> Tuple[Any, Any]:
         """Run prediction (inference).
 
         Args:
             input_data: Dataset or None for no-data inference.
-            verbose: Whether to print verbose logs.
+            verbose: Deprecated and ignored; verbosity is controlled by the
+                logging level (see `tprism.util.setup_logging`).
 
         Returns:
             Tuple[Any, Any]: (labels, outputs), usually converted to NumPy.
         """
         if input_data is not None:
-            return self._pred(input_data, verbose)
+            return self._pred(input_data)
         else:
-            return self._pred_no_data(verbose)
-        
-    def _pred_no_data(self, verbose: bool) -> Tuple[Optional[Any], Optional[Any]]:
-        """Infer without input data.
+            return self._pred_no_data()
 
-        Args:
-            verbose: Whether to print verbose logs.
+    def _pred_no_data(self) -> Tuple[Optional[Any], Optional[Any]]:
+        """Infer without input data.
 
         Returns:
             Tuple[Optional[Any], Optional[Any]]: (labels, outputs) detached and converted.
         """
-        print("... prediction")
-        print("... loaded variables")
+        logger.info("... prediction")
+        logger.info("... loaded variables")
         for key, param in self.comp_expl_graph.state_dict().items():
-            print(key, param.shape)
-        print("... initialization")
+            param_logger.debug("%s %s", key, param.shape)
+        logger.info("... initialization")
         evaluator = TprismEvaluator()
         ###
         feed_dict: Dict[PlaceholderData, Tensor] = {}
@@ -695,20 +695,19 @@ class TprismModel:
             if embedding_generator is not None:
                 feed_dict = embedding_generator.build_feed(feed_dict, None)
         self.tensor_provider.set_input(feed_dict)
-        print("... predicting")
+        logger.info("... predicting")
         start_t = time.time()
-        goal_inside, loss_list = self.comp_expl_graph.forward(verbose=verbose,verbose_embedding=verbose)
+        goal_inside, loss_list = self.comp_expl_graph.forward()
         loss, output, label = self.loss_obj.call(
             self.graph, goal_inside, self.tensor_provider
         )
         metrics=self.loss_obj.metrics(output, label)
         pred_time = time.time() - start_t
-        print("prediction time:{0}".format(pred_time) + "[sec]")
+        logger.info("prediction time:%s[sec]", pred_time)
         # train_acc=sklearn.metrics.accuracy_score(all_label,all_output)
-        #print("loss:", np.sum(evaluator.get_loss())
         if loss is not None:
-            print("loss:", torch.sum(loss))
-        print("metrics:", metrics)
+            logger.info("loss: %s", torch.sum(loss))
+        logger.info("metrics: %s", metrics)
         # 
         label_  = _check_and_detach(label)
         output_ = _check_and_detach(output)
@@ -719,20 +718,21 @@ class TprismModel:
 
         Args:
             input_data: Dataset to build batches from, or None.
-            verbose: Whether to print verbose logs.
+            verbose: Deprecated and ignored; verbosity is controlled by the
+                logging level (see `tprism.util.setup_logging`).
         """
-        print("... prediction")
+        logger.info("... prediction")
         goal_dataset=None
         if input_data:
             goal_dataset = build_goal_dataset(input_data, self.tensor_provider)
-        print("... loaded variables")
+        logger.info("... loaded variables")
         for key, param in self.comp_expl_graph.state_dict().items():
-            print(key, param.shape)
-        print("... initialization")
+            param_logger.debug("%s %s", key, param.shape)
+        logger.info("... initialization")
         if input_data:
             batch_size = self.flags.sgd_minibatch_size
             test_idx = get_goal_dataset(goal_dataset)
-        print("... exporting")
+        logger.info("... exporting")
         if input_data and goal_dataset is not None:
             for j, goal in enumerate(goal_dataset):
                 # valid
@@ -753,26 +753,25 @@ class TprismModel:
                     for path in g.inside:
                         print("  ", path)
 
-    def _pred(self, input_data: List[InputData], verbose: bool) -> Tuple[List[Any], List[Any]]:
+    def _pred(self, input_data: List[InputData]) -> Tuple[List[Any], List[Any]]:
         """Infer with input data.
 
         Args:
             input_data: Dataset for prediction.
-            verbose: Whether to print verbose logs.
 
         Returns:
             Tuple[List[Any], List[Any]]: (labels, outputs) per goal.
         """
-        print("... prediction")
+        logger.info("... prediction")
         goal_dataset = build_goal_dataset(input_data, self.tensor_provider)
-        print("... loaded variables")
+        logger.info("... loaded variables")
         for key, param in self.comp_expl_graph.state_dict().items():
-            print(key, param.shape)
-        print("... initialization")
+            param_logger.debug("%s %s", key, param.shape)
+        logger.info("... initialization")
         batch_size = self.flags.sgd_minibatch_size
         test_idx = get_goal_dataset(goal_dataset)
         evaluator = TprismEvaluator(goal_dataset)
-        print("... predicting")
+        logger.info("... predicting")
         start_t = time.time()
         outputs = []
         labels = []
@@ -785,7 +784,7 @@ class TprismModel:
             evaluator.start_epoch()
             for itr in range(num_itr):
                 self._set_batch_input(goal, test_idx, j, itr)
-                goal_inside, loss_list = self.comp_expl_graph.forward(verbose=verbose, verbose_embedding=verbose)
+                goal_inside, loss_list = self.comp_expl_graph.forward()
                 loss, output, label = self.loss_obj.call(
                     self.graph, goal_inside, self.tensor_provider
                 )
@@ -796,13 +795,12 @@ class TprismModel:
                 else:
                     raise RuntimeError("output is None in prediction")
             ##
-            print(evaluator.get_msg("test"))
-            # print(evaluator.output[j],evaluator.label[j])
+            logger.info("%s", evaluator.get_msg("test"))
             metrics = self.loss_obj.metrics(
                 np.array(evaluator.output[j]), np.array(evaluator.label[j])
             )
             outputs.append(np.array(evaluator.output[j]))
             labels.append(evaluator.label[j])
         pred_time = time.time() - start_t
-        print("test time:{0}".format(pred_time) + "[sec]")
+        logger.info("test time:%s[sec]", pred_time)
         return labels, outputs

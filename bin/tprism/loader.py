@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 import json
+import logging
 import re
 import numpy as np
 from google.protobuf import json_format
@@ -26,9 +27,11 @@ from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union, cast
 
 from tprism.placeholder import PlaceholderData
 from tprism.embedding_generator import EmbeddingGenerator
-from tprism.util import Flags, TensorInfoMapper, InputData
+from tprism.util import Flags, TensorInfoMapper, InputData, debug_logger
 from tprism.loss import BaseLoss
 
+logger = logging.getLogger(__name__)
+module_logger = debug_logger("module")
 
 
 def load_input_data(data_filename_list: List[str]) -> List[InputData]:
@@ -47,21 +50,21 @@ def load_input_data(data_filename_list: List[str]) -> List[InputData]:
     for filename in data_filename_list:
         rest_name, ext = os.path.splitext(filename)
         if ext == ".h5":
-            print("[LOAD]", filename)
+            logger.info("[LOAD] %s", filename)
             datasets = load_input_h5(filename)
         elif ext == ".json":
             _, ext2 = os.path.splitext(rest_name)
             if ext2==".npy":
-                print("[LOAD]", filename)
+                logger.info("[LOAD] %s", filename)
                 datasets = load_input_npy(filename)
             else:
-                print("[LOAD]", filename)
+                logger.info("[LOAD] %s", filename)
                 datasets = load_input_json(filename)
         elif ext[:5] == ".json": # e.g. .json0_1
-            print("[LOAD]", filename)
+            logger.info("[LOAD] %s", filename)
             datasets = load_input_json(filename)
         else:
-            print("[ERROR] unknown format", filename)
+            logger.error("unknown format: %s", filename)
             datasets = []
         input_data_list.append(datasets)
     return merge_input_data(input_data_list)
@@ -152,13 +155,13 @@ def load_explanation_graph(expl_filename: str, option_filename: Optional[str] =N
  
     graph = expl_pb2.ExplGraph()
     options = expl_pb2.Option()
-    print("[LOAD]", expl_filename)
+    logger.info("[LOAD] %s", expl_filename)
     with open(expl_filename, "r") as fp:
         graph = json_format.Parse(fp.read(), graph)
     # f = open("expl.bin", "rb")
     # graph.ParseFromString(f.read())
     if option_filename is not None:
-        print("[LOAD]", option_filename)
+        logger.info("[LOAD] %s", option_filename)
         with open(option_filename, "r") as fp:
             options = json_format.Parse(fp.read(), options)
     #
@@ -177,8 +180,7 @@ class PluginLoader:
     """
     base_class: type = object
     base_module_name: str = ""
-    verbose_debug: bool = False
-    
+
     def __init__(self) -> None:
         self.plugins: Dict[str, Any] = {}
 
@@ -199,7 +201,7 @@ class PluginLoader:
         self.load_all_from_search_path(search_path)
 
     def load_all_from_search_path(self, search_path: str) -> None:
-        print("[LOAD]", search_path)
+        module_logger.debug("[LOAD] %s", search_path)
         for fpath in glob.glob(os.path.join(search_path, "*.py")):
             name = os.path.basename(os.path.splitext(fpath)[0])
             if name in ("__init__", "base"):
@@ -207,32 +209,24 @@ class PluginLoader:
             self.load(fpath)
 
     def load(self, fpath: str) -> None:
-        print("[LOAD]", fpath)
+        module_logger.debug("[LOAD] %s", fpath)
         name = os.path.basename(os.path.splitext(fpath)[0])
         module_name = self.base_module_name + name
         module = importlib.machinery.SourceFileLoader(
             module_name, fpath
         ).load_module()
         self.load_module(module)
-    
+
     def load_module(self, module) -> None:
         for cls_name, cls in inspect.getmembers(module, inspect.isclass):
-            if self.verbose_debug:
-                print("CLASS:", cls_name)
-                print("  cls:", cls)
-                print("  cls id:", id(cls))
-                print("  base:", self.base_class)
-                print("  base id:", id(self.base_class))
-                print("  mro:", cls.__mro__)
-                print("  issubclass:", issubclass(cls, self.base_class))
             if cls.__module__ != module.__name__:
                 continue
             if issubclass(cls, self.base_class) and cls is not self.base_class:
-                print("[IMPORT]", cls_name)
+                module_logger.debug("[IMPORT] %s", cls_name)
                 op_name = self.to_op_name(cls_name)
                 self.plugins[op_name] = cls
             else:
-                print("[SKIP]", cls_name, cls, self.base_class)
+                module_logger.debug("[SKIP] %s (%s is not a subclass of %s)", cls_name, cls, self.base_class)
 
     def set_cls(self, op_name, cls) -> None:
         self.plugins[op_name] = cls

@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import logging
+
 import numpy as np
 from numpy import ndarray
 from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union
@@ -9,6 +11,86 @@ import h5py
 import tprism.expl_pb2 as expl_pb2
 
 import dataclasses
+
+logger = logging.getLogger(__name__)
+
+# functional debug categories (independent of the module/file structure):
+#   feed:      feeding data into placeholders/minibatches
+#   module:    loading/registering plugins (loss/op) and operator modules
+#   minibatch: per-minibatch processing during training/prediction
+#   embedding: assigning/retrieving tensors and embeddings for switches
+#   graph:     tracing explanation-graph -> computational-graph construction
+#   param:     model parameters (e.g. shapes of training variables)
+DEBUG_CATEGORIES: Tuple[str, ...] = (
+    "feed",
+    "module",
+    "minibatch",
+    "embedding",
+    "graph",
+    "param",
+)
+
+
+def debug_logger(category: str) -> logging.Logger:
+    """Return the logger for debug messages of a functional category.
+
+    Args:
+        category: One of DEBUG_CATEGORIES.
+
+    Returns:
+        logging.Logger: The logger named "tprism.debug.<category>"; which
+        categories are actually shown is controlled by `setup_logging`.
+    """
+    return logging.getLogger("tprism.debug." + category)
+
+
+def setup_logging(
+    verbose: bool = False,
+    quiet: bool = False,
+    debug: Optional[List[str]] = None,
+) -> None:
+    """Configure logging for the tprism package.
+
+    Args:
+        verbose: If True, show all debug messages (log level DEBUG).
+        quiet: If True, show only warnings and errors (log level WARNING).
+            Ignored when verbose is True or debug is given.
+        debug: Functional debug categories (see DEBUG_CATEGORIES) whose
+            debug messages are shown; debug messages of the other
+            categories are suppressed. Enables debug output even without
+            verbose.
+    """
+    if verbose or debug:
+        level = logging.DEBUG
+        fmt = "[%(levelname)s] %(name)s: %(message)s"
+    elif quiet:
+        level = logging.WARNING
+        fmt = "[%(levelname)s] %(message)s"
+    else:
+        level = logging.INFO
+        fmt = "%(message)s"
+    package_logger = logging.getLogger("tprism")
+    package_logger.setLevel(level)
+    handler = logging.StreamHandler()
+    handler.setFormatter(logging.Formatter(fmt))
+    package_logger.handlers.clear()
+    package_logger.addHandler(handler)
+    package_logger.propagate = False
+    # per-category levels: NOTSET inherits the package level (all shown when
+    # verbose); restricting to `debug` raises the other categories to INFO
+    for category in DEBUG_CATEGORIES:
+        category_level = logging.NOTSET
+        if debug and category not in debug:
+            category_level = logging.INFO
+        debug_logger(category).setLevel(category_level)
+    if debug:
+        unknown = [c for c in debug if c not in DEBUG_CATEGORIES]
+        if unknown:
+            package_logger.warning(
+                "unknown debug categories: %s (available: %s)",
+                unknown,
+                ", ".join(DEBUG_CATEGORIES),
+            )
 
 #[ {"goal_id": <int>, "placeholders": <List[str]>, "records": ndarray} ]
 @dataclasses.dataclass
@@ -257,15 +339,15 @@ def build_goal_dataset(input_data: List[InputData], tensor_provider):
         for i, ph_name in enumerate(ph_names):
             rec = d.records
             if tensor_provider.is_convertable_value(ph_name):
-                print("[INFO]", ph_name, "converted!!")
+                debug_logger("feed").debug("%s: values converted to indices", ph_name)
                 dataset[i] = to_index_func(rec[:, i], ph_name)
             else:  # goal placeholder
                 dataset[i] = rec[:, i]
-                print("[WARN] no conversion from values to indices:", ph_name)
-                print("goal_placeholder?")
-                print(rec.shape)
-                print(ph_name)
-            print("*")
+                logger.warning(
+                    "no conversion from values to indices: %s (goal placeholder? records shape=%s)",
+                    ph_name,
+                    rec.shape,
+                )
     for obj in goal_dataset:
         obj["dataset"] = np.array(obj["dataset"])
     return goal_dataset

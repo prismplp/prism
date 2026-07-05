@@ -10,6 +10,7 @@ The model itself lives in `tprism.model`.
 from typing import List, Optional, Tuple, cast
 import argparse
 import json
+import logging
 import os
 import pickle
 import time
@@ -27,7 +28,17 @@ from tprism.loader import (
 )
 from tprism.loss.base import BaseLoss
 from tprism.model import TprismModel
-from tprism.util import Flags, InputData, TensorInfoMapper
+from tprism.util import (
+    DEBUG_CATEGORIES,
+    Flags,
+    InputData,
+    TensorInfoMapper,
+    setup_logging,
+)
+
+# fall back to a package-level name when executed as `python -m tprism.main`
+# so that messages are handled by the "tprism" logger configured in setup_logging
+logger = logging.getLogger(__name__ if __name__ != "__main__" else "tprism.main")
 
 
 def _setup(
@@ -96,24 +107,24 @@ def run_training(args: argparse.Namespace) -> None:
     """
     input_data, graph, tensor_shapes, flags, loss_obj = _setup(args)
     ##
-    print("... computational graph")
+    logger.info("... computational graph")
     model = TprismModel(flags, tensor_shapes, graph, loss_obj=loss_obj)
-    model.build(input_data, load_vocab=False, embedding_key="train", verbose=args.verbose)
+    model.build(input_data, load_vocab=False, embedding_key="train")
     start_t = time.time()
     if flags.cycle:
-        print("... fit with cycle")
+        logger.info("... fit with cycle")
         model.solve()
     elif input_data is not None:
-        print("... fit with input data")
+        logger.info("... fit with input data")
         #model.export_computational_graph(input_data)
-        model.fit(input_data, verbose=False)
+        model.fit(input_data)
         model.pred(input_data)
     else:
-        print("... fit without input")
-        model.fit(verbose=False)
+        logger.info("... fit without input")
+        model.fit()
 
     train_time = time.time() - start_t
-    print("total training time:{0}".format(train_time) + "[sec]")
+    logger.info("total training time:%s[sec]", train_time)
 
 
 def run_test(args: argparse.Namespace) -> None:
@@ -124,26 +135,26 @@ def run_test(args: argparse.Namespace) -> None:
     """
     input_data, graph, tensor_shapes, flags, loss_obj = _setup(args)
     ##
-    print("... computational graph")
+    logger.info("... computational graph")
     model = TprismModel(flags, tensor_shapes, graph, loss_obj=loss_obj)
-    model.build(input_data, load_vocab=True, embedding_key="test", verbose=False)
+    model.build(input_data, load_vocab=True, embedding_key="test")
     if flags.model is not None:
         model.load(flags.model + ".best.model")
     start_t = time.time()
-    print("... prediction")
+    logger.info("... prediction")
     if flags.cycle:
         model.solve()
     elif input_data is not None:
         #model.export_computational_graph(input_data)
-        pred_y, out = model.pred(input_data, verbose=args.verbose)
+        pred_y, out = model.pred(input_data)
     else:
         #model.export_computational_graph()
-        pred_y, out = model.pred(verbose=args.verbose)
+        pred_y, out = model.pred()
     train_time = time.time() - start_t
-    print("total training time:{0}".format(train_time) + "[sec]")
-    print("... output")
+    logger.info("total training time:%s[sec]", train_time)
+    logger.info("... output")
     np.save(cast(str, flags.output), out)
-    print("[SAVE]", flags.output)
+    logger.info("[SAVE] %s", flags.output)
     data = {}
     for j, root_obj in enumerate(graph.root_list):
         multi_root = False
@@ -226,7 +237,9 @@ def main() -> None:
         "--cpu", action="store_true", help="cpu mode (calcuration only with cpu)"
     )
 
-    parser.add_argument("--no_verb", action="store_true", help="verb")
+    parser.add_argument(
+        "--no_verb", action="store_true", help="quiet mode: show only warnings and errors"
+    )
 
     parser.add_argument(
         "--sgd_minibatch_size", type=str, default=None, help="[prolog flag]"
@@ -278,16 +291,30 @@ def main() -> None:
     )
 
     parser.add_argument("--cycle", action="store_true", help="cycle")
-    parser.add_argument("--verbose", action="store_true", help="verbose")
+    parser.add_argument(
+        "--verbose", "-v", action="store_true", help="verbose mode: show all debug messages"
+    )
+    parser.add_argument(
+        "--debug_verb",
+        type=str,
+        nargs="+",
+        default=None,
+        choices=DEBUG_CATEGORIES,
+        metavar="CATEGORY",
+        help="show only debug messages of the given functional categories"
+        " (multiple allowed): " + " ".join(DEBUG_CATEGORIES),
+    )
 
     args = parser.parse_args()
     # config
-    if args.config is None:
-        pass
-    else:
-        print("[LOAD] ", args.config)
-        fp = open(args.config, "r")
-        args.__dict__.update(json.load(fp))
+    if args.config is not None:
+        with open(args.config, "r") as fp:
+            args.__dict__.update(json.load(fp))
+
+    # logging (after --config so that a config file can set verbose/no_verb/debug_verb)
+    setup_logging(verbose=args.verbose, quiet=args.no_verb, debug=args.debug_verb)
+    if args.config is not None:
+        logger.info("[LOAD] %s", args.config)
 
     # gpu/cpu
     if args.cpu:

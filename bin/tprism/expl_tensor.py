@@ -5,6 +5,7 @@ It contains switch/placeholder/vocabulary management classes and the
 to each switch in the explanation graph.
 """
 
+import logging
 import pickle
 import re
 
@@ -15,12 +16,15 @@ import tprism.expl_pb2 as expl_pb2
 from tprism.embedding_generator import BaseEmbeddingGenerator
 from tprism.placeholder import PlaceholderData
 from tprism.tensor import TorchTensorBase, TorchTensorOnehot, TorchTensor, TorchGather
-from tprism.util import TensorInfoMapper, Flags, InputData
+from tprism.util import TensorInfoMapper, Flags, InputData, debug_logger
 
 from torch import Tensor, dtype
 from torch.nn.parameter import Parameter
 from typing import Any, Dict, List, Optional, Set, Tuple, Union
 from dataclasses import dataclass
+
+logger = logging.getLogger(__name__)
+embedding_logger = debug_logger("embedding")
 
 
 class SwitchTensor:
@@ -196,7 +200,7 @@ class PlaceholderGraph:
                 vocab_ph[sw.vocab_name].add(ph_list[0])
                 ph_vocab[ph_list[0]].add(sw.vocab_name)
             elif len(ph_list) > 1:
-                print("[ERROR] not supprted: one placeholder for one term")
+                logger.error("not supported: one placeholder for one term (switch: %s)", sw_name)
         self.ph_vocab = ph_vocab
         self.vocab_ph = vocab_ph
         self.vocab_shape = vocab_shape
@@ -245,7 +249,7 @@ class SwitchTensorProvider:
         self.integer_dtype: dtype = torch.int32
 
     # forward
-    def get_loss(self, verbose:bool=False):
+    def get_loss(self):
         loss={}
         for name, (param,tensor_type) in self.params.items():
             m=re.match(r"^sparse\(([0-9\.]*)\)$", tensor_type)
@@ -259,14 +263,12 @@ class SwitchTensorProvider:
         return loss
 
     # forward
-    def get_embedding(self, name: Union[str,PlaceholderData], verbose:bool=False)->Optional[TorchTensorBase|Tensor]:
-        if verbose:
-            print("[INFO] get embedding:", name)
+    def get_embedding(self, name: Union[str,PlaceholderData])->Optional[TorchTensorBase|Tensor]:
+        embedding_logger.debug("get embedding: %s", name)
         out = None
         ## TODO:
         if self.input_feed_dict is None:
-            if verbose:
-                print("[INFO] from tensor_embedding", name)
+            embedding_logger.debug("from tensor_embedding %s", name)
             if  type(name) is str:
                 obj = self.tensor_embedding[name]
                 if isinstance(obj, TorchTensorBase):
@@ -278,26 +280,22 @@ class SwitchTensorProvider:
         elif type(name) is str:
             key = self.tensor_embedding[name]
             if type(key) is PlaceholderData:
-                if verbose:
-                    print("[INFO] from PlaceholderData", name, "==>", key.name)
+                embedding_logger.debug("from PlaceholderData %s ==> %s", name, key.name)
                 out = self.input_feed_dict[key]
             elif isinstance(key, TorchTensorBase):
-                if verbose:
-                    print("[INFO] from Tensor", name, "==>")
+                embedding_logger.debug("from Tensor %s ==>", name)
                 out = key()
             else:
                 raise Exception("Unknoen embedding type", name, key)
         elif type(name) is PlaceholderData:
-            if verbose:
-                print("[INFO] from PlaceholderData", name)
+            embedding_logger.debug("from PlaceholderData %s", name)
             out = self.input_feed_dict[name]
         else:
             raise Exception("Unknoen embedding", name)
-        if verbose:
-            print(out)
-            print(type(out))
+        if embedding_logger.isEnabledFor(logging.DEBUG):
+            embedding_logger.debug("%s (%s)", out, type(out))
             if isinstance(out, torch.Tensor):
-                print("sum:", out.sum())
+                embedding_logger.debug("sum: %s", out.sum())
         return out
 
     def set_embedding(self, name, var):
@@ -433,9 +431,9 @@ class SwitchTensorProvider:
                     if len(s) == 1:
                         var_type = VarType(type="onehot", shape=s, value=d)
                     else:
-                        print("[ERROR]")
+                        logger.error("onehot vocab '%s' must have a 1-d shape: %s", vocab_name, s)
                 else:
-                    print("[ERROR]")
+                    logger.error("invalid onehot vocab name: %s", vocab_name)
             else:
                 var_type = VarType(type="variable", shape=s)
                 # get tensor type from sw_info
@@ -454,13 +452,13 @@ class SwitchTensorProvider:
         if vocab_filename is None:
             raise ValueError("flags.vocab must not be None when loading/building the vocabulary.")
         if load_vocab:
-            print("[LOAD]", vocab_filename)
+            logger.info("[LOAD] %s", vocab_filename)
             with open(vocab_filename, mode="rb") as f:
                 vocab_set = pickle.load(f)
         else:
             vocab_set = VocabSet()
             vocab_set.build_from_ph(ph_graph)
-            print("[SAVE]", vocab_filename)
+            logger.info("[SAVE] %s", vocab_filename)
             with open(vocab_filename, mode="wb") as f:
                 pickle.dump(vocab_set, f)
         return vocab_set
@@ -482,21 +480,19 @@ class SwitchTensorProvider:
         vocab_var: Dict[str, PlaceholderData | TorchTensorBase] = {}
         for vocab_name, var_type in self.vocab_var_type.items():
             if var_type.type == "dataset":
-                print(
-                    ">> dataset >>",
+                embedding_logger.debug(
+                    ">> dataset >> %s : %s => %s",
                     vocab_name,
-                    ":",
                     var_type.dataset_shape,
-                    "=>",
                     var_type.shape,
                 )
             elif var_type.type == "onehot":
-                print(">> onehot  >>", vocab_name, ":", var_type.shape)
+                embedding_logger.debug(">> onehot  >> %s : %s", vocab_name, var_type.shape)
                 d = var_type.value
                 var_onehot = TorchTensorOnehot(self, var_type.shape, d)
                 vocab_var[vocab_name] = var_onehot
             else:
-                print(">> variable>>", vocab_name, ":", var_type)
+                embedding_logger.debug(">> variable>> %s : %s", vocab_name, var_type)
                 tensor_type = var_type.tensor_type
                 var_tensor = TorchTensor(self, vocab_name, var_type.shape, None, tensor_type)
                 vocab_var[vocab_name] = var_tensor
@@ -508,7 +504,6 @@ class SwitchTensorProvider:
         vocab_var: Dict[str, PlaceholderData | TorchTensorBase],
         vocab_set: VocabSet,
         embedding_generators: List[BaseEmbeddingGenerator],
-        verbose: bool,
     ) -> PlaceholderData | TorchTensorBase:
         """Assign a tensor to a switch that has no placeholder."""
         vocab_name = sw.vocab_name
@@ -521,32 +516,26 @@ class SwitchTensorProvider:
             var_ds: Optional[PlaceholderData] = None
             if sw.value is None:
                 var_ds = eg.get_embedding(vocab_name, tuple(shape))
-                if verbose:
-                    print("ph_list==0 and value==none")
-                    if var_ds is not None:
-                        print((vocab_name, ":", var_ds.shape))
                 if var_ds is not None:
+                    embedding_logger.debug("ph_list==0 and value==none: %s : %s", vocab_name, var_ds.shape)
                     return var_ds
                 else:
                     raise ValueError(f"var_ds must not be None for '{vocab_name}' when sw.value is None.")
             else:
                 var_ds = eg.get_embedding(vocab_name)
-                if verbose:
-                    print("ph_list==0 and value enbabled")
-                    if var_ds is not None:
-                        print((vocab_name, ":", var_ds.shape, "=>", shape))
+                if var_ds is not None:
+                    embedding_logger.debug(
+                        "ph_list==0 and value enabled: %s : %s => %s", vocab_name, var_ds.shape, shape
+                    )
                 index = vocab_set.get_values_index(vocab_name, sw.value)
-                if verbose:
-                    print(index, sw.value)
+                embedding_logger.debug("index=%s value=%s", index, sw.value)
                 if var_ds is not None:
                     return TorchGather(self, var_ds, sw.value)
                 else:
                     raise ValueError(f"var_ds must not be None for '{vocab_name}' when sw.value is enabled.")
         # trainig variable without placeholder
         var = vocab_var[vocab_name]
-        if verbose:
-            print("ph_list==0 and no dataset")
-            print((vocab_name, ":", var.shape))
+        embedding_logger.debug("ph_list==0 and no dataset: %s : %s", vocab_name, var.shape)
         return var
 
     def _embed_switch_with_ph(
@@ -556,7 +545,6 @@ class SwitchTensorProvider:
         ph_var: Dict[str, PlaceholderData],
         embedding_generators: List[BaseEmbeddingGenerator],
         batch_size: int,
-        verbose: bool,
     ) -> PlaceholderData | TorchTensorBase:
         """Assign a tensor to a switch that has one placeholder."""
         vocab_name = sw.vocab_name
@@ -568,20 +556,17 @@ class SwitchTensorProvider:
             shape = [batch_size] + list(list(sw.shape_set)[0])
             var_ds = eg.get_embedding(vocab_name)
             # var = eg.get_embedding(vocab_name, shape)
-            if verbose:
-                print("ph_list==1 and dataset enabled")
-                if var_ds is not None:
-                    print((vocab_name, ":", var_ds.shape, "=>", shape))
             if var_ds is not None:
+                embedding_logger.debug(
+                    "ph_list==1 and dataset enabled: %s : %s => %s", vocab_name, var_ds.shape, shape
+                )
                 return var_ds
             else:
                 raise ValueError(f"var_ds must not be None for '{vocab_name}' when building tensor_embedding.")
         # trainig variable with placeholder
         var_ = vocab_var[vocab_name]
-        if verbose:
-            print("ph_list==1 and dataset disabled")
-            if var_ is not None:
-                print((vocab_name, ":", var_.shape))
+        if var_ is not None:
+            embedding_logger.debug("ph_list==1 and dataset disabled: %s : %s", vocab_name, var_.shape)
         ph = ph_var[sw.ph_names[0]]
         return TorchGather(self, var_, ph)
 
@@ -593,21 +578,20 @@ class SwitchTensorProvider:
         vocab_set: VocabSet,
         embedding_generators: List[BaseEmbeddingGenerator],
         batch_size: int,
-        verbose: bool,
     ) -> Dict[str, PlaceholderData | TorchTensorBase]:
         """Convert PRISM switches to torch tensors: sw_name => tensor."""
         tensor_embedding: Dict[str, PlaceholderData | TorchTensorBase] = {}
         for sw_name, sw in sw_info.items():
             if len(sw.ph_names) == 0:
                 tensor_embedding[sw_name] = self._embed_switch_without_ph(
-                    sw, vocab_var, vocab_set, embedding_generators, verbose
+                    sw, vocab_var, vocab_set, embedding_generators
                 )
             elif len(sw.ph_names) == 1:
                 tensor_embedding[sw_name] = self._embed_switch_with_ph(
-                    sw, vocab_var, ph_var, embedding_generators, batch_size, verbose
+                    sw, vocab_var, ph_var, embedding_generators, batch_size
                 )
             else:
-                print("[WARM] unknown embedding:", sw_name)
+                logger.warning("unknown embedding: %s", sw_name)
         return tensor_embedding
 
     def build(
@@ -622,6 +606,8 @@ class SwitchTensorProvider:
     ):
         """
         As a preparation before creating a computational graph, associate switches and tensors
+        (the `verbose` argument is deprecated and ignored; verbosity is
+        controlled by the logging level, see `tprism.util.setup_logging`)
 
          1. building PlaceholderGraph
          2. building/loading VocabSet
@@ -636,7 +622,7 @@ class SwitchTensorProvider:
         #
         ph_graph = PlaceholderGraph()
         ph_graph.build(input_data, sw_info)
-        print("ph_graph:", ph_graph)
+        embedding_logger.debug("ph_graph: %s", ph_graph)
 
         ## build vocab group
         vocab_set = self._load_or_build_vocab(ph_graph, flags, load_vocab)
@@ -652,7 +638,7 @@ class SwitchTensorProvider:
         ph_var = self._build_ph_var(ph_graph, batch_size)
         vocab_var = self._build_vocab_var()
         tensor_embedding = self._build_tensor_embedding(
-            sw_info, vocab_var, ph_var, vocab_set, embedding_generators, batch_size, verbose
+            sw_info, vocab_var, ph_var, vocab_set, embedding_generators, batch_size
         )
         self.vocab_var = vocab_var
         self.ph_var = ph_var

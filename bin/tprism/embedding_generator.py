@@ -4,17 +4,21 @@ which assign a tensor to an atom.
 """
 import torch
 import json
+import logging
 import numpy as np
 
 import os
 import h5py
 
-from tprism.util import TensorInfoMapper
+from tprism.util import TensorInfoMapper, debug_logger
 from tprism.placeholder import PlaceholderData
 from numpy import ndarray
 from torch import Tensor
 from typing import Any, Dict, Optional, Sequence, Tuple, TypedDict
 
+logger = logging.getLogger(__name__)
+embedding_logger = debug_logger("embedding")
+feed_logger = debug_logger("feed")
 
 EmbeddingData=Dict[str,ndarray]
 
@@ -24,7 +28,7 @@ class CycleEmbeddingEntry(TypedDict):
     data: Tensor
     id: int
 
-def load_embedding_data(filename: str, key: str, verb: bool) -> EmbeddingData:
+def load_embedding_data(filename: str, key: str) -> EmbeddingData:
     """Load input data supporting .h5/.json format
 
     Args:
@@ -36,29 +40,28 @@ def load_embedding_data(filename: str, key: str, verb: bool) -> EmbeddingData:
     _, ext = os.path.splitext(filename)
     dataset:EmbeddingData = {}
     if ext == ".h5":
-        print("[LOAD]", filename)
-        dataset = load_embedding_h5(filename, key, verb)
+        logger.info("[LOAD] %s", filename)
+        dataset = load_embedding_h5(filename, key)
     elif ext == ".json":
-        print("[LOAD]", filename)
-        dataset = load_embedding_npy(filename, key, verb)
+        logger.info("[LOAD] %s", filename)
+        dataset = load_embedding_npy(filename, key)
     else:
-        print("[ERROR]", filename)
+        logger.error("unknown embedding format: %s", filename)
     return dataset
 
-def load_embedding_h5(filename, key, verb)-> EmbeddingData:
+def load_embedding_h5(filename, key)-> EmbeddingData:
     infh:Any = h5py.File(filename, "r")
     dataset:EmbeddingData = {}
     if key in infh:
         for vocab_name in infh[key]:
             rs = infh[key][vocab_name][()]
             dataset[vocab_name] = rs
-            if verb:
-                print("[LOAD DatasetEmbedding]", vocab_name)
+            embedding_logger.debug("[LOAD DatasetEmbedding] %s", vocab_name)
     infh.close()
     return dataset
 
 
-def load_embedding_npy(filename: str, key: str, verb: bool) -> EmbeddingData:
+def load_embedding_npy(filename: str, key: str) -> EmbeddingData:
     fp = open(filename, "r")
     obj = json.load(fp)
     dataset:EmbeddingData = {}
@@ -66,16 +69,13 @@ def load_embedding_npy(filename: str, key: str, verb: bool) -> EmbeddingData:
         tensor=np.load(obj["filename"])
         name=obj["name"]
         dataset[name]=tensor
-        if verb:
-            print("[LOAD DatasetEmbedding]", name)
+        embedding_logger.debug("[LOAD DatasetEmbedding] %s", name)
     return dataset
 
 
 class BaseEmbeddingGenerator:
     def __init__(self):
-        self.feed_verb = False
-        self.get_verb  = False
-        self.info_verb = False
+        pass
 
     def is_embedding(self, vocab_name: str) -> bool:
         return False
@@ -117,12 +117,10 @@ class CycleEmbeddingGenerator(BaseEmbeddingGenerator):
         ph_name: str = name + "_cyc"
         shape_tuple: Tuple[int, ...] = tuple(shape)
         if ph_name in self.embedding:
-            if self.get_verb:
-                print("[GET cycle]>", ph_name, ":", self.embedding[ph_name]["tensor"])
+            embedding_logger.debug("[GET cycle]> %s : %s", ph_name, self.embedding[ph_name]["tensor"])
             return torch.tensor(self.embedding[ph_name]["data"])
         else:
-            if self.info_verb:
-                print("[CREATE cycle]>", ph_name, ":", shape_tuple)
+            embedding_logger.debug("[CREATE cycle]> %s : %s", ph_name, shape_tuple)
             self.embedding[ph_name] = {
                 "tensor": PlaceholderData(
                     name=ph_name, shape=shape_tuple, dtype=torch.float32
@@ -136,8 +134,7 @@ class CycleEmbeddingGenerator(BaseEmbeddingGenerator):
         for ph_name, data in self.embedding.items():
             batch_data = data["data"]
             ph_var = data["tensor"]
-            if self.feed_verb:
-                print("[INFO: cycle feed]", "node_id:", data["id"], "=>", ph_name)
+            feed_logger.debug("[cycle feed] node_id: %s => %s", data["id"], ph_name)
             feed_dict[ph_var] = torch.Tensor(batch_data)
         return feed_dict
 
@@ -145,8 +142,7 @@ class CycleEmbeddingGenerator(BaseEmbeddingGenerator):
         total_loss: Tensor = torch.tensor(0.0)
         for ph_name, data in self.embedding.items():
             node_id: int = data["id"]
-            if self.info_verb:
-                print("[INFO: cycle update] node_id:", node_id, "=>", ph_name)
+            embedding_logger.debug("[cycle update] node_id: %s => %s", node_id, ph_name)
             ##
             o = out_inside[node_id]
             loss = self.embedding[ph_name]["data"] - o
@@ -178,7 +174,7 @@ class EmbeddingGenerator(BaseEmbeddingGenerator):
         self.const_flag=const_flag
 
     def load(self, filename: str, key: str="train") -> None:
-        self.dataset=load_embedding_data(filename, key, self.info_verb)
+        self.dataset=load_embedding_data(filename, key)
 
     def is_embedding(self, vocab_name: str) -> bool:
         return vocab_name in self.dataset
@@ -188,13 +184,11 @@ class EmbeddingGenerator(BaseEmbeddingGenerator):
 
     def get_embedding(self, vocab_name: str, shape: Optional[Tuple[int, ...]] =None, node_id = None) -> Optional[PlaceholderData]:
         if not self.is_embedding(vocab_name):
-            if self.info_verb:
-                print("[SKIP]>", vocab_name)
+            embedding_logger.debug("[SKIP]> %s", vocab_name)
             return None
         ph_name = vocab_name + "_ph"
         if ph_name in self.created_ph_var:
-            if self.get_verb:
-                print("[GET]>", ph_name, ":", self.created_ph_var[ph_name])
+            embedding_logger.debug("[GET]> %s : %s", ph_name, self.created_ph_var[ph_name])
             return self.created_ph_var[ph_name]
         else:
             if shape is None:
@@ -203,15 +197,12 @@ class EmbeddingGenerator(BaseEmbeddingGenerator):
                 self.created_ph_var[ph_name] = PlaceholderData(
                     name=ph_name, shape=shape, dtype=torch.float32, ref=vocab_name
                 )
+                embedding_logger.debug("[CREATE const]> %s : %s", ph_name, shape)
             else:
                 self.created_ph_var[ph_name] = PlaceholderData(
                     name=ph_name, shape=shape, dtype=torch.float32
                 )
-            if self.info_verb:
-                if self.const_flag:
-                    print("[CREATE const]>", ph_name, ":", shape)
-                else:
-                    print("[CREATE ]>", ph_name, ":", shape, "ref:", vocab_name)
+                embedding_logger.debug("[CREATE]> %s : %s ref: %s", ph_name, shape, vocab_name)
             return self.created_ph_var[ph_name]
         return None
     
@@ -225,6 +216,5 @@ class EmbeddingGenerator(BaseEmbeddingGenerator):
             if ph_name in self.created_ph_var:
                 ph_var = self.created_ph_var[ph_name]
                 feed_dict[ph_var] = torch.Tensor(batch_data)
-            if self.feed_verb:
-                print("[INFO: feed]", vocab_name, "=>", ph_name)
+            feed_logger.debug("[feed] %s => %s", vocab_name, ph_name)
         return feed_dict

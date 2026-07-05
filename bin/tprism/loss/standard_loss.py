@@ -174,7 +174,7 @@ class MSE(BaseLoss):
 
 
 class PreferencePair(BaseLoss):
-g   def __init__(self, parameters: Optional[List[Any]]=None) -> None:
+    def __init__(self, parameters: Optional[List[Any]]=None) -> None:
         if parameters is not None and len(parameters)>0:
             self.gamma=float(parameters[0])
         else:
