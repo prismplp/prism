@@ -263,6 +263,12 @@ def main() -> None:
         help="[prolog flag] ratio of validation data used for early stopping (0 disables validation)",
     )
     parser.add_argument(
+        "--sgd_goal_valid_ratio",
+        type=float,
+        default=None,
+        help="[prolog flag] goal-level split: ratio of whole goals held out for validation (0 disables)",
+    )
+    parser.add_argument(
         "--sgd_optimizer",
         type=str,
         default=None,

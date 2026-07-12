@@ -25,6 +25,7 @@ from tprism.placeholder import PlaceholderData
 from tprism.util import (
     Flags,
     build_goal_dataset,
+    split_goals,
     split_goal_dataset,
     get_goal_dataset,
     debug_logger,
@@ -112,7 +113,7 @@ class TprismEvaluator:
             j: Goal index.
             mean_flag: Whether to average accumulated values over batches.
         """
-        if mean_flag:
+        if mean_flag and self.running_count[j] > 0:
             self.running_loss[j] /= self.running_count[j]
             for k in self.running_loss_dict[j].keys():
                 self.running_loss_dict[j][k] /= self.running_count[j]
@@ -130,6 +131,10 @@ class TprismEvaluator:
         """
         result = {}
         for j in range(self.n_goals):
+            # goals not evaluated in this epoch (e.g. held out by the
+            # goal-level split) have no batches to average
+            if self.running_count[j] == 0:
+                continue
             key = "{:s}-loss".format(prefix)
             if self.n_goals > 1:
                 key = "goal{:d}-{:s}-loss".format(j,prefix)
@@ -383,18 +388,62 @@ class TprismModel:
 
         Returns:
             TprismEvaluator | Tuple[TprismEvaluator, TprismEvaluator]:
-            Training evaluator only (no-data) or a tuple of (train, valid).
+            Training evaluator only (no validation goals) or a tuple of
+            (train, valid) evaluators.
         """
         if input_data is None:
             return self._fit_no_data()
         else:
             return self._fit(input_data)
 
-    def _fit_no_data(self) -> TprismEvaluator:
-        """Train without input data and return training metrics.
+    def _goal_metrics(
+        self,
+        loss: Tensor,
+        output: Optional[Tensor],
+        label: Optional[Tensor],
+        sel: Optional[Tensor],
+    ) -> Dict[str, Any]:
+        """Compute loss metrics, restricted to the given goals when possible.
+
+        Args:
+            loss: Per-goal loss returned by the loss plugin.
+            output: Loss plugin output.
+            label: Loss plugin label (or None).
+            sel: Goal indices to restrict to, or None for all goals.
 
         Returns:
-            TprismEvaluator: Training evaluator with recorded metrics.
+            Dict[str, Any]: Metrics from the loss plugin. When `sel` is
+            given but output/label are not aligned with the per-goal loss,
+            an empty dict is returned.
+        """
+        if sel is None:
+            return self.loss_obj.metrics(
+                _check_and_detach(output), _check_and_detach(label)
+            )
+        if not isinstance(output, Tensor) or output.shape[0] != loss.shape[0]:
+            return {}
+        sub_label = None
+        if isinstance(label, Tensor) and label.shape[0] == loss.shape[0]:
+            sub_label = _check_and_detach(label[sel])
+        return self.loss_obj.metrics(_check_and_detach(output[sel]), sub_label)
+
+    def _fit_no_data(self) -> TprismEvaluator | Tuple[TprismEvaluator, TprismEvaluator]:
+        """Train without input data and return training metrics.
+
+        As in `_fit`, a goal-level split (`split_goals` with the
+        `sgd_goal_valid_ratio` flag) can hold out whole root goals for
+        validation. Each epoch runs a single forward pass; when
+        validation goals exist, only the training goals' per-goal losses
+        `loss[j]` are summed for the gradient (held-out goals never
+        contribute), the held-out goals' losses are evaluated every
+        epoch, and early stopping (`sgd_patience`) is applied to the
+        validation loss. The split requires a per-goal loss (one entry
+        per rank_root); a loss reduced to a scalar disables validation.
+
+        Returns:
+            TprismEvaluator | Tuple[TprismEvaluator, TprismEvaluator]:
+            Training evaluator only (no validation goals) or a tuple of
+            (train, valid) evaluators.
         """
         logger.info("... training phase")
         logger.info("... training variables")
@@ -403,8 +452,35 @@ class TprismModel:
         optimizer = self._build_optimizer()
         logger.info("... building explanation graph")
 
+        logger.info("... splitting data")
+        # goal-level split (coarse): whole root goals held out for
+        # validation, as in _fit
+        train_goal_idx, valid_goal_idx = split_goals(
+            self.graph.root_list, valid_ratio=self.flags.sgd_goal_valid_ratio
+        )
+        has_valid = len(valid_goal_idx) > 0
+        if has_valid:
+            if len(train_goal_idx) == 0:
+                raise ValueError(
+                    "sgd_goal_valid_ratio=%s leaves no training goals"
+                    % (self.flags.sgd_goal_valid_ratio,)
+                )
+            logger.info(
+                "... goal-level split: %d training goals / %d held-out goals %s",
+                len(train_goal_idx),
+                len(valid_goal_idx),
+                sorted(valid_goal_idx.tolist()),
+            )
+        else:
+            logger.info("... no validation data: early stopping is disabled")
+        train_sel = torch.as_tensor(train_goal_idx, dtype=torch.long)
+        valid_sel = torch.as_tensor(valid_goal_idx, dtype=torch.long)
+
         best_total_loss = None
+        best_valid_loss: Optional[Any] = None
+        patient_count = 0
         train_evaluator = TprismEvaluator()
+        valid_evaluator = TprismEvaluator()
         for epoch in range(self.flags.max_iterate):
             start_t = time.time()
             # train
@@ -414,41 +490,93 @@ class TprismModel:
                     feed_dict = embedding_generator.build_feed(feed_dict, None)
             self.tensor_provider.set_input(feed_dict)
             # print("... iteration")
+            train_evaluator.start_epoch()
+            improved = False
             goal_inside, loss_list = self.comp_expl_graph.forward()
-            if goal_inside is not None:
-                loss, output, label = self.loss_obj.call(
-                    self.graph, goal_inside, self.tensor_provider
+            if goal_inside is None:
+                raise RuntimeError("goal_inside is None")
+            loss, output, label = self.loss_obj.call(
+                self.graph, goal_inside, self.tensor_provider
+            )
+            if loss is None:
+                raise RuntimeError("loss is None")
+            if has_valid and loss.dim() == 0:
+                logger.warning(
+                    "... loss is a scalar (not per-goal):"
+                    " goal-level validation is disabled"
                 )
-                optimizer.zero_grad()
-                if loss is None:
-                    raise RuntimeError("loss is None")
+                has_valid = False
+            optimizer.zero_grad()
+            if has_valid:
+                # only the training goals contribute to the gradient
+                total_loss = torch.sum(loss[train_sel], dim=0)
+            else:
                 total_loss = torch.sum(loss, dim=0)
-                total_loss.backward()
-                optimizer.step()
-                metrics = self.loss_obj.metrics(output, label)
-                metrics.update(loss_list)
-                train_evaluator.start_epoch()
-                train_evaluator.update(total_loss, metrics, 0)
-                train_evaluator.stop_epoch()
-                # display_graph(output[j],'graph_pytorch')
-
-                # train_acc=sklearn.metrics.accuracy_score(all_label,all_output)
-                train_time = time.time() - start_t
-                logger.info("[%4d]  %s", epoch + 1, train_evaluator.get_msg("train"))
-                logger.info("train time:%s[sec]", train_time)
+            total_loss.backward()
+            optimizer.step()
+            metrics = self._goal_metrics(
+                loss, output, label, train_sel if has_valid else None
+            )
+            metrics.update(loss_list)
+            train_evaluator.update(total_loss, metrics, 0)
+            # display_graph(output[j],'graph_pytorch')
+            if has_valid:
+                # goal-level validation: held-out goals are never trained on
+                valid_loss = torch.sum(loss[valid_sel], dim=0).detach()
+                valid_metrics = self._goal_metrics(loss, output, label, valid_sel)
+                valid_evaluator.start_epoch()
+                valid_evaluator.update(valid_loss, valid_metrics, 0)
+                # checking improvement of the validation loss
                 if (
-                    best_total_loss is None
-                    or train_evaluator.running_loss[0] < best_total_loss
+                    best_valid_loss is None
+                    or valid_evaluator.running_loss[0] < best_valid_loss
                 ):
-                    best_total_loss = train_evaluator.running_loss[0]
+                    best_valid_loss = valid_evaluator.running_loss[0]
+                    improved = True
+                logger.info(
+                    "[%4d]  %s %s (%2d) %s",
+                    epoch + 1,
+                    train_evaluator.get_msg("train"),
+                    valid_evaluator.get_msg("valid"),
+                    patient_count,
+                    "*" if improved else "",
+                )
+                train_evaluator.stop_epoch()
+                valid_evaluator.stop_epoch()
+            else:
+                logger.info("[%4d]  %s", epoch + 1, train_evaluator.get_msg("train"))
+                train_evaluator.stop_epoch()
+            train_time = time.time() - start_t
+            logger.info("train time:%s[sec]", train_time)
+            # checkpointing and early stopping
+            if has_valid:
+                if improved:
+                    patient_count = 0
                     if self.flags.model is not None:
                         logger.info("... saving best model to %s", self.flags.model + ".best.model")
                         self.save(self.flags.model + ".best.model")
-            else:
-                raise RuntimeError("goal_inside is None")
+                else:
+                    patient_count += 1
+                if patient_count >= self.flags.sgd_patience:
+                    logger.info(
+                        "... early stopping: no improvement in validation loss"
+                        " for %d epochs",
+                        patient_count,
+                    )
+                    break
+            elif (
+                best_total_loss is None
+                or train_evaluator.running_loss[0] < best_total_loss
+            ):
+                best_total_loss = train_evaluator.running_loss[0]
+                if self.flags.model is not None:
+                    logger.info("... saving best model to %s", self.flags.model + ".best.model")
+                    self.save(self.flags.model + ".best.model")
         if self.flags.model is not None:
             logger.info("... saving last model to %s", self.flags.model + ".last.model")
             self.save(self.flags.model + ".last.model")
+        if has_valid:
+            return train_evaluator, valid_evaluator
         return train_evaluator
 
     def _build_feed(
@@ -529,6 +657,48 @@ class TprismModel:
         loss_list.update(metrics)
         return loss, loss_list
 
+    def _validate_goal(
+        self,
+        goal_dataset: Sequence[Dict[str, Any]],
+        valid_idx: Sequence[Sequence[int]],
+        j: int,
+        valid_evaluator: "TprismEvaluator",
+    ) -> int:
+        """Run validation batches for goal j and return the number of batches.
+
+        Args:
+            goal_dataset: All goals.
+            valid_idx: Validation indices per goal.
+            j: Goal index.
+            valid_evaluator: Evaluator receiving the validation metrics.
+
+        Returns:
+            int: Number of validation batches run (0 if not enough records).
+        """
+        goal = goal_dataset[j]
+        batch_size = self.flags.sgd_minibatch_size
+        num_itr = len(valid_idx[j]) // batch_size
+        for itr in range(num_itr):
+            self._set_batch_input(goal, valid_idx, j, itr)
+            loss, loss_list = self._evaluate_batch(j)
+            valid_evaluator.update(loss[j], loss_list, j)
+        return num_itr
+
+    def _check_improvement(
+        self,
+        j: int,
+        valid_evaluator: "TprismEvaluator",
+        best_valid_loss: List[Optional[Any]],
+    ) -> bool:
+        """Update the per-goal best validation loss; return True if improved."""
+        if (
+            best_valid_loss[j] is None
+            or best_valid_loss[j] > valid_evaluator.running_loss[j]
+        ):
+            best_valid_loss[j] = valid_evaluator.running_loss[j]
+            return True
+        return False
+
     def _fit(self, input_data: List[InputData]) -> Tuple[TprismEvaluator, TprismEvaluator]:
         """Train with input data, performing train/validation loops.
 
@@ -549,8 +719,24 @@ class TprismModel:
         patient_count = 0
         batch_size = self.flags.sgd_minibatch_size
         logger.info("... splitting data")
+        # goal-level split first (coarse): whole goals held out for validation
+        train_goal_idx, valid_goal_idx = split_goals(
+            goal_dataset, valid_ratio=self.flags.sgd_goal_valid_ratio
+        )
+        print("train goal:",train_goal_idx)
+        print("valid goal:",valid_goal_idx)
+        if len(valid_goal_idx) > 0:
+            logger.info(
+                "... goal-level split: %d training goals / %d held-out goals %s",
+                len(train_goal_idx),
+                len(valid_goal_idx),
+                sorted(valid_goal_idx.tolist()),
+            )
+        # record-level split within each training goal
         train_idx, valid_idx = split_goal_dataset(
-            goal_dataset, valid_ratio=self.flags.sgd_valid_ratio
+            goal_dataset,
+            valid_ratio=self.flags.sgd_valid_ratio,
+            valid_goals=valid_goal_idx,
         )
         # early stopping is enabled only when validation batches are available
         has_valid = any(
@@ -567,7 +753,8 @@ class TprismModel:
             train_evaluator.start_epoch()
             valid_evaluator.start_epoch()
             improved = False
-            for j, goal in enumerate(goal_dataset):
+            for j in train_goal_idx:
+                goal = goal_dataset[j]
                 minibatch_logger.debug("%s", goal)
                 np.random.shuffle(train_idx[j])
                 # training update
@@ -580,19 +767,11 @@ class TprismModel:
                     loss[j].backward()
                     optimizer.step()
                     train_evaluator.update(loss[j], loss_list, j)
-                # validation
-                num_itr = len(valid_idx[j]) // batch_size
-                for itr in range(num_itr):
-                    self._set_batch_input(goal, valid_idx, j, itr)
-                    loss, loss_list = self._evaluate_batch(j)
-                    valid_evaluator.update(loss[j], loss_list, j)
+                # record-level validation within a training goal
+                num_itr = self._validate_goal(goal_dataset, valid_idx, j, valid_evaluator)
                 # checking improvement of the validation loss
                 if num_itr > 0:
-                    if (
-                        best_valid_loss[j] is None
-                        or best_valid_loss[j] > valid_evaluator.running_loss[j]
-                    ):
-                        best_valid_loss[j] = valid_evaluator.running_loss[j]
+                    if self._check_improvement(j, valid_evaluator, best_valid_loss):
                         improved = True
                     logger.info(
                         "[%4d]  %s %s (%2d) %s",
@@ -607,6 +786,20 @@ class TprismModel:
                         "[%4d]  %s",
                         epoch + 1,
                         train_evaluator.get_msg("train"),
+                    )
+            # goal-level validation: held-out goals are never trained on
+            for j in valid_goal_idx:
+                minibatch_logger.debug("%s", goal_dataset[j])
+                num_itr = self._validate_goal(goal_dataset, valid_idx, j, valid_evaluator)
+                if num_itr > 0:
+                    if self._check_improvement(j, valid_evaluator, best_valid_loss):
+                        improved = True
+                    logger.info(
+                        "[%4d]  %s (%2d) %s",
+                        epoch + 1,
+                        valid_evaluator.get_msg("valid"),
+                        patient_count,
+                        "*" if improved else "",
                     )
             # checkpointing and early stopping (epoch level)
             if has_valid:

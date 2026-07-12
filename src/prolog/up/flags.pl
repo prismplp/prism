@@ -107,6 +107,7 @@ $pp_prism_flag(sgd_adam_epsilon,float(0,+inf),1.0e-8,$pc_set_sgd_adam_epsilon).
 $pp_prism_flag(sgd_adam_gamma,float(0,+inf),0.999,$pc_set_sgd_adam_gamma).
 $pp_prism_flag(sgd_adadelta_epsilon,float(0,+inf),1.0e-8,$pc_set_sgd_adadelta_epsilon).
 $pp_prism_flag(sgd_adadelta_gamma,float(0,+inf),0.95,$pc_set_sgd_adadelta_gamma).
+$pp_prism_flag(sgd_goal_valid_ratio,special($pp_check_sgd_valid_ratio),default,$none).
 $pp_prism_flag(sgd_learning_rate,float(-inf,+inf),0.0001,$pc_set_sgd_learning_rate).
 $pp_prism_flag(sgd_loss,special($pp_check_sgd_loss),default,$none).
 $pp_prism_flag(sgd_optimizer,enum([sgd,adadelta,adam]),adam,$pc_set_sgd_optimizer).

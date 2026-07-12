@@ -53,8 +53,10 @@ class CE(BaseLoss):
     def call(self, graph:'expl_pb2.ExplGraph', goal_inside:List[Optional['GoalInsideEntry']], tensor_provider:'SwitchTensorProvider')-> Tuple[Optional[Tensor], Optional[Tensor], Optional[Tensor]]:
         o=[]
         y=[]
+        num_roots=[]
         for rank_root in graph.root_list:
             goal_ids = [el.sorted_id for el in rank_root.roots]
+            num_roots.append(len(goal_ids))
             for sid in goal_ids:
                 args = graph.goals[sid].node.goal.args
                 label=int(args[0])
@@ -66,8 +68,10 @@ class CE(BaseLoss):
                 y.append(label)
         o_t=torch.stack(o)
         y_t=torch.LongTensor(y)
-        loss = F.cross_entropy(o_t,y_t)
-        return loss, o_t, y_t
+        # per-goal loss (one entry per rank_root), as in the other losses
+        losses = F.cross_entropy(o_t, y_t, reduction="none")
+        loss_=torch.stack([l.mean() for l in torch.split(losses, num_roots)])
+        return loss_, o_t, y_t
 
     def metrics(self, output, label):
         if label is not None:

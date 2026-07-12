@@ -212,7 +212,8 @@ def cast_value(value: Any, typ: Any) -> Any:
 
 # Values used by the Prolog side (src/prolog/up/flags.pl) to mean "unset":
 # `default` is the sentinel of max_iterate / sgd_minibatch_size / sgd_loss /
-# sgd_patience / sgd_valid_ratio, and `$disabled` marks a flag disabled by an
+# sgd_patience / sgd_valid_ratio / sgd_goal_valid_ratio, and `$disabled` marks
+# a flag disabled by an
 # exclusive competitor (e.g. default_sw_a vs default_sw_d).
 PROLOG_UNSET_VALUES = ("default", "$disabled", "'$disabled'")
 
@@ -259,6 +260,7 @@ class Flags:
     sgd_loss: str = "base_loss"
     sgd_patience: int = 3
     sgd_valid_ratio: float = 0.1
+    sgd_goal_valid_ratio: float = 0.0
 
     # optimizer (prolog flags)
     sgd_optimizer: str = "adam"
@@ -338,15 +340,40 @@ def get_goal_dataset(goal_dataset):
     return out_idx
 
 
-def split_goal_dataset(goal_dataset, valid_ratio=0.1):
+def split_goals(goal_dataset, valid_ratio=0.0):
+    """Goal-level train/valid split (coarser than the record-level split).
+
+    Shuffles the goal indices and holds out `valid_ratio` of whole goals for
+    validation; held-out goals are never trained on.
+
+    Returns:
+        (train_goal_idx, valid_goal_idx): index arrays into goal_dataset.
+    """
+    num_goals = len(goal_dataset)
+    goal_idx = np.arange(num_goals)
+    np.random.shuffle(goal_idx)
+    train_num = int(num_goals - valid_ratio * num_goals)
+    return goal_idx[:train_num], goal_idx[train_num:]
+
+
+def split_goal_dataset(goal_dataset, valid_ratio=0.1, valid_goals=()):
+    """Record-level train/valid split within each goal.
+
+    Goals listed in `valid_goals` (a goal-level split computed beforehand by
+    `split_goals`) are held out whole: all of their records go to valid and
+    their train index array is empty.
+    """
+    valid_goal_set = set(int(j) for j in valid_goals)
     train_idx = []
     valid_idx = []
     for j, goal in enumerate(goal_dataset):
-        ph_vars = goal["placeholders"]
         all_num = goal["dataset"].shape[1]
         all_idx = np.array(list(range(all_num)))
         np.random.shuffle(all_idx)
-        train_num = int(all_num - valid_ratio * all_num)
+        if j in valid_goal_set:
+            train_num = 0
+        else:
+            train_num = int(all_num - valid_ratio * all_num)
         train_idx.append(all_idx[:train_num])
         valid_idx.append(all_idx[train_num:])
     return train_idx, valid_idx
