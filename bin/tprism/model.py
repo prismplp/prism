@@ -427,6 +427,13 @@ class TprismModel:
             sub_label = _check_and_detach(label[sel])
         return self.loss_obj.metrics(_check_and_detach(output[sel]), sub_label)
 
+    def _optional_loss(self, loss_list):
+        opt_loss=0
+        for k,v in loss_list.items():
+            if len(k)==0 or k[0]!="*":
+                opt_loss += v.sum()
+        return opt_loss
+
     def _fit_no_data(self) -> TprismEvaluator | Tuple[TprismEvaluator, TprismEvaluator]:
         """Train without input data and return training metrics.
 
@@ -512,6 +519,7 @@ class TprismModel:
                 total_loss = torch.sum(loss[train_sel], dim=0)
             else:
                 total_loss = torch.sum(loss, dim=0)
+            total_loss += self._optional_loss(loss_list)
             total_loss.backward()
             optimizer.step()
             metrics = self._goal_metrics(
@@ -522,10 +530,11 @@ class TprismModel:
             # display_graph(output[j],'graph_pytorch')
             if has_valid:
                 # goal-level validation: held-out goals are never trained on
-                valid_loss = torch.sum(loss[valid_sel], dim=0).detach()
+                valid_loss = torch.sum(loss[valid_sel], dim=0)
                 valid_metrics = self._goal_metrics(loss, output, label, valid_sel)
+                valid_loss += self._optional_loss(valid_metrics)
                 valid_evaluator.start_epoch()
-                valid_evaluator.update(valid_loss, valid_metrics, 0)
+                valid_evaluator.update(valid_loss.detach(), valid_metrics, 0)
                 # checking improvement of the validation loss
                 if (
                     best_valid_loss is None
@@ -681,7 +690,9 @@ class TprismModel:
         for itr in range(num_itr):
             self._set_batch_input(goal, valid_idx, j, itr)
             loss, loss_list = self._evaluate_batch(j)
-            valid_evaluator.update(loss[j], loss_list, j)
+            total_loss = loss[j]
+            total_loss += self._optional_loss(loss_list)
+            valid_evaluator.update(total_loss, loss_list, j)
         return num_itr
 
     def _check_improvement(
@@ -723,8 +734,6 @@ class TprismModel:
         train_goal_idx, valid_goal_idx = split_goals(
             goal_dataset, valid_ratio=self.flags.sgd_goal_valid_ratio
         )
-        print("train goal:",train_goal_idx)
-        print("valid goal:",valid_goal_idx)
         if len(valid_goal_idx) > 0:
             logger.info(
                 "... goal-level split: %d training goals / %d held-out goals %s",
@@ -763,10 +772,12 @@ class TprismModel:
                     self._set_batch_input(goal, train_idx, j, itr)
                     loss, loss_list = self._evaluate_batch(j)
                     # display_graph(output[j],'graph_pytorch')
+                    total_loss = loss[j]
+                    total_loss += self._optional_loss(loss_list)
                     optimizer.zero_grad()
-                    loss[j].backward()
+                    total_loss.backward()
                     optimizer.step()
-                    train_evaluator.update(loss[j], loss_list, j)
+                    train_evaluator.update(total_loss, loss_list, j)
                 # record-level validation within a training goal
                 num_itr = self._validate_goal(goal_dataset, valid_idx, j, valid_evaluator)
                 # checking improvement of the validation loss
@@ -986,6 +997,7 @@ class TprismModel:
             for itr in range(num_itr):
                 self._set_batch_input(goal, test_idx, j, itr)
                 goal_inside, loss_list = self.comp_expl_graph.forward()
+                print(loss_list)
                 loss, output, label = self.loss_obj.call(
                     self.graph, goal_inside, self.tensor_provider
                 )
