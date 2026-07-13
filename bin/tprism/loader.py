@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 import json
+import logging
 import re
 import numpy as np
 from google.protobuf import json_format
@@ -25,10 +26,12 @@ from tprism.op.base import BaseOperator
 from typing import Any, Dict, List, Optional, Set, Tuple, Type, Union, cast
 
 from tprism.placeholder import PlaceholderData
-from tprism.torch_embedding_generator import EmbeddingGenerator
-from tprism.util import Flags, TensorInfoMapper, InputData
+from tprism.embedding_generator import EmbeddingGenerator
+from tprism.util import Flags, TensorInfoMapper, InputData, debug_logger
 from tprism.loss import BaseLoss
 
+logger = logging.getLogger(__name__)
+module_logger = debug_logger("module")
 
 
 def load_input_data(data_filename_list: List[str]) -> List[InputData]:
@@ -47,21 +50,21 @@ def load_input_data(data_filename_list: List[str]) -> List[InputData]:
     for filename in data_filename_list:
         rest_name, ext = os.path.splitext(filename)
         if ext == ".h5":
-            print("[LOAD]", filename)
+            logger.info("[LOAD] %s", filename)
             datasets = load_input_h5(filename)
         elif ext == ".json":
             _, ext2 = os.path.splitext(rest_name)
             if ext2==".npy":
-                print("[LOAD]", filename)
+                logger.info("[LOAD] %s", filename)
                 datasets = load_input_npy(filename)
             else:
-                print("[LOAD]", filename)
+                logger.info("[LOAD] %s", filename)
                 datasets = load_input_json(filename)
         elif ext[:5] == ".json": # e.g. .json0_1
-            print("[LOAD]", filename)
+            logger.info("[LOAD] %s", filename)
             datasets = load_input_json(filename)
         else:
-            print("[ERROR] unknown format", filename)
+            logger.error("unknown format: %s", filename)
             datasets = []
         input_data_list.append(datasets)
     return merge_input_data(input_data_list)
@@ -152,13 +155,13 @@ def load_explanation_graph(expl_filename: str, option_filename: Optional[str] =N
  
     graph = expl_pb2.ExplGraph()
     options = expl_pb2.Option()
-    print("[LOAD]", expl_filename)
+    logger.info("[LOAD] %s", expl_filename)
     with open(expl_filename, "r") as fp:
         graph = json_format.Parse(fp.read(), graph)
     # f = open("expl.bin", "rb")
     # graph.ParseFromString(f.read())
     if option_filename is not None:
-        print("[LOAD]", option_filename)
+        logger.info("[LOAD] %s", option_filename)
         with open(option_filename, "r") as fp:
             options = json_format.Parse(fp.read(), options)
     #
@@ -168,98 +171,45 @@ def load_explanation_graph(expl_filename: str, option_filename: Optional[str] =N
     return graph, tensor_shapes, flags
 
 
-class OperatorLoader:
-    """
-    This class is used to load custom operators
-    """
-    def __init__(self) -> None:
-        self.operators:Dict[str,Type[BaseOperator]] = {}
-        self.base_module_name = "tprism.op."
-        self.module = None
+class PluginLoader:
+    """Generic plugin loader.
 
-    # a snake case operator name to class name
+    Scans .py files in a directory and registers every subclass of
+    `base_class` found in them under its snake-case class name.
+    Subclasses set `base_class` and `base_module_name`.
+    """
+    base_class: type = object
+    base_module_name: str = ""
+
+    def __init__(self) -> None:
+        self.plugins: Dict[str, Any] = {}
+
+    # a snake case plugin name to class name
     def to_class_name(self, snake_str: str) -> str:
         components = snake_str.split("_")
         return "".join(x.title() for x in components)
 
-    # class name to a snake case operator name
+    # class name to a snake case plugin name
     def to_op_name(self, cls_name: str) -> str:
         _underscorer1 = re.compile(r"(.)([A-Z][a-z]+)")
         _underscorer2 = re.compile("([a-z0-9])([A-Z])")
         subbed = _underscorer1.sub(r"\1_\2", cls_name)
         return _underscorer2.sub(r"\1_\2", subbed).lower()
-
-    def get_operator(self, name: str) -> Type[BaseOperator]:
-        assert name in self.operators, "%s is not found" % (name)
-        cls = self.operators[name]
-        assert cls is not None, "%s is not found" % (name)
-        return cls
-
-    def load_all(self, path: str) -> None:
-        search_path = os.path.dirname(__file__) + "/" + path
-        for fpath in glob.glob(search_path + "*.py"):
-            self.load(fpath)
-
-    def load(self, fpath: str) -> None:
-        print("[LOAD]", fpath)
-        name = os.path.basename(os.path.splitext(fpath)[0])
-        module_name = self.base_module_name + name
-        module = importlib.machinery.SourceFileLoader(
-            module_name, fpath
-        ).load_module()
-        self.load_module(module)
-
-    def load_module(self, module):
-        for cls_name, cls in inspect.getmembers(module, inspect.isclass):
-            if issubclass(cls, tprism.op.base.BaseOperator):
-                print("[IMPORT]", cls_name)
-                op_name = self.to_op_name(cls_name)
-                self.operators[op_name] = cls
-        
-    def set_cls(self, op_name, cls):
-        self.operators[op_name] = cls
-        
-
-
-class LossLoader:
-    """
-    This class is used to load custom loss functions
-    """
-    def __init__(self) -> None:
-        self.module = None
-        self.base_module_name = "tprism.loss."
-        self.losses:Dict[str,Any] = {}
-
-    # a snake case operator name to class name
-    def to_class_name(self, snake_str):
-        components = snake_str.split("_")
-        return "".join(x.title() for x in components)
-
-    # class name to a snake case operator name
-    def to_op_name(self, cls_name: str) -> str:
-        _underscorer1 = re.compile(r"(.)([A-Z][a-z]+)")
-        _underscorer2 = re.compile("([a-z0-9])([A-Z])")
-        subbed = _underscorer1.sub(r"\1_\2", cls_name)
-        return _underscorer2.sub(r"\1_\2", subbed).lower()
-
-    def get_loss(self, name: str) -> Optional[Type[BaseLoss]]:
-        if name in self.losses:
-            cls = self.losses[name]
-            return cls
-        else:
-            return None
 
     def load_all(self, path: str) -> None:
         search_path = os.path.dirname(__file__) + "/" + path
         self.load_all_from_search_path(search_path)
 
     def load_all_from_search_path(self, search_path: str) -> None:
-        print("[LOAD]", search_path)
-        for fpath in glob.glob(search_path + "*.py"):
+        module_logger.debug("[LOAD] %s", search_path)
+        for fpath in glob.glob(os.path.join(search_path, "*.py")):
+            name = os.path.basename(os.path.splitext(fpath)[0])
+            if name in ("__init__", "base"):
+                continue
             self.load(fpath)
 
     def load(self, fpath: str) -> None:
-        print("[LOAD]", fpath)
+        module_logger.debug("[LOAD] %s", fpath)
         name = os.path.basename(os.path.splitext(fpath)[0])
         module_name = self.base_module_name + name
         module = importlib.machinery.SourceFileLoader(
@@ -267,21 +217,85 @@ class LossLoader:
         ).load_module()
         self.load_module(module)
 
-    def load_module(self, module):
+    def load_module(self, module) -> None:
         for cls_name, cls in inspect.getmembers(module, inspect.isclass):
-            if issubclass(cls, tprism.loss.base.BaseLoss):
-                print("[IMPORT]", cls_name)
+            if cls.__module__ != module.__name__:
+                continue
+            if issubclass(cls, self.base_class) and cls is not self.base_class:
+                module_logger.debug("[IMPORT] %s", cls_name)
                 op_name = self.to_op_name(cls_name)
-                self.losses[op_name] = cls
+                self.plugins[op_name] = cls
+            else:
+                module_logger.debug("[SKIP] %s (%s is not a subclass of %s)", cls_name, cls, self.base_class)
 
-    def set_cls(self,op_name,cls):
-        self.losses[op_name] = cls
+    def set_cls(self, op_name, cls) -> None:
+        self.plugins[op_name] = cls
 
-def main():
+
+class OperatorLoader(PluginLoader):
+    """
+    This class is used to load custom operators
+    """
+    base_class = BaseOperator
+    base_module_name = "tprism.op."
+
+    @property
+    def operators(self) -> Dict[str, Type[BaseOperator]]:
+        return self.plugins
+
+    def get_operator(self, name: str) -> Type[BaseOperator]:
+        assert name in self.plugins, "%s is not found" % (name)
+        cls = self.plugins[name]
+        assert cls is not None, "%s is not found" % (name)
+        return cls
+
+
+class LossLoader(PluginLoader):
+    """
+    This class is used to load custom loss functions
+    """
+    base_class = BaseLoss
+    base_module_name = "tprism.loss."
+
+    @property
+    def losses(self) -> Dict[str, Type[BaseLoss]]:
+        return self.plugins
+
+    def get_loss(self, name: str) -> Tuple[Optional[Type[BaseLoss]], List[str]]:
+        m=re.match(r"^(.*)\(([0-9e\-\.]*)\)$", name)
+        if m:
+            # TODO: parer.pyを使って複数オプションに対応する
+            loss_name=m.group(1)
+            loss_params=[m.group(2)]
+        else:
+            loss_name=name
+            loss_params=[]
+        if loss_name in self.plugins:
+            cls = self.plugins[loss_name]
+            return cls, loss_params
+        else:
+            return None, loss_params
+
+def check_loss():
     loss_loader = LossLoader()
-    loss_loader.load_all_from_search_path("./loss/")
+    loss_loader.load_all("loss/")
     print(loss_loader.losses)
-    #loss_cls = loss_loader.get_loss(flags.sgd_loss)
+    loss_cls, loss_params = loss_loader.get_loss("ce")
+    if loss_cls is not None:
+        print(loss_cls, loss_params)
+    else:
+        print("loss function not found")
+
+def check_operators():
+    operator_loader = OperatorLoader()
+    operator_loader.load_all("op/")
+    print(operator_loader.operators)
+    cls = operator_loader.get_operator("sigmoid")
+    print(cls)
+    
+def main():
+    check_loss()
+    check_operators()
 
 if __name__ == "__main__":
     main()

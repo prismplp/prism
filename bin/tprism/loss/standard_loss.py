@@ -13,19 +13,17 @@ from torch import Tensor
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from tprism.expl_graph import SwitchTensorProvider
-    from tprism.torch_expl_graph import GoalInsideEntry
+    from tprism.expl_tensor import SwitchTensorProvider
+    from tprism.expl_graph import GoalInsideEntry
 
 class NLL(BaseLoss):
-    def __init__(self, parameters=None):
+    def __init__(self, parameters: Optional[List[Any]]=None):
         pass
 
     # loss: goal x minibatch
     def call(self, graph:'expl_pb2.ExplGraph',goal_inside:List[Optional['GoalInsideEntry']], tensor_provider:'SwitchTensorProvider')-> Tuple[Optional[Tensor], Optional[Tensor], Optional[Tensor]]:
         loss = []
         output = []
-        gamma = 1.00
-
         #beta = 1.0e-4
         #reg_losses = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
         #reg_loss = beta * torch.mean(reg_losses)
@@ -48,15 +46,17 @@ class NLL(BaseLoss):
         return loss_, output_, None
 
 class CE(BaseLoss):
-    def __init__(self, parameters=None):
+    def __init__(self, parameters: Optional[List[Any]]=None):
         pass
 
     # loss: goal x minibatch
     def call(self, graph:'expl_pb2.ExplGraph', goal_inside:List[Optional['GoalInsideEntry']], tensor_provider:'SwitchTensorProvider')-> Tuple[Optional[Tensor], Optional[Tensor], Optional[Tensor]]:
         o=[]
         y=[]
+        num_roots=[]
         for rank_root in graph.root_list:
             goal_ids = [el.sorted_id for el in rank_root.roots]
+            num_roots.append(len(goal_ids))
             for sid in goal_ids:
                 args = graph.goals[sid].node.goal.args
                 label=int(args[0])
@@ -68,8 +68,10 @@ class CE(BaseLoss):
                 y.append(label)
         o_t=torch.stack(o)
         y_t=torch.LongTensor(y)
-        loss = F.cross_entropy(o_t,y_t)
-        return loss, o_t, y_t
+        # per-goal loss (one entry per rank_root), as in the other losses
+        losses = F.cross_entropy(o_t, y_t, reduction="none")
+        loss_=torch.stack([l.mean() for l in torch.split(losses, num_roots)])
+        return loss_, o_t, y_t
 
     def metrics(self, output, label):
         if label is not None:
@@ -83,17 +85,23 @@ class CE(BaseLoss):
         return {}
 
 
-class CE_pl2(BaseLoss):
-    def __init__(self, parameters: None=None) -> None:
-        pass
+class CE_pl(BaseLoss):
+    def __init__(self, parameters: Optional[List[Any]]=None) -> None:
+        if parameters is not None and len(parameters):
+            self.label_placeholder=parameters[0]
+        else:
+            self.label_placeholder="$placeholder1$"
+
 
     # loss: goal x minibatch
     def call(self, graph:'expl_pb2.ExplGraph', goal_inside:List[Optional['GoalInsideEntry']], tensor_provider:'SwitchTensorProvider')-> Tuple[Optional[Tensor], Optional[Tensor], Optional[Tensor]]:
         loss = []
         output = []
         label = []
-        label_ph = tensor_provider.ph_var["$placeholder2$"]
+        label_ph = tensor_provider.ph_var[self.label_placeholder]
         label_ph_var =tensor_provider.get_embedding(label_ph)
+        if not isinstance(label_ph_var, Tensor):
+            raise TypeError("label placeholder must be a Tensor, got %s" % (type(label_ph_var),))
         #reg_losses = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
         #reg_loss = beta * tf.reduce_mean(reg_losses)
         for rank_root in graph.root_list:
@@ -126,7 +134,7 @@ class CE_pl2(BaseLoss):
         return {}
 
 class MSE(BaseLoss):
-    def __init__(self, parameters=None):
+    def __init__(self, parameters: Optional[List[Any]]=None):
         pass
 
     # loss: goal x minibatch
@@ -134,10 +142,8 @@ class MSE(BaseLoss):
         loss = []
         output = []
         label = []
-        gamma = 1.00
         label_ph = tensor_provider.ph_var["$placeholder1$"]
         label_ph_var =tensor_provider.get_embedding(label_ph)
-        beta = 1.0e-4
         for rank_root in graph.root_list:
             goal_ids = [el.sorted_id for el in rank_root.roots]
             gnode1=goal_inside[goal_ids[0]]
@@ -172,14 +178,15 @@ class MSE(BaseLoss):
 
 
 class PreferencePair(BaseLoss):
-    def __init__(self, parameters: None=None) -> None:
-        pass
-
+    def __init__(self, parameters: Optional[List[Any]]=None) -> None:
+        if parameters is not None and len(parameters)>0:
+            self.gamma=float(parameters[0])
+        else:
+            self.gamma=1.0
     # loss: goal x minibatch
     def call(self, graph:'expl_pb2.ExplGraph', goal_inside:List[Optional['GoalInsideEntry']], tensor_provider:'SwitchTensorProvider')-> Tuple[Optional[Tensor], Optional[Tensor], Optional[Tensor]]:
         loss = []
         output = []
-        gamma = 1.00
 
         for rank_root in graph.root_list:
             goal_ids = [el.sorted_id for el in rank_root.roots]
@@ -191,7 +198,7 @@ class PreferencePair(BaseLoss):
                 raise RuntimeError("goal_inside[%d] is None" % (goal_ids[1],)) 
             l1 = gnode1.inside
             l2 = gnode2.inside
-            l = torch.nn.functional.relu(l2 - l1 + gamma)
+            l = torch.nn.functional.relu(l2 - l1 + self.gamma)
             # l=tf.exp(l2-l1)
             # l=- 1.0/(tf.exp(l2-l1)+1)+reg_loss
             # l=tf.log(tf.exp(l2-l1)+1)+reg_loss
@@ -204,7 +211,7 @@ class PreferencePair(BaseLoss):
 
 
 class RMSEPair(BaseLoss):
-    def __init__(self, parameters: None=None) -> None:
+    def __init__(self, parameters: Optional[List[Any]]=None) -> None:
         pass
 
     # loss: goal x minibatch

@@ -1,4 +1,5 @@
 """
 Custom loss functions
 """
-from .torch_standard_loss import *
+from .base import BaseLoss
+from .standard_loss import *

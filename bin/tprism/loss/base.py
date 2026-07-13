@@ -1,19 +1,22 @@
 
-from typing import Any, List, Optional, Tuple
+import logging
+from typing import Any, List, Optional, Tuple, Any
 import tprism.expl_pb2 as expl_pb2
 from torch import Tensor
 import torch
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from tprism.expl_graph import SwitchTensorProvider
-    from tprism.torch_expl_graph import GoalInsideEntry
+    from tprism.expl_tensor import SwitchTensorProvider
+    from tprism.expl_graph import GoalInsideEntry
+
+logger = logging.getLogger(__name__)
 
 class BaseLoss:
-    def __init__(self, parameters=None):
+    def __init__(self, parameters: Optional[List[Any]]=None):
         pass
 
     def call(self, graph:'expl_pb2.ExplGraph', goal_inside:List[Optional['GoalInsideEntry']], tensor_provider:'SwitchTensorProvider')-> Tuple[Optional[Tensor], Optional[Tensor], Optional[Tensor]]:
-        print("[WARN] loss is not implemened")
+        logger.warning("loss is not implemented")
         output = []
         for rank_root in graph.root_list:
             goal_ids = [el.sorted_id for el in rank_root.roots]

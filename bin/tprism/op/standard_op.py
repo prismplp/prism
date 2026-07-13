@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 from tprism.op.base import BaseOperator
+from tprism.tensor_index import TensorIndexRef
 from typing import List
 
 class Reindex(BaseOperator):
@@ -26,7 +27,7 @@ class Sigmoid(BaseOperator):
     def call(self, x):
         return torch.sigmoid(x)
 
-    def get_output_template(self, input_template: List[str]) -> List[str]:
+    def get_output_template(self, input_template: List[TensorIndexRef]) -> List[TensorIndexRef]:
         return input_template
 
 

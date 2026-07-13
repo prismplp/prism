@@ -7,7 +7,7 @@ path=os.path.dirname(os.path.abspath(__file__))
 print(setuptools.find_packages())
 setuptools.setup(
     name="T-PRISM",
-    version="1.0",
+    version="1.1",
     author="Ryosuke Kojima",
     author_email="kojima.ryosuke.8e@kyoto-u.ac.jp",
     description="T-PRISM",
@@ -17,7 +17,7 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     entry_points = {
         'console_scripts' : [
-            'tprism = tprism.torch_tprism:main',
+            'tprism = tprism.main:main',
             ],
     },
     classifiers=[

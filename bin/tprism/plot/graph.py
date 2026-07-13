@@ -1,6 +1,6 @@
 import networkx as nx
 from typing import Any, Dict, List, Optional, Set, Tuple
-from tprism.torch_expl_graph import GoalInsideEntry
+from tprism.expl_graph import GoalInsideEntry
 
 
 PathNode = Dict[str, Any]
@@ -101,7 +101,7 @@ def plot_and_or_graph(
         goal_inside, and_label, or_label, leaf_label
     )
 
-    G = nx.DiGraph()
+    G: "nx.DiGraph" = nx.DiGraph()
     G.add_edges_from(or_and_edges)
     G.add_edges_from(inside_edges)
 
