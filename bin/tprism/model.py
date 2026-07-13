@@ -516,9 +516,9 @@ class TprismModel:
             optimizer.zero_grad()
             if has_valid:
                 # only the training goals contribute to the gradient
-                total_loss = torch.sum(loss[train_sel], dim=0)
+                total_loss = torch.mean(loss[train_sel], dim=0)
             else:
-                total_loss = torch.sum(loss, dim=0)
+                total_loss = torch.mean(loss, dim=0)
             total_loss += self._optional_loss(loss_list)
             total_loss.backward()
             optimizer.step()
@@ -530,7 +530,7 @@ class TprismModel:
             # display_graph(output[j],'graph_pytorch')
             if has_valid:
                 # goal-level validation: held-out goals are never trained on
-                valid_loss = torch.sum(loss[valid_sel], dim=0)
+                valid_loss = torch.mean(loss[valid_sel], dim=0)
                 valid_metrics = self._goal_metrics(loss, output, label, valid_sel)
                 valid_loss += self._optional_loss(valid_metrics)
                 valid_evaluator.start_epoch()
