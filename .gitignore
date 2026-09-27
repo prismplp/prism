@@ -1,3 +1,5 @@
 *.o
 *.out
 *.bin
+bin/tprism_docs/tprism/
+bin/tprism_docs/prism/

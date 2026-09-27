@@ -1,0 +1,38 @@
+<script>
+  // number the equations, so that \ref{eq:...} can be resolved (see eqref.lua)
+  window.MathJax = { tex: { tags: 'ams' } };
+</script>
+<style>
+  /* additions to pandoc's default HTML template (used by Make_html.sh) */
+  nav.site-nav { font-size: 0.9em; margin-bottom: 2em; padding-bottom: 0.5em; border-bottom: 1px solid #ccc; }
+  nav.site-nav a { margin-right: 1.2em; }
+  img { max-width: 100%; height: auto; }
+  figure { text-align: center; }
+  div.center { text-align: center; }
+  /* the title page of the manual (\Huge and \Large are lost in HTML) */
+  body > div.center:first-of-type > p:nth-child(1) { font-size: 2.2em; margin-bottom: 0.2em; }
+  body > div.center:first-of-type > p:nth-child(2) { font-size: 1.3em; margin-top: 0; }
+  div.flushleft { text-align: left; }
+  div.small { font-size: 0.92em; }
+  div.footnotesize { font-size: 0.85em; }
+  div.tt, div.tabbing { font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace; font-size: 0.85em; }
+  div.tt table, figure table { margin: 0 auto; }
+  div.tt td { padding-top: 0; padding-bottom: 0; }
+  table { display: block; overflow-x: auto; }
+  #TOC > ul > li { margin-top: 0.3em; }
+  /* on wide screens, the table of contents stays at the left */
+  @media (min-width: 75rem) {
+    #TOC { position: fixed; top: 0; left: 0; bottom: 0; width: 18rem; overflow-y: auto;
+           box-sizing: border-box; padding: 1.5rem 1rem; font-size: 0.8rem; border-right: 1px solid #ddd; }
+    #TOC ul { padding-left: 1.1em; }
+    body { margin-left: 19rem; }
+  }
+  @media (prefers-color-scheme: dark) {
+    html { color: #e3e3e3; background-color: #16171a; }
+    a, a:visited { color: #8ab4f8; }
+    code { color: inherit; }
+    nav.site-nav { border-bottom-color: #444; }
+    hr, tbody, thead { border-color: #555; }
+    img { background-color: #fff; }
+  }
+</style>

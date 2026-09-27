@@ -7964,7 +7964,7 @@ in later chapters.
 \item{{\tt rank\_loss}}
 \flagindex{rank\_loss}
 (possible values:\ {\tt hinge}, {\tt square}, {\tt exp} and {\tt log}, default:\ {\tt hinge})
---- this flag specifies the pairwise loss function (\secref{rank}) for learning to rank (Chapter~\ref{chap:rank}).
+--- this flag specifies the pairwise loss function (\secref{sec:rank:background}) for learning to rank (Chapter~\ref{chap:rank}).
 
 \item{{\tt rank\_loss\_c}}
 \flagindex{rank\_loss\_c}
@@ -11101,7 +11101,7 @@ The following four well-known pairwise loss functions $f(g_1, g_2)$ exist.
 	\item[Logistic loss function] 
 	\begin{align}
 	f(g_1,g_2) &= \log( 1+\exp(z) ) \nonumber \\
-	z&=l(g_2)-l(g_1). \label{eq:rank_loss_exp}
+	z&=l(g_2)-l(g_1). \label{eq:rank_loss_log}
 	\end{align}
 	Differentiation of this function is represented as follows:
 	\begin{align}

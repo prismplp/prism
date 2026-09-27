@@ -49,6 +49,20 @@ jobs:
 
       - run: cd bin/tprism_docs && make all
 
+      - name: Install pandoc, ghostscript and poppler-utils
+        env:
+          # the pandoc of Ubuntu (3.1.x) points MathJax to a local file and embeds polyfill.io
+          PANDOC_VERSION: '3.11'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ghostscript poppler-utils
+          curl -sSLf -o /tmp/pandoc.deb "https://github.com/jgm/pandoc/releases/download/${PANDOC_VERSION}/pandoc-${PANDOC_VERSION}-1-amd64.deb"
+          sudo dpkg -i /tmp/pandoc.deb
+          pandoc --version | head -1
+
+      - name: Build the PRISM user's manual (HTML) from doc/manual/manual.tex
+        run: cd bin/tprism_docs && make prism
+
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         #if: ${{ github.ref == 'refs/heads/main' }}

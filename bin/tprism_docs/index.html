@@ -1,7 +1,70 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta http-equiv="refresh" content="0; url=./tprism.html"/>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PRISM / T-PRISM documentation</title>
+  <style>
+    :root {
+      --fg: #1f2328; --muted: #59636e; --bg: #fdfdfd; --card: #ffffff;
+      --border: #d1d9e0; --accent: #0b5cad; --accent-bg: #eef5fc;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --fg: #e3e3e3; --muted: #9da7b3; --bg: #16171a; --card: #1e2024;
+        --border: #3a3f47; --accent: #8ab4f8; --accent-bg: #1c2a3d;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; padding: 3rem 1rem; background: var(--bg); color: var(--fg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+    }
+    main { max-width: 52rem; margin: 0 auto; }
+    h1 { font-size: 1.9rem; margin: 0 0 0.3rem; }
+    .lead { color: var(--muted); margin: 0 0 2rem; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 1rem; }
+    a.card {
+      display: block; padding: 1.3rem 1.4rem; border: 1px solid var(--border); border-radius: 10px;
+      background: var(--card); color: inherit; text-decoration: none;
+      transition: border-color 0.15s, background-color 0.15s;
+    }
+    a.card:hover, a.card:focus-visible { border-color: var(--accent); background: var(--accent-bg); }
+    a.card h2 { font-size: 1.2rem; margin: 0 0 0.4rem; color: var(--accent); }
+    a.card p { margin: 0; color: var(--muted); font-size: 0.95rem; }
+    .more { margin-top: 2.5rem; font-size: 0.95rem; color: var(--muted); }
+    .more ul { padding-left: 1.2rem; margin: 0.3rem 0 0; }
+    .more a { color: var(--accent); }
+  </style>
 </head>
+<body>
+  <main>
+    <h1>PRISM / T-PRISM documentation</h1>
+    <p class="lead">PRISM is a probabilistic logic programming language for symbolic-statistical
+      modeling. T-PRISM extends it with tensor embeddings computed by PyTorch.</p>
+
+    <div class="cards">
+      <a class="card" href="prism/index.html">
+        <h2>PRISM User's Manual</h2>
+        <p>The PRISM language and programming system, built-in predicates, learning and inference
+          methods, and examples.</p>
+      </a>
+      <a class="card" href="tprism/index.html">
+        <h2>T-PRISM API reference</h2>
+        <p>API documentation of the <code>tprism</code> Python package, which trains and evaluates
+          T-PRISM models.</p>
+      </a>
+    </div>
+
+    <div class="more">
+      Other resources:
+      <ul>
+        <li><a href="https://github.com/prismplp/prism">GitHub repository</a> (installation, tutorials)</li>
+        <li><a href="https://github.com/prismplp/prism/releases/download/v2.4.1(T-PRISM)-prerelease/manual.pdf">PRISM User's Manual (PDF)</a></li>
+        <li><a href="https://github.com/prismplp/prism/releases/download/v2.4(T-PRISM)-prerelease/tprism_manual.pdf">T-PRISM manual (PDF)</a></li>
+      </ul>
+    </div>
+  </main>
+</body>
 </html>
