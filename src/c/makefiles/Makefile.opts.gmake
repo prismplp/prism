@@ -42,15 +42,20 @@ ifeq ($(MATRIX),lapack)
 CFLAGS     = -O3 -fomit-frame-pointer -fno-strict-aliasing -Wall -I../bp4prism/include -I.. -I../resource/lapack -I../resource -I../up
 LDFLAGS    = -lm -lpthread -lgfortran
 #-lstdc++fs is no longer required
-CXXFLAGS += $(CFLAGS)
+CXXFLAGS += $(filter-out -std=%,$(CFLAGS))
 LD         = g++
 else
 CFLAGS     = -fomit-frame-pointer -fno-strict-aliasing -Wall -I../bp4prism/include -I.. -I../resource -I../up
 LDFLAGS    = -lm -lpthread 
 #-lstdc++fs is no longer required
-CXXFLAGS +=$(CFLAGS)
+CXXFLAGS += $(filter-out -std=%,$(CFLAGS))
 LD         = g++
 endif
+
+# C standard for the C sources (the C++ sources set their own -std below).
+# Compilers defaulting to C23 (e.g. gcc >= 15) reject core/stuff.h,
+# which defines `false` and `true` as enumeration constants.
+CFLAGS     += -std=gnu11
 
 ifeq ($(USE_H5),1)
 CFLAGS    += -DUSE_H5
@@ -60,6 +65,7 @@ endif
 
 ifeq ($(USE_PB),1)
 CFLAGS     += -DUSE_PROTOBUF
+CFLAGS     += `pkg-config --cflags protobuf`
 LDFLAGS    += `pkg-config --cflags --libs protobuf`
 endif
 
@@ -86,7 +92,8 @@ endif
 
 ifeq ($(PLATFORM),linux)
 CFLAGS     += -DMALLOC_TRACE -DLINUX -DPOSIX -Dunix -DM64BITS -m64
-CXXFLAGS += -std=c++11
+# C++17 is required by protobuf >= 22 (abseil)
+CXXFLAGS += -std=c++17
 # -no-pie is requireed for gcc>=6
 LDFLAGS    += -m64 -no-pie
 endif
@@ -96,7 +103,8 @@ ifndef ARCH
 #ARCH=x86_64
 endif
 CFLAGS     += -DDARWIN
-CXXFLAGS += -std=c++11
+# C++17 is required by protobuf >= 22 (abseil)
+CXXFLAGS += -std=c++17
 #CFLAGS     += -arch $(ARCH)
 #LDFLAGS    += -arch $(ARCH)
 #CFLAGS     += -mmacosx-version-min=10.4

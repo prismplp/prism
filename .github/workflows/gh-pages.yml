@@ -8,16 +8,17 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Setup Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.8'
+          # tprism requires Python >= 3.10 (dataclass(slots=True) in util.py)
+          python-version: '3.12'
 
       - name: Upgrade pip
         run: |
@@ -25,10 +26,10 @@ jobs:
           python3 -m pip install --upgrade pip
       - name: Get pip cache dir
         id: pip-cache
-        run: echo "::set-output name=dir::$(pip cache dir)"
+        run: echo "dir=$(pip cache dir)" >> "$GITHUB_OUTPUT"
 
       - name: Cache dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: ${{ steps.pip-cache.outputs.dir }}
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
@@ -38,7 +39,7 @@ jobs:
         run: python3 -m pip install "git+https://github.com/prismplp/prism.git#egg=t-prism&subdirectory=bin"
 
       - name: Install dependencies
-        run: python3 -m pip install scikit-learn pdoc h5py
+        run: python3 -m pip install scikit-learn pdoc h5py networkx pyvis ipython
       
       - name: Install dependencies
         run: python3 -m pip install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cpu
@@ -51,6 +52,8 @@ jobs:
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         #if: ${{ github.ref == 'refs/heads/main' }}
+        # skipped when running locally with nektos/act (it sets ACT=true)
+        if: ${{ !env.ACT }}
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./bin/tprism_docs

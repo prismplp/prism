@@ -91,11 +91,28 @@ API Documents: https://prismplp.github.io/prism/tprism/tprism.html
   year={2019}
 }
 ```
-### T-PRISM Installation
+### T-PRISM Requirements
 
-Requirements: PRISM, python(Recommendation: Anaconda) and Pytorch.
-- Anaconda: https://www.anaconda.com/
-- Pytorch: https://pytorch.org/
+- PRISM (see [Installation](#installation) above): used to run T-PRISM programs (`.psm`) and export explanation graphs
+- Python >= 3.10 (Recommendation: [Anaconda](https://www.anaconda.com/))
+- [PyTorch](https://pytorch.org/)
+- NumPy
+- h5py
+- scikit-learn
+- protobuf >= 4.21.12 (>= 5.27.0 on Python 3.14 or later)
+
+Optional:
+- networkx, pyvis, and IPython: visualization of explanation graphs (`tprism.plot`)
+- [geotorch](https://github.com/Lezcano/geotorch): constrained tensors (symmetric, orthogonal, low-rank, positive definite, etc.)
+
+As a python, [conda](https://www.anaconda.com/docs/getting-started/miniconda/install/linux-install) is recomended.
+The `pip install` command below does not install these packages.
+Please install PyTorch following https://pytorch.org/, and then the others, e.g.:
+```
+pip install numpy h5py scikit-learn "protobuf>=4.21.12"
+```
+
+### T-PRISM Installation
 
 Please Install T-PRISM by the following command:
 ```

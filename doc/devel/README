@@ -6,3 +6,4 @@ PRISM system:
   names.txt   ... guideline for naming of the Prolog predicates
   errors.txt  ... guideline for error handling
   cpreds.txt  ... guideline for using C interface predicates
+  protoc.txt  ... versions of protoc/protobuf and their compatibility

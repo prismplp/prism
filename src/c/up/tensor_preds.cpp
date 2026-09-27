@@ -36,7 +36,11 @@ extern "C" {
 #include <google/protobuf/io/zero_copy_stream.h>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 #include <google/protobuf/util/json_util.h>
-using namespace google::protobuf;
+// no `using namespace google::protobuf`: protobuf >= 22 has google::protobuf::json,
+// which conflicts with nlohmann::json below
+using google::protobuf::TextFormat;
+namespace io = google::protobuf::io;
+namespace util = google::protobuf::util;
 #endif
 
 #include <nlohmann/json.hpp>

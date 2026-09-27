@@ -9,7 +9,8 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-22.04
+    # same base OS as the Google Colab runtime (Ubuntu 24.04 since 2026-09)
+    runs-on: ubuntu-24.04
 
     steps:
     - uses: actions/checkout@v3
@@ -24,6 +25,8 @@ jobs:
     - name: zipping package
       run: cd tools && zip -r prism_linux_dev4colab.auto.zip prism/
     - name: Release
+      # skipped when running locally with nektos/act (it sets ACT=true)
+      if: ${{ !env.ACT }}
       uses: softprops/action-gh-release@v1
       with:
         files: tools/prism_linux_dev4colab.auto.zip

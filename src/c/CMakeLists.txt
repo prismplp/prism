@@ -7,7 +7,11 @@ cmake_minimum_required(VERSION 3.13)
 if (APPLE)
   set(CMAKE_CXX_FLAGS "-stdlib=libc++")
 endif()
-set (CMAKE_CXX_STANDARD 11)
+# C++17 is required by protobuf >= 22 (abseil)
+set (CMAKE_CXX_STANDARD 17)
+# gnu11 for the C sources: compilers defaulting to C23 (e.g. gcc >= 15) reject
+# core/stuff.h, which defines `false` and `true` as enumeration constants
+set (CMAKE_C_STANDARD 11)
 
 if (APPLE)
   set(VAR_PLATFORM darwin)

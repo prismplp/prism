@@ -24,6 +24,8 @@ jobs:
     - name: zipping package
       run: cd tools && tar cvzf prism_linux_dev.auto.tar.gz prism/
     - name: Release
+      # skipped when running locally with nektos/act (it sets ACT=true)
+      if: ${{ !env.ACT }}
       uses: softprops/action-gh-release@v1
       with:
         files: tools/prism_linux_dev.auto.tar.gz

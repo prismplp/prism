@@ -30,7 +30,7 @@ Installing python(Recommendation: Anaconda) and Pytorch.
 - scikit-learn
 - h5py
 - graphviz
-- protobuf==3.20.0
+- protobuf>=4.21.12 (>=5.27.0 on Python 3.14 or later)
 
 #### Installation
 ```

@@ -1,4 +1,4 @@
-from IPython.core.display import display, HTML
+from IPython.display import display, HTML
 from pyvis.network import Network
 
 from tprism.plot.graph import build_and_or_graph

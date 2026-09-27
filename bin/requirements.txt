@@ -1,3 +1,2 @@
-protobuf==3.20.2
-graphviz==0.20.1
-
+protobuf>=4.21.12; python_version < "3.14"
+protobuf>=5.27.0; python_version >= "3.14"
