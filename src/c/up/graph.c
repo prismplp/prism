@@ -473,6 +473,10 @@ int sort_egraphs(TERM p_fact_list) { /* assumed to be dereferenced in advance */
 
 	suppress_init_flags = 0;
 
+#if defined(PRISM_MINGW) && PRISM_MINGW == 1 && defined(MPI)
+	/* A worker may receive no goals; its node bounds are still -1. */
+	if (root_index > 0)
+#endif
 	INIT_VISITED_FLAGS;
 	return BP_TRUE;
 }

@@ -116,7 +116,7 @@ int pc_mp_recv_switches_0(void) {
 	msg = MALLOC(lmax);
 
 	for (i = 1; i < mp_size; i++) {
-		MPI_Recv(msg, L(i), MPI_CHAR, i, TAG_SWITCH_REQ, MPI_COMM_WORLD, NULL);
+		MPI_Recv(msg, L(i), MPI_CHAR, i, TAG_SWITCH_REQ, MPI_COMM_WORLD, MP_IGNORE_STATUS);
 		parse_switch_req(msg, i);
 	}
 
@@ -161,7 +161,7 @@ int pc_mp_send_swlayout_0(void) {
 int pc_mp_recv_swlayout_0(void) {
 	occ_position = MALLOC(sizeof(int) * occ_switch_tab_size);
 
-	MPI_Recv(occ_position, occ_switch_tab_size, MPI_INT, 0, TAG_SWITCH_RES, MPI_COMM_WORLD, NULL);
+	MPI_Recv(occ_position, occ_switch_tab_size, MPI_INT, 0, TAG_SWITCH_RES, MPI_COMM_WORLD, MP_IGNORE_STATUS);
 
 	/* debug */
 	{

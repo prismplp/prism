@@ -1,5 +1,56 @@
 #!/bin/sh
 
+# Native MinGW / MS-MPI is independent of the existing Unix MPI launchers.
+if [ "${PRISM_MINGW:-1}" = 1 ]; then
+    case `uname -s` in
+        MINGW*|MSYS*|Windows_NT)
+            BITS=${PRISM_MINGW_BITS:-64}
+            case $BITS in
+                32) MPI_DEPS=msmpi32 ;;
+                64) MPI_DEPS=msmpi ;;
+                *) echo 'PRISM_MINGW_BITS must be 32 or 64' >&2; exit 1 ;;
+            esac
+            BINDIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+            MPIBIN=${PRISM_MSMPI_BIN:-$BINDIR/../tools/mingw/deps/$MPI_DEPS/bin}
+            if command -v cygpath >/dev/null 2>&1; then
+                MPIBIN=$(cygpath -u "$MPIBIN")
+            fi
+            if [ ! -x "$MPIBIN/mpiexec.exe" ]; then
+                echo "MS-MPI is missing. Run tools/mingw/setup-mpi.py --bits $BITS or set PRISM_MSMPI_BIN." >&2
+                exit 1
+            fi
+            BINARY=$BINDIR/prism_mp_mingw$BITS.exe
+            if [ ! -x "$BINARY" ]; then
+                echo 'mpprism is missing. Run tools/mingw/build-mp.ps1 first.' >&2
+                exit 1
+            fi
+            case ${NPROCS:-4} in
+                *[!0-9]*) echo 'NPROCS must be an integer of at least 2' >&2; exit 1 ;;
+            esac
+            if ! [ "${NPROCS:-4}" -ge 2 ] 2>/dev/null; then
+                echo 'NPROCS must be an integer of at least 2' >&2
+                exit 1
+            fi
+            PATH="$MPIBIN:$PATH"
+            export PATH
+            # MS-MPI passes these paths to native Windows processes.
+            if command -v cygpath >/dev/null 2>&1; then
+                BINDIR=$(cygpath -m "$BINDIR")
+                BINARY=$(cygpath -m "$BINARY")
+            fi
+            set -- "$BINARY" -c \
+                -p "${PRISM_PAREA:-8000000}" -s "${PRISM_STACK:-5000000}" \
+                -b "${PRISM_TRAIL:-2000000}" -t "${PRISM_TABLE:-10000000}" \
+                "$BINDIR/bp.out" "$BINDIR/prism.out" "$BINDIR/foc.out" "$BINDIR/mpprism.out" "$@"
+            if [ -n "$MACHINES" ]; then
+                set -- -machinefile "$MACHINES" "$@"
+            fi
+            # PRISM_MPIRUN_OPTS retains the upstream whitespace-separated syntax.
+            exec "$MPIBIN/mpiexec.exe" -n "${NPROCS:-4}" $PRISM_MPIRUN_OPTS "$@"
+            ;;
+    esac
+fi
+
 PRISM=`dirname $0`
 PAREA=8000000	# Size of program area
 STACK=5000000	# Size of control stack and heap

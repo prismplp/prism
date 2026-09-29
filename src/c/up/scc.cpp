@@ -1,7 +1,7 @@
 #define CXX_COMPILE 
 
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || (defined(PRISM_MINGW) && PRISM_MINGW == 1 && defined(__MINGW32__))
 #include <windows.h>
 #endif
 extern "C" {
@@ -25,7 +25,7 @@ extern "C" {
 #include "up/nonlinear_eq.h"
 #include "up/scc.h"
 }
-#ifndef _MSC_VER
+#if !defined(_MSC_VER) && !(defined(PRISM_MINGW) && PRISM_MINGW == 1 && defined(__MINGW32__))
 extern "C" {
 #include <sys/time.h>
 #include <sys/resource.h>

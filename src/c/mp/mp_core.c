@@ -15,8 +15,12 @@
 #include <unistd.h> /* STDOUT_FILENO */
 #include <mpi.h>
 
-/* Currently mpprism works only on Linux systems. */
+/* Discard worker stdout using the host's null device. */
+#if defined(PRISM_MINGW) && PRISM_MINGW == 1 && defined(__MINGW32__)
+#define DEV_NULL "NUL"
+#else
 #define DEV_NULL "/dev/null"
+#endif
 
 /*-------------------------------------------------------------------------*/
 

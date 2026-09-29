@@ -1,4 +1,6 @@
 #!/bin/sh
+# Native MinGW defaults to 64-bit; PRISM_MINGW=0 keeps the legacy path.
+
 BINDIR=`dirname $0`
 PAREA=8000000	# size of program area
 STACK=5000000	# size of control stack and heap
@@ -14,6 +16,14 @@ case `uname -s` in
         ;;
     CYGWIN*)
         BINARY=$BINDIR/prism_up_cygwin.exe
+        ;;
+    MINGW*|MSYS*|Windows_NT)
+        case ${PRISM_MINGW_BITS:-64} in
+            32|64)
+            BINARY=$BINDIR/prism_up_mingw${PRISM_MINGW_BITS:-64}.exe
+	    ;;
+            *) echo 'PRISM_MINGW_BITS must be 32 or 64' >&2; exit 1 ;;
+        esac
         ;;
 esac
 

@@ -7,6 +7,13 @@
 
 #include <mpi.h>
 
+/* MS-MPI uses a non-null sentinel when receive status is not needed. */
+#if defined(PRISM_MINGW) && PRISM_MINGW == 1 && defined(__MINGW32__)
+#define MP_IGNORE_STATUS MPI_STATUS_IGNORE
+#else
+#define MP_IGNORE_STATUS NULL
+#endif
+
 /*-------------------------------------------------------------------------*/
 
 #define TAG_GOAL_REQ   (1)

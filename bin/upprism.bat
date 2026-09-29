@@ -1,4 +1,19 @@
 @echo off
+if not "%PRISM_MINGW%"=="1" goto prism_original
+setlocal
+if not defined PRISM_MINGW_BITS set PRISM_MINGW_BITS=64
+if not "%PRISM_MINGW_BITS%"=="32" if not "%PRISM_MINGW_BITS%"=="64" (
+    echo PRISM_MINGW_BITS must be 32 or 64 1>&2
+    exit /b 1
+)
+if not defined PRISM_PAREA set PRISM_PAREA=8000000
+if not defined PRISM_STACK set PRISM_STACK=5000000
+if not defined PRISM_TRAIL set PRISM_TRAIL=2000000
+if not defined PRISM_TABLE set PRISM_TABLE=10000000
+"%~dp0prism_up_mingw%PRISM_MINGW_BITS%.exe" -c -p %PRISM_PAREA% -s %PRISM_STACK% -b %PRISM_TRAIL% -t %PRISM_TABLE% "%~dp0bp.out" "%~dp0prism.out" "%~dp0foc.out" "%~dp0batch.out" %*
+exit /b %ERRORLEVEL%
+
+:prism_original
 
 rem - the directory where you installed the system
 rem - (not required if you're using Windows 2000 or higher)

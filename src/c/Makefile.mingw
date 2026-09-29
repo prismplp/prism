@@ -1,0 +1,70 @@
+# Opt-in native Windows x86 build. Shared headers and objects stay untouched.
+ifneq ($(PRISM_MINGW),1)
+$(error Set the environment variable PRISM_MINGW=1 to enable this build)
+endif
+
+PRISM_MINGW_BITS ?= 64
+ifneq ($(PRISM_MINGW_BITS),32)
+ifneq ($(PRISM_MINGW_BITS),64)
+$(error PRISM_MINGW_BITS must be 32 or 64)
+endif
+endif
+
+# MPI is a separate opt-in build and never reuses single-process objects.
+PRISM_MINGW_MPI ?= 0
+ifneq ($(PRISM_MINGW_MPI),0)
+ifneq ($(PRISM_MINGW_MPI),1)
+$(error PRISM_MINGW_MPI must be 0 or 1)
+endif
+endif
+
+CC = gcc
+CXX = g++
+S = /
+O = o
+A = a
+PLATFORM = mingw$(PRISM_MINGW_BITS)
+include makefiles/Makefile.files
+OBJDIR = .build-mingw$(PRISM_MINGW_BITS)
+ifeq ($(PRISM_MINGW_MPI),1)
+ifeq ($(PRISM_MINGW_BITS),32)
+PRISM_MSMPI_SDK ?= ../../tools/mingw/deps/msmpi32
+else
+PRISM_MSMPI_SDK ?= ../../tools/mingw/deps/msmpi
+endif
+MPI_SDK = $(subst \,/,$(PRISM_MSMPI_SDK))
+OBJDIR := $(OBJDIR)-mp
+OBJS += $(MP_OBJS)
+endif
+OBJS := $(addprefix $(OBJDIR)/,$(OBJS))
+BP4P_DIR = bp4prism/mingw$(PRISM_MINGW_BITS)
+BP4P_A = $(BP4P_DIR)/lib/bp4prism-mingw$(PRISM_MINGW_BITS).a
+
+CPPFLAGS = -DPRISM_MINGW=1 -DWIN32 -DNT -DUSE_NPY -I$(BP4P_DIR)/include -I. -Iresource -Iup
+CFLAGS = -O2 -m$(PRISM_MINGW_BITS) -std=gnu11 -fcommon -fno-strict-aliasing -fomit-frame-pointer -Wall
+CXXFLAGS = -O2 -m$(PRISM_MINGW_BITS) -std=c++17 -fno-strict-aliasing -fomit-frame-pointer -Wall
+LDFLAGS = -m$(PRISM_MINGW_BITS) -static
+LDLIBS = -lm -lpthread
+TARGET = prism_up_mingw$(PRISM_MINGW_BITS).exe
+ifeq ($(PRISM_MINGW_MPI),1)
+CPPFLAGS += -DMPI -I"$(MPI_SDK)/include"
+LDLIBS += "$(MPI_SDK)/lib/libmsmpi.dll.a"
+TARGET = prism_mp_mingw$(PRISM_MINGW_BITS).exe
+endif
+
+.DEFAULT_GOAL := all
+all: $(TARGET)
+$(OBJS): Makefile.mingw $(wildcard $(BP4P_DIR)/include/*.h)
+$(OBJDIR)/%.o: %.c
+	mkdir -p $(@D)
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
+$(OBJDIR)/%.o: %.cpp
+	mkdir -p $(@D)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
+$(TARGET): $(OBJS) $(BP4P_A)
+	$(CXX) $(LDFLAGS) -o $@ $(OBJS) $(BP4P_A) $(LDLIBS)
+install: $(TARGET)
+	cp $(TARGET) ../../bin/
+clean:
+	rm -f $(OBJS) $(TARGET)
+.PHONY: all install clean

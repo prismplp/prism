@@ -1,5 +1,13 @@
 *.o
 *.out
 *.bin
+*.exe
 bin/tprism_docs/tprism/
 bin/tprism_docs/prism/
+
+# Native MinGW build outputs (source and toolchain stay separate).
+/src/prolog/prism.pl
+/src/prolog/mpprism.pl
+/src/prolog/batch.pl
+/src/prolog/foc.pl
+

@@ -47,7 +47,7 @@ static int recv_term(TERM arg, int mode, int rank) {
 
 	switch (mode) {
 	case 0:
-		MPI_Recv (&len, 1, MPI_INT, rank, TAG_GOAL_LEN, MPI_COMM_WORLD, NULL);
+		MPI_Recv (&len, 1, MPI_INT, rank, TAG_GOAL_LEN, MPI_COMM_WORLD, MP_IGNORE_STATUS);
 		break;
 	case 1:
 		MPI_Bcast(&len, 1, MPI_INT, rank, MPI_COMM_WORLD);
@@ -62,7 +62,7 @@ static int recv_term(TERM arg, int mode, int rank) {
 
 	switch (mode) {
 	case 0:
-		MPI_Recv (str, len, MPI_CHAR, rank, TAG_GOAL_STR, MPI_COMM_WORLD, NULL);
+		MPI_Recv (str, len, MPI_CHAR, rank, TAG_GOAL_STR, MPI_COMM_WORLD, MP_IGNORE_STATUS);
 		break;
 	case 1:
 		MPI_Bcast(str, len, MPI_CHAR, rank, MPI_COMM_WORLD);

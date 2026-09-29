@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include "bprolog.h"
 #include "core/bpx.h"
+#if defined(PRISM_MINGW) && PRISM_MINGW == 1 && defined(MPI)
+#include "mp/mp_preds.h"
+#endif
 
 /*--------------------------------------------------------------------*/
 
