@@ -5,3 +5,15 @@ from B-Prolog, required to build the PRISM system:
 
   include/  ... header files from B-Prolog
   lib/      ... static libraries of B-Prolog on various platforms
+
+Native MinGW builds use the same include/ directory and these archives:
+
+  lib/bp4prism-mingw32.a  ... Windows x86
+  lib/bp4prism-mingw64.a  ... Windows x64
+
+Build with PRISM_MINGW=1 and PRISM_MINGW_BITS=32 or 64 (default: 64).
+The shared headers keep MinGW changes conditional on PRISM_MINGW=1;
+existing platform branches and archives are retained. Normal builds copy
+only the matching archive from bp4prism/Emulator.prism into lib/.
+Do not overwrite these version-controlled public headers with emulator
+headers. See ../../../tools/README_mingw.md or the build and header-update procedures.

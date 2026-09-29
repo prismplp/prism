@@ -1218,3 +1218,8 @@ extern BPLONG univ_lst2str(BPLONG L);
 extern BPLONG univ_str2lst(BPLONG op1);
 extern int list_length(BPLONG L, BPLONG orig_L);
 extern int b_UNIV_cc(BPLONG op1,BPLONG op2);
+
+/* This declaration is needed only by the native MinGW x64 port. */
+#ifdef BP_MINGW64
+extern BPLONG bp_prime(BPLONG numentry);
+#endif

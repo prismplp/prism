@@ -49,7 +49,15 @@ extern int exec_trace[];
 typedef char                CHAR;     /*  8 bits */
 typedef unsigned char       BYTE;     /*  8 bits */
 typedef unsigned short int  UW16;     /* 16 bits */
-#ifdef WIN64
+/* Native MinGW x64 is LLP64; preserve the existing WIN64 branch below. */
+#if defined(PRISM_MINGW) && PRISM_MINGW == 1 && defined(__MINGW64__)
+#define BP_MINGW64 1
+#ifndef M64BITS
+#define M64BITS
+#endif
+typedef long long BPLONG;
+typedef unsigned long long BPULONG;
+#elif defined(WIN64)
 typedef long long           BPLONG;    /* 32 or 64 bits only for return types of functions */
 typedef unsigned long long   BPULONG;    /* 32 or 64 bits */
 #else
@@ -57,6 +65,23 @@ typedef long int            BPLONG;    /* 32 or 64 bits only for return types of
 typedef unsigned long int   BPULONG;    /* 32 or 64 bits */
 #endif
 typedef unsigned int        UW32;     /* 32 bits */
+
+/* Export the MinGW word helpers without changing other platform macros. */
+#if defined(PRISM_MINGW) && PRISM_MINGW == 1 && defined(__MINGW32__)
+#ifdef BP_MINGW64
+#define BP_LONG_FMT "ll"
+#define BP_WORD_C(n) n##LL
+#define BP_INT_FMT "lld"
+#define BP_INT_ARG(n) ((BPLONG)(n))
+#define BP_ADDR_FMT "llx"
+#else
+#define BP_LONG_FMT "l"
+#define BP_WORD_C(n) n##L
+#define BP_INT_FMT "d"
+#define BP_INT_ARG(n) ((int)(n))
+#define BP_ADDR_FMT "x"
+#endif
+#endif
 
 typedef CHAR  *CHAR_PTR;
 typedef BYTE  *BYTE_PTR;

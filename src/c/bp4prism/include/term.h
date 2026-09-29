@@ -188,7 +188,11 @@
 
 #define BP_NEW_SYM(name,arity) insert(name,strlen(name),arity)
 
+#ifdef BP_MINGW64
+#define IHASH(val,size)  (((BPULONG)val >>2 ) % size)
+#else
 #define IHASH(val,size)  (((unsigned long int)val >>2 ) % size)
+#endif
 
 #ifdef  M64BITS
 #define ALIGN(type,ptr)  ptr = (type)((BPULONG)((CHAR_PTR)ptr + 7) & 0xfffffffffffffff8L)
@@ -591,6 +595,17 @@
   }
 
 
+#ifdef BP_MINGW64
+#define  NEXT_IN_ELM(elm,w,offset,mask){ \
+    while ((w & (0xffLL << offset))==0){offset += 8; elm += 8;} \
+    mask = (0x1LL << offset);						\
+    while (!(w & mask)){						\
+      elm++;								\
+      mask <<= 1;							\
+      offset++;								\
+    }									\
+  }
+#else
 #define  NEXT_IN_ELM(elm,w,offset,mask){ \
     while ((w & (0xffL << offset))==0){offset += 8; elm += 8;} \
     mask = (0x1L << offset);						\
@@ -600,6 +615,7 @@
       offset++;								\
     }									\
   }
+#endif
 
 /* elm is the next element that is in the domain, mask is the mask for the elm */
 #define BV_NEXT_IN(bv_ptr,elm,w,w_ptr,offset,mask){ \
@@ -619,6 +635,15 @@
      } \
    }
 
+#ifdef BP_MINGW64
+#define  PREV_IN_ELM(elm,w,offset,mask){ \
+  mask = (0x1LL << offset); \
+  while ((w & mask) ==0){  \
+    elm--; \
+    mask >>= 1; \
+ } \
+}
+#else
 #define  PREV_IN_ELM(elm,w,offset,mask){ \
   mask = (0x1L << offset); \
   while ((w & mask) ==0){  \
@@ -626,6 +651,7 @@
     mask >>= 1; \
  } \
 }
+#endif
 
 #define BV_PREV_IN(bv_ptr,elm,w,w_ptr,offset,mask){ \
   WORD_OFFSET(bv_ptr,elm,w,w_ptr,offset); \

@@ -1,4 +1,4 @@
-# Opt-in native Windows x86 build. Shared headers and objects stay untouched.
+# Opt-in native Windows x86 build with shared headers and separate objects.
 ifneq ($(PRISM_MINGW),1)
 $(error Set the environment variable PRISM_MINGW=1 to enable this build)
 endif
@@ -37,7 +37,7 @@ OBJDIR := $(OBJDIR)-mp
 OBJS += $(MP_OBJS)
 endif
 OBJS := $(addprefix $(OBJDIR)/,$(OBJS))
-BP4P_DIR = bp4prism/mingw$(PRISM_MINGW_BITS)
+BP4P_DIR = bp4prism
 BP4P_A = $(BP4P_DIR)/lib/bp4prism-mingw$(PRISM_MINGW_BITS).a
 
 CPPFLAGS = -DPRISM_MINGW=1 -DWIN32 -DNT -DUSE_NPY -I$(BP4P_DIR)/include -I. -Iresource -Iup
