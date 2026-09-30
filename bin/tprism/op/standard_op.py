@@ -19,6 +19,7 @@ class Reindex(BaseOperator):
         else:
             return list(self.out)
 
+
 class Sigmoid(BaseOperator):
     def __init__(self, parameters: List[str]) -> None:
         pass
