@@ -1,0 +1,33 @@
+diff --git a/bin/tprism/loss/standard_loss.py b/bin/tprism/loss/standard_loss.py
+index 0c263b5..77653b7 100644
+--- a/bin/tprism/loss/standard_loss.py
++++ b/bin/tprism/loss/standard_loss.py
+@@ -36,7 +36,7 @@ class NLL(BaseLoss):
+                     raise RuntimeError("goal_inside[%d] is None" % (sid,))
+                 l1 = gnode.inside
+                 nll = -1.0 * torch.log(l1 + 1.0e-10)
+-                o.append(l1)
++                o.append(nll)
+             o_=torch.stack(o)
+             ll = torch.mean(o_, dim=0)
+             loss.append(ll)
+diff --git a/bin/tprism/op/standard_op.py b/bin/tprism/op/standard_op.py
+index 5f5f437..5830287 100644
+--- a/bin/tprism/op/standard_op.py
++++ b/bin/tprism/op/standard_op.py
+@@ -14,10 +14,11 @@ class Reindex(BaseOperator):
+         return x
+ 
+     def get_output_template(self, input_template):
+-        if len(input_template) > 0 and input_template[0] == "b":
+-            return ["b"] + self.out
+-        else:
+-            return self.out
++        from tprism.tensor_index import parse_tensor_index
++        out = [parse_tensor_index(s.strip()) for s in self.out]
++        if len(input_template) > 0 and getattr(input_template[0], "symbol", input_template[0]) == "b":
++            return [TensorIndexRef("symbol", 0, -1, 1, "b")] + out
++        return out
+ 
+ 
+ class Sigmoid(BaseOperator):

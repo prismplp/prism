@@ -1,0 +1,9 @@
+plan(d1,picnic).
+plan(d1,picnic).
+plan(d1,reading).
+plan(d2,skiing).
+plan(d2,skiing).
+plan(d2,reading).
+plan(d3,skiing).
+plan(d4,stay_home).
+plan(d1,stay_home).

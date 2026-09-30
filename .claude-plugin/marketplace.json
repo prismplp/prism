@@ -1,0 +1,19 @@
+{
+  "name": "prismplp",
+  "owner": {
+    "name": "prismplp",
+    "url": "https://github.com/prismplp"
+  },
+  "metadata": {
+    "description": "Claude Code plugins for the PRISM and T-PRISM probabilistic logic programming systems."
+  },
+  "plugins": [
+    {
+      "name": "prism",
+      "source": "./plugins/prism",
+      "description": "Skills for building PRISM and T-PRISM and for writing PRISM, PyPRISM and T-PRISM programs.",
+      "category": "development",
+      "homepage": "https://prismplp.github.io/prism/"
+    }
+  ]
+}

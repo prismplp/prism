@@ -121,4 +121,34 @@ pip install "git+https://github.com/prismplp/prism.git#egg=t-prism&subdirectory=
 
 Please see the details in [T-PRISM manual](https://github.com/prismplp/prism/releases/download/v2.4(T-PRISM)-prerelease/tprism_manual.pdf).
 
+# AI Agent skills
+
+[plugins/prism/](plugins/prism/) contains agent skills for building PRISM/T-PRISM and for writing PRISM, PyPRISM and T-PRISM programs.
+These features are experimental and subject to change in future updates to the agent framework.
+
+Claude Code:
+```
+claude plugin marketplace add prismplp/prism
+claude plugin install prism@prismplp
+```
+(or `/plugin marketplace add prismplp/prism` and `/plugin install prism@prismplp` in a session).
+To update: `claude plugin marketplace update prismplp` and `claude plugin update prism@prismplp`.
+
+Codex:
+```
+codex plugin marketplace add prismplp/prism
+codex plugin add prism@prismplp
+```
+To update: `codex plugin marketplace upgrade prismplp` and run `codex plugin add prism@prismplp` again.
+
+To use a local clone instead, pass its path in place of `prismplp/prism`.
+
+Antigravity has no marketplace for third-party plugins, so install the plugin from a clone:
+```
+git clone https://github.com/prismplp/prism.git
+agy plugin install prism/plugins/prism
+```
+To update: `git -C prism pull` and run `agy plugin install prism/plugins/prism` again.
+Alternatively, add `{"entries": [{"path": "<path to the clone>/plugins"}]}` to `~/.gemini/config/plugins.json`, so that Antigravity reads the plugin from the clone and `git pull` updates it.
+
 

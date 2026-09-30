@@ -1,0 +1,10 @@
+{
+  "name": "prism",
+  "displayName": "PRISM",
+  "description": "Agent skills for PRISM (probabilistic logic programming on B-Prolog) and T-PRISM: building from source on Linux and MinGW, writing and debugging .psm programs, PyPRISM from Python, data science with PRISM, and T-PRISM tensor programs.",
+  "suggestedPrompts": [
+    "Build PRISM and T-PRISM from source on Ubuntu",
+    "Write a PRISM model and learn its parameters",
+    "Train a T-PRISM tensor program"
+  ]
+}

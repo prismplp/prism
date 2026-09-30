@@ -1,0 +1,73 @@
+%%%% A deterministic rule base made probabilistic (worked example of the prism-programming skill)
+%%%%
+%%%% Deterministic original:
+%%%%   activity(sunny, picnic).  activity(rainy, reading).
+%%%%   plan(Day, A)         :- weather(Day, W), activity(W, A).
+%%%%   plan(Day, stay_home) :- \+ (weather(Day, W), activity(W, _)).
+
+:- dynamic weather/2.                  % supplied by a data file; missing -> fail, not error
+
+%% 1. the deterministic facts, renamed: they become the prior
+activity_default(sunny, picnic).
+activity_default(rainy, reading).
+
+%% 2. the outcome space: every value any default uses, plus values the data may show
+values(act(_), [picnic, reading, skiing]).
+
+%% 3. same name/arity as before, now backed by a switch
+activity(W, A) :- msw(act(W), A).
+
+%% 4. callers unchanged, except the negated guard: activity/2 now succeeds for every W,
+%%    so negate only the deterministic fact (this also keeps the two clauses exclusive)
+plan(Day, A)         :- weather(Day, W), activity(W, A).
+plan(Day, stay_home) :- \+ weather(Day, _).
+
+%% 5. seed a peaked distribution from the defaults (other switches stay uniform)
+default_peak(0.6).
+set_params :- ( default_map(Sw, D), set_peaked_sw(Sw, D), fail ; true ).
+default_map(act(W), A) :- activity_default(W, A).
+set_peaked_sw(Sw, Default) :-
+    get_values(Sw, Vs), length(Vs, N), default_peak(P0),
+    ( N =:= 1 -> Dist = [1.0]
+    ; Rest is (1.0 - P0) / (N - 1), peaked_dist(Vs, Default, P0, Rest, Dist) ),
+    set_sw(Sw, Dist).
+peaked_dist([], _, _, _, []).
+peaked_dist([V|Vs], D, P0, R, [P|Ps]) :- ( V == D -> P = P0 ; P = R ), peaked_dist(Vs, D, P0, R, Ps).
+
+%% loading facts written for another Prolog: skip directives instead of consulting
+load_data(File) :- open(File, read, S), load_data_loop(S), close(S).
+load_data_loop(S) :-
+    read(S, T),
+    ( T == end_of_file -> true
+    ; ( T = (:- _) -> true ; assert(T) ), load_data_loop(S) ).
+
+%% training goals must have an explanation; report the skipped ones
+filter_explainable([], [], N, N).
+filter_explainable([G|Gs], Out, Acc, N) :-
+    ( catch(probf(G, _), _, fail) -> Out = [G|Rest], Acc1 = Acc ; Out = Rest, Acc1 is Acc + 1 ),
+    filter_explainable(Gs, Rest, Acc1, N).
+
+learn_and_save(All, ParamFile) :-
+    set_params, set_prism_flag(init, none),          % start EM from the prior
+    filter_explainable(All, Goals, 0, Skipped), length(Goals, N),
+    format("LEARN:goals:~w:skipped:~w~n", [N, Skipped]),
+    ( N =:= 0 -> true ; learn(Goals) ),
+    save_sw(ParamFile).
+
+safe_prob(G, P) :- ( catch(prob(G, P0), _, fail) -> P = P0 ; P = 0.0 ).
+print_dist(Day) :-
+    ( member(A, [picnic, reading, skiing, stay_home]), safe_prob(plan(Day, A), P),
+      format("DIST:~w:~w:~4f~n", [Day, A, P]), fail
+    ; true ).
+
+%% batch CLI:  upprism activity.psm <data> <day>
+%%             upprism activity.psm learn <params> <data> <goals>
+%%             upprism activity.psm infer <params> <data> <day>
+prism_main([learn, ParamFile, DataFile, GoalsFile]) :- !,
+    load_data(DataFile), load_clauses(GoalsFile, Gs), learn_and_save(Gs, ParamFile).
+prism_main([infer, ParamFile, DataFile, Day]) :- !,
+    load_data(DataFile), restore_sw(ParamFile), print_dist(Day).
+prism_main([DataFile, Day]) :- !,
+    load_data(DataFile), set_params, print_dist(Day).
+prism_main(_) :-
+    format("usage: upprism activity.psm [learn <params> <data> <goals> | infer <params> <data> <day> | <data> <day>]~n").

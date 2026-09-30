@@ -1,0 +1,21 @@
+{
+  "name": "prism",
+  "description": "Agent skills for PRISM (probabilistic logic programming on B-Prolog) and T-PRISM: building from source on Linux and MinGW, writing and debugging .psm programs, PyPRISM from Python, data science with PRISM, and T-PRISM tensor programs.",
+  "author": {
+    "name": "Ryosuke Kojima",
+    "url": "https://github.com/prismplp"
+  },
+  "homepage": "https://prismplp.github.io/prism/",
+  "repository": "https://github.com/prismplp/prism",
+  "keywords": [
+    "prism",
+    "t-prism",
+    "tprism",
+    "pyprism",
+    "prolog",
+    "b-prolog",
+    "probabilistic-logic-programming",
+    "statistical-machine-learning",
+    "pytorch"
+  ]
+}

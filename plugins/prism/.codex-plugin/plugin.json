@@ -1,0 +1,40 @@
+{
+  "name": "prism",
+  "description": "Agent skills for PRISM (probabilistic logic programming on B-Prolog) and T-PRISM: building from source on Linux and MinGW, writing and debugging .psm programs, PyPRISM from Python, data science with PRISM, and T-PRISM tensor programs.",
+  "author": {
+    "name": "Ryosuke Kojima",
+    "url": "https://github.com/prismplp"
+  },
+  "homepage": "https://prismplp.github.io/prism/",
+  "repository": "https://github.com/prismplp/prism",
+  "keywords": [
+    "prism",
+    "t-prism",
+    "tprism",
+    "pyprism",
+    "prolog",
+    "b-prolog",
+    "probabilistic-logic-programming",
+    "statistical-machine-learning",
+    "pytorch"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "PRISM",
+    "shortDescription": "Build and program PRISM, PyPRISM and T-PRISM",
+    "longDescription": "Skills for the PRISM probabilistic logic programming system and its extensions. They cover building PRISM and T-PRISM from source on Ubuntu and on Windows with MinGW-w64, writing, running and debugging .psm programs and learning their parameters, installing and using PyPRISM from Python, data science on tabular data with PRISM, and writing and training T-PRISM tensor programs with PyTorch.",
+    "developerName": "prismplp",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://prismplp.github.io/prism/",
+    "defaultPrompt": [
+      "Build PRISM and T-PRISM from source on Ubuntu",
+      "Write a PRISM model and learn its parameters",
+      "Train a T-PRISM tensor program"
+    ]
+  }
+}
