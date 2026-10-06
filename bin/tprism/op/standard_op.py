@@ -1,23 +1,23 @@
 import numpy as np
 import torch
 from tprism.op.base import BaseOperator
-from tprism.tensor_index import TensorIndexRef
+from tprism.tensor_index import TensorIndexRef, parse_tensor_index
 from typing import List
 
 class Reindex(BaseOperator):
     def __init__(self, parameters: List[str]):
         index = parameters[0].strip("[]").split(",")
-        self.out = index
+        self.out = [parse_tensor_index(i.strip()) for i in index]
         pass
 
     def call(self, x):
         return x
 
     def get_output_template(self, input_template):
-        if len(input_template) > 0 and input_template[0] == "b":
-            return ["b"] + self.out
+        if len(input_template) > 0 and input_template[0].symbol == "b":
+            return [TensorIndexRef("symbol", 0, -1, 1, "b")] + self.out
         else:
-            return self.out
+            return list(self.out)
 
 
 class Sigmoid(BaseOperator):
