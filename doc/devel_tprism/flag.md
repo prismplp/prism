@@ -100,8 +100,19 @@ tprism <mode> --flags ...                                                       
   `TprismModel._build_optimizer` honors `sgd_optimizer` (`adam` / `adadelta` /
   `sgd`), `sgd_learning_rate`, `sgd_weight_decay`, `sgd_adam_*`,
   and `sgd_adadelta_*`. `main._setup` passes `flags.sgd_loss` to
-  `LossLoader.get_loss`, which accepts an optional parameter suffix
-  (`ce(0.1)` -> loss `ce` with params `["0.1"]`).
+  `LossLoader.get_loss`, which parses it as a term with
+  `tprism.parser.parse_term`: a loss name, or a loss name with arguments
+  that are passed to the loss class as strings (`ce(0.1)` -> loss `ce` with
+  params `["0.1"]`; `ce_pl($placeholder2$)` -> loss `ce_pl` with params
+  `["$placeholder2$"]`; quoted atoms are unquoted). On the command line,
+  quote such a term so that the shell does not expand `$...`:
+  `--sgd_loss 'ce_pl($placeholder2$)'`. In a `.psm` program, quote the atom,
+  because B-Prolog does not accept `$placeholder2$` unquoted:
+  `set_prism_flag(sgd_loss, ce_pl('$placeholder2$'))`, which is exported to
+  flags.json as `ce_pl('$placeholder2$')` and unquoted by `get_loss`.
+  An unknown loss name is reported as a warning;
+  then `BaseLoss` (no loss function) is used, so `tprism train` fails with
+  "output/loss is None in training" while `tprism test` still predicts.
 
 ## How to add a new flag
 

@@ -19,6 +19,7 @@ import h5py
 import tprism.expl_pb2 as expl_pb2
 import tprism.op.base
 import tprism.loss.base
+import tprism.parser
 from numpy import int32, int64, ndarray, str_
 from torch import Tensor, dtype
 from torch.nn.parameter import Parameter
@@ -262,19 +263,49 @@ class LossLoader(PluginLoader):
         return self.plugins
 
     def get_loss(self, name: str) -> Tuple[Optional[Type[BaseLoss]], List[str]]:
-        m=re.match(r"^(.*)\(([0-9e\-\.]*)\)$", name)
-        if m:
-            # TODO: parer.pyを使って複数オプションに対応する
-            loss_name=m.group(1)
-            loss_params=[m.group(2)]
+        """Return the loss class and its parameters for a value of the sgd_loss flag.
+
+        The value is a Prolog-like term parsed by `tprism.parser.parse_term`:
+        a loss name (``ce``), or a loss name with arguments (``ce(0.1)``,
+        ``ce_pl($placeholder2$)``).  Each argument is passed to the loss class
+        as a string; quoted atoms (``'...'``) are unquoted.
+
+        Args:
+            name: Value of the sgd_loss flag (``--sgd_loss`` or flags.json).
+
+        Returns:
+            A tuple (loss class or None if not found, list of parameters).
+        """
+        try:
+            term = tprism.parser.parse_term(name)
+        except SyntaxError as e:
+            raise ValueError("cannot parse the loss function %r: %s" % (name, e)) from e
+        if isinstance(term, dict) and "name" in term and "args" in term:
+            loss_name = term["name"]
+            loss_params = [_loss_parameter(arg) for arg in term["args"]]
+        elif isinstance(term, str):
+            loss_name = term
+            loss_params = []
         else:
-            loss_name=name
-            loss_params=[]
+            raise ValueError("invalid loss function: %r" % (name,))
         if loss_name in self.plugins:
             cls = self.plugins[loss_name]
             return cls, loss_params
         else:
+            # base_loss is the default of the sgd_loss flag (no loss function)
+            if loss_name != "base_loss":
+                logger.warning("unknown loss function: %s (available: %s)",
+                               loss_name, ", ".join(sorted(self.plugins)))
             return None, loss_params
+
+
+def _loss_parameter(arg: Any) -> str:
+    """Convert an argument of a parsed loss term into the string given to a loss class."""
+    if isinstance(arg, str):
+        if len(arg) >= 2 and arg[0] == arg[-1] and arg[0] in ("'", '"'):
+            return arg[1:-1]
+        return arg
+    return tprism.parser.serialize_term(arg)
 
 def check_loss():
     loss_loader = LossLoader()

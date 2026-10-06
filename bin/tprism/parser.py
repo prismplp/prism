@@ -29,7 +29,9 @@ PRECEDENCE: dict[str, int] = {
     "/": 800,
 }
 PREFIX_OPS = {"+", "-", ":-"}
-NAME_PATTERN = re.compile(r"^[A-Za-z_][A-Za-z_0-9]*$")
+# names may contain `$`, e.g. the placeholders of T-PRISM (`$placeholder1$`),
+# which B-Prolog writes quoted ('$placeholder1$') in source code
+NAME_PATTERN = re.compile(r"^[A-Za-z_$][A-Za-z_0-9$]*$")
 
 
 def tokenize(source: str) -> Iterator[Token]:
@@ -38,7 +40,7 @@ def tokenize(source: str) -> Iterator[Token]:
         ("STRING", r"\"(\\.|[^\"\\])*\"|\'(\\.|[^\'\\])*\'"),
         ("OP", r"[\+\-\*/=><:]+"),
         ("NUMBER", r"(?:\d+\.\d*|\.\d+|\d+)(?:[eE][\+\-]?\d+)?"),
-        ("NAME", r"[A-Za-z_][A-Za-z0-9_]*"),
+        ("NAME", r"[A-Za-z_$][A-Za-z0-9_$]*"),
         ("COMMA", r","),
         ("LPAREN", r"\("),
         ("RPAREN", r"\)"),

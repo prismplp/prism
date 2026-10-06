@@ -48,8 +48,9 @@ upprism mnist.psm test
 ## input: The input files with the prefix mnist_tmp/mnist.
 ## Input: A placeholder is replaced using ./mnist_tmp/mnist_data.train.h5
 ##        embedding tensor is explicitely specified ./mnist/mnist.h5
-## Minibatch SGD trainging is done by minimizing the loss function (ce_pl2: cross-entropy loss function
-## where the second augument is given as a placeholder)
+## Minibatch SGD trainging is done by minimizing the loss function (ce_pl($placeholder2$): cross-entropy
+## loss function where the labels are given by the second placeholder, i.e. Y of output(X,Y); the term is
+## quoted so that the shell does not expand $placeholder2$)
 ## The optional arguments determine training parameters: the number of epoch (--max_iterate 300), batch
 ## size (--sgd_minibatch_size 1000), and learning rate (--sgd_learning_rate 0.01).
 ## Output: a numpy array file (the number of samples x the number of classes), mnist_output.npy, that 
@@ -59,7 +60,7 @@ tprism train \
     --input ./mnist_tmp/mnist    \
     --dataset ./mnist_tmp/mnist_data.train.h5    \
     --embedding ./mnist/mnist.h5 \
-    --sgd_loss ce_pl2            \
+    --sgd_loss 'ce_pl($placeholder2$)' \
     --max_iterate 10             \
     --sgd_minibatch_size 1000    \
     --sgd_learning_rate 0.001
@@ -68,7 +69,7 @@ tprism test \
     --input ./mnist_tmp/mnist    \
     --dataset ./mnist_tmp/mnist_data.test.h5     \
     --embedding ./mnist/mnist.h5 \
-    --sgd_loss ce_pl2            \
+    --sgd_loss 'ce_pl($placeholder2$)' \
     --output mnist_output.npy
 
 ##

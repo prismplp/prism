@@ -253,7 +253,8 @@ def main() -> None:
         "--sgd_loss",
         type=str,
         default=None,
-        help="[prolog flag] nll/preference_pair",
+        help="[prolog flag] loss function: a name (e.g. nll, ce, preference_pair) "
+        "or a term with arguments (e.g. ce(0.1), 'ce_pl($placeholder2$)'; quote it in the shell)",
     )
     parser.add_argument("--sgd_patience", type=int, default=None, help="[prolog flag] ")
     parser.add_argument(

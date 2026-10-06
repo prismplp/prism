@@ -52,7 +52,7 @@ or reuse an archive from the other architecture.
 ## Optional MPI build
 
 Prepare an MS-MPI runtime and a matching MinGW SDK containing `include/mpi.h`
-and `lib/libmsmpi.dll.a`; see the [detailed installation skill](../install_mingw/SKILL.md).
+and `lib/libmsmpi.dll.a`; see the [detailed installation skill](../plugins/prism/skills/install-mingw/SKILL.md).
 Set both locations explicitly when `tools/mingw` is not distributed:
 
 ```sh
@@ -69,4 +69,4 @@ to each worker. `PRISM_MINGW_MPI` defaults to 0; MPI objects use separate
 installation is required.
 
 For source preparation, dependency installation, numerical checks, and common
-failures, see [install_mingw/SKILL.md](../install_mingw/SKILL.md).
+failures, see [plugins/prism/skills/install-mingw/SKILL.md](../plugins/prism/skills/install-mingw/SKILL.md).

@@ -86,6 +86,12 @@ class CE(BaseLoss):
 
 
 class CE_pl(BaseLoss):
+    """Cross-entropy loss whose labels are given by a placeholder.
+
+    The placeholder is the first parameter (default: ``$placeholder1$``),
+    e.g. ``--sgd_loss 'ce_pl($placeholder2$)'`` on the command line, or
+    ``set_prism_flag(sgd_loss, ce_pl('$placeholder2$'))`` in a program.
+    """
     def __init__(self, parameters: Optional[List[Any]]=None) -> None:
         if parameters is not None and len(parameters):
             self.label_placeholder=parameters[0]
