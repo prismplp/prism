@@ -12,7 +12,7 @@ on PRISM, please visit http://rjida.meijo-u.ac.jp/prism/ .
 
 ## Tutorials
 
-[PRISM manual](https://github.com/prismplp/prism/releases/download/v2.4.1(T-PRISM)-prerelease/manual.pdf)
+[Manual](https://prismplp.github.io/prism/) /[PRISM manual(pdf)](https://github.com/prismplp/prism/releases/download/v2.4.1(T-PRISM)-prerelease/manual.pdf)
 
 Prolog tutorial (Japanese): [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1EhnP2ApqsuchEY-k9ZFUzBZg8Enjyytz?usp=sharing)
 
