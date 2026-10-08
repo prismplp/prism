@@ -562,7 +562,7 @@ void save_embedding_matrix_hdf5(const string filename, const string group_name, 
 		TERM el2 = bpx_get_cdr(el);
 		TERM term_index2 = bpx_get_car(el2);
 		int index2=bpx_get_integer(term_index2);
-		data_table[n1*index1+index2]=value;
+		data_table[n2*index1+index2]=value;
 	}
 	// save dataset
 	H5::H5File file( filename, H5F_ACC_TRUNC );
@@ -782,6 +782,7 @@ int run_save_options(const char* filename, SaveFormat format,TERM sw_list){
 		string tensor_type_str= bpx_term_2_string(tensor_type);
 		tensor_str="tensor("+tensor_str+")";
 		ts->set_tensor_name(tensor_str);
+		ts->set_type(tensor_type_str);
 		//cout<<tensor_str<<endl;
 		while(!bpx_is_nil(shape)){
 			int dim=bpx_get_integer(bpx_get_car(shape));

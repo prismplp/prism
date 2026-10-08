@@ -137,13 +137,19 @@ def run_test(args: argparse.Namespace) -> None:
     ##
     logger.info("... computational graph")
     model = TprismModel(flags, tensor_shapes, graph, loss_obj=loss_obj)
-    model.build(input_data, load_vocab=True, embedding_key="test")
+    load_vocab = True
+    if input_data is None and flags.vocab is not None and not os.path.isfile(flags.vocab):
+        # without placeholder data, the vocabulary does not depend on training
+        logger.info("... %s is not found: building the vocabulary", flags.vocab)
+        load_vocab = False
+    model.build(input_data, load_vocab=load_vocab, embedding_key="test")
     if flags.model is not None:
         model.load(flags.model + ".best.model")
     start_t = time.time()
     logger.info("... prediction")
     if flags.cycle:
-        model.solve()
+        model.solve(input_data)
+        pred_y, out = model.pred(input_data)
     elif input_data is not None:
         #model.export_computational_graph(input_data)
         pred_y, out = model.pred(input_data)
@@ -346,18 +352,20 @@ def main() -> None:
         if args.vocab is None:
             args.vocab = args.intermediate_data_prefix + "vocab.pkl"
     elif args.input is not None:
-        # setting default input data
-        sep="."
+        # setting default input data: files in a directory (with or without
+        # a trailing slash), or files with a prefix
         if os.path.isdir(args.input):
-            sep=""
+            prefix = os.path.join(args.input, "")
+        else:
+            prefix = args.input + "."
         if args.expl_graph is None:
-            args.expl_graph = args.input + sep + "expl.json"
+            args.expl_graph = prefix + "expl.json"
         if args.flags is None:
-            args.flags = args.input + sep + "flags.json"
+            args.flags = prefix + "flags.json"
         if args.model is None:
-            args.model = args.input + sep + "model"
+            args.model = prefix + "model"
         if args.vocab is None:
-            args.vocab = args.input + sep + "vocab.pkl"
+            args.vocab = prefix + "vocab.pkl"
     #
     ##
     # setup

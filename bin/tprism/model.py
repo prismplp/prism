@@ -997,7 +997,6 @@ class TprismModel:
             for itr in range(num_itr):
                 self._set_batch_input(goal, test_idx, j, itr)
                 goal_inside, loss_list = self.comp_expl_graph.forward()
-                print(loss_list)
                 loss, output, label = self.loss_obj.call(
                     self.graph, goal_inside, self.tensor_provider
                 )

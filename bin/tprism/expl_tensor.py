@@ -246,6 +246,7 @@ class SwitchTensorProvider:
         self.ph_graph: Optional[PlaceholderGraph] = None
         self.input_feed_dict:Dict[PlaceholderData, Tensor] = {}
         self.params: Dict[str, Tuple[Parameter, str]] = {}
+        self.vocab_var_type: Dict[str, VarType] = {}
         self.integer_dtype: dtype = torch.int32
 
     # forward
@@ -353,28 +354,40 @@ class SwitchTensorProvider:
         """
         return self.params[name]
 
-    def convert_value_to_index(self, value: int, ph_name: str) -> int:
+    def _get_ph_vocab_names(self, ph_name: str, dataset: bool) -> List[str]:
+        """
+        Args:
+            ph_name (str): placeholder name
+            dataset (bool): if True, the vocabularies given by datasets (embedding files),
+                otherwise the other vocabularies (trainable embedding tables)
+        Returns:
+            sorted names of the vocabularies associated with the placeholder
+        """
         if self.ph_graph is None:
-            raise ValueError("ph_graph must not be None in convert_value_to_index.")
+            raise ValueError("ph_graph must not be None in _get_ph_vocab_names.")
         ph_vocab = self.ph_graph.ph_vocab
         if ph_vocab is None:
-            raise ValueError("ph_vocab must not be None in convert_value_to_index.")
-        vocab_names = ph_vocab[ph_name]
-        vocab_name = list(vocab_names)[0]
+            raise ValueError("ph_vocab must not be None in _get_ph_vocab_names.")
+        vocab_names = ph_vocab.get(ph_name, set())
+        return sorted(
+            v for v in vocab_names
+            if (self.vocab_var_type[v].type == "dataset") == dataset
+        )
+
+    def convert_value_to_index(self, value: int, ph_name: str) -> int:
+        vocab_name = self._get_ph_vocab_names(ph_name, dataset=False)[0]
         index = self.vocab_set.get_values_index(vocab_name, value)
         return index
 
     def is_convertable_value(self, ph_name: str) -> bool:
-        if self.ph_graph is None:
-            raise ValueError("ph_graph must not be None in convert_value_to_index.")
-        ph_vocab = self.ph_graph.ph_vocab
-        if ph_vocab is None:
-            raise ValueError("ph_vocab must not be None in convert_value_to_index.")
+        """ True if the values of the placeholder are converted into the indices of an embedding table
+        """
+        return len(self._get_ph_vocab_names(ph_name, dataset=False)) > 0
 
-        if ph_name in ph_vocab:
-            return len(ph_vocab[ph_name]) > 0
-        else:
-            return False
+    def is_dataset_row(self, ph_name: str) -> bool:
+        """ True if the values of the placeholder select the rows of a dataset given by an embedding file
+        """
+        return len(self._get_ph_vocab_names(ph_name, dataset=True)) > 0
 
     def _build_sw_info(self, graph, tensor_info: TensorInfoMapper) -> Dict[str, SwitchTensor]:
         """ This function builds sw_info from the explanation graph
@@ -548,26 +561,24 @@ class SwitchTensorProvider:
     ) -> PlaceholderData | TorchTensorBase:
         """Assign a tensor to a switch that has one placeholder."""
         vocab_name = sw.vocab_name
+        ph = ph_var[sw.ph_names[0]]
         # the last matching embedding generator wins
         matched = [eg for eg in embedding_generators if eg.is_embedding(vocab_name)]
         if len(matched) > 0:
             eg = matched[-1]
-            # dataset with placeholder
-            shape = [batch_size] + list(list(sw.shape_set)[0])
+            # dataset with placeholder: the values of the placeholder select the rows of the dataset
             var_ds = eg.get_embedding(vocab_name)
-            # var = eg.get_embedding(vocab_name, shape)
             if var_ds is not None:
                 embedding_logger.debug(
-                    "ph_list==1 and dataset enabled: %s : %s => %s", vocab_name, var_ds.shape, shape
+                    "ph_list==1 and dataset enabled: %s : %s", vocab_name, var_ds.shape
                 )
-                return var_ds
+                return TorchGather(self, var_ds, ph)
             else:
                 raise ValueError(f"var_ds must not be None for '{vocab_name}' when building tensor_embedding.")
         # trainig variable with placeholder
         var_ = vocab_var[vocab_name]
         if var_ is not None:
             embedding_logger.debug("ph_list==1 and dataset disabled: %s : %s", vocab_name, var_.shape)
-        ph = ph_var[sw.ph_names[0]]
         return TorchGather(self, var_, ph)
 
     def _build_tensor_embedding(

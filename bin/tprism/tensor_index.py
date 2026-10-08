@@ -12,11 +12,15 @@ IndexType: TypeAlias = Literal["symbol", "range", "index"]
 @total_ordering
 @dataclasses.dataclass
 class TensorIndexRef:
-    """Normalized representation of one tensor index expression."""
+    """Normalized representation of one tensor index expression.
+
+    For a range, ``end`` is exclusive as in Python slices, and ``None`` means
+    the end of the axis.
+    """
 
     index_type: IndexType
     start: int = -1
-    end: int = -1
+    end: Optional[int] = -1
     step: int = 1
     symbol: str = ""
 
@@ -25,22 +29,21 @@ class TensorIndexRef:
         if not isinstance(other, TensorIndexRef):
             return NotImplemented
         return self.symbol < other.symbol
-    
+
     def __repr__(self) -> str:
-        if self.index_type == "symbol" or self.index_type == "range":
-            if self.start == 0 and self.end == -1 and self.step == 1:
-                return f"{self.symbol!r}"
-            elif self.start == 0 and self.end == -1:
-                return f"{self.symbol!r}@[::{self.step}]"
-            elif self.step == 1:
-                return f"{self.symbol!r}@[{self.start}:{self.end}]"
+        if self.index_type == "symbol":
+            return f"{self.symbol!r}"
+        elif self.index_type == "range":
+            end = "" if self.end is None else self.end
+            if self.step == 1:
+                return f"{self.symbol!r}@[{self.start}:{end}]"
             else:
-                return f"{self.symbol!r}@[{self.start}:{self.end}:{self.step}]"
+                return f"{self.symbol!r}@[{self.start}:{end}:{self.step}]"
         elif self.index_type == "index":
             return f"index[{self.start}]"
         return ""
-    
-def parse_el(element: ParsedTerm, default: int = 0) -> int:
+
+def parse_el(element: ParsedTerm, default: Optional[int] = 0) -> Optional[int]:
     """Parse one start, end, or step element of a tensor range expression."""
     if isinstance(element, str):
         if element in {"'-'", "-"}:
@@ -87,17 +90,20 @@ def _parse_range(arg_list: list[ParsedTerm]) -> TensorIndexRef:
     if not arg_list:
         raise ValueError("Range index expression requires at least one argument")
 
-    start = 0
-    end = -1
-    step = 1
+    # the omitted bounds and '-' are the defaults: from the beginning to the end of the axis
+    start: Optional[int] = 0
+    end: Optional[int] = None
+    step: Optional[int] = 1
     symbol = tprism.parser.serialize_term(arg_list[0])
 
     if len(arg_list) >= 2:
         start = parse_el(arg_list[1], 0)
     if len(arg_list) >= 3:
-        end = parse_el(arg_list[2], -1)
+        end = parse_el(arg_list[2], None)
     if len(arg_list) >= 4:
         step = parse_el(arg_list[3], 1)
+    if start is None or step is None:
+        raise ValueError(f"Invalid range index expression: {arg_list!r}")
 
     return TensorIndexRef("range", start, end, step, symbol)
 
@@ -127,15 +133,9 @@ def extract_tensor_shape(shape: Tuple[Optional[int], ...], index_ref_list: list[
             if index_ref.index_type == "symbol":
                 new_shape.append(dim_size)
             elif index_ref.index_type == "range":
-                if index_ref.start<0:
-                    start=dim_size+index_ref.start
-                else:
-                    start=index_ref.start
-                if index_ref.end<0:
-                    end=dim_size+index_ref.end
-                else:
-                    end=index_ref.end
-                new_dim=len(range(start, end, index_ref.step))
+                # the same length as the slice start:end:step of Python
+                sl = slice(index_ref.start, index_ref.end, index_ref.step)
+                new_dim=len(range(*sl.indices(dim_size)))
                 if new_dim > 0:
                     new_shape.append(new_dim)
             elif index_ref.index_type == "index":

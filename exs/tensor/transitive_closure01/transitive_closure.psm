@@ -41,7 +41,7 @@ rel1(g,d).
 rel2:-operator(min1),rel2_helper.
 rel2_helper:-
 	tensor(rel1,[i,j]),subgoal(rel2,[j,k]).
-rel2_helper:-tensor(rel1,[j,k]).
+rel2_helper:-tensor(rel1,[i,k]).
 
 
 %%------------------------------------

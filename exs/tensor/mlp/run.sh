@@ -24,6 +24,9 @@ python build_dataset.py
 ##
 ## Construction of explanation graph
 ##
+## Note: this program saves the placeholder data in the HDF5 format, which requires PRISM built
+##       with the option USE_H5=1 and the HDF5 C++ library (see README.md).
+##
 ## These two programs make intermediate data files between the T-PRISM (Prolog) and the python program.
 ## (explanation graph, flags, placeholders and values to replace the placeholders)
 ## Input: mnist/mnist.train.dat: A list of goals to construct arrays to replace placeholders in the

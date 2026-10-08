@@ -68,8 +68,8 @@ tprism test \
     --input ./addition_tmp/mnist_test  \
     --embedding ./mnist/mnist.h5    \
     --sgd_loss  ce                  \
-    --vocab ./mnist_tmp/mnist.vocab.pkl \
-    --model ./mnist_tmp/mnist.model \
+    --vocab ./addition_tmp/mnist.vocab.pkl \
+    --model ./addition_tmp/mnist.model \
     --output mnist_output.npy
 
 

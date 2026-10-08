@@ -170,6 +170,7 @@ class EmbeddingGenerator(BaseEmbeddingGenerator):
     def __init__(self, const_flag:bool=False) -> None:
         super().__init__()
         self.dataset: EmbeddingData = {}
+        self.dataset_tensor: Dict[str, Tensor] = {}
         self.created_ph_var: Dict[str, PlaceholderData] = {}
         self.const_flag=const_flag
 
@@ -207,14 +208,15 @@ class EmbeddingGenerator(BaseEmbeddingGenerator):
         return None
     
     def build_feed(self, feed_dict: Dict[PlaceholderData, Tensor], idx: Optional[ndarray]=None) -> Dict[PlaceholderData, Tensor]:
+        """ Feed the whole tensors (idx is not used): for a tensor atom with a placeholder,
+        the rows are selected by the values of the placeholder (see SwitchTensorProvider).
+        """
         for vocab_name, data in self.dataset.items():
             ph_name = vocab_name + "_ph"
-            if idx is None or self.const_flag:
-                batch_data = data
-            else:
-                batch_data = data[idx]
             if ph_name in self.created_ph_var:
+                if vocab_name not in self.dataset_tensor:
+                    self.dataset_tensor[vocab_name] = torch.as_tensor(data, dtype=torch.float32)
                 ph_var = self.created_ph_var[ph_name]
-                feed_dict[ph_var] = torch.Tensor(batch_data)
+                feed_dict[ph_var] = self.dataset_tensor[vocab_name]
             feed_logger.debug("[feed] %s => %s", vocab_name, ph_name)
         return feed_dict

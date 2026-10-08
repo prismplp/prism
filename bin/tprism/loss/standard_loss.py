@@ -30,17 +30,18 @@ class NLL(BaseLoss):
         for rank_root in graph.root_list:
             goal_ids = [el.sorted_id for el in rank_root.roots]
             o=[]
+            nll=[]
             for sid in goal_ids:
                 gnode=goal_inside[sid]
                 if gnode is None:
                     raise RuntimeError("goal_inside[%d] is None" % (sid,))
                 l1 = gnode.inside
-                nll = -1.0 * torch.log(l1 + 1.0e-10)
+                nll.append(-1.0 * torch.log(l1 + 1.0e-10))
                 o.append(l1)
-            o_=torch.stack(o)
-            ll = torch.mean(o_, dim=0)
-            loss.append(ll)
-            output.append(o_)
+            # one loss for each goal group: the mean of the negative log likelihoods
+            # of the goals (and of the records in a minibatch)
+            loss.append(torch.mean(torch.stack(nll)))
+            output.append(torch.stack(o))
         loss_=torch.stack(loss)
         output_=torch.stack(output)
         return loss_, output_, None
@@ -78,7 +79,7 @@ class CE(BaseLoss):
             if type(output) is torch.Tensor:
                 output=output.detach().numpy()
             if type(label) is torch.Tensor:
-                lebel=label.detach().numpy()
+                label=label.detach().numpy()
             pred=np.argmax(output,axis=1)
             acc=sklearn.metrics.accuracy_score(label,pred)
             return {"*accuracy":acc}
@@ -133,7 +134,7 @@ class CE_pl(BaseLoss):
             if type(output) is torch.Tensor:
                 output=output.detach().numpy()
             if type(label) is torch.Tensor:
-                lebel=label.detach().numpy()
+                label=label.detach().numpy()
             pred=np.argmax(output,axis=1)
             acc=sklearn.metrics.accuracy_score(label,pred)
             return {"*accuracy":acc}
@@ -148,8 +149,6 @@ class MSE(BaseLoss):
         loss = []
         output = []
         label = []
-        label_ph = tensor_provider.ph_var["$placeholder1$"]
-        label_ph_var =tensor_provider.get_embedding(label_ph)
         for rank_root in graph.root_list:
             goal_ids = [el.sorted_id for el in rank_root.roots]
             gnode1=goal_inside[goal_ids[0]]
@@ -174,7 +173,7 @@ class MSE(BaseLoss):
             if type(output) is torch.Tensor:
                 output=output.detach().numpy()
             if type(label) is torch.Tensor:
-                lebel=label.detach().numpy()
+                label=label.detach().numpy()
             mse=np.mean((label-output)**2,axis=0)
             mse=np.sum(mse)
             return {"*mse":mse}

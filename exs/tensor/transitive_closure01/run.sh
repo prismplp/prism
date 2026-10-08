@@ -20,12 +20,16 @@ upprism transitive_closure.psm
 ##
 ## Output: transitive_closure_tmp/
 ##    vocab.pkl
+##    output.npy    : the adjacency matrix of the transitive closure
 ## --cycle option is required to solve a fixed point in the cyclic explanation graph.
 ## In this case, the loss function is not required.
+## --const_embedding gives the adjacency matrix (the group "train" of the embedding file)
+## also in the test mode.
 
 tprism test \
     --input transitive_closure_tmp/ \
-    --embedding transitive_closure_tmp/embedding.npy.json \
+    --const_embedding transitive_closure_tmp/embedding.npy.json \
+    --output transitive_closure_tmp/output.npy \
     --cycle \
     --cpu
 

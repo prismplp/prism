@@ -402,6 +402,9 @@ def build_goal_dataset(input_data: List[InputData], tensor_provider):
             if tensor_provider.is_convertable_value(ph_name):
                 debug_logger("feed").debug("%s: values converted to indices", ph_name)
                 dataset[i] = to_index_func(rec[:, i], ph_name)
+            elif tensor_provider.is_dataset_row(ph_name):
+                debug_logger("feed").debug("%s: values used as row numbers of a dataset", ph_name)
+                dataset[i] = rec[:, i]
             else:  # goal placeholder
                 dataset[i] = rec[:, i]
                 logger.warning(
@@ -410,5 +413,6 @@ def build_goal_dataset(input_data: List[InputData], tensor_provider):
                     rec.shape,
                 )
     for obj in goal_dataset:
-        obj["dataset"] = np.array(obj["dataset"])
+        # integer values fed to placeholders (indices, row numbers, and labels)
+        obj["dataset"] = np.array(obj["dataset"], dtype=np.int64)
     return goal_dataset
