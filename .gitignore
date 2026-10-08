@@ -4,6 +4,7 @@
 *.exe
 bin/tprism_docs/tprism/
 bin/tprism_docs/prism/
+bin/tprism_docs/tprism_manual/
 
 # Native MinGW build outputs (source and toolchain stay separate).
 /src/prolog/prism.pl

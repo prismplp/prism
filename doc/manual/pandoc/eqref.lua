@@ -1,4 +1,4 @@
--- pandoc Lua filter used by Make_html.sh
+-- pandoc Lua filter used by Make_html.sh and Make_tprism_html.sh
 --
 -- pandoc cannot number equations, so it renders \ref{eq:...} as the label
 -- itself ("[eq:adam]") linked to a missing anchor.  References to labels

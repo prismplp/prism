@@ -63,6 +63,9 @@ jobs:
       - name: Build the PRISM user's manual (HTML) from doc/manual/manual.tex
         run: cd bin/tprism_docs && make prism
 
+      - name: Build the T-PRISM user's manual (HTML) from doc/manual/tprism_manual.tex
+        run: cd bin/tprism_docs && make tprism_manual
+
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         #if: ${{ github.ref == 'refs/heads/main' }}

@@ -3,11 +3,12 @@
   window.MathJax = { tex: { tags: 'ams' } };
 </script>
 <style>
-  /* additions to pandoc's default HTML template (used by Make_html.sh) */
+  /* additions to pandoc's default HTML template (used by Make_html.sh and Make_tprism_html.sh) */
   nav.site-nav { font-size: 0.9em; margin-bottom: 2em; padding-bottom: 0.5em; border-bottom: 1px solid #ccc; }
   nav.site-nav a { margin-right: 1.2em; }
   img { max-width: 100%; height: auto; }
   figure { text-align: center; }
+  figure div.sourceCode, figure pre { text-align: left; }
   div.center { text-align: center; }
   /* the title page of the manual (\Huge and \Large are lost in HTML) */
   body > div.center:first-of-type > p:nth-child(1) { font-size: 2.2em; margin-bottom: 0.2em; }
@@ -19,6 +20,9 @@
   div.tt table, figure table { margin: 0 auto; }
   div.tt td { padding-top: 0; padding-bottom: 0; }
   table { display: block; overflow-x: auto; }
+  /* description lists: bold labels as in LaTeX, and the text right below them */
+  dt { font-weight: bold; }
+  dd > :first-child { margin-top: 0.25em; }
   #TOC > ul > li { margin-top: 0.3em; }
   /* on wide screens, the table of contents stays at the left */
   @media (min-width: 75rem) {
